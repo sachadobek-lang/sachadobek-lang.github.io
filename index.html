@@ -36,6 +36,7 @@
   /* relais pour l'agenda greffé */
   --cad-surface:#FFFFFF; --cad-surface-2:#F5F8FC; --cad-line:#DFE7F0; --cad-line-fort:#C6D2E0;
   --cad-ink:#14202E; --cad-ink-2:#4F5B70; --cad-ink-3:#7F8CA1; --cad-v1:#0B7D6E; --cad-tard:#A3670F;
+  --cad-tard-doux:#FBEDD6; --cad-attente-doux:#E3ECFB; --cad-deg-pale:#E2F2EF;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
@@ -58,6 +59,7 @@
     --o3:0 18px 46px -14px rgba(0,0,0,.8);
     --cad-surface:#141C28; --cad-surface-2:#1A2431; --cad-line:#233040; --cad-line-fort:#334152;
     --cad-ink:#ECF2F9; --cad-ink-2:#A2AFC2; --cad-ink-3:#73819A; --cad-v1:#17A794; --cad-tard:#DFA850;
+    --cad-tard-doux:#2A2113; --cad-attente-doux:#142740; --cad-deg-pale:#0F2A27;
   }
 }
 :root[data-theme="dark"]{
@@ -80,6 +82,7 @@
   --o3:0 18px 46px -14px rgba(0,0,0,.8);
   --cad-surface:#141C28; --cad-surface-2:#1A2431; --cad-line:#233040; --cad-line-fort:#334152;
   --cad-ink:#ECF2F9; --cad-ink-2:#A2AFC2; --cad-ink-3:#73819A; --cad-v1:#17A794; --cad-tard:#DFA850;
+  --cad-tard-doux:#2A2113; --cad-attente-doux:#142740; --cad-deg-pale:#0F2A27;
 }
 
 *{box-sizing:border-box}
@@ -999,11 +1002,441 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee{padding-bottom:104px}
 #majournee .quick{position:static}
 
+
+/* ══════════ IL TE RESTE COMBIEN ? — greffée telle quelle ══════════ */
+
+#ilreste{
+  --paper:transparent; --surface:var(--cad-surface); --sunken:var(--cad-surface-2);
+  --ink:var(--cad-ink); --ink-soft:var(--cad-ink-2); --ink-faint:var(--cad-ink-3); --rule:var(--cad-line);
+  --moi:var(--cad-v1); --moi-bg:var(--cad-deg-pale); --on-moi:#FFFFFF;
+  --tva:#17539F; --tva-bg:var(--cad-attente-doux);
+  --urssaf:var(--cad-ink); --urssaf-bg:var(--cad-surface-2);
+  --chaud:var(--cad-tard); --chaud-bg:var(--cad-tard-doux);
+  --focus:var(--cad-v1);
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){#ilreste:not([data-theme="light"]){
+    --paper:transparent; --surface:var(--cad-surface); --sunken:var(--cad-surface-2);
+    --ink:var(--cad-ink); --ink-soft:var(--cad-ink-2); --ink-faint:var(--cad-ink-3); --rule:var(--cad-line);
+    --moi:var(--cad-v1); --moi-bg:var(--cad-deg-pale); --on-moi:#FFFFFF;
+    --tva:#17539F; --tva-bg:var(--cad-attente-doux);
+    --urssaf:var(--cad-ink); --urssaf-bg:var(--cad-surface-2);
+    --chaud:var(--cad-tard); --chaud-bg:var(--cad-tard-doux);
+    --focus:var(--cad-v1);
+    color-scheme:dark;
+  }
+}
+#ilreste[data-theme="dark"]{
+  --paper:transparent; --surface:var(--cad-surface); --sunken:var(--cad-surface-2);
+  --ink:var(--cad-ink); --ink-soft:var(--cad-ink-2); --ink-faint:var(--cad-ink-3); --rule:var(--cad-line);
+  --moi:var(--cad-v1); --moi-bg:var(--cad-deg-pale); --on-moi:#FFFFFF;
+  --tva:#17539F; --tva-bg:var(--cad-attente-doux);
+  --urssaf:var(--cad-ink); --urssaf-bg:var(--cad-surface-2);
+  --chaud:var(--cad-tard); --chaud-bg:var(--cad-tard-doux);
+  --focus:var(--cad-v1);
+  color-scheme:dark;
+}
+#ilreste *{box-sizing:border-box}
+#ilreste [hidden]{display:none!important}
+#ilreste{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,sans-serif;
+  font-size:17px;line-height:1.45;-webkit-font-smoothing:antialiased;
+}
+#ilreste :focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:6px}
+@media (prefers-reduced-motion:reduce){#ilreste *{transition:none!important;animation:none!important}}
+#ilreste .page{
+  max-width:600px;margin:0 auto;
+  padding-block:22px 80px;padding-left:18px;padding-right:18px;
+  display:flex;flex-direction:column;gap:18px;
+}
+#ilreste h1{font-family:Spectral,Georgia,serif;font-weight:700;font-size:clamp(25px,6.6vw,32px);line-height:1.1;margin:0;letter-spacing:-.015em}
+#ilreste .chiffre{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;font-size:.97em}
+#ilreste .tabs{display:flex;gap:6px;background:var(--sunken);padding:5px;border-radius:16px}
+#ilreste .tabs button{
+  flex:1;min-height:48px;border:0;border-radius:11px;background:none;
+  color:var(--ink-soft);font:inherit;font-size:15.5px;font-weight:500;cursor:pointer;
+  transition:background .15s,color .15s;
+}
+#ilreste .tabs button[aria-selected=true]{background:var(--moi);color:var(--on-moi);font-weight:600}
+#ilreste .tabs button:hover:not([aria-selected=true]){color:var(--ink)}
+#ilreste .tabs .pastille{
+  display:inline-block;min-width:19px;height:19px;line-height:19px;padding:0 5px;margin-left:5px;
+  border-radius:99px;background:var(--chaud);color:#fff;font-size:11.5px;font-weight:600;
+  font-family:"IBM Plex Mono",monospace;vertical-align:1px;
+}
+#ilreste .tabs button[aria-selected=true] .pastille{background:var(--on-moi);color:var(--moi)}
+#ilreste .panel{display:flex;flex-direction:column;gap:18px}
+#ilreste .roll{display:inline-flex;align-items:center;line-height:1;white-space:nowrap}
+#ilreste .rd{display:inline-block;overflow:hidden;height:1.15em;width:1ch;flex:none}
+#ilreste .rc{display:block;transition:transform .6s cubic-bezier(.16,1,.3,1)}
+#ilreste .rc > span{display:block;height:1.15em;line-height:1.15em;text-align:center}
+#ilreste .rs{display:inline-block;white-space:pre}
+@media (prefers-reduced-motion:reduce){#ilreste .rc{transition:none}}
+#ilreste .gros{
+  width:100%;min-height:62px;border:0;border-radius:18px;
+  background:var(--moi);color:var(--on-moi);font:inherit;font-size:18.5px;font-weight:600;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
+  transition:transform .08s,background .15s;
+}
+#ilreste .gros:hover{background:var(--ink);color:var(--paper)}
+#ilreste .gros:active{transform:scale(.985)}
+#ilreste .bloc-disque{display:flex;flex-direction:column;align-items:center;gap:14px}
+#ilreste .disc{position:relative;width:min(290px,78vw);aspect-ratio:1}
+#ilreste .disc svg{width:100%;height:100%;display:block}
+#ilreste .disc .seg{fill:none;transition:stroke-dasharray .5s cubic-bezier(.16,1,.3,1),stroke-dashoffset .5s cubic-bezier(.16,1,.3,1)}
+#ilreste .disc-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;padding:0 14%}
+#ilreste .disc-center .cap{font-size:13.5px;color:var(--ink-soft)}
+#ilreste .disc-center .big{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:clamp(27px,9vw,40px);line-height:1.05;color:var(--moi);letter-spacing:-.025em}
+#ilreste .disc-center .pc{font-family:"IBM Plex Mono",monospace;font-size:14.5px;color:var(--ink-faint)}
+#ilreste .legende{width:100%;display:flex;flex-direction:column;gap:2px}
+#ilreste .legende .l{display:flex;align-items:baseline;gap:10px;padding:7px 2px;border-bottom:1px solid var(--rule)}
+#ilreste .legende .l:last-child{border-bottom:0}
+#ilreste .legende .d{flex:none;width:12px;height:12px;border-radius:4px;align-self:center}
+#ilreste .legende .nom{flex:1;font-size:15.5px}
+#ilreste .legende .nom small{display:block;font-size:12.5px;color:var(--ink-faint)}
+#ilreste .legende .v{font-family:"IBM Plex Mono",monospace;font-size:17px;font-weight:600;white-space:nowrap}
+#ilreste .legende .moi .d{background:var(--moi)}
+#ilreste .legende .moi .v{color:var(--moi)}
+#ilreste .legende .tva .d{background:var(--tva)}
+#ilreste .legende .tva .v{color:var(--tva)}
+#ilreste .legende .urssaf .d{background:var(--urssaf)}
+#ilreste .legende .urssaf .v{color:var(--urssaf)}
+#ilreste .cadre{border:2px solid var(--ink);border-radius:18px;padding:16px 18px;display:flex;flex-direction:column;gap:4px}
+#ilreste .cadre.alerte{border-color:var(--chaud);background:var(--chaud-bg)}
+#ilreste .cadre .t{font-size:14.5px;color:var(--ink-soft)}
+#ilreste .cadre.alerte .t{color:var(--chaud)}
+#ilreste .cadre .v{font-family:"IBM Plex Mono",monospace;font-size:31px;font-weight:600;line-height:1.15}
+#ilreste .cadre.alerte .v{color:var(--chaud)}
+#ilreste .cadre .s{font-size:13.5px;color:var(--ink-soft)}
+#ilreste .cadre .s b{color:var(--ink);font-weight:600}
+#ilreste .mois{display:flex;align-items:flex-end;gap:4px;height:74px}
+#ilreste .mois .m{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px;height:100%}
+#ilreste .mois .m i{display:block;width:100%;background:var(--moi-bg);border-radius:4px 4px 0 0;min-height:3px;transition:height .5s cubic-bezier(.16,1,.3,1)}
+#ilreste .mois .m.actif i{background:var(--moi)}
+#ilreste .mois .m span{font-size:10.5px;color:var(--ink-faint);font-family:"IBM Plex Mono",monospace}
+#ilreste .jauge{display:flex;flex-direction:column;gap:6px}
+#ilreste .jauge .haut{display:flex;align-items:baseline;gap:10px;font-size:14.5px;color:var(--ink-soft)}
+#ilreste .jauge .haut .n{margin-left:auto;font-family:"IBM Plex Mono",monospace;color:var(--ink);font-weight:500}
+#ilreste .jauge .barre{height:12px;border-radius:99px;background:var(--sunken);overflow:hidden}
+#ilreste .jauge .barre i{display:block;height:100%;background:var(--moi);transition:width .5s cubic-bezier(.16,1,.3,1),background .3s}
+#ilreste .jauge.chaud .barre i{background:var(--chaud)}
+#ilreste .jauge .bas{font-size:13.5px;color:var(--ink-soft)}
+#ilreste .jauge.chaud .bas{color:var(--chaud);font-weight:500}
+#ilreste .card{background:var(--surface);border:1px solid var(--rule);border-radius:18px;padding:17px;display:flex;flex-direction:column;gap:11px}
+#ilreste .card > h2{font-family:Spectral,Georgia,serif;font-size:16.5px;font-weight:600;margin:0}
+#ilreste .frow{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+#ilreste .f{display:flex;flex-direction:column;gap:4px;min-width:0}
+#ilreste .f > span{font-size:12.5px;color:var(--ink-faint)}
+#ilreste .f input,#ilreste .f textarea,#ilreste .f select{
+  font:inherit;font-size:16px;color:var(--ink);background:var(--paper);
+  border:1px solid var(--rule);border-radius:12px;padding:11px 13px;min-height:48px;width:100%;
+}
+#ilreste .f textarea{min-height:72px;resize:vertical;line-height:1.4}
+#ilreste .f input[inputmode=decimal],#ilreste .f input[inputmode=numeric]{font-family:"IBM Plex Mono",monospace;text-align:right}
+#ilreste .f input::placeholder,#ilreste .f textarea::placeholder{color:var(--ink-faint)}
+#ilreste .btn{
+  min-height:48px;padding:0 16px;border-radius:14px;font:inherit;font-size:15.5px;font-weight:500;
+  border:1px solid var(--rule);background:var(--surface);color:var(--ink);cursor:pointer;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  transition:background .12s,border-color .12s,color .12s,transform .08s;
+}
+#ilreste .btn:hover{background:var(--moi-bg);border-color:var(--moi);color:var(--moi)}
+#ilreste .btn:active{transform:scale(.98)}
+#ilreste .btn.plein{background:var(--moi);border-color:var(--moi);color:var(--on-moi);font-weight:600}
+#ilreste .btn.plein:hover{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+#ilreste .actions{display:flex;flex-wrap:wrap;gap:9px}
+#ilreste .actions .btn{flex:1 1 auto}
+#ilreste .liste{display:flex;flex-direction:column;border:1px solid var(--rule);border-radius:16px;overflow:hidden}
+#ilreste .ligne{display:flex;align-items:center;gap:11px;padding:13px 15px;border-bottom:1px solid var(--rule)}
+#ilreste .ligne:last-child{border-bottom:0}
+#ilreste .ligne .no{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-faint);flex:none;width:24px}
+#ilreste .ligne .qui{flex:1;min-width:0}
+#ilreste .ligne .qui b{display:block;font-size:15.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#ilreste .ligne .qui small{display:block;font-size:12.5px;color:var(--ink-faint)}
+#ilreste .ligne .som{font-family:"IBM Plex Mono",monospace;font-size:16px;font-weight:600;white-space:nowrap}
+#ilreste .ligne .sup{flex:none;width:34px;height:34px;border-radius:10px;border:1px solid var(--rule);background:none;color:var(--ink-faint);cursor:pointer;font-size:14px}
+#ilreste .ligne .sup:hover{background:var(--chaud-bg);color:var(--chaud);border-color:var(--chaud)}
+#ilreste .ligne.exemple{background:var(--sunken)}
+#ilreste .vide{padding:26px 18px;text-align:center;color:var(--ink-faint);font-size:15px}
+#ilreste .creance{display:flex;flex-direction:column;gap:10px;padding:15px;border-bottom:1px solid var(--rule)}
+#ilreste .creance:last-child{border-bottom:0}
+#ilreste .creance.retard{background:var(--chaud-bg)}
+#ilreste .creance .haut{display:flex;align-items:flex-start;gap:11px}
+#ilreste .creance .haut .qui{flex:1;min-width:0}
+#ilreste .creance .haut .qui b{display:block;font-size:16px;font-weight:600}
+#ilreste .creance .haut .qui small{display:block;font-size:12.5px;color:var(--ink-faint)}
+#ilreste .creance .haut .som{font-family:"IBM Plex Mono",monospace;font-size:19px;font-weight:600;white-space:nowrap}
+#ilreste .creance .quoi{font-size:13.5px;color:var(--ink-soft)}
+#ilreste .creance.retard .quoi{color:var(--chaud);font-weight:500}
+#ilreste .creance .bas{display:flex;gap:8px}
+#ilreste .creance .bas .btn{flex:1}
+#ilreste .etiq{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.04em;padding:2px 7px;border-radius:99px;background:var(--sunken);color:var(--ink-faint);text-transform:uppercase}
+#ilreste details.repli{border:1px solid var(--rule);border-radius:16px;overflow:hidden}
+#ilreste details.repli > summary{
+  list-style:none;cursor:pointer;padding:14px 17px;display:flex;align-items:center;gap:10px;font-size:15px;
+}
+#ilreste details.repli > summary::-webkit-details-marker{display:none}
+#ilreste details.repli > summary::before{
+  content:"";width:0;height:0;flex:none;
+  border-left:5px solid var(--ink-faint);border-top:4px solid transparent;border-bottom:4px solid transparent;
+  transition:transform .15s;
+}
+#ilreste details.repli[open] > summary::before{transform:rotate(90deg)}
+#ilreste details.repli > summary .titre{color:var(--ink-soft)}
+#ilreste details.repli > summary .rep{
+  margin-left:auto;font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--ink);
+  white-space:nowrap;font-size:15.5px;
+}
+#ilreste .repli-corps{padding:4px 17px 17px;display:flex;flex-direction:column;gap:13px;border-top:1px solid var(--rule)}
+#ilreste .choix{display:flex;flex-direction:column;gap:8px}
+#ilreste .choix button{display:flex;align-items:center;gap:12px;text-align:left;min-height:54px;padding:9px 14px;border:2px solid var(--rule);border-radius:15px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;transition:border-color .15s,background .15s}
+#ilreste .choix button:hover{border-color:var(--moi)}
+#ilreste .choix button[aria-pressed=true]{border-color:var(--moi);background:var(--moi-bg)}
+#ilreste .choix .mark{flex:none;width:23px;height:23px;border-radius:50%;border:2px solid var(--rule);background:var(--paper);display:flex;align-items:center;justify-content:center}
+#ilreste .choix button[aria-pressed=true] .mark{border-color:var(--moi);background:var(--moi)}
+#ilreste .choix .mark svg{display:none}
+#ilreste .choix button[aria-pressed=true] .mark svg{display:block}
+#ilreste .choix .txt b{display:block;font-weight:600;font-size:15px}
+#ilreste .choix .txt small{display:block;color:var(--ink-soft);font-size:12.5px}
+#ilreste .bascule{display:flex;align-items:center;gap:11px;font-size:15px;min-height:46px}
+#ilreste .bascule input{width:22px;height:22px;accent-color:var(--moi);flex:none}
+#ilreste table.det{width:100%;border-collapse:collapse;font-size:14.5px}
+#ilreste table.det td{padding:7px 0;border-bottom:1px solid var(--rule);color:var(--ink-soft)}
+#ilreste table.det td:last-child{text-align:right;font-family:"IBM Plex Mono",monospace;white-space:nowrap;color:var(--ink)}
+#ilreste table.det tr:last-child td{border-bottom:0}
+#ilreste .apercu{background:var(--surface);border:1px solid var(--rule);border-radius:16px;padding:22px;font-size:14px;line-height:1.5}
+#ilreste .apercu .tete{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;margin-bottom:18px}
+#ilreste .apercu h3{font-family:Spectral,Georgia,serif;font-size:20px;margin:0 0 3px}
+#ilreste .apercu .meta{color:var(--ink-soft);font-size:12.5px}
+#ilreste .apercu .qui2{font-size:12.5px;white-space:pre-line;color:var(--ink-soft);min-width:160px}
+#ilreste .apercu .qui2 strong{color:var(--ink);font-size:13.5px;display:block;margin-bottom:2px}
+#ilreste .apercu table{width:100%;border-collapse:collapse;font-size:13.5px;margin-bottom:13px}
+#ilreste .apercu th{text-align:left;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint);font-weight:500;padding:0 0 6px;border-bottom:1px solid var(--rule)}
+#ilreste .apercu th.r,#ilreste .apercu td.r{text-align:right}
+#ilreste .apercu td{padding:8px 0;border-bottom:1px solid var(--rule)}
+#ilreste .apercu td.r{font-family:"IBM Plex Mono",monospace;white-space:nowrap;padding-left:10px}
+#ilreste .apercu .fin{display:flex;flex-direction:column;gap:5px;margin-left:auto;max-width:260px}
+#ilreste .apercu .fin div{display:flex;gap:16px}
+#ilreste .apercu .fin div span:last-child{margin-left:auto;font-family:"IBM Plex Mono",monospace}
+#ilreste .apercu .fin .ttc{border-top:1px solid var(--rule);padding-top:7px;margin-top:3px;font-weight:600;font-size:16.5px}
+#ilreste .tbl-scroll{overflow-x:auto}
+#ilreste .mentions{font-size:12px;color:var(--ink-faint);line-height:1.5}
+#ilreste .mentions b{color:var(--ink-soft);font-weight:600}
+#ilreste .note{font-size:13px;color:var(--ink-faint);line-height:1.55;border-top:1px solid var(--rule);padding-top:13px;margin:0}
+#ilreste .note b{color:var(--ink-soft);font-weight:600}
+#ilreste .note-inline{font-size:13px;color:var(--ink-faint);line-height:1.55;margin:0}
+#ilreste .note-inline b{color:var(--ink-soft);font-weight:600}
+
+@media print{
+  @page{margin:14mm}#ilreste{background:#fff;color:#111}#ilreste .page{max-width:none;padding:0;gap:0}#ilreste .noprint{display:none!important}#ilreste .apercu{border:0;border-radius:0;padding:0;font-size:12pt}#ilreste .apercu th{border-bottom:1px solid #999}#ilreste .apercu td{border-bottom:1px solid #ddd}#ilreste .mentions{color:#444;font-size:9pt;margin-top:18px}#ilreste .liste{border:0;border-radius:0}#ilreste .ligne{border-bottom:1px solid #ddd}#ilreste .ligne .sup{display:none}
+}
+
+/* ── pour vivre à l'intérieur de Cadence ── */
+#ilreste{display:block;background:transparent;padding-bottom:104px}
+#ilreste .enveloppe,#ilreste .wrap,#ilreste main{min-height:0;max-width:none}
+
 </style>
 
 <div class="page">
   <header class="entete anim" id="entete"></header>
   <div id="vue"></div>
+  <div id="ilreste" hidden>
+<div class="page">
+
+  <h1 class="noprint">Il te reste combien&nbsp;?</h1>
+
+  <div class="tabs noprint" role="tablist">
+    <button id="tab-argent"   role="tab" aria-selected="true">Mon argent</button>
+    <button id="tab-factures" role="tab" aria-selected="false">Mes factures<span class="pastille" id="pastille" hidden>0</span></button>
+    <button id="tab-livre"    role="tab" aria-selected="false">Mes rentrées</button>
+  </div>
+
+  <!-- ============ MON ARGENT ============ -->
+  <div class="panel noprint" id="p-argent" role="tabpanel">
+
+    <button class="gros" id="gros-1">＋ J'ai été payé</button>
+
+    <div class="bloc-disque">
+      <div class="disc">
+        <svg viewBox="0 0 240 240" role="img" aria-labelledby="d-t">
+          <title id="d-t">Partage de tout ce que tu as encaissé cette année</title>
+          <circle cx="120" cy="120" r="96" fill="none" stroke="var(--sunken)" stroke-width="32"></circle>
+          <g transform="rotate(-90 120 120)">
+            <circle class="seg" id="s-moi"    cx="120" cy="120" r="96" stroke="var(--moi)"    stroke-width="32"></circle>
+            <circle class="seg" id="s-tva"    cx="120" cy="120" r="96" stroke="var(--tva)"    stroke-width="32"></circle>
+            <circle class="seg" id="s-urssaf" cx="120" cy="120" r="96" stroke="var(--urssaf)" stroke-width="32"></circle>
+          </g>
+        </svg>
+        <div class="disc-center">
+          <span class="cap">à toi cette année</span>
+          <span class="big" id="c-moi">—</span>
+          <span class="pc" id="c-pc">—</span>
+        </div>
+      </div>
+
+      <div class="legende">
+        <div class="l moi"><span class="d"></span>
+          <span class="nom">À toi<small>tu peux le dépenser</small></span>
+          <span class="v" id="v-moi">—</span></div>
+        <div class="l tva" id="l-tva"><span class="d"></span>
+          <span class="nom">La TVA<small>elle n'a jamais été à toi</small></span>
+          <span class="v" id="v-tva">—</span></div>
+        <div class="l urssaf"><span class="d"></span>
+          <span class="nom">Pour l'URSSAF<small id="lbl-urssaf">retraite, maladie</small></span>
+          <span class="v" id="v-urssaf">—</span></div>
+      </div>
+    </div>
+
+    <div class="cadre">
+      <span class="t">Ne dépense pas ça. Mets-le sur un autre compte.</span>
+      <span class="v" id="t-garde">—</span>
+      <span class="s" id="t-quand">—</span>
+    </div>
+
+    <div class="mois" id="mois"></div>
+
+    <div class="jauge" id="jauge">
+      <div class="haut"><span id="j-quoi">—</span><span class="n" id="j-chiffre">—</span></div>
+      <div class="barre"><i id="j-barre" style="width:0%"></i></div>
+      <div class="bas" id="j-reste">—</div>
+    </div>
+
+    <div class="cadre alerte" id="concentration" hidden>
+      <span class="t">Un seul client pèse trop lourd</span>
+      <span class="v" id="conc-pc">—</span>
+      <span class="s" id="conc-txt">—</span>
+    </div>
+
+    <details class="repli">
+      <summary><span class="titre">Mon prix minimum</span><span class="rep" id="sum-tjm">—</span></summary>
+      <div class="repli-corps">
+        <div class="frow">
+          <label class="f"><span>Je veux gagner par mois</span><input type="text" inputmode="decimal" id="o-net"></label>
+          <label class="f"><span>Mes frais dans l'année</span><input type="text" inputmode="decimal" id="o-frais"></label>
+          <label class="f"><span>Jours facturés par an</span><input type="text" inputmode="numeric" id="o-jours"></label>
+        </div>
+        <p class="note-inline">Un indépendant facture <b>120 à 180 jours par an</b>, jamais 200 : les congés et le travail non facturé mangent le reste.</p>
+        <table class="det" id="o-table"></table>
+        <div class="jauge" id="jauge-obj">
+          <div class="haut"><span>Où tu en es cette année</span><span class="n" id="o-chiffre">—</span></div>
+          <div class="barre"><i id="o-barre" style="width:0%"></i></div>
+          <div class="bas" id="o-reste">—</div>
+        </div>
+      </div>
+    </details>
+
+    <details class="repli">
+      <summary><span class="titre">Mon activité</span><span class="rep" id="sum-act">—</span></summary>
+      <div class="repli-corps">
+        <div class="choix" id="choix-activite" role="group" aria-label="Ton activité"></div>
+        <label class="bascule"><input type="checkbox" id="r-vfl"> Je paie mon impôt avec mes cotisations</label>
+        <label class="bascule"><input type="checkbox" id="r-tva"> Je facture la TVA</label>
+        <div class="actions"><button class="btn" id="vider-exemples">Effacer les exemples</button></div>
+      </div>
+    </details>
+
+    <p class="note" id="note-bas"></p>
+  </div>
+
+  <!-- ============ MES FACTURES ============ -->
+  <div class="panel" id="p-factures" role="tabpanel" hidden>
+
+    <button class="gros noprint" id="gros-facture">＋ Nouvelle facture</button>
+
+    <div class="cadre noprint" id="cadre-doit">
+      <span class="t">On te doit</span>
+      <span class="v" id="d-total">—</span>
+      <span class="s" id="d-detail">—</span>
+    </div>
+
+    <div class="liste noprint" id="liste-creances"></div>
+
+    <!-- le formulaire, caché tant qu'on ne fait pas de facture -->
+    <div id="bloc-facture" hidden>
+      <div class="panel">
+        <div class="card noprint">
+          <h2>Toi</h2>
+          <div class="frow">
+            <label class="f"><span>Ton nom</span><input type="text" id="e-nom" placeholder="Studio Belleville"></label>
+            <label class="f"><span>SIRET</span><input type="text" id="e-siret" placeholder="123 456 789 00012"></label>
+          </div>
+          <label class="f"><span>Ton adresse</span><textarea id="e-adr" placeholder="12 rue des Cascades&#10;75020 Paris"></textarea></label>
+        </div>
+
+        <div class="card noprint">
+          <h2>Ton client</h2>
+          <label class="f"><span>Son nom</span><input type="text" id="c-nom" placeholder="Boulangerie Mercier"></label>
+          <label class="f"><span>Son adresse</span><textarea id="c-adr" placeholder="4 place du Marché&#10;75011 Paris"></textarea></label>
+        </div>
+
+        <div class="card noprint">
+          <h2>La facture</h2>
+          <div class="frow">
+            <label class="f"><span>Numéro</span><input type="text" id="f-num"></label>
+            <label class="f"><span>Date</span><input type="date" id="f-date"></label>
+            <label class="f"><span>À payer avant le</span><input type="date" id="f-ech"></label>
+          </div>
+          <label class="f"><span>Ce que tu as fait</span><input type="text" id="f-desc" placeholder="Création du logo"></label>
+          <label class="f"><span>Combien</span><input type="text" inputmode="decimal" id="f-montant" placeholder="1200"></label>
+        </div>
+
+        <div class="cadre noprint">
+          <span class="t" id="t-tva-lbl">Le client te doit</span>
+          <span class="v" id="t-ttc">—</span>
+          <span class="s" id="t-detail">—</span>
+        </div>
+
+        <div class="actions noprint">
+          <button class="btn plein" id="envoyer-facture">Je l'ai envoyée</button>
+          <button class="btn" id="imprimer-facture">Imprimer ou PDF</button>
+          <button class="btn" id="fermer-facture">Fermer</button>
+        </div>
+
+        <div class="apercu" id="apercu"></div>
+      </div>
+    </div>
+
+    <p class="note noprint">
+      <b>Le calendrier de relance des comptables</b> — cinq jours après l'échéance, un mot gentil. Quinze jours, une relance ferme. Trente jours, une lettre recommandée. Quarante-cinq jours, une mise en demeure. Les <b>40 €</b> d'indemnité de recouvrement sont dus dès le premier jour de retard, sans que tu aies à les réclamer.
+    </p>
+  </div>
+
+  <!-- ============ MES RENTRÉES ============ -->
+  <div class="panel" id="p-livre" role="tabpanel" hidden>
+
+    <button class="gros noprint" id="gros-2">＋ J'ai été payé</button>
+
+    <div class="card noprint" id="form-rentree" hidden>
+      <h2>On t'a payé combien&nbsp;?</h2>
+      <div class="frow">
+        <label class="f"><span>Combien</span><input type="text" inputmode="decimal" id="n-montant" placeholder="1200"></label>
+        <label class="f"><span>Quel jour</span><input type="date" id="n-date"></label>
+      </div>
+      <label class="f"><span>Qui t'a payé</span><input type="text" id="n-client" placeholder="Boulangerie Mercier"></label>
+      <div class="frow">
+        <label class="f"><span>Comment</span>
+          <select id="n-mode"><option>Virement</option><option>Carte</option><option>Chèque</option><option>Espèces</option></select>
+        </label>
+        <label class="f"><span>N° de facture</span><input type="text" id="n-ref" placeholder="2026-001"></label>
+      </div>
+      <div class="actions">
+        <button class="btn plein" id="valider-rentree">C'est noté</button>
+        <button class="btn" id="annuler-rentree">Annuler</button>
+      </div>
+    </div>
+
+    <div class="liste" id="livre"></div>
+
+    <div class="actions noprint"><button class="btn" id="imprimer-livre">Imprimer le livre des recettes</button></div>
+
+    <p class="note noprint">
+      <b>C'est ton livre des recettes</b> — le seul document comptable obligatoire en micro-entreprise. Date d'encaissement, client, référence, mode de règlement, dans l'ordre. Garde-le <b>10 ans</b> : c'est lui qu'on te demandera en cas de contrôle.
+    </p>
+  </div>
+
+</div>
+  </div>
   <div id="majournee" hidden>
 <div class="app">
   <header class="top">
@@ -2191,13 +2624,17 @@ function rendre(){
   badge("#n-taches", c.resteJour.length);
   badge("#n-argent", c.impayees.length);
   const surAgenda = vue === "afaire";
+  const surCompta = vue === "budget";
+  const greffe = surAgenda || surCompta;
   $("#majournee").hidden = !surAgenda;
-  $("#vue").hidden = surAgenda;
-  $("#entete").hidden = surAgenda;
-  if(surAgenda){
+  $("#ilreste").hidden = !surCompta;
+  $("#vue").hidden = greffe;
+  $("#entete").hidden = greffe;
+  if(greffe){
     document.querySelector(".page").dataset.sec = vue;
     animer = false;
-    if(window.majourneeReveil) window.majourneeReveil();
+    if(surAgenda && window.majourneeReveil) window.majourneeReveil();
+    if(surCompta && window.ilresteReveil) window.ilresteReveil();
     return;
   }
   rendreEntete();
@@ -3955,6 +4392,447 @@ setInterval(function(){
       if (d){ db = d; subscribeWeek(); subscribeRepeats(); subscribeNotes(); }
     }).catch(function(){});
   } catch(e){}
+})();
+
+})();
+
+</script>
+
+<script>
+/* ══════════ IL TE RESTE COMBIEN ? — son programme, inchangé ══════════ */
+(function(){
+
+(function(){
+"use strict";
+
+var ACTIVITES = [
+  {id:"vente",   nom:"Je vends des choses",   court:"Vente",   desc:"marchandises, nourriture, hébergement", cot:12.3, vfl:1.0, seuil:188700, seuilTva:85000},
+  {id:"service", nom:"Je rends des services", court:"Services",desc:"artisanat, travaux, prestations",       cot:21.2, vfl:1.7, seuil:77700,  seuilTva:37500},
+  {id:"liberal", nom:"Je suis en libéral",    court:"Libéral", desc:"conseil, design, code, formation",      cot:25.6, vfl:2.2, seuil:77700,  seuilTva:37500}
+];
+var TAUX_TVA = 0.20;
+var MOIS = ["J","F","M","A","M","J","J","A","S","O","N","D"];
+
+var etat = null;
+var $ = function(id){ return document.getElementById(id); };
+var eur  = new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR",maximumFractionDigits:0});
+var eur2 = new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR",minimumFractionDigits:2,maximumFractionDigits:2});
+var C = 2*Math.PI*96, GAP = 3;
+
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function num(v){ var x=parseFloat(String(v).replace(",",".").replace(/\s/g,"")); return isFinite(x)?x:0; }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function nb(v){ return '<span class="chiffre">'+esc(v)+'</span>'; }
+function iso(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function jour(s){ if(!s) return "—"; var p=String(s).split("-"); return p.length===3 ? p[2]+"/"+p[1]+"/"+p[0] : s; }
+function joursEntre(a,b){ return Math.floor((new Date(b)-new Date(a))/864e5); }
+
+/* ---------- compteur roulant ---------- */
+function Roll(el){ this.el=el; el.classList.add("roll"); this.shape=null; this.cols=[]; this.prev=[]; this.premier=true; }
+Roll.prototype.construire=function(chars,chiffres){
+  var prev=this.prev,n=chiffres.length,di=0,self=this;
+  this.el.textContent=""; this.cols=[];
+  var frag=document.createDocumentFragment();
+  chars.forEach(function(c){
+    if(c>="0"&&c<="9"){
+      var cell=document.createElement("span"); cell.className="rd";
+      var col=document.createElement("span"); col.className="rc";
+      for(var k=0;k<10;k++){ var g=document.createElement("span"); g.textContent=String(k); col.appendChild(g); }
+      cell.appendChild(col); frag.appendChild(cell);
+      var dd=n-1-di, depart=self.premier?0:(parseInt(prev[prev.length-1-dd],10)||0);
+      col.style.transition="none"; col.style.transform="translateY("+(-depart*10)+"%)";
+      self.cols.push(col); di++;
+    } else { var s=document.createElement("span"); s.className="rs"; s.textContent=c; frag.appendChild(s); }
+  });
+  this.el.appendChild(frag);
+  void this.el.offsetHeight;
+  this.cols.forEach(function(col){ col.style.transition=""; });
+  this.premier=false;
+};
+Roll.prototype.set=function(str){
+  var chars=String(str).split("");
+  var forme=chars.map(function(c){ return (c>="0"&&c<="9")?"#":c; }).join("");
+  var chiffres=chars.filter(function(c){ return c>="0"&&c<="9"; });
+  if(forme!==this.shape){ this.construire(chars,chiffres); this.shape=forme; }
+  var di=0;
+  this.cols.forEach(function(col){ col.style.transform="translateY("+(-(parseInt(chiffres[di++],10)||0)*10)+"%)"; });
+  this.prev=chiffres;
+};
+var rouleaux={};
+function roule(id,str){ var el=$(id); if(!el) return; if(!rouleaux[id]) rouleaux[id]=new Roll(el); rouleaux[id].set(str); }
+
+/* ---------- état ---------- */
+function activite(){
+  for(var i=0;i<ACTIVITES.length;i++) if(ACTIVITES[i].id===etat.activite) return ACTIVITES[i];
+  return ACTIVITES[2];
+}
+function etatNeuf(){
+  var d=new Date(), an=d.getFullYear();
+  var il=function(j){ var x=new Date(d); x.setDate(x.getDate()-j); return iso(x); };
+  return {
+    activite:"liberal", vfl:false, tva:false, onglet:"argent",
+    rentrees:[
+      {id:uid(),date:il(46),client:"Boulangerie Mercier",ref:"2026-001",montant:1200,mode:"Virement",exemple:true},
+      {id:uid(),date:il(19),client:"Atelier Ferrand",    ref:"2026-002",montant:2500,mode:"Virement",exemple:true},
+      {id:uid(),date:il(4), client:"Camille Roux",       ref:"2026-003",montant:640, mode:"Chèque",  exemple:true}
+    ],
+    creances:[
+      {id:uid(),client:"Mairie de Montreuil",ref:"2026-004",montant:3000,desc:"Refonte du site",emission:il(52),echeance:il(22),exemple:true},
+      {id:uid(),client:"Atelier Ferrand",    ref:"2026-005",montant:1450,desc:"Affiches saison", emission:il(12),echeance:il(-18),exemple:true}
+    ],
+    objectif:{net:2200,frais:4800,jours:140},
+    facture:{eNom:"",eSiret:"",eAdr:"",cNom:"",cAdr:"",num:an+"-006",date:iso(d),ech:iso(new Date(d.getTime()+30*864e5)),desc:"",montant:0}
+  };
+}
+
+/* ---------- calcul ---------- */
+function bilan(){
+  var a=activite(), an=new Date().getFullYear();
+  var cette=etat.rentrees.filter(function(r){ return String(r.date).slice(0,4)===String(an); });
+  var encaisse=cette.reduce(function(s,r){ return s+num(r.montant); },0);
+  var tva = etat.tva ? encaisse-encaisse/(1+TAUX_TVA) : 0;
+  var ca=encaisse-tva;
+  var taux=(a.cot+(etat.vfl?a.vfl:0))/100;
+  var urssaf=ca*taux;
+
+  var mois=iso(new Date()).slice(0,7);
+  var encMois=cette.filter(function(r){ return String(r.date).slice(0,7)===mois; })
+                   .reduce(function(s,r){ return s+num(r.montant); },0);
+  var caMois = etat.tva ? encMois/(1+TAUX_TVA) : encMois;
+
+  var parMois=new Array(12).fill(0), parClient={};
+  cette.forEach(function(r){
+    var m=parseInt(String(r.date).slice(5,7),10)-1;
+    if(m>=0&&m<12) parMois[m]+=num(r.montant);
+    var c=(r.client||"Sans nom").trim().toLowerCase();
+    parClient[c]=(parClient[c]||0)+num(r.montant);
+  });
+  var topV=0;
+  Object.keys(parClient).forEach(function(c){ if(parClient[c]>topV) topV=parClient[c]; });
+
+  return {encaisse:encaisse, ca:ca, tva:tva, urssaf:urssaf, moi:ca-urssaf,
+          garde:urssaf+tva, encMois:encMois, urssafMois:caMois*taux, taux:taux, act:a,
+          parMois:parMois, topPart: encaisse>0?topV/encaisse:0, topBrut:topV};
+}
+
+function creancesTriees(){
+  var auj=iso(new Date());
+  return etat.creances.map(function(c){
+    var retard=joursEntre(c.echeance,auj);
+    var pre="En retard de "+nb(retard+" j")+" — ", h;
+    if(retard<0)        h="À payer avant le "+nb(jour(c.echeance));
+    else if(retard===0) h="C'est aujourd'hui l'échéance";
+    else if(retard<5)   h=pre+"laisse-lui encore quelques jours";
+    else if(retard<15)  h=pre+"envoie un mot gentil";
+    else if(retard<30)  h=pre+"relance ferme, par écrit";
+    else if(retard<45)  h=pre+"lettre recommandée";
+    else                h=pre+"mise en demeure";
+    return Object.assign({},c,{retard:retard,html:h});
+  }).sort(function(a,b){ return b.retard-a.retard; });
+}
+function finDuMoisProchain(){ var d=new Date(); return new Date(d.getFullYear(),d.getMonth()+2,0); }
+
+/* ---------- rendu : mon argent ---------- */
+function arc(el,frac,off){
+  var len=Math.max(0,frac*C-(frac>0.001?GAP:0));
+  el.style.strokeDasharray=len+" "+(C-len);
+  el.style.strokeDashoffset=-off*C;
+}
+function rendreArgent(){
+  var b=bilan(), t=b.encaisse||1;
+  var fM=b.moi/t, fT=b.tva/t, fU=b.urssaf/t;
+  arc($("s-moi"),fM,0); arc($("s-tva"),fT,fM); arc($("s-urssaf"),fU,fM+fT);
+
+  roule("c-moi",eur.format(b.moi));
+  $("c-pc").textContent = b.encaisse>0 ? Math.round(fM*100)+" %" : "";
+  roule("v-moi",eur.format(b.moi));
+  roule("v-tva",eur.format(b.tva));
+  roule("v-urssaf",eur.format(b.urssaf));
+  $("l-tva").hidden=!etat.tva;
+  $("lbl-urssaf").textContent = etat.vfl ? "retraite, maladie, et ton impôt" : "retraite, maladie";
+
+  roule("t-garde",eur.format(b.garde));
+  var fin=finDuMoisProchain();
+  $("t-quand").innerHTML = b.encMois>0
+    ? "Ce mois-ci tu as encaissé <b>"+nb(eur.format(b.encMois))+"</b>. À déclarer avant le <b>"+nb(jour(iso(fin)))+"</b> : environ <b>"+nb(eur.format(b.urssafMois))+"</b>."
+    : "Rien encaissé ce mois-ci. <b>Déclare quand même "+nb("0 €")+"</b> avant le "+nb(jour(iso(fin)))+".";
+
+  var maxi=Math.max.apply(null,b.parMois.concat([1])), mAct=new Date().getMonth();
+  $("mois").innerHTML=b.parMois.map(function(v,i){
+    return '<div class="m'+(i===mAct?" actif":"")+'" title="'+esc(MOIS[i]+" : "+eur.format(v))+'">'+
+           '<i style="height:'+Math.max(3,Math.round(v/maxi*52))+'px"></i><span>'+MOIS[i]+'</span></div>';
+  }).join("");
+
+  var a=b.act, seuil, quoi, txt;
+  if(!etat.tva && b.ca<a.seuilTva){
+    seuil=a.seuilTva; quoi="Avant de devoir facturer la TVA";
+    txt="Encore "+nb(eur.format(seuil-b.ca))+" avant de devoir ajouter la TVA sur tes factures.";
+  } else {
+    seuil=a.seuil; quoi="Avant de sortir de la micro-entreprise";
+    txt="Encore "+nb(eur.format(Math.max(0,seuil-b.ca)))+" avant de changer de régime.";
+  }
+  var part=seuil>0?Math.min(1,b.ca/seuil):0;
+  $("j-quoi").textContent=quoi;
+  $("j-chiffre").textContent=eur.format(b.ca)+" / "+eur.format(seuil);
+  $("j-barre").style.width=(part*100).toFixed(1)+"%";
+  $("j-reste").innerHTML = part>=1 ? "Seuil dépassé — renseigne-toi vite." : txt;
+  $("jauge").classList.toggle("chaud",part>=0.8);
+
+  var conc=$("concentration");
+  if(b.topPart>0.30 && b.encaisse>0){
+    conc.hidden=false;
+    $("conc-pc").textContent=Math.round(b.topPart*100)+" %";
+    $("conc-txt").innerHTML="<b>"+nb(eur.format(b.topBrut))+"</b> vient d'un seul client. Au-dessus de "+nb("30 %")+", s'il part ou ne paie pas, tu tombes avec lui.";
+  } else conc.hidden=true;
+
+  $("note-bas").innerHTML = (etat.vfl
+    ? "<b>Ton impôt est déjà compté</b> — le versement libératoire ajoute "+nb(String(a.vfl).replace(".",",")+" %")+" à tes cotisations. "
+    : "<b>L'impôt sur le revenu n'est pas là-dedans.</b> Les "+nb(String(a.cot).replace(".",",")+" %")+" couvrent tes cotisations seulement ; l'impôt dépend de ton foyer et arrive plus tard. ")
+    + "L'app ne déclare rien à ta place : la déclaration URSSAF reste à faire, <b>même à "+nb("0 €")+"</b>.";
+
+  $("sum-act").textContent = a.court + " · " + String(a.cot).replace(".",",") + " %";
+  sauver();
+}
+
+/* ---------- rendu : factures ---------- */
+function rendreFactures(){
+  var cs=creancesTriees();
+  var total=cs.reduce(function(s,c){ return s+num(c.montant); },0);
+  var retard=cs.filter(function(c){ return c.retard>0; });
+  var totalRetard=retard.reduce(function(s,c){ return s+num(c.montant); },0);
+
+  roule("d-total",eur.format(total));
+  $("cadre-doit").classList.toggle("alerte",totalRetard>0);
+  $("d-detail").innerHTML = cs.length===0
+    ? "Personne. Tout le monde t'a payé."
+    : (totalRetard>0
+        ? "<b>"+nb(eur.format(totalRetard))+"</b> sont déjà en retard, sur "+nb(retard.length)+" facture"+(retard.length>1?"s":"")+"."
+        : "Rien en retard pour l'instant.");
+
+  var p=$("pastille");
+  if(retard.length>0){ p.hidden=false; p.textContent=retard.length; } else p.hidden=true;
+
+  $("liste-creances").innerHTML = cs.length===0
+    ? '<div class="vide">Quand tu envoies une facture, elle apparaît ici jusqu\'à ce qu\'on te paie.</div>'
+    : cs.map(function(c){
+        return '<div class="creance'+(c.retard>0?" retard":"")+'">'+
+          '<div class="haut"><span class="qui"><b>'+esc(c.client||"Sans nom")+
+            (c.exemple?' <span class="etiq">exemple</span>':'')+'</b>'+
+            '<small>'+esc(c.desc||"—")+' · n° '+nb(c.ref||"—")+' · envoyée le '+nb(jour(c.emission))+'</small></span>'+
+          '<span class="som">'+esc(eur2.format(num(c.montant)))+'</span></div>'+
+          '<div class="quoi">'+c.html+'</div>'+
+          '<div class="bas"><button class="btn plein" data-paye="'+c.id+'">Il m\'a payé</button>'+
+          '<button class="btn" data-annule="'+c.id+'">Retirer</button></div></div>';
+      }).join("");
+}
+
+/* ---------- rendu : objectif ---------- */
+function rendreObjectif(){
+  var o=etat.objectif, b=bilan();
+  [["o-net","net"],["o-frais","frais"],["o-jours","jours"]].forEach(function(p){
+    if(document.activeElement!==$(p[0])) $(p[0]).value=o[p[1]]||"";
+  });
+  var besoin=num(o.net)*12+num(o.frais);
+  var caNec = b.taux<1 ? besoin/(1-b.taux) : 0;
+  var jours=Math.max(1,num(o.jours));
+  var tjm=caNec/jours;
+
+  $("sum-tjm").textContent = eur.format(tjm)+" / jour";
+  $("o-table").innerHTML =
+    "<tr><td>Ce que tu veux dans la poche</td><td>"+eur.format(num(o.net)*12)+" / an</td></tr>"+
+    "<tr><td>Tes frais</td><td>"+eur.format(num(o.frais))+" / an</td></tr>"+
+    "<tr><td>Tes cotisations à "+nb((b.taux*100).toFixed(1).replace(".",",")+" %")+"</td><td>"+eur.format(caNec-besoin)+" / an</td></tr>"+
+    "<tr><td><b>Ce que tu dois facturer</b></td><td><b>"+eur.format(caNec)+" / an</b></td></tr>";
+
+  var part = caNec>0?Math.min(1,b.ca/caNec):0;
+  $("o-chiffre").textContent=eur.format(b.ca)+" / "+eur.format(caNec);
+  $("o-barre").style.width=(part*100).toFixed(1)+"%";
+  var manque=Math.max(0,caNec-b.ca), jr = tjm>0?Math.ceil(manque/tjm):0;
+  $("o-reste").innerHTML = manque<=0
+    ? "Objectif atteint. Tout ce qui rentre maintenant est en plus."
+    : "Il te manque "+nb(eur.format(manque))+" — environ "+nb(jr)+" jour"+(jr>1?"s":"")+" à facturer.";
+  sauver();
+}
+
+/* ---------- rendu : livre ---------- */
+function rendreLivre(){
+  var rs=etat.rentrees.slice().sort(function(a,b){ return String(a.date).localeCompare(String(b.date)); });
+  $("livre").innerHTML = !rs.length
+    ? '<div class="vide">Rien encore. Appuie sur « J\'ai été payé » dès qu\'un client te règle.</div>'
+    : rs.map(function(r,i){
+        return '<div class="ligne'+(r.exemple?" exemple":"")+'">'+
+          '<span class="no">'+(i+1)+'</span>'+
+          '<span class="qui"><b>'+esc(r.client||"Sans nom")+(r.exemple?' <span class="etiq">exemple</span>':'')+'</b>'+
+          '<small>'+nb(jour(r.date))+' · '+esc(r.mode||"—")+(r.ref?' · n° '+nb(r.ref):'')+'</small></span>'+
+          '<span class="som">'+esc(eur2.format(num(r.montant)))+'</span>'+
+          '<button class="sup noprint" data-sup="'+r.id+'" aria-label="Supprimer">✕</button></div>';
+      }).join("");
+}
+
+/* ---------- rendu : brouillon de facture ---------- */
+var CHAMPS={"e-nom":"eNom","e-siret":"eSiret","e-adr":"eAdr","c-nom":"cNom","c-adr":"cAdr",
+            "f-num":"num","f-date":"date","f-ech":"ech","f-desc":"desc"};
+function rendreBrouillon(){
+  var f=etat.facture;
+  Object.keys(CHAMPS).forEach(function(id){ var el=$(id); if(el&&document.activeElement!==el) el.value=f[CHAMPS[id]]||""; });
+  if(document.activeElement!==$("f-montant")) $("f-montant").value=f.montant||"";
+
+  var ht=num(f.montant), tva=etat.tva?ht*TAUX_TVA:0;
+  roule("t-ttc",eur2.format(ht+tva));
+  $("t-detail").innerHTML = etat.tva
+    ? nb(eur2.format(ht))+" hors taxes, plus "+nb(eur2.format(tva))+" de TVA."
+    : "Pas de TVA — tu es en franchise en base.";
+
+  var vide=function(v,s){ return (v&&String(v).trim())?esc(v):'<span style="color:var(--ink-faint)">'+s+'</span>'; };
+  $("apercu").innerHTML =
+    '<div class="tete"><div><h3>Facture '+vide(f.num,"n° —")+'</h3>'+
+    '<div class="meta">Émise le '+nb(jour(f.date))+' · à payer avant le '+nb(jour(f.ech))+'</div></div>'+
+    '<div class="qui2"><strong>'+vide(f.eNom,"Ton nom")+'</strong>'+(f.eAdr?esc(f.eAdr)+"\n":"")+(f.eSiret?"SIRET "+nb(f.eSiret):"")+'</div>'+
+    '<div class="qui2"><strong>Facturé à</strong>'+vide(f.cNom,"Ton client")+"\n"+esc(f.cAdr||"")+'</div></div>'+
+    '<div class="tbl-scroll"><table><thead><tr><th>Désignation</th><th class="r">Total HT</th></tr></thead>'+
+    '<tbody><tr><td>'+vide(f.desc,"—")+'</td><td class="r">'+eur2.format(ht)+'</td></tr></tbody></table></div>'+
+    '<div class="fin"><div><span>Total HT</span><span>'+eur2.format(ht)+'</span></div>'+
+    (etat.tva?'<div><span>TVA 20 %</span><span>'+eur2.format(tva)+'</span></div>':'')+
+    '<div class="ttc"><span>Total à payer</span><span>'+eur2.format(ht+tva)+'</span></div></div>'+
+    '<div class="mentions" style="margin-top:18px">'+
+    (etat.tva?"":"<b>TVA non applicable, article 293 B du CGI.</b><br>")+
+    "En cas de retard de paiement, des pénalités sont dues au taux de trois fois le taux d'intérêt légal, "+
+    "ainsi qu'une indemnité forfaitaire pour frais de recouvrement de 40 €, sans qu'un rappel soit nécessaire "+
+    "(articles L441-10 et D441-5 du code de commerce).</div>";
+  sauver();
+}
+
+function rendreReglages(){
+  $("choix-activite").innerHTML=ACTIVITES.map(function(a){
+    return '<button type="button" data-a="'+a.id+'" aria-pressed="'+(a.id===etat.activite)+'">'+
+      '<span class="mark"><svg width="13" height="13" viewBox="0 0 14 14" aria-hidden="true">'+
+      '<path d="M2.5 7.5 L5.5 10.5 L11.5 3.5" fill="none" stroke="currentColor" stroke-width="2.4" '+
+      'stroke-linecap="round" stroke-linejoin="round" style="color:var(--surface)"></path></svg></span>'+
+      '<span class="txt"><b>'+esc(a.nom)+'</b><small>'+esc(a.desc)+' · '+nb(String(a.cot).replace(".",",")+" %")+' de cotisations</small></span></button>';
+  }).join("");
+  $("r-vfl").checked=!!etat.vfl; $("r-tva").checked=!!etat.tva;
+}
+
+function toutRendre(){ rendreReglages(); rendreLivre(); rendreFactures(); rendreBrouillon(); rendreObjectif(); rendreArgent(); }
+
+/* ---------- onglets ---------- */
+var ONGLETS=[["argent","p-argent"],["factures","p-factures"],["livre","p-livre"]];
+function onglet(n){
+  ONGLETS.forEach(function(p){
+    $("tab-"+p[0]).setAttribute("aria-selected",p[0]===n);
+    $(p[1]).hidden=p[0]!==n;
+  });
+  etat.onglet=n; sauver();
+}
+ONGLETS.forEach(function(p){ $("tab-"+p[0]).addEventListener("click",function(){ onglet(p[0]); }); });
+function sauver(){ try{ localStorage.setItem("itrc5",JSON.stringify(etat)); }catch(e){} }
+
+/* ---------- rentrées ---------- */
+function ouvrirRentree(pre){
+  onglet("livre");
+  $("form-rentree").hidden=false;
+  $("n-date").value=iso(new Date());
+  $("n-montant").value = pre&&pre.montant ? pre.montant : "";
+  $("n-client").value  = pre&&pre.client  ? pre.client  : "";
+  $("n-ref").value     = pre&&pre.ref     ? pre.ref     : "";
+  ($("n-montant").value ? $("n-client") : $("n-montant")).focus();
+}
+$("gros-1").addEventListener("click",function(){ ouvrirRentree(); });
+$("gros-2").addEventListener("click",function(){ ouvrirRentree(); });
+$("annuler-rentree").addEventListener("click",function(){ $("form-rentree").hidden=true; });
+$("valider-rentree").addEventListener("click",function(){
+  var m=num($("n-montant").value);
+  if(m<=0){ $("n-montant").focus(); return; }
+  etat.rentrees.push({id:uid(),date:$("n-date").value||iso(new Date()),
+    client:$("n-client").value.trim(),ref:$("n-ref").value.trim(),
+    montant:m,mode:$("n-mode").value,exemple:false});
+  $("form-rentree").hidden=true;
+  rendreLivre(); rendreArgent(); rendreObjectif();
+});
+$("livre").addEventListener("click",function(e){
+  var b=e.target.closest("[data-sup]"); if(!b) return;
+  etat.rentrees=etat.rentrees.filter(function(r){ return r.id!==b.getAttribute("data-sup"); });
+  rendreLivre(); rendreArgent(); rendreObjectif();
+});
+$("vider-exemples").addEventListener("click",function(){
+  etat.rentrees=etat.rentrees.filter(function(r){ return !r.exemple; });
+  etat.creances=etat.creances.filter(function(c){ return !c.exemple; });
+  toutRendre();
+});
+
+/* ---------- créances ---------- */
+$("liste-creances").addEventListener("click",function(e){
+  var p=e.target.closest("[data-paye]");
+  if(p){
+    var id=p.getAttribute("data-paye");
+    var c=etat.creances.filter(function(x){ return x.id===id; })[0];
+    if(!c) return;
+    etat.creances=etat.creances.filter(function(x){ return x.id!==id; });
+    rendreFactures();
+    ouvrirRentree({montant:num(c.montant),client:c.client,ref:c.ref});
+    return;
+  }
+  var a=e.target.closest("[data-annule]");
+  if(a){
+    etat.creances=etat.creances.filter(function(x){ return x.id!==a.getAttribute("data-annule"); });
+    rendreFactures();
+  }
+});
+
+/* ---------- facture ---------- */
+$("gros-facture").addEventListener("click",function(){
+  $("bloc-facture").hidden=false;
+  $("f-desc").focus();
+});
+$("fermer-facture").addEventListener("click",function(){ $("bloc-facture").hidden=true; });
+Object.keys(CHAMPS).forEach(function(id){
+  $(id).addEventListener("input",function(e){ etat.facture[CHAMPS[id]]=e.target.value; rendreBrouillon(); });
+});
+$("f-montant").addEventListener("input",function(e){ etat.facture.montant=num(e.target.value); rendreBrouillon(); });
+
+$("imprimer-facture").addEventListener("click",function(){
+  ONGLETS.forEach(function(p){ $(p[1]).hidden=p[0]!=="factures"; });
+  window.print();
+});
+$("imprimer-livre").addEventListener("click",function(){
+  ONGLETS.forEach(function(p){ $(p[1]).hidden=p[0]!=="livre"; });
+  window.print();
+});
+$("envoyer-facture").addEventListener("click",function(){
+  var f=etat.facture, ht=num(f.montant);
+  if(ht<=0){ $("f-montant").focus(); return; }
+  etat.creances.push({id:uid(),client:f.cNom||"Sans nom",ref:f.num,desc:f.desc,
+    montant:ht*(etat.tva?1+TAUX_TVA:1),emission:f.date||iso(new Date()),echeance:f.ech,exemple:false});
+  var m=String(f.num).match(/^(.*?)(\d+)$/);
+  if(m) f.num=m[1]+String(parseInt(m[2],10)+1).padStart(m[2].length,"0");
+  f.desc=""; f.montant=0; f.cNom=""; f.cAdr="";
+  $("bloc-facture").hidden=true;
+  rendreBrouillon(); rendreFactures();
+  window.scrollTo({top:0,behavior:"smooth"});
+});
+
+/* ---------- objectif et réglages ---------- */
+[["o-net","net"],["o-frais","frais"],["o-jours","jours"]].forEach(function(p){
+  $(p[0]).addEventListener("input",function(e){ etat.objectif[p[1]]=num(e.target.value); rendreObjectif(); });
+});
+$("choix-activite").addEventListener("click",function(e){
+  var b=e.target.closest("[data-a]"); if(!b) return;
+  etat.activite=b.getAttribute("data-a");
+  rendreReglages(); rendreArgent(); rendreObjectif();
+});
+$("r-vfl").addEventListener("change",function(e){ etat.vfl=e.target.checked; rendreArgent(); rendreObjectif(); });
+$("r-tva").addEventListener("change",function(e){ etat.tva=e.target.checked; rendreArgent(); rendreBrouillon(); rendreObjectif(); });
+
+/* ---------- démarrage ---------- */
+etat=etatNeuf();
+try{
+  var s=JSON.parse(localStorage.getItem("itrc5")||"null");
+  if(s&&s.rentrees) etat=Object.assign(etatNeuf(),s);
+}catch(e){}
+toutRendre();
+onglet(etat.onglet||"argent");
+
 })();
 
 })();
