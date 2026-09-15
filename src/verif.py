@@ -68,7 +68,9 @@ connues = {
     'console','document','window','localStorage','performance','fetch','constructor','super','this',
     'not','var','let','const','in','of','delete','void','instanceof','yield','case','throw',
 }
-appels = set(re.findall(r'(?<![.\w$])([A-Za-zÀ-ÿ_$][\w$]*)\s*\(', js))
+# les chaînes de texte contiennent du CSS et du HTML : on les retire avant d'analyser
+sansTexte = re.sub(r'"(?:[^"\\\n]|\\.)*"|\'(?:[^\'\\\n]|\\.)*\'', '""', js)
+appels = set(re.findall(r'(?<![.\w$])([A-Za-zÀ-ÿ_$][\w$]*)\s*\(', sansTexte))
 manquantes = sorted(a for a in appels - declarees - connues if not a[0].isupper())
 if manquantes:
     print("FONCTIONS APPELÉES MAIS ABSENTES")

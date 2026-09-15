@@ -149,6 +149,18 @@ h1,h2,h3,p{margin:0}
 .bascule input:checked::after{transform:translateX(19px)}
 .bascule em{font-style:normal;color:var(--ink-3)}
 
+/* ═══ l'objectif ═══ */
+.objectif{padding:4px 24px 22px}
+.gros-prix{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap;margin-bottom:14px}
+.gros-prix b{font-family:var(--num);font-weight:600;font-size:34px;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.gros-prix span{font-size:14.5px;color:var(--ink-3);font-weight:600}
+.ou-en{font-size:15px;color:var(--ink-2)}
+.ou-en b{font-family:var(--num);font-weight:600;color:var(--ink)}
+.atteint{color:var(--ok);font-weight:700}
+.risque{display:flex;align-items:center;gap:11px;padding:14px 18px;margin-top:16px;border-radius:var(--rm);
+  background:var(--tard-doux);color:var(--tard);font-size:14.5px;font-weight:600}
+.risque svg{width:20px;height:20px;flex:none;stroke-width:2.2;fill:none}
+
 /* ═══ plafond du régime ═══ */
 .plafond{padding:2px 24px 22px}
 .plafond .piste-p{height:9px;background:var(--surface-3);border-radius:999px;overflow:hidden}
@@ -225,6 +237,48 @@ summary.groupe:hover{background:var(--line)}
   font-family:var(--num);font-weight:600;font-size:16px;transition:transform .16s var(--ressort),filter .2s}
 .action-client button:hover{filter:brightness(1.08)}
 .action-client button:active{transform:scale(.97)}
+
+/* ═══ la piste horaire ═══ */
+.agenda{background:var(--surface);border-radius:calc(var(--rxl) - 7px);padding:4px 0 0}
+.piste-jour{display:grid;grid-template-columns:52px minmax(0,1fr);position:relative;
+  height:var(--h-piste);overflow-y:auto;overscroll-behavior:contain;padding:10px 20px 10px 0}
+.piste-jour::-webkit-scrollbar{width:0}
+.heures{position:relative}
+.heures b{position:absolute;right:12px;transform:translateY(-50%);font-family:var(--num);font-weight:500;
+  font-size:12.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.colonnes{position:relative;display:grid;gap:6px}
+.trames{position:absolute;inset:0;pointer-events:none}
+.trames i{position:absolute;left:0;right:0;height:1px;background:var(--line)}
+.col{position:relative;min-width:0}
+.col + .col{border-left:1px solid var(--line)}
+
+.bloc{position:absolute;left:2px;right:2px;border-radius:12px;padding:7px 11px;overflow:hidden;
+  background:var(--deg-pale);border-left:3.5px solid var(--v1);cursor:grab;
+  display:flex;flex-direction:column;gap:1px;transition:box-shadow .15s,transform .15s}
+.bloc:hover{box-shadow:var(--o1)}
+.bloc.prend{cursor:grabbing;box-shadow:var(--o3);z-index:5;opacity:.92}
+.bloc b{font-size:14px;font-weight:700;line-height:1.25;overflow-wrap:anywhere}
+.bloc span{font-family:var(--num);font-size:12px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.bloc.court{flex-direction:row;align-items:baseline;gap:8px;padding:4px 11px}
+.bloc.court b{font-size:13px}
+.bloc.fini{opacity:.5}
+.bloc.fini b{text-decoration:line-through}
+.bloc .poignee-b{position:absolute;left:0;right:0;bottom:0;height:9px;cursor:ns-resize}
+
+.trait-now{position:absolute;left:0;right:0;height:2px;background:var(--tard);z-index:4;pointer-events:none}
+.trait-now::before{content:"";position:absolute;left:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--tard)}
+
+.jours-tete{display:grid;grid-template-columns:52px minmax(0,1fr);padding:14px 20px 0 0}
+.jours-tete .cases{display:grid;gap:6px}
+.jours-tete b{text-align:center;font-size:12.5px;font-weight:700;color:var(--ink-3);padding-bottom:8px;text-transform:capitalize}
+.jours-tete b.ici{color:var(--v1)}
+
+.barre-agenda{display:flex;align-items:center;gap:10px;padding:16px 24px 6px}
+.barre-agenda .jourdit{font-family:var(--num);font-weight:600;font-size:19px;letter-spacing:-.015em;flex:1;min-width:0;text-transform:capitalize}
+.fleche{border:0;background:var(--surface-3);color:var(--ink-2);width:36px;height:36px;border-radius:50%;
+  display:grid;place-content:center;flex:none;transition:background .18s,color .18s}
+.fleche svg{width:17px;height:17px;stroke-width:2.4;fill:none}
+.fleche:hover{background:var(--line);color:var(--v1)}
 
 /* ═══ l'heure d'une tâche ═══ */
 .heure{font-family:var(--num);font-weight:600;font-size:15px;color:var(--ink-2);flex:none;
@@ -503,7 +557,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 </div>
 
 <nav class="nav" id="nav" aria-label="Sections">
-  <button data-vue="afaire" aria-current="page"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.2 12.3 2.6 2.6 5-5.2"/></svg><span class="nom">À faire</span><span class="compte" id="n-taches" hidden></span></button>
+  <button data-vue="afaire" aria-current="page"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="5" width="17.6" height="15.8" rx="3.4"/><path d="M3.2 10h17.6M8.2 2.6v3.6M15.8 2.6v3.6"/></svg><span class="nom">Agenda</span><span class="compte" id="n-taches" hidden></span></button>
   <button data-vue="argent"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="5.5" width="18.4" height="13" rx="3"/><circle cx="12" cy="12" r="2.6"/></svg><span class="nom">Argent</span><span class="compte" id="n-argent" hidden></span></button>
   <button data-vue="clients"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c0-3.4 2.8-5.6 6.2-5.6s6.2 2.2 6.2 5.6"/><path d="M16.2 5.2a3.4 3.4 0 0 1 0 6.4M18 14.8c2 .7 3.2 2.5 3.2 5.2"/></svg><span class="nom">Clients</span></button>
   <button data-vue="budget"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2a8.8 8.8 0 1 0 8.8 8.8H12Z"/><path d="M12 3.2V12h8.8"/></svg><span class="nom">Budget</span></button>
@@ -537,7 +591,7 @@ const MOIS_LONG = ["janvier", "février", "mars", "avril", "mai", "juin", "juill
 
 const state = {
   taches: {}, clients: {}, factures: {}, depenses: {}, investissements: {},
-  moi: {nom: "", adresse: "", siret: "", email: "", tva: 0, regime: "services", liberatoire: false},
+  moi: {nom: "", adresse: "", siret: "", email: "", tva: 0, regime: "services", liberatoire: false, objectif: 0, joursFactures: 200},
   rituel: {semaine: "", faits: []},
   serie: {n: 0, dernier: ""}
 };
@@ -547,6 +601,8 @@ let filtreF = "encaisser";
 let filtreB = "depenses";
 let clientOuvert = null;
 let pliOuvert = false;
+let vueAgenda = "jour";        /* jour · semaine · liste */
+let jourVu = null;             /* null = aujourd'hui */
 const memoire = new Map();
 let stockOk = true;
 let animer = true;
@@ -604,7 +660,7 @@ function charger(){
   if(d && typeof d === "object"){
     COLS.forEach(c => { state[c] = d[c] && typeof d[c] === "object" ? d[c] : {}; });
     if(d.rituel) state.rituel = d.rituel;
-    if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0, regime: "services", liberatoire: false}, d.moi);
+    if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0, regime: "services", liberatoire: false, objectif: 0, joursFactures: 200}, d.moi);
     if(d.serie) state.serie = d.serie;
   }else{
     COLS.forEach(c => { state[c] = JSON.parse(JSON.stringify(SEED[c] || {})); });
@@ -731,6 +787,83 @@ function ligneTache(t, ctx){
     + (t.heure ? '<span class="heure">' + heureLisible(t.heure) + "</span>" : "")
     + '<button class="sup" data-sup="taches" data-id="' + h(t.id) + '"><span class="mot">Supprimer</span></button></div>';
 }
+/* ═══ la journée en heures ═══ */
+const DEBUT_J = 7 * 60, FIN_J = 21 * 60;      /* la piste va de 7 h à 21 h */
+const ETENDUE = FIN_J - DEBUT_J;
+const HAUTEUR_H = 62;                          /* pixels par heure */
+const DUREE_DEFAUT = 60;
+const DUREES = [[15, "15 min"], [30, "30 min"], [45, "45 min"], [60, "1 h"], [90, "1 h 30"], [120, "2 h"], [180, "3 h"], [240, "4 h"]];
+
+const jourAffiche = () => jourVu || auj();
+function decalerJour(pas){
+  const d = dt(jourAffiche());
+  d.setDate(d.getDate() + pas);
+  jourVu = iso(d);
+}
+function lundiDe(isoJour){
+  const d = dt(isoJour);
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+  return iso(d);
+}
+function tachesDu(isoJour){
+  return liste("taches").filter(t => String(t.echeance) === isoJour);
+}
+function blocsDe(isoJour){
+  return tachesDu(isoJour).filter(t => t.heure)
+    .map(t => Object.assign({}, t, {deb: enMinutes(t.heure), duree: Number(t.duree) || DUREE_DEFAUT}))
+    .sort((a, b) => a.deb - b.deb);
+}
+
+/* deux blocs qui se chevauchent se partagent la largeur */
+function repartir(blocs){
+  const colonnes = [];
+  blocs.forEach(b => {
+    let i = 0;
+    while(colonnes[i] && colonnes[i] > b.deb) i++;
+    colonnes[i] = b.deb + b.duree;
+    b.col = i;
+  });
+  const total = Math.max(1, colonnes.length);
+  blocs.forEach(b => { b.large = 100 / total; b.gauche = b.col * (100 / total); });
+  return blocs;
+}
+
+function unBloc(b, dansSemaine){
+  const haut = (b.deb - DEBUT_J) / ETENDUE * 100;
+  const haut2 = Math.max(2.6, b.duree / ETENDUE * 100);
+  const court = b.duree <= 35;
+  return '<div class="bloc' + (court ? " court" : "") + (b.fait ? " fini" : "") + '"'
+    + ' data-bloc="' + h(b.id) + '"'
+    + ' style="top:' + haut.toFixed(2) + "%;height:" + haut2.toFixed(2) + "%;"
+    + (dansSemaine ? "" : "left:calc(" + b.gauche.toFixed(1) + "% + 2px);width:calc(" + b.large.toFixed(1) + "% - 4px);")
+    + '">'
+    + "<b>" + h(b.titre) + "</b>"
+    + '<span>' + heureLisible(b.heure) + "</span>"
+    + '<span class="poignee-b" data-etirer="' + h(b.id) + '"></span></div>';
+}
+
+function pisteHeures(){
+  let out = '<div class="heures">';
+  for(let hh = 7; hh <= 21; hh++){
+    const y = (hh * 60 - DEBUT_J) / ETENDUE * 100;
+    out += "<b style=\"top:" + y.toFixed(2) + '%">' + hh + " h</b>";
+  }
+  return out + "</div>";
+}
+function trames(){
+  let out = '<div class="trames">';
+  for(let hh = 7; hh <= 21; hh++){
+    out += '<i style="top:' + ((hh * 60 - DEBUT_J) / ETENDUE * 100).toFixed(2) + '%"></i>';
+  }
+  return out + "</div>";
+}
+function traitMaintenant(isoJour){
+  if(isoJour !== auj()) return "";
+  const m = minutesMaintenant();
+  if(m < DEBUT_J || m > FIN_J) return "";
+  return '<div class="trait-now" style="top:' + ((m - DEBUT_J) / ETENDUE * 100).toFixed(2) + '%"></div>';
+}
+
 function parHeure(a, b){
   const ha = a.heure || "", hb = b.heure || "";
   if(ha && hb) return ha.localeCompare(hb);
@@ -771,10 +904,12 @@ function vueAfaire(){
   const relances = relancesAuto().length;
   const total = c.duJour.length + relances, faits = c.faitsJour.length;
   const p = total ? faits / total : 0;
+  const jour0 = jourAffiche();
+  const cestAujourdhui = jour0 === auj();
 
-  /* 1. la carte du jour */
+  /* ── la coiffe : anneau et titre ── */
   let tete;
-  if(total > 0 && faits === total){
+  if(total > 0 && faits === total && cestAujourdhui){
     tete = '<div class="fini"><span class="coche-geante"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>'
       + "<h2>Journée finie</h2></div>";
   }else{
@@ -785,69 +920,132 @@ function vueAfaire(){
       + "<h2>Votre journée</h2></div>";
   }
 
-  /* 2. toutes les tâches, groupées par urgence */
-  const tout = liste("taches").sort((x, y) => (x.fait - y.fait) || String(x.echeance).localeCompare(String(y.echeance)));
-  const vis = filtreT === "faites" ? tout.filter(t => !!t.fait)
-                                   : relancesAuto().concat(tout.filter(t => !t.fait));
-  const libs = [["afaire", "À faire"], ["faites", "Terminées"]];
-  let corps = '<div class="segments">' + libs.map(kv =>
-    '<button data-ft="' + kv[0] + '" aria-pressed="' + (filtreT === kv[0]) + '">' + kv[1] + "</button>").join("") + "</div>";
-
-  if(!vis.length){
-    corps += '<p class="vide"><b>' + (filtreT === "faites" ? "Rien de terminé" : "Rien à faire") + "</b>"
-      + (filtreT === "faites" ? "Cochez une tâche, elle viendra ici." : "Écrivez la première ci-dessous.") + "</p>";
-  }else if(filtreT === "faites"){
-    corps += listeTaches(vis, "fait");
-  }else{
-    const ICO = {
-      retard: '<circle cx="12" cy="12" r="9"/><path d="M12 7.4v5"/><circle cx="12" cy="16.4" r="1.15" fill="currentColor" stroke="none"/>',
-      aujourdhui: '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.6V5M12 19v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.6 12H5M19 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/>',
-      plustard: '<circle cx="12" cy="12" r="8.6"/><path d="M12 7.4V12l3 1.9"/>'
-    };
-    const grp = [
-      ["retard", "En retard", vis.filter(t => jours(t.echeance) < 0), true],
-      ["aujourdhui", "Aujourd'hui", vis.filter(t => jours(t.echeance) === 0), false],
-      ["plustard", "Plus tard", vis.filter(t => jours(t.echeance) > 0), false]
-    ];
-    const bande = g => '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
-      + ICO[g[0]] + "</svg>" + g[1] + '<span class="nb">' + g[2].length + " chose" + (g[2].length > 1 ? "s" : "") + "</span>";
-    corps += grp.filter(g => g[2].length).map(g =>
-      /* ce qui n'est pas pour maintenant reste plié : on ne voit que l'urgent */
-      g[0] === "plustard"
-        ? '<details class="pli"' + (pliOuvert ? " open" : "") + '><summary class="groupe">' + bande(g)
-          + '<span class="chev"></span></summary>' + listeTaches(g[2], g[0]) + "</details>"
-        : '<p class="groupe' + (g[3] ? " chaud" : "") + '">' + bande(g) + "</p>" + listeTaches(g[2], g[0])
-    ).join("");
-  }
-  if(filtreT !== "faites") corps += ligneVite();
-
-  let out = "";
-  /* ce qui vient maintenant : l'idée d'agenda, réduite à une seule ligne */
-  const aHeure = c.resteJour.filter(t => t.heure).sort(parHeure);
-  const now = minutesMaintenant();
-  const prochaine = aHeure.find(t => enMinutes(t.heure) + 60 > now);
+  /* ── ce qui vient ── */
   let bandeau = "";
-  if(prochaine){
-    const deb = enMinutes(prochaine.heure);
-    const enCours = now >= deb;
-    const reste = deb - now;
-    const quand = enCours ? "en ce moment"
-      : reste < 60 ? "dans " + reste + " min"
-      : heureLisible(prochaine.heure);
-    bandeau = '<div class="maintenant">'
-      + (enCours ? '<span class="pastille-m"></span>' : "")
-      + '<span class="quand-m">' + quand + "</span>"
-      + '<span class="quoi">' + h(prochaine.titre) + "</span></div>";
+  if(cestAujourdhui){
+    const aHeure = c.resteJour.filter(t => t.heure).sort(parHeure);
+    const now = minutesMaintenant();
+    const suiv = aHeure.find(t => enMinutes(t.heure) + (Number(t.duree) || DUREE_DEFAUT) > now);
+    if(suiv){
+      const deb = enMinutes(suiv.heure), reste = deb - now;
+      const quand = now >= deb ? "en ce moment" : (reste < 60 ? "dans " + reste + " min" : heureLisible(suiv.heure));
+      bandeau = '<div class="maintenant">' + (now >= deb ? '<span class="pastille-m"></span>' : "")
+        + '<span class="quand-m">' + quand + '</span><span class="quoi">' + h(suiv.titre) + "</span></div>";
+    }
   }
 
-  out += '<section class="heros anim">' + tete + bandeau + '<div class="liste-jour">' + corps + "</div></section>";
+  /* ── le choix de vue ── */
+  const vues = [["jour", "Jour"], ["semaine", "Semaine"], ["liste", "Liste"]];
+  let corps = '<div class="segments">' + vues.map(kv =>
+    '<button data-va="' + kv[0] + '" aria-pressed="' + (vueAgenda === kv[0]) + '">' + kv[1] + "</button>").join("") + "</div>";
 
+  if(vueAgenda === "liste"){
+    corps += listeClassique(c);
+  }else if(vueAgenda === "jour"){
+    const dj = dt(jour0);
+    corps += '<div class="barre-agenda">'
+      + '<span class="jourdit">' + (cestAujourdhui ? "Aujourd\'hui"
+          : dj.toLocaleDateString("fr-FR", {weekday: "long", day: "numeric", month: "long"})) + "</span>"
+      + boutonFleche(-1) + (cestAujourdhui ? "" : '<button class="mini" data-aujourdhui="1">Aujourd\'hui</button>') + boutonFleche(1)
+      + "</div>";
+    const blocs = repartir(blocsDe(jour0));
+    corps += '<div class="agenda"><div class="piste-jour" style="--h-piste:' + (ETENDUE / 60 * HAUTEUR_H) + 'px">'
+      + pisteHeures()
+      + '<div class="colonnes" style="grid-template-columns:1fr">' + trames()
+      + '<div class="col" data-poser="' + jour0 + '">' + blocs.map(b => unBloc(b, false)).join("")
+      + traitMaintenant(jour0) + "</div></div></div>";
+    corps += sansHeure(jour0) + "</div>";
+  }else{
+    const l = lundiDe(jour0);
+    const sept = [];
+    for(let i = 0; i < 7; i++){ const d2 = dt(l); d2.setDate(d2.getDate() + i); sept.push(iso(d2)); }
+    corps += '<div class="barre-agenda">'
+      + '<span class="jourdit">' + dt(l).toLocaleDateString("fr-FR", {day: "numeric", month: "long"})
+      + " – " + dt(sept[6]).toLocaleDateString("fr-FR", {day: "numeric", month: "long"}) + "</span>"
+      + boutonFleche(-7) + boutonFleche(7) + "</div>";
+    corps += '<div class="agenda"><div class="jours-tete"><span></span><span class="cases" style="grid-template-columns:repeat(7,1fr)">'
+      + sept.map(j => '<b class="' + (j === auj() ? "ici" : "") + '">'
+          + dt(j).toLocaleDateString("fr-FR", {weekday: "short"}).replace(".", "") + " " + dt(j).getDate() + "</b>").join("")
+      + "</span></div>"
+      + '<div class="piste-jour" style="--h-piste:' + (ETENDUE / 60 * HAUTEUR_H) + 'px">'
+      + pisteHeures()
+      + '<div class="colonnes" style="grid-template-columns:repeat(7,1fr)">' + trames()
+      + sept.map(j => '<div class="col" data-poser="' + j + '">'
+          + blocsDe(j).map(b => unBloc(b, true)).join("") + traitMaintenant(j) + "</div>").join("")
+      + "</div></div></div>";
+  }
+
+  let out = '<section class="heros anim">' + tete + bandeau + '<div class="liste-jour">' + corps + "</div></section>";
+  out += pointSemaine();
   out += demo();
   return out;
 }
 
-/* ───────── vue : clients ───────── */
-const CYCLE = {prospect: "actif", actif: "termine", termine: "prospect"};
+function boutonFleche(pas){
+  const d = pas < 0 ? '<path d="M14.5 5.5 8 12l6.5 6.5"/>' : '<path d="M9.5 5.5 16 12l-6.5 6.5"/>';
+  return '<button class="fleche" data-pas="' + pas + '" aria-label="' + (pas < 0 ? "Précédent" : "Suivant") + '">'
+    + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' + d + "</svg></button>";
+}
+
+/* les choses du jour qui n'ont pas d'heure restent en liste, sous la piste */
+function sansHeure(isoJour){
+  const sans = tachesDu(isoJour).filter(t => !t.heure && !t.fait);
+  const auto = isoJour === auj() ? relancesAuto() : [];
+  const tout = auto.concat(sans);
+  if(!tout.length && isoJour !== auj()) return "";
+  return (tout.length ? '<p class="groupe"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
+      + '<path d="M4 7h16M4 12h16M4 17h10"/></svg>Sans heure<span class="nb">' + tout.length + " chose" + (tout.length > 1 ? "s" : "") + "</span></p>"
+      + listeTaches(tout, "aujourdhui") : "")
+    + (isoJour === auj() ? ligneVite() : "");
+}
+
+/* la vue Liste : celle d'avant, intacte */
+function listeClassique(c){
+  const tout = liste("taches").sort((x, y) => (x.fait - y.fait) || String(x.echeance).localeCompare(String(y.echeance)));
+  const vis = filtreT === "faites" ? tout.filter(t => !!t.fait)
+                                   : relancesAuto().concat(tout.filter(t => !t.fait));
+  const libs = [["afaire", "À faire"], ["faites", "Terminées"]];
+  let corps = '<div class="segments" style="margin-top:4px">' + libs.map(kv =>
+    '<button data-ft="' + kv[0] + '" aria-pressed="' + (filtreT === kv[0]) + '">' + kv[1] + "</button>").join("") + "</div>";
+  if(!vis.length){
+    return corps + '<p class="vide"><b>' + (filtreT === "faites" ? "Rien de terminé" : "Rien à faire") + "</b>"
+      + (filtreT === "faites" ? "Cochez une tâche, elle viendra ici." : "Écrivez la première ci-dessous.") + "</p>"
+      + (filtreT !== "faites" ? ligneVite() : "");
+  }
+  if(filtreT === "faites") return corps + listeTaches(vis, "fait");
+  const ICO = {
+    retard: '<circle cx="12" cy="12" r="9"/><path d="M12 7.4v5"/><circle cx="12" cy="16.4" r="1.15" fill="currentColor" stroke="none"/>',
+    aujourdhui: '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.6V5M12 19v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.6 12H5M19 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/>',
+    plustard: '<circle cx="12" cy="12" r="8.6"/><path d="M12 7.4V12l3 1.9"/>'
+  };
+  const grp = [
+    ["retard", "En retard", vis.filter(t => jours(t.echeance) < 0), true],
+    ["aujourdhui", "Aujourd\'hui", vis.filter(t => jours(t.echeance) === 0), false],
+    ["plustard", "Plus tard", vis.filter(t => jours(t.echeance) > 0), false]
+  ];
+  const bande = g => '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
+    + ICO[g[0]] + "</svg>" + g[1] + '<span class="nb">' + g[2].length + " chose" + (g[2].length > 1 ? "s" : "") + "</span>";
+  corps += grp.filter(g => g[2].length).map(g =>
+    g[0] === "plustard"
+      ? '<details class="pli"' + (pliOuvert ? " open" : "") + '><summary class="groupe">' + bande(g)
+        + '<span class="chev"></span></summary>' + listeTaches(g[2], g[0]) + "</details>"
+      : '<p class="groupe' + (g[3] ? " chaud" : "") + '">' + bande(g) + "</p>" + listeTaches(g[2], g[0])
+  ).join("");
+  return corps + ligneVite();
+}
+
+function pointSemaine(){
+  const rf = ritFaits();
+  return '<section class="carte anim" style="animation-delay:.12s"><details' + (rf.length ? " open" : "") + '>'
+    + '<summary class="carte-tete" style="cursor:pointer"><h2>Le point de fin de semaine</h2>'
+    + '<span class="appoint">' + rf.length + "/" + RITUEL.length + "</span></summary>"
+    + '<p style="padding:0 24px;font-size:15px;color:var(--ink-2)">Cinq minutes le vendredi, et la semaine suivante est plus calme.</p>'
+    + '<ol class="rituel">' + RITUEL.map((r, i) =>
+        '<li><label><span class="n">' + (i + 1) + '</span><input type="checkbox" class="coche" data-rituel="' + i + '"'
+        + (rf.indexOf(i) > -1 ? " checked" : "") + '><span class="txt">' + h(r) + "</span></label></li>").join("")
+    + "</ol></details></section>";
+}
+
 function fiche(c){
   const e = ETIQ_C[c.statut] || ETIQ_C.prospect;
   const fx = liste("factures").filter(f => f.client === c.nom && f.statut !== "brouillon")
@@ -1035,11 +1233,37 @@ function vueBudget(){
     + "<span><b>" + pc + " %</b> du plafond de " + eur(k.regle.plafond) + "</span>"
     + "</div></div></section>";
 
+  /* ── ce qu'il faut facturer pour se verser ce qu'on vise ── */
+  if(k.caNecessaire > 0){
+    const pc = Math.round(k.partObjectif * 100);
+    bilan += '<section class="carte anim" style="animation-delay:.04s"><div class="carte-tete"><h2>Votre prix plancher</h2>'
+      + '<span class="appoint">' + eur(state.moi.objectif) + " par mois</span></div>"
+      + '<div class="objectif"><div class="gros-prix"><b>' + eur(Math.ceil(k.prixJour)) + "</b><span>par jour facturé</span></div>"
+      + '<p class="ou-en">En dessous, vous travaillez à perte une fois les cotisations et les frais payés. '
+      + "Il vous faut <b>" + eur(Math.ceil(k.caNecessaire)) + "</b> sur l'année, sur " + k.jours + " jours facturés.</p>"
+      + '<div class="piste-p" style="margin-top:16px"><i style="width:' + pc + '%"></i></div>'
+      + '<p class="ou-en" style="margin-top:10px">'
+      + (k.manque <= 0
+          ? '<span class="atteint">Objectif atteint.</span> Tout ce qui rentre maintenant est en plus.'
+          : "<b>" + pc + " %</b> du chemin. Il manque <b>" + eur(Math.ceil(k.manque)) + "</b> — environ <b>"
+            + k.joursRestants + " jour" + (k.joursRestants > 1 ? "s" : "") + "</b> à facturer.")
+      + "</p>";
+    /* dépendance à un seul client */
+    if(k.grosPart >= 0.5 && k.nbClients > 0){
+      bilan += '<div class="risque">'
+        + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
+        + '<path d="M12 3.5 21 19.5H3Z"/><path d="M12 10v4"/><circle cx="12" cy="17" r=".9" fill="currentColor" stroke="none"/></svg>'
+        + Math.round(k.grosPart * 100) + " % de vos rentrées viennent de " + h(k.grosClient) + "."
+        + (k.nbClients < 3 ? " Cherchez-en d'autres." : "") + "</div>";
+    }
+    bilan += "</div></section>";
+  }
+
   if(!(state.moi && state.moi.nom)){
     bilan += '<button class="ajout-ligne" data-moi="1"><span class="rond" style="border-style:solid">'
       + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;stroke-width:2.2;fill:none">'
       + '<circle cx="12" cy="8.4" r="3.6"/><path d="M4.8 20c0-3.6 3.2-5.8 7.2-5.8s7.2 2.2 7.2 5.8"/></svg></span>'
-      + "Dites votre activité pour ajuster les taux</button>";
+      + "Dites votre activité et ce que vous visez</button>";
   }
 
   return bilan
@@ -1081,10 +1305,32 @@ function comptes(){
   const invest = somme(liste("investissements").filter(cetteAnnee));
   const cotis = Math.round(encaisse * r.cotis) / 100;
   const impot = (state.moi && state.moi.liberatoire) ? Math.round(encaisse * r.liber) / 100 : 0;
+  /* combien faut-il encaisser pour se verser ce qu'on vise ? */
+  const vise = (Number(state.moi && state.moi.objectif) || 0) * 12;
+  const jours = Math.max(1, Number(state.moi && state.moi.joursFactures) || 200);
+  const taux = (r.cotis + ((state.moi && state.moi.liberatoire) ? r.liber : 0)) / 100;
+  const besoin = vise + depenses + invest;
+  const caNecessaire = vise > 0 && taux < 1 ? besoin / (1 - taux) : 0;
+  const prixJour = caNecessaire > 0 ? caNecessaire / jours : 0;
+  const manque = Math.max(0, caNecessaire - encaisse);
+
+  /* quelle part du chiffre vient du plus gros client ? */
+  const parClient = {};
+  fact.filter(f => statut(f) === "payee" && cetteAnnee(f))
+      .forEach(f => { parClient[f.client] = (parClient[f.client] || 0) + (Number(f.montant) || 0); });
+  const noms = Object.keys(parClient);
+  let gros = null;
+  noms.forEach(nm => { if(!gros || parClient[nm] > parClient[gros]) gros = nm; });
+
   return {an: an, regle: r, encaisse: encaisse, facture: facture, depenses: depenses,
-    invest: invest, cotis: cotis, impot: impot,
+    invest: invest, cotis: cotis, impot: impot, jours: jours,
     reste: encaisse - cotis - impot - depenses - invest,
-    partPlafond: r.plafond ? Math.min(1, encaisse / r.plafond) : 0};
+    partPlafond: r.plafond ? Math.min(1, encaisse / r.plafond) : 0,
+    vise: vise, caNecessaire: caNecessaire, prixJour: prixJour, manque: manque,
+    joursRestants: prixJour > 0 ? Math.ceil(manque / prixJour) : 0,
+    partObjectif: caNecessaire > 0 ? Math.min(1, encaisse / caNecessaire) : 0,
+    grosClient: gros, grosPart: gros && encaisse > 0 ? parClient[gros] / encaisse : 0,
+    nbClients: noms.length};
 }
 
 /* ═══ la facture en PDF ═══ */
@@ -1347,7 +1593,7 @@ function importerTout(){
         return;
       }
       COLS.forEach(c => { state[c] = d[c] && typeof d[c] === "object" ? d[c] : {}; });
-      if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0, regime: "services", liberatoire: false}, d.moi);
+      if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0, regime: "services", liberatoire: false, objectif: 0, joursFactures: 200}, d.moi);
       if(d.rituel) state.rituel = d.rituel;
       if(d.serie) state.serie = d.serie;
       clientOuvert = null;
@@ -1455,8 +1701,11 @@ const CHAMPS = {
     + '<label><input type="radio" name="quand" value="1"><span>Demain</span></label>'
     + '<label><input type="radio" name="quand" value="x"><span>Plus tard…</span></label></div>'
     + '<input class="date-libre" name="echeance" type="date" value="' + auj() + '" aria-label="Date précise" hidden></div>'
-    + '<div class="champ"><label for="f7">À quelle heure ?</label>'
+    + '<div class="paire"><div class="champ"><label for="f7">À quelle heure ?</label>'
     + '<input id="f7" name="heure" type="time" step="300"></div>'
+    + '<div class="champ"><label for="f9">Combien de temps ?</label><select id="f9" name="duree">'
+    + DUREES.map(m => '<option value="' + m[0] + '"' + (m[0] === 60 ? " selected" : "") + ">" + m[1] + "</option>").join("")
+    + "</select></div></div>"
     + '<details class="detail"><summary>Plus de détails</summary>'
     + '<div class="champ"><label for="f3">Pour quel client ?</label><input id="f3" name="client" maxlength="60" placeholder="facultatif" list="lc" autocomplete="off"></div>'
     + '<div class="champ"><label>Priorité</label><div class="choix">'
@@ -1495,6 +1744,12 @@ const CHAMPS = {
     + "</select></div>"
     + '<label class="bascule"><input type="checkbox" name="liberatoire"' + (state.moi.liberatoire ? " checked" : "") + ">"
     + "<span>Je paie l'impôt en même temps que mes cotisations <em>(versement libératoire)</em></span></label>"
+    + '<div class="paire" style="margin-top:14px"><div class="champ"><label for="f10">Je veux me verser par mois</label>'
+    + '<input id="f10" name="objectif" type="number" min="0" step="any" inputmode="decimal" placeholder="2 500" value="'
+    + (Number(state.moi.objectif) || "") + '"></div>'
+    + '<div class="champ"><label for="f11">Jours facturés par an</label>'
+    + '<input id="f11" name="joursFactures" type="number" min="1" max="365" inputmode="numeric" value="'
+    + (Number(state.moi.joursFactures) || 200) + '"></div></div>'
     + "</details>"}),
 
   facture: () => ({titre: "Nouvelle facture", html:
@@ -1611,6 +1866,82 @@ function ajoutVite(){
   if(suivant) suivant.focus();
 }
 
+/* ═══ déplacer et étirer un bloc, comme dans un agenda ═══ */
+let glissait = false;
+let prise = null;
+
+function minutesDepuisY(colonne, y){
+  const r = colonne.getBoundingClientRect();
+  const part = Math.min(1, Math.max(0, (y - r.top) / r.height));
+  return DEBUT_J + part * ETENDUE;
+}
+const arrondir = m => Math.round(m / 15) * 15;
+
+$("#vue").addEventListener("pointerdown", e => {
+  const etire = e.target.closest("[data-etirer]");
+  const bloc = e.target.closest("[data-bloc]");
+  if(!bloc) return;
+  const colonne = bloc.closest("[data-poser]");
+  if(!colonne) return;
+  const t = state.taches[bloc.dataset.bloc];
+  if(!t) return;
+
+  e.preventDefault();
+  bloc.setPointerCapture(e.pointerId);
+  glissait = false;
+  prise = {
+    bloc: bloc, colonne: colonne, id: bloc.dataset.bloc,
+    mode: etire ? "etirer" : "poser",
+    debDepart: enMinutes(t.heure), dureeDepart: Number(t.duree) || DUREE_DEFAUT,
+    yDepart: e.clientY, jourDepart: colonne.dataset.poser
+  };
+});
+
+$("#vue").addEventListener("pointermove", e => {
+  if(!prise) return;
+  const dy = e.clientY - prise.yDepart;
+  if(!glissait && Math.abs(dy) < 4) return;
+  glissait = true;
+  prise.bloc.classList.add("prend");
+
+  const r = prise.colonne.getBoundingClientRect();
+  const enMin = dy / r.height * ETENDUE;
+
+  if(prise.mode === "poser"){
+    let deb = arrondir(prise.debDepart + enMin);
+    deb = Math.max(DEBUT_J, Math.min(FIN_J - prise.dureeDepart, deb));
+    prise.debCourant = deb;
+    prise.bloc.style.top = ((deb - DEBUT_J) / ETENDUE * 100).toFixed(2) + "%";
+  }else{
+    let duree = arrondir(prise.dureeDepart + enMin);
+    duree = Math.max(15, Math.min(FIN_J - prise.debDepart, duree));
+    prise.dureeCourante = duree;
+    prise.bloc.style.height = Math.max(2.6, duree / ETENDUE * 100).toFixed(2) + "%";
+  }
+});
+
+function lacher(){
+  if(!prise) return;
+  const p = prise;
+  prise = null;
+  p.bloc.classList.remove("prend");
+  if(!glissait) return;
+  const t = state.taches[p.id];
+  if(t){
+    const maj = Object.assign({}, t);
+    if(p.mode === "poser" && p.debCourant !== undefined){
+      const hh = Math.floor(p.debCourant / 60), mm = p.debCourant % 60;
+      maj.heure = String(hh).padStart(2, "0") + ":" + String(mm).padStart(2, "0");
+    }
+    if(p.mode === "etirer" && p.dureeCourante !== undefined) maj.duree = p.dureeCourante;
+    ecrire("taches", p.id, maj);
+    bulle(p.mode === "poser" ? "Déplacé à " + heureLisible(maj.heure) : "Durée ajustée");
+  }
+  setTimeout(() => { glissait = false; }, 60);
+}
+$("#vue").addEventListener("pointerup", lacher);
+$("#vue").addEventListener("pointercancel", lacher);
+
 /* ───────── interactions ───────── */
 $("#nav").addEventListener("click", e => {
   const b = e.target.closest("button");
@@ -1646,6 +1977,8 @@ function armer(b){
 $("#vue").addEventListener("click", e => {
   const b = e.target.closest("button");
   if(!b){
+    const bloc = e.target.closest("[data-bloc]");
+    if(bloc && !glissait){ modifier("tache", bloc.dataset.bloc); return; }
     const cible = e.target.closest("[data-modif]");
     if(cible){ modifier(cible.dataset.modif, cible.dataset.id); return; }
     const carte = e.target.closest("[data-client]");
@@ -1689,6 +2022,9 @@ $("#vue").addEventListener("click", e => {
   }
   if(b.dataset.vite){ ajoutVite(); return; }
   if(b.dataset.premier){ ouvrir("tache"); return; }
+  if(b.dataset.va){ vueAgenda = b.dataset.va; memoire.clear(); rendre(); return; }
+  if(b.dataset.pas){ decalerJour(Number(b.dataset.pas)); rendre(); return; }
+  if(b.dataset.aujourdhui){ jourVu = null; rendre(); return; }
   if(b.dataset.ft){ filtreT = b.dataset.ft; rendre(); return; }
   if(b.dataset.ff){ filtreF = b.dataset.ff; rendre(); return; }
   if(b.dataset.fb){ filtreB = b.dataset.fb; rendre(); return; }
@@ -1807,7 +2143,8 @@ $("#feuille").addEventListener("submit", e => {
     const lu = lireHeure(String(d.titre).trim());
     ecrire("taches", id, Object.assign(garder, {titre: lu.titre,
       client: String(d.client || "").trim(), priorite: d.priorite || "normale",
-      echeance: ech, heure: d.heure || lu.heure || "", fait: !!garder.fait}));
+      echeance: ech, heure: d.heure || lu.heure || "",
+      duree: Number(d.duree) || garder.duree || DUREE_DEFAUT, fait: !!garder.fait}));
     bulle(mot || "Tâche ajoutée");
   }else if(typeActif === "client"){
     ecrire("clients", id, Object.assign(garder, {nom: String(d.nom).trim(),
@@ -1828,7 +2165,8 @@ $("#feuille").addEventListener("submit", e => {
   }else if(typeActif === "moi"){
     state.moi = {nom: String(d.nom).trim(), adresse: String(d.adresse || "").trim(),
       siret: String(d.siret || "").trim(), email: String(d.email || "").trim(), tva: Number(d.tva) || 0,
-      regime: d.regime || "services", liberatoire: !!d.liberatoire};
+      regime: d.regime || "services", liberatoire: !!d.liberatoire,
+      objectif: Number(d.objectif) || 0, joursFactures: Number(d.joursFactures) || 200};
     sauver(); rendre();
     bulle("C'est enregistré");
     enModif = null;
