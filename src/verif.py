@@ -1,7 +1,9 @@
 """Contrôle de syntaxe du script avant publication : chaînes fermées, blocs équilibrés."""
 import io, sys
 src = io.open('index.html', encoding='utf-8').read()
-js = src[src.index('<script>')+8 : src.rindex('</script>')]
+import re as _re
+blocs = _re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>', src, _re.S)
+js = "\n;\n".join(blocs)
 i, n, ligne = 0, len(js), 1
 pile, erreurs = [], []
 precedent, crochet = '', False
@@ -58,6 +60,12 @@ print(f"syntaxe correcte · {len(js)} caractères de script")
 # ── Toute fonction appelée doit exister ──────────────────────────────
 import re
 declarees = set(re.findall(r'(?:async\s+)?function\s+([A-Za-zÀ-ÿ_$][\w$]*)\s*\(', js))
+# var a, b, c;  ·  let x;  ·  const y
+for bloc in re.findall(r'(?:var|let|const)\s+([^;\n]+)', js):
+    for nom in bloc.split(','):
+        nom = nom.strip().split('=')[0].strip()
+        if re.match(r'^[A-Za-zÀ-ÿ_$][\w$]*$', nom):
+            declarees.add(nom)
 declarees |= set(re.findall(r'(?:const|let|var)\s+([A-Za-zÀ-ÿ_$][\w$]*)\s*=\s*(?:async\s*)?(?:\([^)]*\)|[\w$]+)\s*=>', js))
 declarees |= set(re.findall(r'(?:const|let|var)\s+([A-Za-zÀ-ÿ_$][\w$]*)\s*=', js))
 connues = {
@@ -67,9 +75,13 @@ connues = {
     'FileReader','TextDecoder','CSS','Promise','Error','encodeURIComponent','decodeURIComponent','alert',
     'console','document','window','localStorage','performance','fetch','constructor','super','this',
     'not','var','let','const','in','of','delete','void','instanceof','yield','case','throw',
+    'setInterval','clearInterval','requestIdleCallback','structuredClone','queueMicrotask','btoa','atob',
+    'Intl','WeakMap','Symbol','Proxy','Reflect','BigInt','RegExp','Function','eval','isFinite','decodeURI',
 }
-# les chaînes de texte contiennent du CSS et du HTML : on les retire avant d'analyser
-sansTexte = re.sub(r'"(?:[^"\\\n]|\\.)*"|\'(?:[^\'\\\n]|\\.)*\'', '""', js)
+# commentaires, chaînes de texte : rien de tout cela n'est un appel de fonction
+sansTexte = re.sub(r'/\*.*?\*/', ' ', js, flags=re.S)
+sansTexte = re.sub(r'(?m)//[^\n]*', ' ', sansTexte)
+sansTexte = re.sub(r'"(?:[^"\\\n]|\\.)*"|\'(?:[^\'\\\n]|\\.)*\'', '""', sansTexte)
 appels = set(re.findall(r'(?<![.\w$])([A-Za-zÀ-ÿ_$][\w$]*)\s*\(', sansTexte))
 manquantes = sorted(a for a in appels - declarees - connues if not a[0].isupper())
 if manquantes:
