@@ -161,6 +161,19 @@ h1,h2,h3,p{margin:0}
   background:var(--tard-doux);color:var(--tard);font-size:14.5px;font-weight:600}
 .risque svg{width:20px;height:20px;flex:none;stroke-width:2.2;fill:none}
 
+/* ═══ les deux seuils à ne pas franchir sans le savoir ═══ */
+.seuils{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border-radius:var(--rm);overflow:hidden;margin:0 24px 22px}
+@media(max-width:439px){ .seuils{grid-template-columns:1fr} }
+.seuil{background:var(--surface);padding:17px 19px;display:flex;flex-direction:column;gap:9px}
+.seuil .quoi-s{font-size:13.5px;font-weight:700;color:var(--ink-2)}
+.seuil .reste-s{font-family:var(--num);font-weight:600;font-size:21px;letter-spacing:-.025em;font-variant-numeric:tabular-nums}
+.seuil .sous-s{font-size:12.5px;color:var(--ink-3)}
+.seuil .piste-s{height:7px;background:var(--surface-3);border-radius:999px;overflow:hidden}
+.seuil .piste-s i{display:block;height:100%;border-radius:999px;background:var(--deg)}
+.seuil.chaud .reste-s{color:var(--tard)}
+.seuil.chaud .piste-s i{background:var(--tard)}
+.seuil.franchi .reste-s{color:var(--tard)}
+
 /* ═══ plafond du régime ═══ */
 .plafond{padding:2px 24px 22px}
 .plafond .piste-p{height:9px;background:var(--surface-3);border-radius:999px;overflow:hidden}
@@ -560,7 +573,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   <button data-vue="afaire" aria-current="page"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="5" width="17.6" height="15.8" rx="3.4"/><path d="M3.2 10h17.6M8.2 2.6v3.6M15.8 2.6v3.6"/></svg><span class="nom">Agenda</span><span class="compte" id="n-taches" hidden></span></button>
   <button data-vue="argent"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="5.5" width="18.4" height="13" rx="3"/><circle cx="12" cy="12" r="2.6"/></svg><span class="nom">Argent</span><span class="compte" id="n-argent" hidden></span></button>
   <button data-vue="clients"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c0-3.4 2.8-5.6 6.2-5.6s6.2 2.2 6.2 5.6"/><path d="M16.2 5.2a3.4 3.4 0 0 1 0 6.4M18 14.8c2 .7 3.2 2.5 3.2 5.2"/></svg><span class="nom">Clients</span></button>
-  <button data-vue="budget"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2a8.8 8.8 0 1 0 8.8 8.8H12Z"/><path d="M12 3.2V12h8.8"/></svg><span class="nom">Budget</span></button>
+  <button data-vue="budget"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 17.2 9 11.4l3.6 3.6 8-8"/><path d="M15.8 7h4.8v4.8"/></svg><span class="nom">Comptabilité</span></button>
   <button class="plus" id="plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round"><path d="M12 5.5v13M5.5 12h13"/></svg><span class="nom">Ajouter</span></button>
 </nav>
 
@@ -1139,7 +1152,9 @@ function rangeeFacture(f, chezLui){
     + '<button class="pdf" data-pdf="' + h(f.id) + '" title="Télécharger la facture en PDF">'
     + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
     + '<path d="M12 3.5v11"/><path d="m7.8 10.5 4.2 4.2 4.2-4.2"/><path d="M4.5 18.5h15"/></svg>PDF</button>'
-    + (st === "payee" ? "" : '<button class="mini" data-paye="' + h(f.id) + '">Payée</button>')
+    + (st === "payee"
+        ? '<button class="mini" data-regle="' + h(f.id) + '" title="Appuyez pour changer">' + h(f.regle || "Virement") + "</button>"
+        : '<button class="mini" data-paye="' + h(f.id) + '">Payée</button>')
     + '<button class="sup" data-sup="factures" data-id="' + h(f.id) + '"><span class="mot">Supprimer</span></button></div>';
 }
 function vueArgent(){
@@ -1214,7 +1229,9 @@ function vueBudget(){
     + ">" + val + "</b></div>";
 
   /* ce qui reste vraiment : encaissé, moins les cotisations, l'impôt et les sorties */
-  let bilan = '<section class="carte anim"><div class="mois" style="padding-top:22px">'
+  let bilan = '<section class="carte anim"><div class="carte-tete"><h2>Comptabilité</h2>'
+    + '<span class="appoint">' + eur(k.ceMois) + " encaissés ce mois-ci</span></div>"
+    + '<div class="mois" style="padding-top:2px">'
     + '<p class="heros-lab">Sur ' + k.an + ", il vous reste vraiment</p>"
     + '<p class="heros-val' + (k.reste < 0 ? " negatif" : "") + '" data-compte="reste" data-val="' + k.reste + '">' + eur(k.reste) + "</p>"
     + '<div class="bilan">'
@@ -1225,13 +1242,24 @@ function vueBudget(){
     + ligne("Investissements", "− " + eur(k.invest))
     + "</div></div>";
 
-  /* le plafond du régime, qu'on ne voit venir qu'une fois dépassé */
-  const pc = Math.round(k.partPlafond * 100);
-  bilan += '<div class="plafond"><div class="piste-p"><i class="' + (pc >= 80 ? "chaud" : "")
-    + '" style="width:' + pc + '%"></i></div><div class="txt">'
-    + "<span>" + h(k.regle.nom) + "</span>"
-    + "<span><b>" + pc + " %</b> du plafond de " + eur(k.regle.plafond) + "</span>"
-    + "</div></div></section>";
+  bilan += "</div>";
+
+  /* les deux murs qu'on ne voit qu'une fois dedans */
+  const carteSeuil = (titre, encaisse, seuil, part, apres) => {
+    const pcs = Math.round(part * 100);
+    const restant = seuil - encaisse;
+    const cls = restant <= 0 ? " franchi" : (pcs >= 80 ? " chaud" : "");
+    return '<div class="seuil' + cls + '"><span class="quoi-s">' + titre + "</span>"
+      + '<span class="reste-s">' + (restant > 0 ? "encore " + eur(restant) : "franchi") + "</span>"
+      + '<div class="piste-s"><i style="width:' + Math.min(100, pcs) + '%"></i></div>'
+      + '<span class="sous-s">' + (restant > 0 ? apres : "Le seuil de " + eur(seuil) + " est dépassé.") + "</span></div>";
+  };
+  bilan += '<div class="seuils">'
+    + carteSeuil("Avant de devoir facturer la TVA", k.encaisse, k.regle.tva, k.partTva,
+        "Au-delà de " + eur(k.regle.tva) + ", vous ajoutez la TVA à vos prix.")
+    + carteSeuil("Avant de sortir de la micro-entreprise", k.encaisse, k.regle.plafond, k.partPlafond,
+        "Au-delà de " + eur(k.regle.plafond) + ", changement de régime.")
+    + "</div></section>";
 
   /* ── ce qu'il faut facturer pour se verser ce qu'on vise ── */
   if(k.caNecessaire > 0){
@@ -1287,9 +1315,9 @@ function vueBudget(){
    Taux 2026 : cotisations sociales, versement libératoire de l'impôt,
    et plafond de chiffre d'affaires au-delà duquel le régime tombe. */
 const REGIMES = {
-  vente:    {nom: "Vente de marchandises", cotis: 12.3, liber: 1.0, plafond: 188700},
-  services: {nom: "Prestations de services", cotis: 21.2, liber: 1.7, plafond: 77700},
-  liberal:  {nom: "Profession libérale", cotis: 24.6, liber: 2.2, plafond: 77700}
+  vente:    {nom: "Vente de marchandises", cotis: 12.3, liber: 1.0, plafond: 188700, tva: 85000},
+  services: {nom: "Prestations de services", cotis: 21.2, liber: 1.7, plafond: 77700, tva: 37500},
+  liberal:  {nom: "Profession libérale", cotis: 24.6, liber: 2.2, plafond: 77700, tva: 37500}
 };
 function reglesMoi(){ return REGIMES[(state.moi && state.moi.regime) || "services"] || REGIMES.services; }
 
@@ -1330,7 +1358,10 @@ function comptes(){
     joursRestants: prixJour > 0 ? Math.ceil(manque / prixJour) : 0,
     partObjectif: caNecessaire > 0 ? Math.min(1, encaisse / caNecessaire) : 0,
     grosClient: gros, grosPart: gros && encaisse > 0 ? parClient[gros] / encaisse : 0,
-    nbClients: noms.length};
+    nbClients: noms.length,
+    ceMois: fact.filter(f => statut(f) === "payee" && String(f.emise || "").slice(0, 7) === auj().slice(0, 7))
+                .reduce((t, f) => t + (Number(f.montant) || 0), 0),
+    partTva: r.tva ? Math.min(1, encaisse / r.tva) : 0};
 }
 
 /* ═══ la facture en PDF ═══ */
@@ -1454,8 +1485,9 @@ async function livreRecettes(){
     doc.setFont("helvetica", "bold").setFontSize(8.5).setTextColor(90, 102, 120);
     doc.text("DATE", G + 3, y + 6);
     doc.text("CLIENT", G + 26, y + 6);
-    doc.text("DÉSIGNATION", G + 80, y + 6);
-    doc.text("RÉFÉRENCE", D - 36, y + 6, {align: "right"});
+    doc.text("DÉSIGNATION", G + 76, y + 6);
+    doc.text("RÉGLÉ PAR", D - 62, y + 6);
+    doc.text("RÉFÉRENCE", D - 30, y + 6, {align: "right"});
     doc.text("MONTANT", D - 3, y + 6, {align: "right"});
     y += 14;
     doc.setFont("helvetica", "normal").setFontSize(9.5).setTextColor(20, 32, 46);
@@ -1466,8 +1498,9 @@ async function livreRecettes(){
     if(y > 268){ doc.addPage(); y = 22; entete(); }
     doc.text(dateTxt(f.emise), G + 3, y);
     doc.text(doc.splitTextToSize(String(f.client || ""), 50)[0] || "", G + 26, y);
-    doc.text(doc.splitTextToSize(String(f.objet || ""), 58)[0] || "", G + 80, y);
-    doc.text(String(f.ref || ""), D - 36, y, {align: "right"});
+    doc.text(doc.splitTextToSize(String(f.objet || ""), 42)[0] || "", G + 76, y);
+    doc.text(String(f.regle || "Virement"), D - 62, y);
+    doc.text(String(f.ref || ""), D - 30, y, {align: "right"});
     doc.text(euroTxt(f.montant), D - 3, y, {align: "right"});
     y += 6.6;
   });
@@ -2031,8 +2064,18 @@ $("#vue").addEventListener("click", e => {
   if(b.dataset.paye){
     const f = state.factures[b.dataset.paye];
     if(!f) return;
-    ecrire("factures", b.dataset.paye, Object.assign({}, f, {statut: "payee"}));
+    ecrire("factures", b.dataset.paye, Object.assign({}, f, {statut: "payee", regle: f.regle || "Virement"}));
     bulle("Encaissement noté");
+    return;
+  }
+  if(b.dataset.regle){
+    const f = state.factures[b.dataset.regle];
+    if(!f) return;
+    const ordre = ["Virement", "Chèque", "Espèces", "Carte"];
+    const i = ordre.indexOf(f.regle || "Virement");
+    const suivant = ordre[(i + 1) % ordre.length];
+    ecrire("factures", b.dataset.regle, Object.assign({}, f, {regle: suivant}));
+    bulle("Réglé par " + suivant.toLowerCase());
     return;
   }
   if(b.dataset.sauver){ exporterTout(); return; }
