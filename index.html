@@ -1,0 +1,1131 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cadence</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Outfit:wght@500;600;700;800&display=swap">
+<style>
+:root{
+  --ground:#EFF3F8; --surface:#FFFFFF; --surface-2:#F5F8FC; --surface-3:#E9EFF6;
+  --line:#DFE7F0; --line-fort:#C6D2E0;
+  --ink:#14202E; --ink-2:#4F5B70; --ink-3:#7F8CA1;
+
+  /* la signature : un seul dégradé vert → bleu, partout */
+  --v1:#0B7D6E; --v2:#17539F;
+  --deg:linear-gradient(135deg,#0B7D6E 0%,#17539F 100%);
+  --deg-fonce:linear-gradient(140deg,#075C52 0%,#0F3C78 100%);
+  --deg-pale:linear-gradient(135deg,#E2F2EF 0%,#E4ECFA 100%);
+  --fond:linear-gradient(165deg,#9CDDCB 0%,#A9CEF6 100%);
+  --tuile-neutre:linear-gradient(150deg,#FFFFFF 0%,#F1F7FF 100%);
+  --tuile-vert:linear-gradient(150deg,#E9F9F1 0%,#D5EFE4 100%);
+  --tuile-chaud:linear-gradient(150deg,#FEF5E8 0%,#FAE8CC 100%);
+
+  /* sémantique : trois états, jamais plus */
+  --ok:#0E7D57; --ok-doux:#DDF1E8;
+  --tard:#A3670F; --tard-doux:#FBEDD6;
+  --attente:#1D5BA8; --attente-doux:#E3ECFB;
+  --sur-plein:#FFFFFF;
+
+  --rxl:32px; --rl:26px; --rm:20px; --rs:14px;
+  --o1:0 1px 2px rgba(20,32,46,.04), 0 12px 32px -20px rgba(20,32,46,.28);
+  --o2:0 14px 38px -16px rgba(11,70,110,.42);
+  --o3:0 18px 46px -14px rgba(20,32,46,.30);
+  --ui:"Nunito",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --num:"Outfit","Nunito",-apple-system,sans-serif;
+  --ressort:cubic-bezier(.34,1.46,.44,1);
+  --doux:cubic-bezier(.22,.61,.36,1);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#080E16; --surface:#131C28; --surface-2:#1A2431; --surface-3:#101924;
+    --line:#233040; --line-fort:#334152;
+    --ink:#ECF2F9; --ink-2:#A2AFC2; --ink-3:#73819A;
+    --deg:linear-gradient(135deg,#17A794 0%,#3B82E0 100%);
+    --deg-fonce:linear-gradient(140deg,#0A6B5F 0%,#144B92 100%);
+    --deg-pale:linear-gradient(135deg,#0F2A27 0%,#12233C 100%);
+    --fond:linear-gradient(165deg,#062421 0%,#081730 100%);
+    --tuile-neutre:linear-gradient(150deg,#16202E 0%,#131C2B 100%);
+    --tuile-vert:linear-gradient(150deg,#0E2C22 0%,#0B2419 100%);
+    --tuile-chaud:linear-gradient(150deg,#2B2214 0%,#241B0F 100%);
+    --ok:#3FC391; --ok-doux:#0C2A20;
+    --tard:#DFA850; --tard-doux:#2A2113;
+    --attente:#74A8F0; --attente-doux:#142740;
+    --sur-plein:#FFFFFF;
+    --o1:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -20px rgba(0,0,0,.8);
+    --o2:0 14px 38px -16px rgba(0,0,0,.8);
+    --o3:0 18px 46px -14px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#080E16; --surface:#131C28; --surface-2:#1A2431; --surface-3:#101924;
+  --line:#233040; --line-fort:#334152;
+  --ink:#ECF2F9; --ink-2:#A2AFC2; --ink-3:#73819A;
+  --deg:linear-gradient(135deg,#17A794 0%,#3B82E0 100%);
+  --deg-fonce:linear-gradient(140deg,#0A6B5F 0%,#144B92 100%);
+  --deg-pale:linear-gradient(135deg,#0F2A27 0%,#12233C 100%);
+  --fond:linear-gradient(165deg,#062421 0%,#081730 100%);
+  --tuile-neutre:linear-gradient(150deg,#16202E 0%,#131C2B 100%);
+  --tuile-vert:linear-gradient(150deg,#0E2C22 0%,#0B2419 100%);
+  --tuile-chaud:linear-gradient(150deg,#2B2214 0%,#241B0F 100%);
+  --ok:#3FC391; --ok-doux:#0C2A20;
+  --tard:#DFA850; --tard-doux:#2A2113;
+  --attente:#74A8F0; --attente-doux:#142740;
+  --sur-plein:#FFFFFF;
+  --o1:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -20px rgba(0,0,0,.8);
+  --o2:0 14px 38px -16px rgba(0,0,0,.8);
+  --o3:0 18px 46px -14px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--fond) fixed;color:var(--ink);font-family:var(--ui);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--v1);outline-offset:3px;border-radius:10px}
+h1,h2,h3,p{margin:0}
+[hidden]{display:none!important}
+
+.page{max-width:820px;width:100%;margin:0 auto;padding:24px 16px 150px;display:flex;flex-direction:column;gap:16px;position:relative}
+@media(min-width:560px){ .page{padding:34px 26px 160px} }
+
+
+.entete{display:flex;align-items:center;gap:14px;padding:2px 4px}
+.entete .bonjour{font-family:var(--num);font-weight:600;font-size:clamp(26px,6vw,34px);letter-spacing:-.02em;line-height:1.1}
+.entete .quand{font-size:14px;color:var(--ink-3);margin-top:2px}
+.serie{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);padding:9px 15px 9px 12px;border-radius:999px;box-shadow:var(--o1);white-space:nowrap}
+.serie svg{width:17px;height:17px;flex:none;color:var(--ink-3)}
+.serie b{font-family:var(--num);font-weight:600;font-size:16px}
+.serie span{font-size:13px;color:var(--ink-3)}
+.serie.active{border-color:transparent;background:var(--deg);color:#fff}
+.serie.active svg{color:#fff}
+.serie.active span{color:rgba(255,255,255,.85)}
+
+/* ═══ cartes ═══ */
+.carte{background:var(--surface);border-radius:var(--rl);box-shadow:var(--o1);overflow:hidden}
+.carte-tete{display:flex;align-items:center;gap:12px;padding:20px 22px 14px}
+.carte-tete h2{font-family:var(--num);font-weight:600;font-size:19px;letter-spacing:-.015em}
+.carte-tete .appoint{margin-left:auto;font-size:14px;color:var(--ink-3);font-weight:600;white-space:nowrap}
+.vide{padding:30px 22px 34px;text-align:center;color:var(--ink-3);font-size:15px}
+.vide b{display:block;color:var(--ink-2);font-family:var(--num);font-weight:600;font-size:18px;margin-bottom:6px}
+
+/* ═══ la carte du jour ═══ */
+.heros{border-radius:var(--rxl);background:var(--deg-fonce);box-shadow:var(--o2);overflow:hidden;padding:5px}
+.jour{display:flex;gap:20px;align-items:center;padding:22px 20px 24px;color:#fff}
+.anneau{width:112px;height:112px;flex:none;position:relative}
+.anneau svg{width:100%;height:100%;transform:rotate(-90deg)}
+.anneau circle{fill:none;stroke-width:11;stroke-linecap:round}
+.anneau .piste{stroke:rgba(255,255,255,.2)}
+.anneau .jauge{stroke:#fff;stroke-dasharray:289.03;transition:stroke-dashoffset 1.1s var(--doux)}
+.anneau .milieu{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.anneau .milieu b{font-family:var(--num);font-weight:600;font-size:34px;letter-spacing:-.03em;display:block;line-height:1;font-variant-numeric:tabular-nums;color:#fff}
+.anneau .milieu em{display:block;font-style:normal;font-family:var(--ui);font-size:13px;font-weight:700;color:rgba(255,255,255,.72);margin-top:3px}
+.anneau .milieu span{display:none}
+.jour-txt{min-width:0;flex:1;display:flex;flex-direction:column;gap:6px}
+.jour-txt h2{font-family:var(--num);font-weight:600;font-size:23px;letter-spacing:-.02em}
+.jour-txt p{font-size:15.5px;color:rgba(255,255,255,.82)}
+.jour-txt .rappel{color:#FFD79A;font-weight:700}
+.liste-jour{background:var(--surface);border-radius:calc(var(--rxl) - 7px);padding:4px 0}
+.fini{display:flex;flex-direction:column;align-items:center;gap:6px;padding:34px 20px 36px;text-align:center;color:#fff}
+.coche-geante{width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,.18);display:grid;place-content:center;animation:pop .55s var(--ressort) both}
+.coche-geante svg{width:36px;height:36px;stroke:#fff;stroke-width:3.2;fill:none}
+.fini h2{font-family:var(--num);font-weight:600;font-size:24px;margin-top:12px}
+.fini p{font-size:15.5px;color:rgba(255,255,255,.82);max-width:34ch}
+@keyframes pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* ═══ l'argent ═══ */
+.mois{padding:2px 22px 22px}
+.heros-val{font-family:var(--num);font-weight:600;font-size:clamp(36px,9vw,48px);letter-spacing:-.03em;line-height:1.08;font-variant-numeric:tabular-nums}
+.heros-lab{font-size:14px;font-weight:600;color:var(--ink-3)}
+.heros-delta{display:inline-flex;align-items:center;gap:6px;margin-top:11px;font-size:14px;font-weight:700;padding:6px 14px 6px 10px;border-radius:999px}
+.heros-delta svg{width:14px;height:14px}
+.heros-delta.haut{color:var(--ok);background:var(--ok-doux)}
+.heros-delta.bas{color:var(--tard);background:var(--tard-doux)}
+/* ═══ bilan ═══ */
+.bilan{display:flex;flex-direction:column;margin-top:18px;border-top:2px solid var(--line)}
+.bl{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);font-size:15.5px;font-weight:600;color:var(--ink-2)}
+.bl b{font-family:var(--num);font-weight:600;font-size:18px;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+.bl b.plus{color:var(--ok)}
+.heros-val.negatif{color:var(--tard)}
+
+/* ═══ tâches ═══ */
+.t{display:flex;align-items:flex-start;gap:15px;padding:15px 20px;position:relative;transition:background .15s}
+.t + .t::before{content:"";position:absolute;left:58px;right:20px;top:0;height:1px;background:var(--line)}
+.t:hover{background:var(--surface-2)}
+.coche{appearance:none;width:28px;height:28px;flex:none;margin:0;border:2.5px solid var(--line-fort);border-radius:50%;background:var(--surface);
+  display:grid;place-content:center;transition:background .2s var(--doux),border-color .2s var(--doux),transform .2s var(--ressort)}
+.coche:hover{border-color:var(--ok);transform:scale(1.12)}
+.coche::after{content:"";width:11px;height:6px;border:2.8px solid #fff;border-top:0;border-right:0;transform:rotate(-45deg) scale(0);transition:transform .25s var(--ressort);margin-top:-3px}
+.coche:checked{background:var(--ok);border-color:var(--ok)}
+.coche:checked::after{transform:rotate(-45deg) scale(1)}
+.t-corps{min-width:0;flex:1;display:flex;flex-direction:column;gap:4px}
+.t-titre{font-size:16.5px;font-weight:600;overflow-wrap:anywhere;cursor:pointer;transition:color .25s}
+.t-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:13.5px;color:var(--ink-3)}
+.t.ok .t-titre{color:var(--ink-3);font-weight:400;text-decoration:line-through}
+.sup{opacity:.3;background:none;border:0;color:var(--ink-3);padding:6px 8px;border-radius:10px;font-size:14px;line-height:1;transition:opacity .15s,color .15s,background .15s;flex:none}
+.sup .mot{display:none}
+.sup::after{content:"\2715";font-size:15px;line-height:1}
+.sup[data-arme="1"] .mot{display:inline;font-weight:700;font-size:13.5px}
+.sup[data-arme="1"]::after{content:none}
+.sup[data-arme="1"]{opacity:1;color:#fff;background:var(--tard)}
+.t:hover .sup,.t:focus-within .sup,.r:hover .sup,.r:focus-within .sup,.fiche:hover .sup{opacity:1}
+.sup:hover{color:var(--tard);background:var(--tard-doux)}
+@media(hover:none){ .sup{opacity:.5} }
+.groupe{display:flex;align-items:center;gap:11px;padding:17px 20px;margin-top:14px;
+  background:var(--surface-3);border-top:2px solid var(--line);border-bottom:2px solid var(--line);
+  font-family:var(--num);font-size:17px;font-weight:600;color:var(--ink)}
+.groupe:first-child{margin-top:4px}
+.groupe svg{width:22px;height:22px;flex:none;stroke-width:2.1;fill:none;color:var(--ink-2)}
+.groupe .nb{margin-left:auto;font-family:var(--ui);font-size:14px;font-weight:700;color:var(--ink-3);white-space:nowrap}
+.groupe.chaud{background:var(--tard-doux);border-color:var(--tard);color:var(--tard)}
+.groupe.chaud svg,.groupe.chaud .nb{color:var(--tard)}
+.groupe + .t::before{display:none}
+
+.etiq{display:inline-flex;align-items:center;gap:5px;font-size:12.5px;font-weight:700;padding:4px 11px;border-radius:999px;white-space:nowrap}
+.etiq.feu{background:var(--tard-doux);color:var(--tard)}
+.etiq.ok{background:var(--ok-doux);color:var(--ok)}
+.etiq.att{background:var(--surface-3);color:var(--ink-2)}
+.etiq.amb{background:var(--attente-doux);color:var(--attente)}
+.point{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
+
+/* ═══ ajout express ═══ */
+.vite{display:flex;align-items:center;gap:15px;padding:14px 20px;position:relative}
+.vite::before{content:"";position:absolute;left:58px;right:20px;top:0;height:1px;background:var(--line)}
+.vite .rond{width:28px;height:28px;flex:none;border:2.5px dashed var(--line-fort);border-radius:50%;display:grid;place-content:center;color:var(--ink-3);font-size:17px;line-height:1}
+.vite .rond::after{content:"+"}
+.vite input{flex:1;min-width:0;border:0;background:none;font-size:16.5px;font-weight:600;padding:2px 0;outline:0}
+.vite input::placeholder{color:var(--ink-3);font-weight:600}
+.vite .go{border:0;border-radius:999px;padding:9px 18px;background:var(--deg);color:#fff;font-weight:700;font-size:14.5px;opacity:0;transform:scale(.9);transition:opacity .18s,transform .18s var(--ressort);pointer-events:none}
+.vite input:not(:placeholder-shown) ~ .go{opacity:1;transform:none;pointer-events:auto}
+
+.ajout-ligne{display:flex;align-items:center;gap:15px;padding:15px 20px;width:100%;border:0;background:none;
+  font-size:16.5px;font-weight:600;color:var(--ink-3);text-align:left;position:relative;transition:color .18s}
+.ajout-ligne::before{content:"";position:absolute;left:58px;right:20px;top:0;height:1px;background:var(--line)}
+.ajout-ligne .rond{width:28px;height:28px;flex:none;border:2.5px dashed var(--line-fort);border-radius:50%;display:grid;place-content:center;font-size:17px;line-height:1}
+.ajout-ligne .rond::after{content:"+"}
+.ajout-ligne:hover{color:var(--v1)}
+.ajout-ligne:hover .rond{border-color:var(--v1);border-style:solid}
+
+/* ═══ segments ═══ */
+.segments{display:flex;gap:5px;padding:7px;background:var(--surface-3);border-radius:999px;margin:10px 20px 8px}
+.segments::-webkit-scrollbar{display:none}
+.segments button{flex:1;border:0;background:none;color:var(--ink-2);padding:14px 10px;border-radius:999px;font-size:16.5px;font-weight:700;white-space:nowrap;text-align:center;transition:color .2s,background .2s}
+.segments button[aria-pressed="true"]{background:var(--surface);color:var(--v1);box-shadow:var(--o1)}
+
+/* ═══ rangées argent ═══ */
+.r{display:flex;align-items:center;gap:14px;padding:15px 20px;position:relative;transition:background .15s}
+.r + .r::before{content:"";position:absolute;left:20px;right:20px;top:0;height:1px;background:var(--line)}
+.r:hover{background:var(--surface-2)}
+.pastille{width:48px;height:48px;border-radius:16px;flex:none;display:grid;place-content:center;text-align:center;font-family:var(--num);font-weight:600;font-size:15px;line-height:1.05}
+.pastille svg{width:23px;height:23px;stroke-width:2.4;fill:none}
+.pastille.feu{background:var(--tard-doux);color:var(--tard)}
+.pastille.ok{background:var(--ok-doux);color:var(--ok)}
+.pastille.att{background:var(--surface-3);color:var(--ink-2)}
+.pastille.amb{background:var(--attente-doux);color:var(--attente)}
+.pastille small{display:block;font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.8}
+.r-corps{min-width:0;flex:1;display:flex;flex-direction:column;gap:3px}
+.r-titre{font-size:16px;font-weight:700;overflow-wrap:anywhere}
+.r-meta{display:flex;flex-wrap:wrap;align-items:center;gap:5px 10px;font-size:13.5px;color:var(--ink-3)}
+.r-som{font-family:var(--num);font-weight:600;font-size:17px;font-variant-numeric:tabular-nums;text-align:right;flex:none}
+.r-som.paye{color:var(--ok)}
+.mini{border:2px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:999px;padding:7px 15px;font-size:14px;font-weight:700;flex:none;transition:border-color .18s,color .18s,background .18s,transform .12s}
+.mini:hover{border-color:var(--ok);color:var(--ok);background:var(--ok-doux)}
+.mini:active{transform:scale(.95)}
+
+/* ═══ tuiles cliquables ═══ */
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+@media(max-width:439px){ .duo{grid-template-columns:1fr} }
+.tuile{background:var(--tuile-neutre);border:0;border-radius:var(--rm);padding:19px 20px;box-shadow:var(--o1);display:flex;flex-direction:column;gap:4px;text-align:left;transition:transform .18s var(--doux),box-shadow .2s}
+button.tuile:hover{transform:translateY(-2px);box-shadow:var(--o3)}
+button.tuile:active{transform:scale(.985)}
+.tuile .lab{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-3);font-weight:700}
+.tuile .lab svg{width:17px;height:17px;stroke-width:2.2;fill:none}
+.tuile .val{font-family:var(--num);font-weight:600;font-size:30px;letter-spacing:-.025em;font-variant-numeric:tabular-nums;line-height:1.15}
+.tuile .sous{font-size:13.5px;color:var(--ink-3)}
+.tuile.chaud{background:var(--tuile-chaud)}
+.tuile.chaud .val,.tuile.chaud .sous,.tuile.chaud .lab{color:var(--tard)}
+.tuile.vert{background:var(--tuile-vert)}
+.tuile.vert .val{color:var(--ok)}
+
+/* ═══ clients ═══ */
+.fiches{display:grid;grid-template-columns:repeat(auto-fill,minmax(256px,1fr));gap:13px;padding:0 20px 22px}
+.fiche{background:var(--surface-2);border-radius:var(--rm);padding:18px 19px 16px;display:flex;flex-direction:column;gap:12px;transition:transform .2s var(--doux),box-shadow .2s}
+.fiche:hover{transform:translateY(-2px);box-shadow:var(--o1)}
+.fiche h3{font-family:var(--num);font-weight:600;font-size:18px;overflow-wrap:anywhere}
+.fiche .projet{font-size:14.5px;color:var(--ink-2);flex:1}
+.fiche .chiffres{display:flex;align-items:baseline;gap:6px;font-family:var(--num);font-weight:600;font-size:20px;font-variant-numeric:tabular-nums}
+.fiche .chiffres small{font-family:var(--ui);font-size:13px;font-weight:600;color:var(--ink-3)}
+.fiche-pied{display:flex;align-items:center;gap:10px;margin-top:auto;flex-wrap:wrap}
+.fiche .sup{opacity:.3;margin-left:auto}
+.etat-btn{border:0;border-radius:999px;padding:7px 14px;font-size:13.5px;font-weight:700;cursor:pointer;transition:filter .18s,transform .12s}
+.etat-btn:hover{filter:brightness(.96)}
+.etat-btn:active{transform:scale(.95)}
+.etat-btn.feu{background:var(--tard-doux);color:var(--tard)}
+.etat-btn.ok{background:var(--ok-doux);color:var(--ok)}
+.etat-btn.att{background:var(--surface-3);color:var(--ink-2)}
+.etat-btn.amb{background:var(--attente-doux);color:var(--attente)}
+
+/* ═══ rituel ═══ */
+.rituel{list-style:none;margin:0;padding:2px 22px 14px;display:flex;flex-direction:column}
+.rituel li{display:flex;align-items:center;gap:13px;padding:12px 0;position:relative}
+.rituel li + li::before{content:"";position:absolute;left:41px;right:0;top:0;height:1px;background:var(--line)}
+.rituel label{display:flex;align-items:center;gap:13px;cursor:pointer;font-size:15.5px;flex:1}
+.rituel .n{font-family:var(--num);font-weight:600;font-size:13px;color:var(--ink-3);width:15px;flex:none}
+.rituel .txt{transition:color .2s}
+.rituel input:checked ~ .txt{color:var(--ink-3);text-decoration:line-through}
+
+/* ═══ navigation : libellés toujours visibles ═══ */
+.nav{position:fixed;z-index:40;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:3px;padding:7px;
+  background:var(--surface);border:1px solid var(--line);border-radius:999px;box-shadow:var(--o3);max-width:calc(100vw - 20px)}
+@supports (backdrop-filter:blur(2px)){
+  .nav{background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(22px) saturate(1.6);-webkit-backdrop-filter:blur(22px) saturate(1.6)}
+}
+.nav button{display:flex;align-items:center;gap:8px;border:0;background:none;color:var(--ink-2);padding:12px 17px;border-radius:999px;
+  font-size:15px;font-weight:700;white-space:nowrap;transition:color .2s var(--doux),background .25s var(--doux),transform .15s}
+.nav button svg{width:21px;height:21px;flex:none;stroke-width:2.1;fill:none}
+.nav button:hover{color:var(--ink)}
+.nav button[aria-current="page"]{background:var(--deg);color:#fff}
+.nav .compte{display:grid;place-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--tard);color:#fff;font-family:var(--num);font-size:12px;font-weight:600}
+.nav button[aria-current="page"] .compte{background:#fff;color:var(--v2)}
+.nav .plus{background:var(--deg);color:#fff;margin-left:4px}
+.nav .plus:hover{color:#fff;transform:scale(1.05)}
+.nav .plus:active{transform:scale(.94)}
+.nav .plus svg{stroke-width:2.8}
+
+/* ═══ feuille ═══ */
+.voile{position:fixed;inset:0;z-index:50;background:rgba(10,22,36,.48);opacity:0;transition:opacity .28s var(--doux)}
+.voile.on{opacity:1}
+.feuille{position:fixed;z-index:51;left:50%;bottom:0;transform:translate(-50%,102%);width:min(560px,100%);background:var(--surface);
+  border-radius:var(--rxl) var(--rxl) 0 0;box-shadow:var(--o3);transition:transform .38s var(--doux);max-height:92vh;overflow-y:auto}
+.feuille.on{transform:translate(-50%,0)}
+@media(min-width:560px){ .feuille{bottom:26px;border-radius:var(--rxl)} }
+.poignee{width:44px;height:5px;border-radius:99px;background:var(--line-fort);margin:12px auto 0}
+.feuille-tete{display:flex;align-items:center;gap:12px;padding:18px 24px 6px}
+.feuille-tete h2{font-family:var(--num);font-weight:600;font-size:22px;letter-spacing:-.02em}
+.fermer{margin-left:auto;border:0;background:var(--surface-3);color:var(--ink-2);width:36px;height:36px;border-radius:50%;display:grid;place-content:center;font-size:21px;line-height:1;transition:background .2s}
+.fermer:hover{background:var(--line)}
+form{padding:12px 24px 28px;display:flex;flex-direction:column;gap:15px}
+.champ{display:flex;flex-direction:column;gap:7px}
+.champ label{font-size:14.5px;font-weight:700;color:var(--ink-2)}
+.champ input,.champ select{background:var(--surface-2);border:2px solid var(--line);border-radius:var(--rs);padding:14px 15px;width:100%;font-size:16px;font-weight:600;transition:border-color .18s,background .18s}
+.champ input:focus,.champ select:focus{outline:0;border-color:var(--v1);background:var(--surface)}
+.champ input::placeholder{color:var(--ink-3);font-weight:400}
+.paire{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choix{display:flex;gap:8px;flex-wrap:wrap}
+.choix > label{flex:1;min-width:92px;position:relative}
+.choix input{position:absolute;opacity:0;width:0;height:0}
+.choix span{display:block;text-align:center;padding:12px 8px;border-radius:var(--rs);border:2px solid var(--line);background:var(--surface-2);font-size:15px;font-weight:700;color:var(--ink-2);transition:border-color .18s,background .18s,color .18s}
+.choix input:checked + span{border-color:var(--v1);background:var(--deg-pale);color:var(--v1)}
+.choix input:focus-visible + span{outline:3px solid var(--v1);outline-offset:2px}
+.valider{border:0;border-radius:999px;padding:17px;background:var(--deg);color:#fff;font-family:var(--num);font-weight:600;font-size:18px;transition:transform .16s var(--ressort),filter .2s;margin-top:4px}
+.valider:hover{filter:brightness(1.1)}
+.valider:active{transform:scale(.975)}
+
+/* ═══ repli ═══ */
+.detail{border-top:1px solid var(--line);padding-top:11px;display:flex;flex-direction:column}
+.detail summary{cursor:pointer;font-size:15px;font-weight:700;color:var(--ink-2);list-style:none;display:flex;align-items:center;gap:10px;padding:7px 0}
+.detail summary::-webkit-details-marker{display:none}
+.detail summary::before{content:"+";font-family:var(--num);font-weight:600;font-size:17px;width:24px;height:24px;border-radius:50%;background:var(--surface-3);display:grid;place-content:center;line-height:1;flex:none}
+.detail[open] summary::before{content:"\2212"}
+.detail > *:not(summary){margin-top:15px}
+.date-libre{margin-top:11px}
+.aide{font-size:14px;color:var(--ink-3);margin-top:-7px}
+summary.carte-tete{list-style:none}
+summary.carte-tete::-webkit-details-marker{display:none}
+summary.carte-tete::after{content:"";width:9px;height:9px;border-right:2.6px solid var(--ink-3);border-bottom:2.6px solid var(--ink-3);transform:rotate(45deg) translate(-2px,-2px);transition:transform .2s var(--doux);flex:none}
+details[open] > summary.carte-tete::after{transform:rotate(-135deg) translate(-3px,-3px)}
+summary.carte-tete:hover h2{color:var(--v1)}
+
+/* ═══ premier lancement ═══ */
+.bienvenue{background:var(--surface);border-radius:var(--rxl);box-shadow:var(--o1);padding:38px 26px 32px;display:flex;flex-direction:column;align-items:center;gap:12px;text-align:center}
+.bienvenue h2{font-family:var(--num);font-weight:600;font-size:27px;letter-spacing:-.02em}
+.bienvenue p{font-size:16px;color:var(--ink-2);max-width:38ch}
+.etapes{display:flex;flex-direction:column;gap:15px;margin:16px 0 4px;text-align:left;width:100%;max-width:400px}
+.etape{display:flex;gap:14px;align-items:flex-start;font-size:15px;color:var(--ink-2)}
+.etape .rondi{width:40px;height:40px;border-radius:14px;flex:none;background:var(--deg-pale);display:grid;place-content:center;color:var(--v1)}
+.etape .rondi svg{width:21px;height:21px;stroke-width:2.1;fill:none}
+.etape b{display:block;color:var(--ink);font-weight:700;font-size:16px}
+.bienvenue .valider{padding:17px 34px;margin-top:10px}
+
+/* ═══ bulle ═══ */
+.bulle{position:fixed;z-index:60;left:50%;bottom:100px;transform:translate(-50%,16px);opacity:0;pointer-events:none;
+  display:flex;align-items:center;gap:10px;background:var(--ink);color:var(--ground);padding:14px 20px;border-radius:999px;
+  font-size:15px;font-weight:700;box-shadow:var(--o3);transition:opacity .26s var(--doux),transform .34s var(--ressort);max-width:calc(100vw - 32px)}
+.bulle.on{opacity:1;transform:translate(-50%,0)}
+.bulle svg{width:18px;height:18px;flex:none;color:var(--ok);fill:none}
+#confettis{position:fixed;inset:0;z-index:55;pointer-events:none}
+
+/* ═══ démo + pied ═══ */
+.demo{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:13px 19px;background:var(--surface);border-radius:var(--rm);box-shadow:var(--o1);font-size:14px;color:var(--ink-2)}
+.demo b{font-weight:700;color:var(--ink)}
+.demo button{margin-left:auto;border:0;background:var(--surface-3);color:var(--ink-2);padding:8px 16px;border-radius:999px;font-size:14px;font-weight:700;white-space:nowrap;transition:background .18s,color .18s}
+.demo button:hover{background:var(--deg-pale);color:var(--v1)}
+.demo button[data-arme="1"]{background:var(--tard);color:#fff}
+.pied{text-align:center;font-size:13px;color:var(--ink-3);padding:6px 10px 0;display:flex;align-items:center;justify-content:center;gap:8px}
+.pied i{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
+.pied button{border:0;background:var(--surface);color:var(--ink-2);padding:6px 14px;border-radius:999px;font-size:13px;font-weight:700;box-shadow:var(--o1);transition:color .18s}
+.pied button:hover{color:var(--v1)}
+.pied button[data-arme="1"]{background:var(--tard);color:#fff}
+.pied i.ko{background:var(--tard)}
+
+.anim{animation:monte .5s var(--doux) backwards}
+.sans-anim .anim{animation:none}
+@keyframes monte{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+@media(max-width:520px){
+  .nav{width:calc(100vw - 16px);max-width:none;justify-content:space-between;padding:6px;gap:0}
+  .nav button{padding:10px 11px;gap:6px;font-size:14px}
+  .nav button svg{width:19px;height:19px}
+  .nav .plus{margin-left:0;padding:10px 12px}
+  .nav .plus .nom{display:none}
+  .nav button .nom{display:none}
+  .nav button[aria-current="page"] .nom{display:inline}
+  .nav button{padding:10px}
+  .nav button[aria-current="page"]{padding:10px 14px 10px 11px}
+  /* le compteur devient un point : le chiffre reste lisible dans la page */
+  .nav .compte{width:9px;height:9px;min-width:0;padding:0;font-size:0;border-radius:50%;margin-left:-2px}
+  .t{gap:13px;padding:14px 16px}
+  .t + .t::before{left:52px;right:16px}
+  .vite{padding:14px 16px;gap:13px}
+  .vite::before{left:52px;right:16px}
+  .r{padding:14px 40px 14px 16px;gap:9px 12px;flex-wrap:wrap;position:relative}
+  .r + .r::before{left:16px;right:16px}
+  .r .pastille{width:42px;height:42px;border-radius:14px;font-size:14px}
+  .r .r-corps{flex:1 1 52%}
+  .r .r-som{margin-left:auto}
+  .r .mini{margin-left:auto}
+  .r .sup{position:absolute;top:10px;right:4px;opacity:.45}
+  .carte-tete,.groupe,.fiches,.rituel,.mois{padding-left:16px;padding-right:16px}
+  .segments{margin-left:16px;margin-right:16px}
+}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+}
+</style>
+
+<div class="page">
+  <header class="entete anim" id="entete"></header>
+  <div id="vue"></div>
+</div>
+
+<nav class="nav" id="nav" aria-label="Sections">
+  <button data-vue="afaire" aria-current="page"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="m8.2 12.3 2.6 2.6 5-5.2"/></svg><span class="nom">À faire</span><span class="compte" id="n-taches" hidden></span></button>
+  <button data-vue="argent"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="5.5" width="18.4" height="13" rx="3"/><circle cx="12" cy="12" r="2.6"/></svg><span class="nom">Argent</span><span class="compte" id="n-argent" hidden></span></button>
+  <button data-vue="clients"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c0-3.4 2.8-5.6 6.2-5.6s6.2 2.2 6.2 5.6"/><path d="M16.2 5.2a3.4 3.4 0 0 1 0 6.4M18 14.8c2 .7 3.2 2.5 3.2 5.2"/></svg><span class="nom">Clients</span></button>
+  <button data-vue="budget"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2a8.8 8.8 0 1 0 8.8 8.8H12Z"/><path d="M12 3.2V12h8.8"/></svg><span class="nom">Budget</span></button>
+  <button class="plus" id="plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round"><path d="M12 5.5v13M5.5 12h13"/></svg><span class="nom">Ajouter</span></button>
+</nav>
+
+<div class="voile" id="voile" hidden></div>
+<div class="feuille" id="feuille" hidden role="dialog" aria-modal="true" aria-labelledby="feuille-titre"></div>
+<div class="bulle" id="bulle" role="status" aria-live="polite"></div>
+<canvas id="confettis" hidden></canvas>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="degradeAnneau" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0%" stop-color="#19A38F"/><stop offset="100%" stop-color="#2E7BD6"/>
+  </linearGradient>
+</defs></svg>
+
+<script>
+"use strict";
+const SEED = {"taches":{"t01":{"titre":"Relancer la Brasserie du Quai — facture FA-2026-038","client":"Brasserie du Quai","priorite":"haute","echeance":"2026-09-11","fait":false,"exemple":true},"t02":{"titre":"Chiffrer l'agencement de la librairie — 12 m² d'étagères","client":"Librairie Antoine","priorite":"haute","echeance":"2026-09-15","fait":false,"exemple":true},"t03":{"titre":"Commander le chêne massif — 2,4 m³","client":"Résidence Les Tilleuls","priorite":"normale","echeance":"2026-09-16","fait":false,"exemple":true},"t04":{"titre":"Envoyer le devis DV-2026-087","client":"Cabinet Lefèvre & Associés","priorite":"haute","echeance":"2026-09-17","fait":false,"exemple":true},"t05":{"titre":"Planifier la pose — 3 jours atelier + 2 jours chantier","client":"Résidence Les Tilleuls","priorite":"normale","echeance":"2026-09-18","fait":false,"exemple":true},"t06":{"titre":"Rassembler les justificatifs pour la déclaration de TVA","client":"","priorite":"normale","echeance":"2026-09-21","fait":false,"exemple":true},"t07":{"titre":"Rappeler le fournisseur de quincaillerie — poignées laiton","client":"","priorite":"basse","echeance":"2026-09-14","fait":false,"exemple":true},"t08":{"titre":"Entretien annuel de la toupie et de la dégauchisseuse","client":"","priorite":"basse","echeance":"2026-09-25","fait":false,"exemple":true},"t09":{"titre":"Faire le point trésorerie du mois","client":"","priorite":"normale","echeance":"2026-09-30","fait":false,"exemple":true},"t10":{"titre":"Rédiger la fiche de pose pour l'apprenti","client":"","priorite":"basse","echeance":"2026-10-02","fait":false,"exemple":true},"t11":{"titre":"Valider le plan d'exécution du comptoir","client":"Brasserie du Quai","priorite":"haute","echeance":"2026-09-09","fait":true,"exemple":true},"t12":{"titre":"Régler l'acompte de commande du placage","client":"","priorite":"normale","echeance":"2026-09-08","fait":true,"exemple":true}},"clients":{"c1":{"nom":"Brasserie du Quai","secteur":"Restauration","contact":"Nadia Brun","projet":"Comptoir et banquettes en chêne","budget":18400,"avancement":80,"statut":"actif","exemple":true},"c2":{"nom":"Résidence Les Tilleuls","secteur":"Immobilier","contact":"Syndic Vasseur","projet":"34 placards sur mesure","budget":42000,"avancement":45,"statut":"actif","exemple":true},"c3":{"nom":"Cabinet Lefèvre & Associés","secteur":"Profession libérale","contact":"Hélène Lefèvre","projet":"Bibliothèque et banque d'accueil","budget":12600,"avancement":10,"statut":"prospect","exemple":true},"c4":{"nom":"Librairie Antoine","secteur":"Commerce","contact":"Antoine Roy","projet":"Rayonnages toute hauteur","budget":9800,"avancement":0,"statut":"prospect","exemple":true},"c5":{"nom":"École Sainte-Croix","secteur":"Établissement public","contact":"M. Dartois","projet":"Réfection de 12 portes","budget":7300,"avancement":100,"statut":"termine","exemple":true}},"factures":{"fa-2026-021":{"ref":"FA-2026-021","client":"École Sainte-Croix","montant":4300,"emise":"2026-04-08","echeance":"2026-05-08","statut":"payee","exemple":true},"fa-2026-022":{"ref":"FA-2026-022","client":"Brasserie du Quai","montant":3600,"emise":"2026-04-22","echeance":"2026-05-22","statut":"payee","exemple":true},"fa-2026-025":{"ref":"FA-2026-025","client":"Résidence Les Tilleuls","montant":9800,"emise":"2026-05-06","echeance":"2026-06-05","statut":"payee","exemple":true},"fa-2026-027":{"ref":"FA-2026-027","client":"École Sainte-Croix","montant":3000,"emise":"2026-05-27","echeance":"2026-06-26","statut":"payee","exemple":true},"fa-2026-029":{"ref":"FA-2026-029","client":"Brasserie du Quai","montant":5200,"emise":"2026-06-10","echeance":"2026-07-10","statut":"payee","exemple":true},"fa-2026-031":{"ref":"FA-2026-031","client":"Résidence Les Tilleuls","montant":7400,"emise":"2026-06-24","echeance":"2026-07-24","statut":"payee","exemple":true},"fa-2026-033":{"ref":"FA-2026-033","client":"Librairie Antoine","montant":2150,"emise":"2026-07-09","echeance":"2026-08-08","statut":"payee","exemple":true},"fa-2026-034":{"ref":"FA-2026-034","client":"Résidence Les Tilleuls","montant":6900,"emise":"2026-07-23","echeance":"2026-08-22","statut":"payee","exemple":true},"fa-2026-036":{"ref":"FA-2026-036","client":"Brasserie du Quai","montant":4800,"emise":"2026-08-05","echeance":"2026-09-04","statut":"payee","exemple":true},"fa-2026-037":{"ref":"FA-2026-037","client":"Cabinet Lefèvre & Associés","montant":1900,"emise":"2026-08-26","echeance":"2026-09-25","statut":"payee","exemple":true},"fa-2026-038":{"ref":"FA-2026-038","client":"Brasserie du Quai","montant":5400,"emise":"2026-08-14","echeance":"2026-09-13","statut":"envoyee","exemple":true},"fa-2026-039":{"ref":"FA-2026-039","client":"Résidence Les Tilleuls","montant":11200,"emise":"2026-09-01","echeance":"2026-10-01","statut":"envoyee","exemple":true},"fa-2026-040":{"ref":"FA-2026-040","client":"École Sainte-Croix","montant":2450,"emise":"2026-09-04","echeance":"2026-10-04","statut":"payee","exemple":true},"fa-2026-041":{"ref":"FA-2026-041","client":"Brasserie du Quai","montant":3950,"emise":"2026-09-12","echeance":"2026-10-12","statut":"envoyee","exemple":true},"fa-2026-042":{"ref":"FA-2026-042","client":"Librairie Antoine","montant":1750,"emise":"2026-09-15","echeance":"2026-10-15","statut":"brouillon","exemple":true}},"depenses":{"d1":{"libelle":"Loyer de l'atelier","montant":1200,"date":"2026-09-01","exemple":true},"d2":{"libelle":"Électricité","montant":310,"date":"2026-09-05","exemple":true},"d3":{"libelle":"Assurance de l'atelier","montant":640,"date":"2026-08-20","exemple":true},"d4":{"libelle":"Bois et quincaillerie","montant":2150,"date":"2026-08-12","exemple":true}},"investissements":{"i1":{"libelle":"Dégauchisseuse-raboteuse","montant":6800,"date":"2026-05-14","exemple":true},"i2":{"libelle":"Camionnette d'occasion","montant":9500,"date":"2026-03-03","exemple":true},"i3":{"libelle":"Logiciel de plans","montant":420,"date":"2026-07-01","exemple":true}}};
+
+const RITUEL = [
+  "Réclamer l'argent en retard",
+  "Ranger la boîte mail",
+  "Choisir les 3 priorités de la semaine"
+];
+const COLS = ["taches", "clients", "factures", "depenses", "investissements"];
+const MOIS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
+const MOIS_LONG = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+
+const state = {
+  taches: {}, clients: {}, factures: {}, depenses: {}, investissements: {},
+  rituel: {semaine: "", faits: []},
+  serie: {n: 0, dernier: ""}
+};
+let vue = "afaire";
+let filtreT = "afaire";
+let filtreF = "encaisser";
+const memoire = new Map();
+let stockOk = true;
+let animer = true;
+let anneauP = 0;
+
+/* ───────── outils ───────── */
+const $ = s => document.querySelector(s);
+const h = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+const nf = new Intl.NumberFormat("fr-FR", {maximumFractionDigits: 0});
+const eur = n => nf.format(Math.round(Number(n) || 0)) + " €";
+const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+const auj = () => iso(new Date());
+const dans = n => { const d = new Date(); d.setDate(d.getDate() + n); return iso(d); };
+const dt = s => new Date(s + "T12:00:00");
+const jours = s => s ? Math.round((dt(s) - dt(auj())) / 86400000) : 0;
+const jour = s => s ? dt(s).getDate() + " " + MOIS[dt(s).getMonth()] : "—";
+const liste = c => Object.entries(state[c]).map(([id, o]) => Object.assign({id: id}, o));
+const neuf = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const reduit = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function semaineIso(d){
+  const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7));
+  const j1 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
+  return t.getUTCFullYear() + "-S" + String(Math.ceil(((t - j1) / 86400000 + 1) / 7)).padStart(2, "0");
+}
+function statut(f){
+  if(f.statut === "brouillon") return "brouillon";
+  if(f.statut === "payee") return "payee";
+  return jours(f.echeance) < 0 ? "retard" : "envoyee";
+}
+const ETIQ_F = {brouillon: ["À envoyer", "att"], payee: ["Payé", "ok"], retard: ["Pas payé", "feu"], envoyee: ["En attente", "amb"]};
+const COURT_F = {brouillon: "brln", payee: "payé", retard: "retard", envoyee: "env."};
+const ETIQ_C = {actif: ["En cours", "amb"], prospect: ["Prospect", "att"], termine: ["Terminé", "ok"]};
+
+/* ───────── mémoire du navigateur ───────── */
+function sauver(){
+  try{
+    localStorage.setItem("cadence.v2", JSON.stringify(state));
+    stockOk = true;
+  }catch(e){ stockOk = false; }
+}
+function charger(){
+  let d = null;
+  try{ d = JSON.parse(localStorage.getItem("cadence.v2") || localStorage.getItem("cadence.v1") || "null"); }catch(e){}
+  if(d && typeof d === "object"){
+    COLS.forEach(c => { state[c] = d[c] && typeof d[c] === "object" ? d[c] : {}; });
+    if(d.rituel) state.rituel = d.rituel;
+    if(d.serie) state.serie = d.serie;
+  }else{
+    COLS.forEach(c => { state[c] = JSON.parse(JSON.stringify(SEED[c] || {})); });
+  }
+}
+function ecrire(col, id, obj){ state[col][id] = obj; sauver(); rendre(); }
+function retirer(col, id){ delete state[col][id]; sauver(); rendre(); }
+
+function majSerie(){
+  const a = auj(), s = state.serie;
+  if(s.dernier === a) return false;
+  s.n = s.dernier === dans(-1) ? s.n + 1 : 1;
+  s.dernier = a;
+  return true;
+}
+
+/* ───────── calculs ───────── */
+function calculs(){
+  const tach = liste("taches"), fact = liste("factures");
+  const a = auj();
+  const duJour = tach.filter(t => String(t.echeance) <= a);
+  const faitsJour = duJour.filter(t => t.fait);
+  const resteJour = duJour.filter(t => !t.fait);
+  const attente = fact.filter(f => statut(f) === "envoyee" || statut(f) === "retard");
+  const impayees = attente.filter(f => statut(f) === "retard");
+  const moisIci = a.slice(0, 7);
+  const dPrec = new Date(); dPrec.setDate(1); dPrec.setMonth(dPrec.getMonth() - 1);
+  const parMois = m => fact.filter(f => f.statut !== "brouillon" && String(f.emise || "").slice(0, 7) === m)
+                           .reduce((s, f) => s + (Number(f.montant) || 0), 0);
+  return {
+    tach: tach, fact: fact,
+    duJour: duJour, faitsJour: faitsJour, resteJour: resteJour,
+    enRetard: resteJour.filter(t => jours(t.echeance) < 0),
+    attente: attente, impayees: impayees, parMois: parMois, moisIci: moisIci,
+    caIci: parMois(moisIci), caAvant: parMois(iso(dPrec).slice(0, 7)),
+    duAttente: attente.reduce((s, f) => s + (Number(f.montant) || 0), 0),
+    duRetard: impayees.reduce((s, f) => s + (Number(f.montant) || 0), 0),
+    encaisse: fact.filter(f => statut(f) === "payee" && String(f.emise || "").slice(0, 7) === moisIci)
+                  .reduce((s, f) => s + (Number(f.montant) || 0), 0)
+  };
+}
+const ritFaits = () => state.rituel.semaine === semaineIso(new Date()) ? (state.rituel.faits || []) : [];
+
+/* ───────── entête ───────── */
+function rendreEntete(){
+  const d = new Date(), hr = d.getHours();
+  const salut = hr < 6 ? "Bonne nuit" : hr < 12 ? "Bonjour" : hr < 18 ? "Bon après-midi" : "Bonsoir";
+  const s = state.serie;
+  const vive = s.n > 0 && (s.dernier === auj() || s.dernier === dans(-1));
+  const flamme = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.7c.6 3.4-1.8 4.4-2.9 6.4-1.5 2.6.3 4.6 1.4 4.9-.5-1.9.6-3.3 1.5-3.9 0 1.6 1 2.3 1.9 3.4 1.6 1.9.5 4.3-.5 5.1 3.4-.7 5.6-3.4 5.6-6.6 0-4.6-4.3-6.2-7-9.3Z"/><path d="M8.4 20.6c-1.6-1-2.6-2.6-2.7-4.6"/></svg>';
+  $("#entete").innerHTML =
+    '<div><h1 class="bonjour">' + salut + '</h1><p class="quand">'
+    + d.toLocaleDateString("fr-FR", {weekday: "long", day: "numeric", month: "long"})
+    + '</p></div><div class="serie' + (vive ? " active" : "") + '" title="Jours d\'affilée avec au moins une tâche terminée">'
+    + flamme
+    + (s.n > 0 ? "<b>" + s.n + "</b><span>jour" + (s.n > 1 ? "s" : "") + " d'affilée</span>" : "<span>Aucune série</span>")
+    + "</div>";
+}
+
+/* ───────── tâches ───────── */
+function ligneTache(t, ctx){
+  const j = jours(t.echeance);
+  let et = "";
+  if(ctx === "retard"){
+    et = '<span class="etiq feu"><i class="point"></i>' + (j === -1 ? "1 jour de retard" : (-j) + " jours de retard") + "</span>";
+  }else if(ctx === "plustard"){
+    et = '<span class="etiq amb">' + (j === 1 ? "demain" : "le " + jour(t.echeance)) + "</span>";
+  }
+  const meta = (t.client ? "<span>" + h(t.client) + "</span>" : "")
+    + (t.priorite === "haute" && !t.fait ? '<span class="etiq feu">Important</span>' : "")
+    + et;
+  return '<div class="t' + (t.fait ? " ok" : "") + '">'
+    + '<input type="checkbox" class="coche" id="k-' + h(t.id) + '" data-tache="' + h(t.id) + '"' + (t.fait ? " checked" : "") + ' aria-label="Terminer : ' + h(t.titre) + '">'
+    + '<span class="t-corps"><label class="t-titre" for="k-' + h(t.id) + '">' + h(t.titre) + "</label>"
+    + (meta ? '<span class="t-meta">' + meta + "</span>" : "") + "</span>"
+    + '<button class="sup" data-sup="taches" data-id="' + h(t.id) + '"><span class="mot">Supprimer</span></button></div>';
+}
+const listeTaches = (arr, ctx) => arr.map(t => ligneTache(t, ctx)).join("");
+const ligneVite = () => '<div class="vite"><span class="rond"></span>'
+  + '<input id="vite" placeholder="Ajouter une tâche…" maxlength="140" autocomplete="off" aria-label="Ajouter une tâche pour aujourd\'hui">'
+  + '<button class="go" data-vite="1">Ajouter</button></div>';
+
+/* ───────── vue : aujourd'hui ───────── */
+function toutVide(){
+  for(let i = 0; i < COLS.length; i++){ if(Object.keys(state[COLS[i]]).length) return false; }
+  return true;
+}
+function bienvenue(){
+  const ic = {
+    liste: '<path d="M4 7h16M4 12h16M4 17h10"/>',
+    euro: '<path d="M16.5 7.5a5.5 5.5 0 1 0 0 9M4.5 10.5h7M4.5 13.5h7"/>',
+    calendrier: '<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 2.8v3.4M16 2.8v3.4"/>'
+  };
+  const l = (k, t, d) => '<span class="etape"><span class="rondi"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
+    + ic[k] + '</svg></span><span><b>' + t + "</b>" + d + "</span></span>";
+  return '<section class="bienvenue anim"><h2>Vous êtes chez vous</h2>'
+    + "<p>Rien à installer, rien à régler. Écrivez ce que vous avez à faire : le reste suit tout seul.</p>"
+    + '<div class="etapes">'
+    + l("liste", "Ce que vous devez faire", "Une liste qui se vide, jour après jour.")
+    + l("euro", "Qui vous doit de l'argent", "Vos factures, et celles qui traînent.")
+    + l("calendrier", "Ce que vous devez payer", "TVA, cotisations, assurances.")
+    + "</div>"
+    + '<button class="valider" data-premier="1">Ajouter ma première tâche</button></section>';
+}
+function vueAfaire(){
+  if(toutVide()) return bienvenue();
+  const c = calculs();
+  const total = c.duJour.length, faits = c.faitsJour.length;
+  const p = total ? faits / total : 0;
+
+  /* 1. la carte du jour */
+  let tete;
+  if(total > 0 && faits === total){
+    tete = '<div class="fini"><span class="coche-geante"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>'
+      + "<h2>C'est fini pour aujourd'hui</h2><p>Vos " + total + " tâche" + (total > 1 ? "s" : "") + " du jour sont faites. Le reste attendra demain.</p></div>";
+  }else{
+    tete = '<div class="jour"><div class="anneau"><svg viewBox="0 0 120 120" aria-hidden="true">'
+      + '<circle class="piste" cx="60" cy="60" r="46"/>'
+      + '<circle class="jauge" cx="60" cy="60" r="46" stroke-dashoffset="' + (289.03 * (1 - anneauP)) + '" data-p="' + p + '"/></svg>'
+      + '<span class="milieu"><b>' + faits + '</b><em>sur ' + total + "</em></span></div>"
+      + '<div class="jour-txt"><h2>Votre journée</h2><p>'
+      + (total === 0 ? "Rien pour aujourd'hui. Vous pouvez prendre de l'avance."
+        : c.resteJour.length + " chose" + (c.resteJour.length > 1 ? "s" : "") + " à faire"
+          + (c.enRetard.length ? ', <span class="rappel">dont ' + c.enRetard.length + " en retard</span>" : ""))
+      + "</p>"
+      + (state.serie.n === 0 ? '<p style="font-size:14px;color:rgba(255,255,255,.6)">Cochez-en une pour lancer votre série.</p>' : "")
+      + "</div></div>";
+  }
+
+  /* 2. toutes les tâches, groupées par urgence */
+  const tout = liste("taches").sort((x, y) => (x.fait - y.fait) || String(x.echeance).localeCompare(String(y.echeance)));
+  const vis = tout.filter(filtreT === "faites" ? (t => !!t.fait) : (t => !t.fait));
+  const libs = [["afaire", "À faire"], ["faites", "Terminées"]];
+  let corps = '<div class="segments">' + libs.map(kv =>
+    '<button data-ft="' + kv[0] + '" aria-pressed="' + (filtreT === kv[0]) + '">' + kv[1] + "</button>").join("") + "</div>";
+
+  if(!vis.length){
+    corps += '<p class="vide"><b>' + (filtreT === "faites" ? "Rien de terminé" : "Rien à faire") + "</b>"
+      + (filtreT === "faites" ? "Cochez une tâche, elle viendra ici." : "Écrivez la première ci-dessous.") + "</p>";
+  }else if(filtreT === "faites"){
+    corps += listeTaches(vis, "fait");
+  }else{
+    const ICO = {
+      retard: '<circle cx="12" cy="12" r="9"/><path d="M12 7.4v5"/><circle cx="12" cy="16.4" r="1.15" fill="currentColor" stroke="none"/>',
+      aujourdhui: '<circle cx="12" cy="12" r="4.2"/><path d="M12 2.6V5M12 19v2.4M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M2.6 12H5M19 12h2.4M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/>',
+      plustard: '<circle cx="12" cy="12" r="8.6"/><path d="M12 7.4V12l3 1.9"/>'
+    };
+    const grp = [
+      ["retard", "En retard", vis.filter(t => jours(t.echeance) < 0), true],
+      ["aujourdhui", "Aujourd'hui", vis.filter(t => jours(t.echeance) === 0), false],
+      ["plustard", "Plus tard", vis.filter(t => jours(t.echeance) > 0), false]
+    ];
+    corps += grp.filter(g => g[2].length).map(g =>
+      '<p class="groupe' + (g[3] ? " chaud" : "") + '">'
+      + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' + ICO[g[0]] + "</svg>"
+      + g[1] + '<span class="nb">' + g[2].length + " chose" + (g[2].length > 1 ? "s" : "") + "</span></p>"
+      + listeTaches(g[2], g[0])).join("");
+  }
+  if(filtreT !== "faites") corps += ligneVite();
+
+  let out = "";
+  out += '<section class="heros anim">' + tete + '<div class="liste-jour">' + corps + "</div></section>";
+
+  out += demo();
+  return out;
+}
+
+/* ───────── vue : clients ───────── */
+const CYCLE = {prospect: "actif", actif: "termine", termine: "prospect"};
+function fiche(c){
+  const e = ETIQ_C[c.statut] || ETIQ_C.prospect;
+  const fx = liste("factures").filter(f => f.client === c.nom && f.statut !== "brouillon")
+                              .reduce((s, f) => s + (Number(f.montant) || 0), 0);
+  return '<article class="fiche"><h3>' + h(c.nom) + "</h3>"
+    + '<p class="projet">' + h(c.projet || "—") + "</p>"
+    + '<div class="fiche-pied"><span class="chiffres">' + eur(fx) + "<small>facturé</small></span>"
+    + '<button class="etat-btn ' + e[1] + '" data-etat="' + h(c.id) + '" title="Appuyez pour changer">' + e[0] + "</button>"
+    + '<button class="sup" data-sup="clients" data-id="' + h(c.id) + '"><span class="mot">Supprimer</span></button></div></article>';
+}
+
+function vueClients(){
+  const RANG = {actif: 0, prospect: 1, termine: 2};
+  const rg = c => RANG[c.statut] === undefined ? 3 : RANG[c.statut];
+  const cl = liste("clients").sort((x, y) => rg(x) - rg(y) || String(x.nom).localeCompare(String(y.nom), "fr"));
+  const actifs = cl.filter(c => c.statut === "actif");
+  return '<section class="carte anim"><div class="carte-tete"><h2>Vos clients</h2>'
+    + '<span class="appoint">' + actifs.length + " chantier" + (actifs.length > 1 ? "s" : "") + " en cours</span></div>"
+    + (cl.length ? '<div class="fiches">' + cl.map(fiche).join("") + "</div>"
+       : '<p class="vide"><b>Aucun client</b>Commencez par celui que vous avez eu au téléphone aujourd\'hui.</p>')
+    + "</section>" + demo();
+}
+
+/* ───────── vue : argent ───────── */
+function rangeeFacture(f){
+  const st = statut(f), e = ETIQ_F[st], j = jours(f.echeance);
+  const quand = st === "payee" ? "émise le " + jour(f.emise)
+    : st === "retard" ? "à relancer depuis " + (-j) + " jour" + (j < -1 ? "s" : "")
+    : "à payer le " + jour(f.echeance);
+  const ico = {
+    payee: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+    retard: '<path d="M12 7v6.5"/><circle cx="12" cy="17" r="1.1" fill="currentColor"/>',
+    envoyee: '<circle cx="12" cy="12" r="8.6"/><path d="M12 7.4V12l3 1.9"/>',
+    brouillon: '<path d="M4 20h4L19.5 8.5a2.1 2.1 0 0 0-3-3L5 17v3Z"/>'
+  }[st];
+  return '<div class="r"><span class="pastille ' + e[1] + '">'
+    + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' + ico + "</svg></span>"
+    + '<span class="r-corps"><span class="r-titre">' + h(f.client) + "</span>"
+    + '<span class="r-meta"><span class="ref">' + h(f.ref || "") + '</span><span class="etiq ' + e[1] + '">' + e[0] + "</span>"
+    + "<span>" + quand + "</span></span></span>"
+    + '<span class="r-som' + (st === "payee" ? " paye" : "") + '">' + eur(f.montant) + "</span>"
+    + (st === "payee" ? "" : '<button class="mini" data-paye="' + h(f.id) + '">Payée</button>')
+    + '<button class="sup" data-sup="factures" data-id="' + h(f.id) + '"><span class="mot">Supprimer</span></button></div>';
+}
+function vueArgent(){
+  const c = calculs();
+  const tout = c.fact.slice().sort((x, y) => String(y.emise).localeCompare(String(x.emise)));
+  const vis = filtreF === "payee" ? tout.filter(f => statut(f) === "payee")
+                                  : tout.filter(f => statut(f) !== "payee");
+  const libs = [["encaisser", "À encaisser"], ["payee", "Payées"]];
+
+  const d0 = new Date();
+  const delta = c.caAvant > 0 ? Math.round((c.caIci - c.caAvant) / c.caAvant * 100) : null;
+
+  let mois = '<section class="carte anim"><div class="mois" style="padding-top:22px">'
+    + '<p class="heros-lab">Vous avez facturé en ' + MOIS_LONG[d0.getMonth()] + "</p>"
+    + '<p class="heros-val" data-compte="ca" data-val="' + c.caIci + '">' + eur(c.caIci) + "</p>";
+  if(delta !== null){
+    const fleche = delta >= 0 ? '<path d="M12 19V5"/><path d="m5.5 11.5 6.5-6.5 6.5 6.5"/>' : '<path d="M12 5v14"/><path d="m5.5 12.5 6.5 6.5 6.5-6.5"/>';
+    mois += '<span class="heros-delta ' + (delta >= 0 ? "haut" : "bas") + '">'
+      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' + fleche + "</svg>"
+      + (delta >= 0 ? "+" : "") + delta + " % par rapport à " + MOIS_LONG[(d0.getMonth() + 11) % 12] + "</span>";
+  }
+  mois += "</div></section>";
+
+  return mois
+    + '<div class="duo anim" style="animation-delay:.06s"><div class="tuile vert"><span class="lab">Déjà encaissé</span>'
+    + '<span class="val" data-compte="encaisse" data-val="' + c.encaisse + '">' + eur(c.encaisse) + "</span>"
+    + '<span class="sous">factures réglées ce mois</span></div>'
+    + '<div class="tuile' + (c.impayees.length ? " chaud" : "") + '"><span class="lab">À encaisser</span>'
+    + '<span class="val" data-compte="impaye" data-val="' + c.duAttente + '">' + eur(c.duAttente) + "</span>"
+    + '<span class="sous">' + (c.impayees.length
+        ? "dont " + c.impayees.length + " à relancer"
+        : "chez vos clients") + "</span></div></div>"
+
+    + '<section class="carte anim" style="animation-delay:.06s"><div class="carte-tete"><h2>Vos factures</h2>'
+    + '<span class="appoint">' + vis.length + " ligne" + (vis.length > 1 ? "s" : "") + "</span></div>"
+    + '<div class="segments">' + libs.map(kv =>
+        '<button data-ff="' + kv[0] + '" aria-pressed="' + (filtreF === kv[0]) + '">' + kv[1] + "</button>").join("") + "</div>"
+    + (vis.length ? vis.map(rangeeFacture).join("")
+       : '<p class="vide"><b>Aucune facture ici</b>Changez de filtre, ou appuyez sur + pour en créer une.</p>')
+    + '<div style="height:10px"></div></section>'
+
+    + demo();
+}
+
+function rangeeSortie(o, col){
+  const ico = col === "depenses"
+    ? '<path d="M6 8.5h12l-1.2 11H7.2Z"/><path d="M9 8.5V7a3 3 0 0 1 6 0v1.5"/>'
+    : '<path d="M14.5 5.5a4 4 0 0 0-5.3 5.3L4 16l2.2 2.2 5.2-5.2a4 4 0 0 0 5.3-5.3l-2.4 2.4-2-2Z"/>';
+  return '<div class="r"><span class="pastille att"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' + ico + "</svg></span>"
+    + '<span class="r-corps"><span class="r-titre">' + h(o.libelle) + "</span>"
+    + '<span class="r-meta"><span>le ' + jour(o.date) + "</span></span></span>"
+    + '<span class="r-som">' + eur(o.montant) + "</span>"
+    + '<button class="sup" data-sup="' + col + '" data-id="' + h(o.id) + '"><span class="mot">Supprimer</span></button></div>';
+}
+function vueBudget(){
+  const c = calculs();
+  const an = String(new Date().getFullYear());
+  const cetteAnnee = o => String(o.date || o.emise || "").slice(0, 4) === an;
+  const somme = arr => arr.reduce((t, o) => t + (Number(o.montant) || 0), 0);
+  const ca = somme(c.fact.filter(f => f.statut !== "brouillon" && cetteAnnee(f)));
+  const dep = liste("depenses").sort((x, y) => String(y.date).localeCompare(String(x.date)));
+  const inv = liste("investissements").sort((x, y) => String(y.date).localeCompare(String(x.date)));
+  const totDep = somme(dep.filter(cetteAnnee)), totInv = somme(inv.filter(cetteAnnee));
+  const reste = ca - totDep - totInv;
+
+  return '<section class="carte anim"><div class="mois" style="padding-top:22px">'
+    + '<p class="heros-lab">Cette année, il vous reste</p>'
+    + '<p class="heros-val' + (reste < 0 ? " negatif" : "") + '" data-compte="reste" data-val="' + reste + '">' + eur(reste) + "</p>"
+    + '<div class="bilan">'
+    + '<div class="bl"><span>Chiffre d\'affaires</span><b class="plus">+ ' + eur(ca) + "</b></div>"
+    + '<div class="bl"><span>Dépenses</span><b>− ' + eur(totDep) + "</b></div>"
+    + '<div class="bl"><span>Investissements</span><b>− ' + eur(totInv) + "</b></div>"
+    + "</div></div></section>"
+
+    + '<section class="carte anim" style="animation-delay:.06s"><div class="carte-tete"><h2>Dépenses</h2>'
+    + '<span class="appoint">' + eur(totDep) + " cette année</span></div>"
+    + (dep.length ? dep.map(o => rangeeSortie(o, "depenses")).join("")
+       : '<p class="vide"><b>Aucune dépense</b>Loyer, matières, essence : notez-les au fil de l\'eau.</p>')
+    + '<button class="ajout-ligne" data-feuille="depense"><span class="rond"></span>Ajouter une dépense</button></section>'
+
+    + '<section class="carte anim" style="animation-delay:.1s"><div class="carte-tete"><h2>Investissements</h2>'
+    + '<span class="appoint">' + eur(totInv) + " cette année</span></div>"
+    + (inv.length ? inv.map(o => rangeeSortie(o, "investissements")).join("")
+       : '<p class="vide"><b>Aucun investissement</b>Une machine, un véhicule, un logiciel : ce qui vous sert longtemps.</p>')
+    + '<button class="ajout-ligne" data-feuille="investissement"><span class="rond"></span>Ajouter un investissement</button></section>'
+    + demo();
+}
+
+function demo(){
+  let n = 0;
+  COLS.forEach(c => { n += liste(c).filter(o => o.exemple).length; });
+  return '<p class="pied"><i class="' + (stockOk ? "" : "ko") + '"></i>'
+    + (stockOk ? "Tout est gardé dans ce navigateur, sur cet appareil."
+               : "Ce navigateur bloque l'enregistrement : tout disparaîtra en fermant l'onglet.")
+    + (n ? ' · données d\'exemple <button data-demo="1">Repartir de zéro</button>' : "")
+    + "</p>";
+}
+
+const RENDU = {afaire: vueAfaire, argent: vueArgent, clients: vueClients, budget: vueBudget};
+
+/* ───────── rendu ───────── */
+function rendre(){
+  const c = calculs();
+  badge("#n-taches", c.resteJour.length);
+  badge("#n-argent", c.impayees.length);
+  rendreEntete();
+  $("#vue").innerHTML = RENDU[vue]();
+  document.querySelector(".page").dataset.sec = vue;
+  document.querySelector(".page").classList.toggle("sans-anim", !animer);
+  animer = false;
+  apres();
+}
+function badge(sel, n){ const e = $(sel); e.hidden = n === 0; e.textContent = n; }
+
+function apres(){
+  const j = $(".anneau .jauge");
+  if(j){
+    const C = 289.03, p = Number(j.dataset.p) || 0, cible = C * (1 - p);
+    anneauP = p;
+    if(reduit()) j.style.strokeDashoffset = cible;
+    else requestAnimationFrame(() => requestAnimationFrame(() => { j.style.strokeDashoffset = cible; }));
+  }
+  const cibles = document.querySelectorAll("[data-compte]");
+  for(let i = 0; i < cibles.length; i++){
+    const el = cibles[i], cle = el.dataset.compte, fin = Number(el.dataset.val) || 0;
+    const debut = memoire.has(cle) ? memoire.get(cle) : 0;
+    memoire.set(cle, fin);
+    if(reduit() || debut === fin) el.textContent = eur(fin);
+    else compter(el, debut, fin);
+  }
+}
+function compter(el, a, b){
+  const t0 = performance.now(), duree = 850;
+  function pas(t){
+    const k = Math.min(1, (t - t0) / duree);
+    el.textContent = eur(a + (b - a) * (1 - Math.pow(1 - k, 4)));
+    if(k < 1) requestAnimationFrame(pas);
+  }
+  requestAnimationFrame(pas);
+}
+
+/* ───────── bulle + confettis ───────── */
+let minuteurBulle;
+function bulle(txt){
+  const b = $("#bulle");
+  b.innerHTML = '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>' + h(txt);
+  b.classList.add("on");
+  clearTimeout(minuteurBulle);
+  minuteurBulle = setTimeout(() => b.classList.remove("on"), 2600);
+}
+function confettis(){
+  if(reduit()) return;
+  const cv = $("#confettis"), ctx = cv.getContext("2d");
+  const L = cv.width = window.innerWidth, H = cv.height = window.innerHeight;
+  cv.hidden = false;
+  const teintes = ["#FF5E2B", "#FF9060", "#00B87C", "#FFC06B", "#FFFFFF"];
+  const p = [];
+  for(let i = 0; i < 46; i++){
+    p.push({x: L / 2 + (Math.random() - .5) * 120, y: H * .42,
+      vx: (Math.random() - .5) * 13, vy: -Math.random() * 15 - 5,
+      r: 3 + Math.random() * 4, a: Math.random() * 6.28, va: (Math.random() - .5) * .3,
+      c: teintes[Math.floor(Math.random() * teintes.length)]});
+  }
+  let n = 0;
+  function pas(){
+    ctx.clearRect(0, 0, L, H);
+    for(let i = 0; i < p.length; i++){
+      const o = p[i];
+      o.vy += .42; o.x += o.vx; o.y += o.vy; o.a += o.va;
+      ctx.save(); ctx.translate(o.x, o.y); ctx.rotate(o.a); ctx.fillStyle = o.c;
+      ctx.fillRect(-o.r, -o.r * .5, o.r * 2, o.r); ctx.restore();
+    }
+    if(++n < 130) requestAnimationFrame(pas);
+    else { ctx.clearRect(0, 0, L, H); cv.hidden = true; }
+  }
+  requestAnimationFrame(pas);
+}
+
+/* ───────── feuille ───────── */
+function refSuivante(){
+  const n = liste("factures").map(f => { const m = /(\d+)\s*$/.exec(String(f.ref || "")); return m ? Number(m[1]) : 0; });
+  return "FA-" + new Date().getFullYear() + "-" + String(Math.max.apply(null, n.concat([0])) + 1).padStart(3, "0");
+}
+const CHAMPS = {
+  tache: () => ({titre: "Nouvelle tâche", html:
+    '<div class="champ"><label for="f1">Que faut-il faire ?</label>'
+    + '<input id="f1" name="titre" required maxlength="140" placeholder="Relancer le devis de la mairie" autocomplete="off"></div>'
+    + '<div class="champ"><label>Pour quand ?</label><div class="choix">'
+    + '<label><input type="radio" name="quand" value="0" checked><span>Aujourd\'hui</span></label>'
+    + '<label><input type="radio" name="quand" value="1"><span>Demain</span></label>'
+    + '<label><input type="radio" name="quand" value="x"><span>Plus tard…</span></label></div>'
+    + '<input class="date-libre" name="echeance" type="date" value="' + auj() + '" aria-label="Date précise" hidden></div>'
+    + '<details class="detail"><summary>Plus de détails</summary>'
+    + '<div class="champ"><label for="f3">Pour quel client ?</label><input id="f3" name="client" maxlength="60" placeholder="facultatif" list="lc" autocomplete="off"></div>'
+    + '<div class="champ"><label>Priorité</label><div class="choix">'
+    + '<label><input type="radio" name="priorite" value="normale" checked><span>Normale</span></label>'
+    + '<label><input type="radio" name="priorite" value="haute"><span>Haute</span></label></div></div></details>'}),
+
+  client: () => ({titre: "Nouveau client", html:
+    '<div class="champ"><label for="f1">Son nom</label><input id="f1" name="nom" required maxlength="80" placeholder="Brasserie du Quai" autocomplete="off"></div>'
+    + '<div class="champ"><label for="f2">Ce que vous faites pour lui</label><input id="f2" name="projet" maxlength="120" placeholder="Comptoir et banquettes en chêne" autocomplete="off"></div>'
+    + '<details class="detail"><summary>Plus de détails</summary>'
+    + '<div class="champ"><label for="f4">Contact</label><input id="f4" name="contact" maxlength="60" placeholder="facultatif" autocomplete="off"></div>'
+    + '<div class="champ"><label>Où en êtes-vous ?</label><div class="choix">'
+    + '<label><input type="radio" name="statut" value="actif" checked><span>En cours</span></label>'
+    + '<label><input type="radio" name="statut" value="prospect"><span>Prospect</span></label>'
+    + '<label><input type="radio" name="statut" value="termine"><span>Terminé</span></label></div></div></details>'}),
+
+  facture: () => ({titre: "Nouvelle facture", html:
+    '<div class="champ"><label for="f1">Pour qui ?</label><input id="f1" name="client" required maxlength="80" list="lc" placeholder="Nom du client" autocomplete="off"></div>'
+    + '<div class="champ"><label for="f2">Combien ? (€)</label><input id="f2" name="montant" type="number" min="0" step="any" required placeholder="0" inputmode="decimal"></div>'
+    + '<p class="aide">Elle sera notée comme envoyée aujourd\'hui, à payer sous 30 jours.</p>'
+    + '<details class="detail"><summary>Plus de détails</summary>'
+    + '<div class="paire"><div class="champ"><label for="f3">Référence</label><input id="f3" name="ref" maxlength="24" value="' + refSuivante() + '"></div>'
+    + '<div class="champ"><label for="f4">À payer avant le</label><input id="f4" name="echeance" type="date" value="' + dans(30) + '"></div></div>'
+    + '<div class="champ"><label>Où en est-elle ?</label><div class="choix">'
+    + '<label><input type="radio" name="statut" value="brouillon"><span>Brouillon</span></label>'
+    + '<label><input type="radio" name="statut" value="envoyee" checked><span>Envoyée</span></label>'
+    + '<label><input type="radio" name="statut" value="payee"><span>Payée</span></label></div></div></details>'}),
+  depense: () => ({titre: "Nouvelle dépense", html: formSortie("Loyer de l\'atelier")}),
+  investissement: () => ({titre: "Nouvel investissement", html: formSortie("Camionnette")})
+};
+function formSortie(ex){
+  return '<div class="champ"><label for="f1">Quoi ?</label><input id="f1" name="libelle" required maxlength="90" placeholder="' + ex + '" autocomplete="off"></div>'
+    + '<div class="champ"><label for="f2">Combien ? (€)</label><input id="f2" name="montant" type="number" min="0" step="any" required placeholder="0" inputmode="decimal"></div>'
+    + '<details class="detail"><summary>Plus de détails</summary>'
+    + '<div class="champ"><label for="f3">Quand ?</label><input id="f3" name="date" type="date" value="' + auj() + '"></div></details>';
+}
+const TOUS_TYPES = ["tache", "facture", "client"];
+const TYPES_VUE = {afaire: TOUS_TYPES, argent: TOUS_TYPES, clients: TOUS_TYPES, budget: ["depense", "investissement"]};
+const TYPE_DEFAUT = {afaire: "tache", argent: "facture", clients: "client", budget: "depense"};
+const NOM_TYPE = {tache: "Tâche", facture: "Facture", client: "Client", depense: "Dépense", investissement: "Investissement"};
+let typeActif = "tache", dernierFocus = null;
+
+function ouvrir(type){
+  typeActif = type;
+  const modele = CHAMPS[type]();
+  const groupe = TYPES_VUE[vue] || TOUS_TYPES;
+  const choix = groupe.indexOf(type) === -1 ? [] : groupe;
+  const f = $("#feuille");
+  if($("#feuille").hidden) dernierFocus = document.activeElement;
+  f.innerHTML = '<div class="poignee"></div>'
+    + '<div class="feuille-tete"><h2 id="feuille-titre">' + modele.titre + "</h2>"
+    + '<button class="fermer" id="x" aria-label="Fermer">×</button></div>'
+    + (choix.length > 1 ? '<div class="segments" style="margin:0 22px 6px">' + choix.map(t =>
+        '<button type="button" data-type="' + t + '" aria-pressed="' + (t === type) + '">' + NOM_TYPE[t] + "</button>").join("") + "</div>" : "")
+    + '<form id="form">' + modele.html
+    + '<datalist id="lc">' + liste("clients").map(c => '<option value="' + h(c.nom) + '">').join("") + "</datalist>"
+    + '<button class="valider" type="submit">Ajouter</button></form>';
+  f.hidden = false; $("#voile").hidden = false;
+  requestAnimationFrame(() => { f.classList.add("on"); $("#voile").classList.add("on"); });
+  setTimeout(() => { const p = f.querySelector("#f1"); if(p) p.focus({preventScroll: true}); }, 340);
+}
+function fermer(){
+  const f = $("#feuille"), v = $("#voile");
+  f.classList.remove("on"); v.classList.remove("on");
+  setTimeout(() => { f.hidden = true; v.hidden = true; }, 380);
+  if(dernierFocus && dernierFocus.isConnected) dernierFocus.focus({preventScroll: true});
+}
+
+function ajoutVite(){
+  const i = $("#vite");
+  if(!i) return;
+  const t = i.value.trim();
+  if(!t) return;
+  ecrire("taches", neuf(), {titre: t, client: "", priorite: "normale", echeance: auj(), fait: false});
+  bulle("Tâche ajoutée");
+  const suivant = $("#vite");
+  if(suivant) suivant.focus();
+}
+
+/* ───────── interactions ───────── */
+$("#nav").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if(!b) return;
+  if(b.id === "plus"){ ouvrir(TYPE_DEFAUT[vue]); return; }
+  if(!b.dataset.vue) return;
+  vue = b.dataset.vue;
+  const tous = document.querySelectorAll("#nav button[data-vue]");
+  for(let i = 0; i < tous.length; i++) tous[i].removeAttribute("aria-current");
+  b.setAttribute("aria-current", "page");
+  memoire.clear();
+  animer = true;
+  anneauP = 0;
+  rendre();
+  window.scrollTo({top: 0, behavior: reduit() ? "auto" : "smooth"});
+});
+
+function armer(b){
+  if(b.dataset.arme === "1") return true;
+  const m = b.querySelector(".mot") || b;
+  b.dataset.arme = "1"; b.dataset.mot = m.textContent; m.textContent = "Confirmer ?";
+  setTimeout(() => {
+    if(b.isConnected && b.dataset.arme === "1"){
+      b.dataset.arme = "0";
+      const m2 = b.querySelector(".mot") || b;
+      m2.textContent = b.dataset.mot;
+    }
+  }, 4000);
+  return false;
+}
+
+$("#vue").addEventListener("click", e => {
+  const b = e.target.closest("button");
+  if(!b) return;
+  if(b.dataset.aller){
+    const cible = document.querySelector('#nav button[data-vue="' + b.dataset.aller + '"]');
+    if(cible) cible.click();
+    return;
+  }
+  if(b.dataset.feuille){ ouvrir(b.dataset.feuille); return; }
+  if(b.dataset.etat){
+    const cl = state.clients[b.dataset.etat];
+    if(!cl) return;
+    const suivant = CYCLE[cl.statut] || "actif";
+    ecrire("clients", b.dataset.etat, Object.assign({}, cl, {statut: suivant}));
+    bulle(ETIQ_C[suivant][0]);
+    return;
+  }
+  if(b.dataset.vite){ ajoutVite(); return; }
+  if(b.dataset.premier){ ouvrir("tache"); return; }
+  if(b.dataset.ft){ filtreT = b.dataset.ft; rendre(); return; }
+  if(b.dataset.ff){ filtreF = b.dataset.ff; rendre(); return; }
+  if(b.dataset.paye){
+    const f = state.factures[b.dataset.paye];
+    if(!f) return;
+    ecrire("factures", b.dataset.paye, Object.assign({}, f, {statut: "payee"}));
+    bulle("Encaissement noté");
+    return;
+  }
+  if(b.dataset.demo){
+    if(!armer(b)) return;
+    COLS.forEach(c => liste(c).filter(o => o.exemple).forEach(o => { delete state[c][o.id]; }));
+    sauver(); memoire.clear(); rendre(); bulle("À vous de jouer");
+    return;
+  }
+  if(b.dataset.sup){
+    if(!armer(b)) return;
+    retirer(b.dataset.sup, b.dataset.id);
+  }
+});
+
+$("#vue").addEventListener("keydown", e => {
+  if(e.key === "Enter" && e.target.id === "vite"){ e.preventDefault(); ajoutVite(); }
+});
+
+$("#vue").addEventListener("change", e => {
+  const t = e.target;
+  if(t.dataset.tache){
+    const tache = state.taches[t.dataset.tache];
+    if(!tache) return;
+    const avant = calculs();
+    state.taches[t.dataset.tache] = Object.assign({}, tache, {fait: t.checked});
+    let mot = "";
+    if(t.checked && majSerie()) mot = state.serie.n === 1 ? " · série lancée" : " · " + state.serie.n + " jours d'affilée";
+    sauver(); rendre();
+    if(t.checked){
+      const apr = calculs();
+      if(apr.duJour.length && !apr.resteJour.length && avant.resteJour.length){ confettis(); bulle("Journée bouclée" + mot); }
+      else bulle("C'est fait" + mot);
+    }
+  }else if(t.dataset.rituel !== undefined){
+    const sem = semaineIso(new Date());
+    const f = {};
+    ritFaits().forEach(i => { f[i] = true; });
+    const i = Number(t.dataset.rituel);
+    if(t.checked) f[i] = true; else delete f[i];
+    const faits = Object.keys(f).map(Number).sort((a, b) => a - b);
+    state.rituel = {semaine: sem, faits: faits};
+    sauver(); rendre();
+    if(faits.length === RITUEL.length) bulle("Semaine au propre");
+  }
+});
+
+$("#feuille").addEventListener("click", e => {
+  if(e.target.closest("#x")){ fermer(); return; }
+  const t = e.target.closest("[data-type]");
+  if(t) ouvrir(t.dataset.type);
+});
+$("#feuille").addEventListener("change", e => {
+  if(e.target.name !== "quand") return;
+  const d = $("#feuille .date-libre");
+  if(!d) return;
+  d.hidden = e.target.value !== "x";
+  if(!d.hidden) d.focus();
+});
+$("#voile").addEventListener("click", fermer);
+document.addEventListener("keydown", e => { if(e.key === "Escape" && !$("#feuille").hidden) fermer(); });
+
+$("#feuille").addEventListener("submit", e => {
+  e.preventDefault();
+  const d = {}, fd = new FormData(e.target);
+  fd.forEach((v, k) => { d[k] = v; });
+  const id = neuf();
+  if(typeActif === "tache"){
+    if(!String(d.titre || "").trim()) return;
+    let ech = d.echeance || auj();
+    if(d.quand && d.quand !== "x") ech = dans(Number(d.quand));
+    ecrire("taches", id, {titre: String(d.titre).trim(), client: String(d.client || "").trim(),
+      priorite: d.priorite || "normale", echeance: ech, fait: false});
+    bulle("Tâche ajoutée");
+  }else if(typeActif === "client"){
+    ecrire("clients", id, {nom: String(d.nom).trim(), projet: String(d.projet || "").trim(),
+      contact: String(d.contact || "").trim(), statut: d.statut || "actif"});
+    bulle("Client ajouté");
+  }else if(typeActif === "facture"){
+    ecrire("factures", id, {ref: String(d.ref || "").trim() || refSuivante(), client: String(d.client).trim(),
+      montant: Number(d.montant) || 0, emise: auj(), echeance: d.echeance || dans(30), statut: d.statut || "envoyee"});
+    bulle("Facture enregistrée");
+  }else if(typeActif === "depense" || typeActif === "investissement"){
+    ecrire(typeActif === "depense" ? "depenses" : "investissements", id,
+      {libelle: String(d.libelle).trim(), montant: Number(d.montant) || 0, date: d.date || auj()});
+    bulle(typeActif === "depense" ? "Dépense notée" : "Investissement noté");
+  }
+  fermer();
+});
+
+window.addEventListener("resize", () => {
+  const c = $("#confettis");
+  if(!c.hidden){ c.width = window.innerWidth; c.height = window.innerHeight; }
+});
+
+charger();
+rendre();
+</script>
