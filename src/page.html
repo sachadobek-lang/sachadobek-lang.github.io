@@ -210,6 +210,7 @@ summary.groupe:hover{background:var(--line)}
 .vite{display:flex;align-items:center;gap:16px;padding:19px 24px;position:relative}
 .vite::before{content:"";position:absolute;left:64px;right:24px;top:0;height:1px;background:var(--line)}
 .vite .rond{width:28px;height:28px;flex:none;border:2.5px dashed var(--line-fort);border-radius:50%;display:grid;place-content:center;color:var(--ink-3);font-size:17px;line-height:1}
+.ajout-ligne .rond svg{color:var(--ink-3)}
 .vite .rond::after{content:"+"}
 .vite input{flex:1;min-width:0;border:0;background:none;font-size:16.5px;font-weight:600;padding:2px 0;outline:0}
 .vite input::placeholder{color:var(--ink-3);font-weight:600}
@@ -246,6 +247,11 @@ summary.groupe:hover{background:var(--line)}
 .r-meta{display:flex;flex-wrap:wrap;align-items:center;gap:5px 10px;font-size:13.5px;color:var(--ink-3)}
 .r-som{font-family:var(--num);font-weight:600;font-size:17px;font-variant-numeric:tabular-nums;text-align:right;flex:none}
 .r-som.paye{color:var(--ok)}
+.pdf{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--line);background:var(--surface);color:var(--ink-2);
+  border-radius:999px;padding:7px 14px;font-size:14px;font-weight:700;flex:none;transition:border-color .18s,color .18s,background .18s,transform .12s}
+.pdf svg{width:15px;height:15px;stroke-width:2.3;fill:none}
+.pdf:hover{border-color:var(--v1);color:var(--v1);background:var(--deg-pale)}
+.pdf:active{transform:scale(.95)}
 .mini{border:2px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:999px;padding:7px 15px;font-size:14px;font-weight:700;flex:none;transition:border-color .18s,color .18s,background .18s,transform .12s}
 .mini:hover{border-color:var(--ok);color:var(--ok);background:var(--ok-doux)}
 .mini:active{transform:scale(.95)}
@@ -476,6 +482,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   </linearGradient>
 </defs></svg>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.1/jspdf.umd.min.js"></script>
 <script>
 "use strict";
 const SEED = __SEED__;
@@ -491,6 +498,7 @@ const MOIS_LONG = ["janvier", "février", "mars", "avril", "mai", "juin", "juill
 
 const state = {
   taches: {}, clients: {}, factures: {}, depenses: {}, investissements: {},
+  moi: {nom: "", adresse: "", siret: "", email: "", tva: 0},
   rituel: {semaine: "", faits: []},
   serie: {n: 0, dernier: ""}
 };
@@ -557,6 +565,7 @@ function charger(){
   if(d && typeof d === "object"){
     COLS.forEach(c => { state[c] = d[c] && typeof d[c] === "object" ? d[c] : {}; });
     if(d.rituel) state.rituel = d.rituel;
+    if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0}, d.moi);
     if(d.serie) state.serie = d.serie;
   }else{
     COLS.forEach(c => { state[c] = JSON.parse(JSON.stringify(SEED[c] || {})); });
@@ -841,6 +850,9 @@ function rangeeFacture(f, chezLui){
     + '<span class="r-meta">' + (chezLui ? "" : '<span class="ref">' + h(f.ref || "") + "</span>")
     + '<span class="etiq ' + e[1] + '">' + e[0] + "</span><span>" + quand + "</span></span></span>"
     + '<span class="r-som' + (st === "payee" ? " paye" : "") + '">' + eur(f.montant) + "</span>"
+    + '<button class="pdf" data-pdf="' + h(f.id) + '" title="Télécharger la facture en PDF">'
+    + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
+    + '<path d="M12 3.5v11"/><path d="m7.8 10.5 4.2 4.2 4.2-4.2"/><path d="M4.5 18.5h15"/></svg>PDF</button>'
     + (st === "payee" ? "" : '<button class="mini" data-paye="' + h(f.id) + '">Payée</button>')
     + '<button class="sup" data-sup="factures" data-id="' + h(f.id) + '"><span class="mot">Supprimer</span></button></div>';
 }
@@ -881,7 +893,11 @@ function vueArgent(){
         '<button data-ff="' + kv[0] + '" aria-pressed="' + (filtreF === kv[0]) + '">' + kv[1] + "</button>").join("") + "</div>"
     + (vis.length ? vis.map(rangeeFacture).join("")
        : '<p class="vide"><b>Aucune facture ici</b>Changez de filtre, ou appuyez sur + pour en créer une.</p>')
-    + '<div style="height:10px"></div></section>'
+    + '<button class="ajout-ligne" data-moi="1"><span class="rond" style="border-style:solid">'
+    + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;stroke-width:2.2;fill:none">'
+    + '<circle cx="12" cy="8.4" r="3.6"/><path d="M4.8 20c0-3.6 3.2-5.8 7.2-5.8s7.2 2.2 7.2 5.8"/></svg></span>'
+    + (state.moi.nom ? "Vos coordonnées — " + h(state.moi.nom) : "Vos coordonnées sur les factures")
+    + "</button></section>"
 
     + demo();
 }
@@ -931,6 +947,134 @@ function vueBudget(){
     + '<button class="ajout-ligne" data-feuille="' + (surDep ? "depense" : "investissement") + '"><span class="rond"></span>'
     + (surDep ? "Ajouter une dépense" : "Ajouter un investissement") + "</button></section>"
     + demo();
+}
+
+/* ═══ la facture en PDF ═══ */
+function euroTxt(v){
+  /* l'espace fine insécable du format français sort de l'encodage PDF standard :
+     on la remplace par une espace ordinaire, sinon le montant s'affiche en carrés */
+  return new Intl.NumberFormat("fr-FR", {minimumFractionDigits: 2, maximumFractionDigits: 2})
+    .format(Number(v) || 0).replace(/[\u202F\u00A0\u2009]/g, " ") + " EUR";
+}
+function dateTxt(iso){
+  if(!iso) return "";
+  const d = dt(iso);
+  return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") + "/" + d.getFullYear();
+}
+
+function pdfFacture(f){
+  if(!window.jspdf || !window.jspdf.jsPDF){ bulle("PDF indisponible ici"); return; }
+  const moi = state.moi || {};
+  const doc = new window.jspdf.jsPDF({unit: "mm", format: "a4"});
+  const G = 20, D = 190;
+  let y = 24;
+
+  doc.setFont("helvetica", "bold").setFontSize(20).setTextColor(20, 32, 46);
+  doc.text("FACTURE", G, y);
+  doc.setFont("helvetica", "normal").setFontSize(10).setTextColor(110, 122, 140);
+  doc.text(String(f.ref || ""), D, y, {align: "right"});
+  doc.text("Émise le " + dateTxt(f.emise), D, y + 5.5, {align: "right"});
+
+  y += 16;
+  doc.setDrawColor(222, 231, 240).setLineWidth(0.4).line(G, y, D, y);
+  y += 10;
+
+  /* émetteur à gauche, client à droite */
+  const bloc = (x, titre, lignes, align) => {
+    let yy = y;
+    doc.setFont("helvetica", "bold").setFontSize(8.5).setTextColor(130, 142, 160);
+    doc.text(titre.toUpperCase(), x, yy, {align: align});
+    yy += 6;
+    doc.setFontSize(10.5).setTextColor(20, 32, 46);
+    lignes.filter(Boolean).forEach((l, i) => {
+      doc.setFont("helvetica", i === 0 ? "bold" : "normal");
+      String(l).split("\n").forEach(part => {
+        doc.text(part, x, yy, {align: align});
+        yy += 5.2;
+      });
+    });
+    return yy;
+  };
+  const gauche = bloc(G, "Émetteur", [moi.nom || "Votre entreprise", moi.adresse, moi.siret ? "SIRET " + moi.siret : "", moi.email], "left");
+  const droite = bloc(D, "Facturé à", [f.client], "right");
+
+  y = Math.max(gauche, droite) + 12;
+
+  /* la prestation */
+  doc.setFillColor(243, 247, 251).rect(G, y, D - G, 11, "F");
+  doc.setFont("helvetica", "bold").setFontSize(9).setTextColor(90, 102, 120);
+  doc.text("DÉSIGNATION", G + 4, y + 7);
+  doc.text("MONTANT", D - 4, y + 7, {align: "right"});
+  y += 18;
+  doc.setFont("helvetica", "normal").setFontSize(11).setTextColor(20, 32, 46);
+  const objet = f.objet || "Prestation";
+  doc.splitTextToSize(objet, 120).forEach(l => { doc.text(l, G + 4, y); y += 5.6; });
+  doc.text(euroTxt(f.montant), D - 4, y - 5.6, {align: "right"});
+
+  y += 6;
+  doc.setDrawColor(222, 231, 240).line(G, y, D, y);
+  y += 9;
+
+  /* totaux */
+  const taux = Number(moi.tva) || 0;
+  const ht = Number(f.montant) || 0;
+  const tva = Math.round(ht * taux) / 100;
+  const ligneTot = (lab, val, gras) => {
+    doc.setFont("helvetica", gras ? "bold" : "normal").setFontSize(gras ? 13 : 10.5);
+    doc.setTextColor(gras ? 20 : 110, gras ? 32 : 122, gras ? 46 : 140);
+    doc.text(lab, D - 48, y, {align: "right"});
+    doc.setTextColor(20, 32, 46);
+    doc.text(val, D - 4, y, {align: "right"});
+    y += gras ? 9 : 6.5;
+  };
+  if(taux > 0){
+    ligneTot("Total HT", euroTxt(ht), false);
+    ligneTot("TVA " + taux + " %", euroTxt(tva), false);
+    ligneTot("Total TTC", euroTxt(ht + tva), true);
+  }else{
+    ligneTot("Total", euroTxt(ht), true);
+  }
+
+  y += 8;
+  doc.setFont("helvetica", "normal").setFontSize(9.5).setTextColor(110, 122, 140);
+  doc.text("À régler avant le " + dateTxt(f.echeance) + ".", G, y); y += 5.5;
+  if(taux === 0){ doc.text("TVA non applicable, article 293 B du CGI.", G, y); y += 5.5; }
+  doc.text("Pénalités de retard : 3 fois le taux d'intérêt légal. Indemnité forfaitaire pour frais de recouvrement : 40 EUR.", G, y, {maxWidth: D - G});
+
+  return doc;
+}
+
+async function telechargerFacture(id){
+  const brut = state.factures[id];
+  if(!brut) return;
+  if(!(state.moi && state.moi.nom)){
+    bulle("Dites-nous qui vous êtes");
+    ouvrir("moi", null, function(){ telechargerFacture(id); });
+    return;
+  }
+  const f = Object.assign({id: id}, brut);
+  const doc = pdfFacture(f);
+  if(!doc) return;
+  const nom = String(f.ref || "facture").replace(/[^A-Za-z0-9._-]/g, "-") + ".pdf";
+
+  /* dans le visualiseur, seul le service de téléchargement peut livrer un fichier ;
+     ouvert directement, le navigateur s'en charge lui-même */
+  if(window.claude && window.claude.use){
+    const dl = await window.claude.use("downloads").catch(() => null);
+    if(!dl){ bulle("Téléchargement indisponible ici"); return; }
+    try{
+      await dl.save({filename: nom, data: doc.output("arraybuffer")});
+      bulle("Facture téléchargée");
+    }catch(e){
+      const c = e && e.code;
+      bulle(c === "declined" ? "Téléchargement annulé"
+          : c === "rate_limited" ? "Réessayez dans un instant"
+          : "Téléchargement impossible");
+    }
+    return;
+  }
+  doc.save(nom);
+  bulle("Facture téléchargée");
 }
 
 function demo(){
@@ -1053,9 +1197,27 @@ const CHAMPS = {
     + '<label><input type="radio" name="statut" value="prospect"><span>Prospect</span></label>'
     + '<label><input type="radio" name="statut" value="termine"><span>Terminé</span></label></div></div></details>'}),
 
+  moi: () => ({titre: "Qui êtes-vous ?", html:
+    '<p class="aide" style="margin:0 0 4px">Ces informations apparaîtront sur vos factures. À remplir une seule fois.</p>'
+    + '<div class="champ"><label for="f1">Votre nom ou celui de l\'entreprise</label>'
+    + '<input id="f1" name="nom" required maxlength="80" placeholder="Atelier Dubois" autocomplete="organization" value="' + h(state.moi.nom) + '"></div>'
+    + '<div class="champ"><label for="f2">Votre adresse</label>'
+    + '<input id="f2" name="adresse" maxlength="120" placeholder="12 rue des Artisans, 69003 Lyon" value="' + h(state.moi.adresse) + '"></div>'
+    + '<div class="champ"><label for="f3">SIRET</label>'
+    + '<input id="f3" name="siret" maxlength="20" placeholder="123 456 789 00012" value="' + h(state.moi.siret) + '"></div>'
+    + '<details class="detail"><summary>Plus de détails</summary>'
+    + '<div class="paire"><div class="champ"><label for="f4">E-mail</label>'
+    + '<input id="f4" name="email" type="email" maxlength="80" placeholder="facultatif" value="' + h(state.moi.email) + '"></div>'
+    + '<div class="champ"><label for="f5">TVA</label><select id="f5" name="tva">'
+    + '<option value="0"' + (Number(state.moi.tva) === 0 ? " selected" : "") + '>Je ne facture pas la TVA</option>'
+    + '<option value="20"' + (Number(state.moi.tva) === 20 ? " selected" : "") + '>20 %</option>'
+    + '<option value="10"' + (Number(state.moi.tva) === 10 ? " selected" : "") + '>10 %</option>'
+    + "</select></div></div></details>"}),
+
   facture: () => ({titre: "Nouvelle facture", html:
     '<div class="champ"><label for="f1">Pour qui ?</label><input id="f1" name="client" required maxlength="80" list="lc" placeholder="Nom du client" autocomplete="off"></div>'
     + '<div class="champ"><label for="f2">Combien ? (€)</label><input id="f2" name="montant" type="number" min="0" step="any" required placeholder="0" inputmode="decimal"></div>'
+    + '<div class="champ"><label for="f6">Pour quoi ?</label><input id="f6" name="objet" maxlength="120" placeholder="Comptoir et banquettes en chêne" autocomplete="off"></div>'
     + '<p class="aide">Elle sera notée comme envoyée aujourd\'hui, à payer sous 30 jours.</p>'
     + '<details class="detail"><summary>Plus de détails</summary>'
     + '<div class="paire"><div class="champ"><label for="f3">Référence</label><input id="f3" name="ref" maxlength="24" value="' + refSuivante() + '"></div>'
@@ -1077,10 +1239,11 @@ const TOUS_TYPES = ["tache", "facture", "client"];
 const TYPES_VUE = {afaire: TOUS_TYPES, argent: TOUS_TYPES, clients: TOUS_TYPES, budget: ["depense", "investissement"]};
 const TYPE_DEFAUT = {afaire: "tache", argent: "facture", clients: "client"};
 function typeDefaut(){ return vue === "budget" ? (filtreB === "depenses" ? "depense" : "investissement") : TYPE_DEFAUT[vue]; }
-const NOM_TYPE = {tache: "Tâche", facture: "Facture", client: "Client", depense: "Dépense", investissement: "Investissement"};
-let typeActif = "tache", dernierFocus = null;
+const NOM_TYPE = {tache: "Tâche", facture: "Facture", client: "Client", depense: "Dépense", investissement: "Investissement", moi: "Vous"};
+let typeActif = "tache", dernierFocus = null, apresFeuille = null;
 
-function ouvrir(type, prerempli){
+function ouvrir(type, prerempli, ensuite){
+  apresFeuille = ensuite || null;
   typeActif = type;
   const modele = CHAMPS[type]();
   const groupe = TYPES_VUE[vue] || TOUS_TYPES;
@@ -1190,6 +1353,8 @@ $("#vue").addEventListener("click", e => {
   if(b.dataset.retour){ clientOuvert = null; animer = true; memoire.clear(); rendre(); window.scrollTo({top: 0}); return; }
   if(b.dataset.ajoutNote){ noter(b.dataset.ajoutNote); return; }
   if(b.dataset.facturer){ ouvrir("facture", {client: b.dataset.facturer}); return; }
+  if(b.dataset.pdf){ telechargerFacture(b.dataset.pdf); return; }
+  if(b.dataset.moi){ ouvrir("moi"); return; }
   if(b.dataset.note){
     if(!armer(b)) return;
     const cl = state.clients[b.dataset.note];
@@ -1319,8 +1484,19 @@ $("#feuille").addEventListener("submit", e => {
     bulle("Client ajouté");
   }else if(typeActif === "facture"){
     ecrire("factures", id, {ref: String(d.ref || "").trim() || refSuivante(), client: String(d.client).trim(),
-      montant: Number(d.montant) || 0, emise: auj(), echeance: d.echeance || dans(30), statut: d.statut || "envoyee"});
-    bulle("Facture enregistrée");
+      objet: String(d.objet || "").trim(), montant: Number(d.montant) || 0, emise: auj(),
+      echeance: d.echeance || dans(30), statut: d.statut || "envoyee"});
+    fermer();
+    telechargerFacture(id);
+    return;
+  }else if(typeActif === "moi"){
+    state.moi = {nom: String(d.nom).trim(), adresse: String(d.adresse || "").trim(),
+      siret: String(d.siret || "").trim(), email: String(d.email || "").trim(), tva: Number(d.tva) || 0};
+    sauver(); rendre();
+    bulle("C'est enregistré");
+    fermer();
+    if(apresFeuille){ const suite = apresFeuille; apresFeuille = null; setTimeout(suite, 420); }
+    return;
   }else if(typeActif === "depense" || typeActif === "investissement"){
     ecrire(typeActif === "depense" ? "depenses" : "investissements", id,
       {libelle: String(d.libelle).trim(), montant: Number(d.montant) || 0, date: d.date || auj()});
