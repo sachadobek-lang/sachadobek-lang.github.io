@@ -345,6 +345,7 @@ summary.groupe:hover{background:var(--line)}
 
 /* ═══ segments ═══ */
 .segments{display:flex;gap:5px;padding:7px;background:var(--surface-3);border-radius:999px;margin:16px 24px 12px}
+.segments-haut{margin:0 0 4px;background:var(--surface);box-shadow:var(--o1)}
 .segments::-webkit-scrollbar{display:none}
 .segments button{flex:1;border:0;background:none;color:var(--ink-2);padding:14px 10px;border-radius:999px;font-size:16.5px;font-weight:700;white-space:nowrap;text-align:center;transition:color .2s,background .2s}
 .segments button[aria-pressed="true"]{background:var(--surface);color:var(--v1);box-shadow:var(--o1)}
@@ -1549,7 +1550,6 @@ summary.carte-tete:hover h2{color:var(--v1)}
 <nav class="nav" id="nav" aria-label="Sections">
   <button data-vue="afaire" aria-current="page"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="5" width="17.6" height="15.8" rx="3.4"/><path d="M3.2 10h17.6M8.2 2.6v3.6M15.8 2.6v3.6"/></svg><span class="nom">Agenda</span><span class="compte" id="n-taches" hidden></span></button>
   <button data-vue="argent"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="5.5" width="18.4" height="13" rx="3"/><circle cx="12" cy="12" r="2.6"/></svg><span class="nom">Argent</span><span class="compte" id="n-argent" hidden></span></button>
-  <button data-vue="clients"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c0-3.4 2.8-5.6 6.2-5.6s6.2 2.2 6.2 5.6"/><path d="M16.2 5.2a3.4 3.4 0 0 1 0 6.4M18 14.8c2 .7 3.2 2.5 3.2 5.2"/></svg><span class="nom">Clients</span></button>
   <button data-vue="budget"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 17.2 9 11.4l3.6 3.6 8-8"/><path d="M15.8 7h4.8v4.8"/></svg><span class="nom">Comptabilité</span></button>
   <button class="plus" id="plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round"><path d="M12 5.5v13M5.5 12h13"/></svg><span class="nom">Ajouter</span></button>
 </nav>
@@ -1589,6 +1589,7 @@ let vue = "afaire";
 let filtreT = "afaire";
 let filtreF = "encaisser";
 let filtreB = "depenses";
+let filtreA = "factures";   /* Argent : factures ou clients */
 let clientOuvert = null;
 let pliOuvert = false;
 let vueAgenda = "jour";        /* jour · semaine · liste */
@@ -2050,7 +2051,7 @@ function fiche(c){
 }
 
 function ficheClient(id){
-  if(!state.clients[id]) { clientOuvert = null; return vueClients(); }
+  if(!state.clients[id]) { clientOuvert = null; return carnetClients(); }
   const c = Object.assign({id: id}, state.clients[id]);
   const e = ETIQ_C[c.statut] || ETIQ_C.prospect;
   const siennes = liste("factures").filter(f => f.client === c.nom && f.statut !== "brouillon")
@@ -2092,8 +2093,7 @@ function ficheClient(id){
     + demo();
 }
 
-function vueClients(){
-  if(clientOuvert) return ficheClient(clientOuvert);
+function carnetClients(){
   const RANG = {actif: 0, prospect: 1, termine: 2};
   const rg = c => RANG[c.statut] === undefined ? 3 : RANG[c.statut];
   const cl = liste("clients").sort((x, y) => rg(x) - rg(y) || String(x.nom).localeCompare(String(y.nom), "fr"));
@@ -2135,6 +2135,16 @@ function rangeeFacture(f, chezLui){
     + '<button class="sup" data-sup="factures" data-id="' + h(f.id) + '"><span class="mot">Supprimer</span></button></div>';
 }
 function vueArgent(){
+  /* le carnet de clients vit désormais sous l'onglet Argent */
+  const onglets = '<div class="segments segments-haut">'
+    + [["factures", "Factures"], ["clients", "Clients"]].map(kv =>
+        '<button data-fa="' + kv[0] + '" aria-pressed="' + (filtreA === kv[0]) + '">' + kv[1] + "</button>").join("")
+    + "</div>";
+  if(filtreA === "clients"){
+    if(clientOuvert) return ficheClient(clientOuvert);
+    return onglets + carnetClients();
+  }
+
   const c = calculs();
   const tout = c.fact.slice().sort((x, y) => String(y.emise).localeCompare(String(x.emise)));
   const vis = filtreF === "payee" ? tout.filter(f => statut(f) === "payee")
@@ -2155,7 +2165,7 @@ function vueArgent(){
   }
   mois += "</div></section>";
 
-  return mois
+  return onglets + mois
     + '<div class="duo anim" style="animation-delay:.06s"><div class="tuile vert"><span class="lab">Déjà encaissé</span>'
     + '<span class="val" data-compte="encaisse" data-val="' + c.encaisse + '">' + eur(c.encaisse) + "</span>"
     + '<span class="sous">factures réglées ce mois</span></div>'
@@ -2617,7 +2627,7 @@ function importerTout(){
   ch.click();
 }
 
-const RENDU = {afaire: vueAfaire, argent: vueArgent, clients: vueClients, budget: vueBudget};
+const RENDU = {afaire: vueAfaire, argent: vueArgent, budget: vueBudget};
 
 /* ───────── rendu ───────── */
 function rendre(){
@@ -2799,9 +2809,13 @@ function formSortie(ex){
     + '<div class="champ"><label for="f3">Quand ?</label><input id="f3" name="date" type="date" value="' + auj() + '"></div></details>';
 }
 const TOUS_TYPES = ["tache", "facture", "client"];
-const TYPES_VUE = {afaire: TOUS_TYPES, argent: TOUS_TYPES, clients: TOUS_TYPES, budget: ["depense", "investissement"]};
-const TYPE_DEFAUT = {afaire: "tache", argent: "facture", clients: "client"};
-function typeDefaut(){ return vue === "budget" ? (filtreB === "depenses" ? "depense" : "investissement") : TYPE_DEFAUT[vue]; }
+const TYPES_VUE = {afaire: TOUS_TYPES, argent: TOUS_TYPES, budget: ["depense", "investissement"]};
+const TYPE_DEFAUT = {afaire: "tache", argent: "facture"};
+function typeDefaut(){
+  if(vue === "budget") return filtreB === "depenses" ? "depense" : "investissement";
+  if(vue === "argent" && filtreA === "clients") return "client";
+  return TYPE_DEFAUT[vue];
+}
 const NOM_TYPE = {tache: "Tâche", facture: "Facture", client: "Client", depense: "Dépense", investissement: "Investissement", moi: "Vous"};
 let typeActif = "tache", dernierFocus = null, apresFeuille = null, enModif = null, minuteurFeuille = null;
 
@@ -3018,7 +3032,7 @@ $("#vue").addEventListener("click", e => {
     if(cible) cible.click();
     return;
   }
-  if(b.dataset.retour){ clientOuvert = null; animer = true; memoire.clear(); rendre(); window.scrollTo({top: 0}); return; }
+  if(b.dataset.retour){ clientOuvert = null; filtreA = "clients"; animer = true; memoire.clear(); rendre(); window.scrollTo({top: 0}); return; }
   if(b.dataset.ajoutNote){ noter(b.dataset.ajoutNote); return; }
   if(b.dataset.facturer){
     const cl = liste("clients").find(x => x.nom === b.dataset.facturer);
@@ -3051,6 +3065,7 @@ $("#vue").addEventListener("click", e => {
   if(b.dataset.pas){ decalerJour(Number(b.dataset.pas)); rendre(); return; }
   if(b.dataset.aujourdhui){ jourVu = null; rendre(); return; }
   if(b.dataset.ft){ filtreT = b.dataset.ft; rendre(); return; }
+  if(b.dataset.fa){ filtreA = b.dataset.fa; clientOuvert = null; memoire.clear(); rendre(); return; }
   if(b.dataset.ff){ filtreF = b.dataset.ff; rendre(); return; }
   if(b.dataset.fb){ filtreB = b.dataset.fb; rendre(); return; }
   if(b.dataset.paye){
