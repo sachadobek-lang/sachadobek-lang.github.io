@@ -36,7 +36,7 @@
   /* relais pour l'agenda greffé */
   --cad-surface:#FFFFFF; --cad-surface-2:#F5F8FC; --cad-line:#DFE7F0; --cad-line-fort:#C6D2E0;
   --cad-ink:#14202E; --cad-ink-2:#4F5B70; --cad-ink-3:#7F8CA1; --cad-v1:#0B7D6E; --cad-tard:#A3670F;
-  --cad-tard-doux:#FBEDD6; --cad-attente-doux:#E3ECFB; --cad-deg-pale:#E2F2EF;
+  --cad-tard-doux:#FBEDD6; --cad-attente-doux:#E3ECFB; --cad-deg-pale:#E2F2EF; --cad-rouge:#C63D2A;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
@@ -59,7 +59,7 @@
     --o3:0 18px 46px -14px rgba(0,0,0,.8);
     --cad-surface:#141C28; --cad-surface-2:#1A2431; --cad-line:#233040; --cad-line-fort:#334152;
     --cad-ink:#ECF2F9; --cad-ink-2:#A2AFC2; --cad-ink-3:#73819A; --cad-v1:#17A794; --cad-tard:#DFA850;
-    --cad-tard-doux:#2A2113; --cad-attente-doux:#142740; --cad-deg-pale:#0F2A27;
+    --cad-tard-doux:#2A2113; --cad-attente-doux:#142740; --cad-deg-pale:#0F2A27; --cad-rouge:#F0644C;
   }
 }
 :root[data-theme="dark"]{
@@ -82,7 +82,7 @@
   --o3:0 18px 46px -14px rgba(0,0,0,.8);
   --cad-surface:#141C28; --cad-surface-2:#1A2431; --cad-line:#233040; --cad-line-fort:#334152;
   --cad-ink:#ECF2F9; --cad-ink-2:#A2AFC2; --cad-ink-3:#73819A; --cad-v1:#17A794; --cad-tard:#DFA850;
-  --cad-tard-doux:#2A2113; --cad-attente-doux:#142740; --cad-deg-pale:#0F2A27;
+  --cad-tard-doux:#2A2113; --cad-attente-doux:#142740; --cad-deg-pale:#0F2A27; --cad-rouge:#F0644C;
 }
 
 *{box-sizing:border-box}
@@ -578,7 +578,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee{
   --display:"Manrope","Helvetica Neue",Arial,sans-serif;
   --ui:"Instrument Sans","Helvetica Neue",Arial,sans-serif;
-  --bg:transparent;
+  --bg:var(--cad-surface);
   --surface:var(--cad-surface);
   --surface-2:var(--cad-surface-2);
   --line:var(--cad-line);
@@ -678,8 +678,13 @@ summary.carte-tete:hover h2{color:var(--v1)}
 }
 #majournee .day-pill:hover .num{background:var(--surface-2)}
 #majournee .day-pill.is-today .num{color:var(--accent)}
-#majournee .day-pill[aria-pressed="true"] .num{background:var(--ink); color:var(--bg)}
-#majournee .day-pill[aria-pressed="true"]:hover .num{background:var(--ink)}
+/* le jour choisi : une pastille claire, proche du fond mais détachée */
+#majournee .day-pill[aria-pressed="true"] .num{
+  background:var(--cad-surface); color:var(--cad-ink); font-weight:800;
+  box-shadow:inset 0 0 0 1.5px var(--cad-line-fort), 0 1px 2px rgba(20,32,46,.06), 0 6px 16px -8px rgba(20,32,46,.28)}
+#majournee .day-pill.is-today .num{color:var(--cad-v1); font-weight:800}
+#majournee .day-pill.is-today[aria-pressed="true"] .num{color:var(--cad-v1)}
+#majournee .day-pill[aria-pressed="true"]:hover .num{background:var(--cad-surface)}
 #majournee .day-pill .marks{display:flex; gap:3.5px; height:4px; align-items:center}
 #majournee .day-pill .marks i{width:4px; height:4px; border-radius:99px; background:var(--m)}
 #majournee .card{
@@ -994,7 +999,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 }
 
 /* ── ajustements pour vivre à l'intérieur de Cadence ── */
-#majournee{display:block;background:transparent;font-family:var(--ui)}
+#majournee{display:block;background:transparent!important;font-family:var(--ui)}
 #majournee .app{min-height:0;padding-inline:0;max-width:none}
 #majournee .top{position:static;background:transparent;backdrop-filter:none;-webkit-backdrop-filter:none}
 #majournee .sheet-wrap{position:fixed}
@@ -1006,7 +1011,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 /* ══════════ IL TE RESTE COMBIEN ? — greffée telle quelle ══════════ */
 
 #ilreste{
-  --paper:transparent; --surface:var(--cad-surface); --sunken:var(--cad-surface-2);
+  --paper:var(--cad-surface); --surface:var(--cad-surface); --sunken:var(--cad-surface-2);
   --ink:var(--cad-ink); --ink-soft:var(--cad-ink-2); --ink-faint:var(--cad-ink-3); --rule:var(--cad-line);
   --moi:var(--cad-v1); --moi-bg:var(--cad-deg-pale); --on-moi:#FFFFFF;
   --tva:#17539F; --tva-bg:var(--cad-attente-doux);
@@ -1016,7 +1021,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){#ilreste:not([data-theme="light"]){
-    --paper:transparent; --surface:var(--cad-surface); --sunken:var(--cad-surface-2);
+    --paper:var(--cad-surface); --surface:var(--cad-surface); --sunken:var(--cad-surface-2);
     --ink:var(--cad-ink); --ink-soft:var(--cad-ink-2); --ink-faint:var(--cad-ink-3); --rule:var(--cad-line);
     --moi:var(--cad-v1); --moi-bg:var(--cad-deg-pale); --on-moi:#FFFFFF;
     --tva:#17539F; --tva-bg:var(--cad-attente-doux);
@@ -1027,7 +1032,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   }
 }
 #ilreste[data-theme="dark"]{
-  --paper:transparent; --surface:var(--cad-surface); --sunken:var(--cad-surface-2);
+  --paper:var(--cad-surface); --surface:var(--cad-surface); --sunken:var(--cad-surface-2);
   --ink:var(--cad-ink); --ink-soft:var(--cad-ink-2); --ink-faint:var(--cad-ink-3); --rule:var(--cad-line);
   --moi:var(--cad-v1); --moi-bg:var(--cad-deg-pale); --on-moi:#FFFFFF;
   --tva:#17539F; --tva-bg:var(--cad-attente-doux);
@@ -1233,7 +1238,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 }
 
 /* ── pour vivre à l'intérieur de Cadence ── */
-#ilreste{display:block;background:transparent;padding-bottom:104px}
+#ilreste{display:block;background:transparent!important;padding-bottom:104px}
 #ilreste .enveloppe,#ilreste .wrap,#ilreste main{min-height:0;max-width:none}
 
 </style>
