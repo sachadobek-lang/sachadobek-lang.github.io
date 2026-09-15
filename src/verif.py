@@ -75,6 +75,7 @@ connues = {
     'FileReader','TextDecoder','CSS','Promise','Error','encodeURIComponent','decodeURIComponent','alert',
     'console','document','window','localStorage','performance','fetch','constructor','super','this',
     'not','var','let','const','in','of','delete','void','instanceof','yield','case','throw',
+    'confirm','prompt','alert','print','open','close','focus','blur','async','get','set','static',
     'setInterval','clearInterval','requestIdleCallback','structuredClone','queueMicrotask','btoa','atob',
     'Intl','WeakMap','Symbol','Proxy','Reflect','BigInt','RegExp','Function','eval','isFinite','decodeURI',
 }

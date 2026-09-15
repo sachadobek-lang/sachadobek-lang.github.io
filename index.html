@@ -1234,54 +1234,593 @@ summary.carte-tete:hover h2{color:var(--v1)}
   @page{margin:14mm}#ilreste{background:#fff;color:#111}#ilreste .page{max-width:none;padding:0;gap:0}#ilreste .noprint{display:none!important}#ilreste .apercu{border:0;border-radius:0;padding:0;font-size:12pt}#ilreste .apercu th{border-bottom:1px solid #999}#ilreste .apercu td{border-bottom:1px solid #ddd}#ilreste .mentions{color:#444;font-size:9pt;margin-top:18px}#ilreste .liste{border:0;border-radius:0}#ilreste .ligne{border-bottom:1px solid #ddd}#ilreste .ligne .sup{display:none}
 }
 
-/* ══ l'onglet Calculs ══ */
-#ilreste .carte-calc{background:var(--surface);border:1px solid var(--rule);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:18px}
-#ilreste .ligne-calc{display:flex;flex-direction:column;gap:9px}
-#ilreste .ligne-calc span{font-size:15px;font-weight:600;color:var(--ink-soft)}
-#ilreste .ligne-calc input{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:30px;font-weight:600;
-  border:0;border-bottom:2px solid var(--rule);background:none;padding:6px 0;width:100%;color:var(--ink)}
-#ilreste .ligne-calc input:focus{outline:0;border-bottom-color:var(--moi)}
-#ilreste .choix-calc{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
-#ilreste .choix-calc button{border:2px solid var(--rule);background:var(--surface);color:var(--ink-soft);
-  border-radius:12px;padding:13px 10px;font-size:15px;font-weight:600;cursor:pointer;transition:all .16s}
-#ilreste .choix-calc button[aria-pressed="true"]{border-color:var(--moi);background:var(--moi-bg);color:var(--moi)}
-#ilreste .bascule-calc{display:flex;align-items:center;gap:13px;font-size:15px;color:var(--ink-soft);cursor:pointer}
-#ilreste .bascule-calc select{margin-left:auto;border:2px solid var(--rule);background:var(--surface);color:var(--ink);
-  border-radius:10px;padding:9px 11px;font-size:15px}
-#ilreste .bascule-calc input[type=checkbox]{appearance:none;width:46px;height:27px;border-radius:99px;background:var(--rule);
-  flex:none;position:relative;transition:background .2s;cursor:pointer}
-#ilreste .bascule-calc input[type=checkbox]::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;
-  border-radius:50%;background:var(--surface);transition:transform .2s}
-#ilreste .bascule-calc input[type=checkbox]:checked{background:var(--moi)}
-#ilreste .bascule-calc input[type=checkbox]:checked::after{transform:translateX(19px)}
-
-#ilreste .resultat-calc{margin-top:22px;background:var(--surface);border:1px solid var(--rule);border-radius:18px;padding:26px 22px}
-#ilreste .cap-calc{margin:0;font-size:15px;font-weight:600;color:var(--ink-faint)}
-#ilreste .net-calc{margin:6px 0 20px;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:clamp(34px,8vw,46px);
-  font-weight:600;color:var(--moi);letter-spacing:-.02em}
-#ilreste .detail-calc{display:flex;flex-direction:column;border-top:1px solid var(--rule)}
-#ilreste .detail-calc div{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
-  padding:13px 0;border-bottom:1px solid var(--rule);font-size:15.5px;color:var(--ink-soft)}
-#ilreste .detail-calc div b{font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:600;color:var(--ink);white-space:nowrap}
-#ilreste .detail-calc small{display:block;font-size:13px;color:var(--ink-faint);margin-top:2px}
-#ilreste .detail-calc div.total{border-bottom:0;font-weight:700;color:var(--ink)}
-#ilreste .note-calc{margin:16px 0 0;font-size:13.5px;color:var(--ink-faint)}
-@media(max-width:520px){
-  #ilreste .choix-calc{grid-template-columns:1fr}
-  #ilreste .bascule-calc{flex-wrap:wrap;gap:10px}
-  #ilreste .bascule-calc .txt-parts{flex:1 1 100%}
-  #ilreste .bascule-calc select{margin-left:0;width:100%}
-}
-
 /* ── pour vivre à l'intérieur de Cadence ── */
 #ilreste{display:block;background:transparent!important;padding-bottom:104px}
 #ilreste .enveloppe,#ilreste .wrap,#ilreste main{min-height:0;max-width:none}
+
+
+/* ══════════ NET EN POCHE — greffée telle quelle dans Calculs ══════════ */
+
+#netenpoche{
+  --paper:#EDEFE9;
+  --surface:#FAFBF6;
+  --surface-2:#E4E8DF;
+  --ink:#14202B;
+  --ink-soft:#4A5B66;
+  --ink-faint:#7C8C93;
+  --rule:#CBD3C9;
+  --rule-strong:#A9B4A8;
+  --accent:#17405E;
+  --accent-soft:#E0E8EE;
+  --accent-ink:#FAFBF6;
+  --ocre:#A9701C;
+  --ocre-bg:#F6EAD3;
+  --take:#9B3B2F;
+  --take-bg:#F2DFDB;
+  --keep:#2E6B4F;
+  --keep-bg:#DCE9E1;
+  --hold:#6B6A8A;
+  --shadow:0 1px 2px rgba(20,32,43,.06), 0 8px 24px -16px rgba(20,32,43,.28);
+  --focus:#17405E;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){#netenpoche:not([data-theme="light"]){
+    --paper:#0E1519;
+    --surface:#151E23;
+    --surface-2:#1E2A30;
+    --ink:#E3EAE4;
+    --ink-soft:#A3B2B6;
+    --ink-faint:#76878C;
+    --rule:#2B383E;
+    --rule-strong:#3E4E55;
+    --accent:#7FAFD2;
+    --accent-soft:#1B2B36;
+    --accent-ink:#0E1519;
+    --ocre:#E0A94A;
+    --ocre-bg:#332813;
+    --take:#E08A76;
+    --take-bg:#3A211C;
+    --keep:#6BBE95;
+    --keep-bg:#152A21;
+    --hold:#9C9AC0;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+    --focus:#7FAFD2;
+    color-scheme:dark;
+  }
+}
+#netenpoche[data-theme="dark"]{
+  --paper:#0E1519;
+  --surface:#151E23;
+  --surface-2:#1E2A30;
+  --ink:#E3EAE4;
+  --ink-soft:#A3B2B6;
+  --ink-faint:#76878C;
+  --rule:#2B383E;
+  --rule-strong:#3E4E55;
+  --accent:#7FAFD2;
+  --accent-soft:#1B2B36;
+  --accent-ink:#0E1519;
+  --ocre:#E0A94A;
+  --ocre-bg:#332813;
+  --take:#E08A76;
+  --take-bg:#3A211C;
+  --keep:#6BBE95;
+  --keep-bg:#152A21;
+  --hold:#9C9AC0;
+  --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -16px rgba(0,0,0,.8);
+  --focus:#7FAFD2;
+  color-scheme:dark;
+}
+#netenpoche *{box-sizing:border-box}
+#netenpoche{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:15px;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+}
+#netenpoche :focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:2px}
+@media (prefers-reduced-motion:reduce){#netenpoche *{animation:none!important;transition:none!important}}
+#netenpoche .num{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums}
+#netenpoche .topbar{
+  border-bottom:1px solid var(--rule);
+  background:var(--surface);
+  position:sticky;top:0;z-index:40;
+}
+#netenpoche .topbar-in{
+  max-width:1280px;margin:0 auto;
+  padding-block:10px;padding-left:20px;padding-right:20px;
+  display:flex;flex-wrap:wrap;align-items:center;gap:12px 18px;
+}
+#netenpoche .brand{display:flex;flex-direction:column;gap:1px;margin-right:auto}
+#netenpoche .brand b{
+  font-family:Spectral,Georgia,serif;font-weight:700;font-size:21px;
+  letter-spacing:-.01em;line-height:1;
+}
+#netenpoche .brand small{font-size:11px;color:var(--ink-faint);letter-spacing:.07em;text-transform:uppercase}
+#netenpoche .ctl{display:flex;align-items:center;gap:6px}
+#netenpoche .ctl label{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint)}
+#netenpoche select,#netenpoche input[type=text],#netenpoche input[type=number]{
+  font:inherit;color:var(--ink);background:var(--surface);
+  border:1px solid var(--rule-strong);border-radius:3px;
+  padding:5px 8px;min-width:0;
+}
+#netenpoche input[type=number]{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;text-align:right}
+#netenpoche input::placeholder{color:var(--ink-faint)}
+#netenpoche .seg{display:inline-flex;border:1px solid var(--rule-strong);border-radius:3px;overflow:hidden}
+#netenpoche .seg button{
+  font:inherit;font-size:13px;border:0;background:var(--surface);color:var(--ink-soft);
+  padding:5px 11px;cursor:pointer;border-right:1px solid var(--rule);
+}
+#netenpoche .seg button:last-child{border-right:0}
+#netenpoche .seg button[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);font-weight:500}
+#netenpoche .btn{
+  font:inherit;font-size:13px;cursor:pointer;
+  border:1px solid var(--rule-strong);background:var(--surface);color:var(--ink);
+  border-radius:3px;padding:5px 10px;
+}
+#netenpoche .btn:hover{border-color:var(--accent);color:var(--accent)}
+#netenpoche .btn-ghost{border-color:transparent;background:none;color:var(--ink-faint);padding:3px 6px}
+#netenpoche .btn-ghost:hover{color:var(--take);background:var(--take-bg);border-color:transparent}
+#netenpoche .wb{
+  max-width:1280px;margin:0 auto;
+  padding-block:22px 64px;padding-left:20px;padding-right:20px;
+  display:grid;gap:22px;
+  grid-template-columns:minmax(0,1fr) minmax(0,420px);
+  align-items:start;
+}
+#netenpoche .col-in{display:flex;flex-direction:column;gap:14px;min-width:0}
+#netenpoche .col-out{position:sticky;top:64px;display:flex;flex-direction:column;gap:14px;min-width:0}
+@media (max-width:900px){#netenpoche .wb{grid-template-columns:minmax(0,1fr)}#netenpoche .col-out{position:static;order:-1}
+}
+#netenpoche .panel{
+  background:var(--surface);border:1px solid var(--rule);border-radius:4px;
+  overflow:hidden;
+}
+#netenpoche .panel > summary{
+  list-style:none;cursor:pointer;
+  display:flex;align-items:baseline;gap:10px;
+  padding:11px 14px;
+  font-family:Spectral,Georgia,serif;font-size:16px;font-weight:600;
+}
+#netenpoche .panel > summary::-webkit-details-marker{display:none}
+#netenpoche .panel > summary::before{
+  content:"";width:0;height:0;flex:none;align-self:center;
+  border-left:5px solid var(--rule-strong);border-top:4px solid transparent;border-bottom:4px solid transparent;
+  transition:transform .15s;
+}
+#netenpoche .panel[open] > summary::before{transform:rotate(90deg)}
+#netenpoche .panel > summary .tag{
+  margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:500;
+  color:var(--ink-soft);
+}
+#netenpoche .panel-body{padding:2px 14px 14px;border-top:1px solid var(--rule);padding-top:12px}
+#netenpoche .hint{font-size:12px;color:var(--ink-faint);line-height:1.45}
+#netenpoche .hint a{color:var(--accent)}
+#netenpoche .lines{display:flex;flex-direction:column;gap:6px}
+#netenpoche .line{display:grid;grid-template-columns:1fr 104px 74px 28px;gap:6px;align-items:center}
+#netenpoche .line.invest{grid-template-columns:1fr 104px 60px 60px 28px}
+#netenpoche .line input[type=text]{width:100%}
+#netenpoche .line input[type=number],#netenpoche .line select{width:100%}
+#netenpoche .lines-head{
+  display:grid;grid-template-columns:1fr 104px 74px 28px;gap:6px;
+  font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint);
+  padding-bottom:2px;
+}
+#netenpoche .lines-head.invest{grid-template-columns:1fr 104px 60px 60px 28px}
+#netenpoche .lines-head span:not(:first-child){text-align:right}
+@media (max-width:520px){#netenpoche .line,#netenpoche .lines-head{grid-template-columns:1fr 92px 62px 26px}#netenpoche .line.invest,#netenpoche .lines-head.invest{grid-template-columns:1fr 84px 50px 50px 26px}
+}
+#netenpoche .field{display:flex;flex-direction:column;gap:3px;min-width:0}
+#netenpoche .field > span{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint)}
+#netenpoche .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+#netenpoche .row-check{display:flex;align-items:center;gap:7px;font-size:13.5px;color:var(--ink-soft)}
+#netenpoche .row-check input{accent-color:var(--accent);width:15px;height:15px}
+#netenpoche .headline{
+  background:var(--surface);border:1px solid var(--rule);border-radius:4px;
+  box-shadow:var(--shadow);overflow:hidden;
+}
+#netenpoche .headline-top{padding:16px 16px 14px;display:flex;flex-direction:column;gap:2px}
+#netenpoche .headline-top .lab{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-faint)}
+#netenpoche .headline-top .big{
+  font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+  font-size:clamp(30px,7vw,40px);font-weight:600;line-height:1.05;color:var(--ocre);
+  letter-spacing:-.02em;
+}
+#netenpoche .headline-top .sub{font-size:12.5px;color:var(--ink-soft)}
+#netenpoche .headline-split{display:grid;grid-template-columns:1fr 1fr;border-top:1px solid var(--rule)}
+#netenpoche .headline-split > div{padding:10px 16px}
+#netenpoche .headline-split > div + div{border-left:1px solid var(--rule)}
+#netenpoche .headline-split .lab{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint)}
+#netenpoche .headline-split .val{font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;font-size:17px;font-weight:500}
+#netenpoche .casc{display:flex;flex-direction:column}
+#netenpoche .step{padding:7px 14px;border-bottom:1px solid var(--rule)}
+#netenpoche .step:last-child{border-bottom:0}
+#netenpoche .step-top{display:flex;align-items:baseline;gap:8px;font-size:13px}
+#netenpoche .step-top .nm{color:var(--ink-soft)}
+#netenpoche .step-top .amt{
+  margin-left:auto;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+  font-size:13px;font-weight:500;
+}
+#netenpoche .step .amt.neg{color:var(--take)}
+#netenpoche .bar{
+  position:relative;height:9px;margin-top:5px;border-radius:2px;
+  background:var(--surface-2);overflow:hidden;
+}
+#netenpoche .bar i{position:absolute;top:0;bottom:0;display:block}
+#netenpoche .bar .rest{left:0;background:var(--accent);opacity:.55}
+#netenpoche .bar .cut{background:var(--take)}
+#netenpoche .step.final{background:var(--ocre-bg);padding-block:11px}
+#netenpoche .step.final .nm{color:var(--ink);font-weight:600;font-family:Spectral,Georgia,serif;font-size:15px}
+#netenpoche .step.final .amt{color:var(--ocre);font-size:16px;font-weight:600}
+#netenpoche .step.final .bar .rest{background:var(--ocre);opacity:1}
+#netenpoche .step.hold-row .amt{color:var(--hold)}
+#netenpoche .step.hold-row .bar .cut{background:var(--hold)}
+#netenpoche .step.start .amt{font-size:15px;font-weight:600}
+#netenpoche .step.start .bar .rest{opacity:.85}
+#netenpoche .split-bar{display:flex;height:22px;border-radius:3px;overflow:hidden;margin:2px 0 9px}
+#netenpoche .split-bar i{display:block;height:100%}
+#netenpoche .legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--ink-soft)}
+#netenpoche .legend span{display:inline-flex;align-items:center;gap:5px}
+#netenpoche .legend b{width:9px;height:9px;border-radius:2px;flex:none}
+#netenpoche .legend em{font-style:normal;font-family:"IBM Plex Mono",monospace;color:var(--ink);margin-left:2px}
+#netenpoche table.det{width:100%;border-collapse:collapse;font-size:13px}
+#netenpoche table.det td{padding:4px 0;border-bottom:1px dotted var(--rule);vertical-align:baseline}
+#netenpoche table.det td:last-child{
+  text-align:right;font-family:"IBM Plex Mono",monospace;font-variant-numeric:tabular-nums;
+  white-space:nowrap;padding-left:10px;
+}
+#netenpoche table.det tr.tot td{border-bottom:0;border-top:1px solid var(--rule-strong);font-weight:600;padding-top:6px}
+#netenpoche table.det tr.sub td{color:var(--ink-faint);font-size:12px}
+#netenpoche table.det tr.sub td:first-child{padding-left:12px}
+#netenpoche .tbl-wrap{overflow-x:auto}
+#netenpoche .pill{
+  display:inline-block;font-size:11px;font-weight:500;letter-spacing:.03em;
+  padding:2px 7px;border-radius:99px;
+}
+#netenpoche .pill.warn{background:var(--take-bg);color:var(--take)}
+#netenpoche .pill.ok{background:var(--keep-bg);color:var(--keep)}
+#netenpoche .pill.info{background:var(--accent-soft);color:var(--accent)}
+#netenpoche .marginal{
+  display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  padding:11px 14px;background:var(--accent-soft);border-radius:4px;
+}
+#netenpoche .marginal .v{font-family:"IBM Plex Mono",monospace;font-size:20px;font-weight:600;color:var(--accent)}
+#netenpoche .marginal .t{font-size:12.5px;color:var(--ink-soft);flex:1;min-width:140px}
+#netenpoche .note{
+  font-size:12px;color:var(--ink-soft);line-height:1.5;
+  border-left:2px solid var(--rule-strong);padding-left:10px;
+}
+#netenpoche .foot{
+  max-width:1280px;margin:0 auto;padding-block:0 40px;padding-left:20px;padding-right:20px;
+  font-size:12px;color:var(--ink-faint);line-height:1.6;
+}
+#netenpoche .foot b{color:var(--ink-soft);font-weight:600}
+#netenpoche h3.sec{
+  font-family:Spectral,Georgia,serif;font-size:14px;font-weight:600;margin:16px 0 7px;
+  padding-bottom:4px;border-bottom:1px solid var(--rule);
+}
+#netenpoche h3.sec:first-child{margin-top:0}
+#netenpoche .stack{display:flex;flex-direction:column;gap:11px}
+#netenpoche .inline-add{display:flex;gap:8px;align-items:center;margin-top:8px}
+#netenpoche .status{font-size:11px;color:var(--ink-faint);letter-spacing:.04em}
+
+/* ── pour vivre dans l'onglet Calculs ── */
+#netenpoche{display:block;background:transparent!important;padding-bottom:104px}
+#netenpoche .topbar{position:static}
 
 </style>
 
 <div class="page">
   <header class="entete anim" id="entete"></header>
   <div id="vue"></div>
+  <div id="netenpoche" hidden>
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand">
+      <b>Net en Poche</b>
+      <small>Du chiffre d'affaires au compte perso</small>
+    </div>
+    <div class="ctl">
+      <label for="sc-select">Scénario</label>
+      <select id="sc-select"></select>
+      <button class="btn" id="sc-new" title="Nouveau scénario">+</button>
+      <button class="btn" id="sc-dup" title="Dupliquer">⧉</button>
+      <button class="btn btn-ghost" id="sc-del" title="Supprimer">✕</button>
+    </div>
+    <div class="ctl">
+      <div class="seg" role="group" aria-label="Période d'affichage">
+        <button id="per-an" aria-pressed="true">Annuel</button>
+        <button id="per-mois" aria-pressed="false">Mensuel</button>
+      </div>
+    </div>
+    <span class="status" id="status"></span>
+  </div>
+</header>
+
+<main class="wb">
+  <!-- ============ SORTIE ============ -->
+  <aside class="col-out">
+    <div class="headline">
+      <div class="headline-top">
+        <span class="lab">Net dans ta poche <span id="hl-per">/ an</span></span>
+        <span class="big num" id="hl-net">—</span>
+        <span class="sub" id="hl-sub">—</span>
+      </div>
+      <div class="headline-split">
+        <div>
+          <div class="lab">Total prélevé</div>
+          <div class="val num" id="hl-prel" style="color:var(--take)">—</div>
+        </div>
+        <div>
+          <div class="lab">Taux global</div>
+          <div class="val num" id="hl-taux">—</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-body" style="border-top:0;padding-top:12px">
+        <div class="split-bar" id="split-bar"></div>
+        <div class="legend" id="split-legend"></div>
+      </div>
+    </div>
+
+    <div class="panel" style="padding-top:2px">
+      <div class="casc" id="casc"></div>
+    </div>
+
+    <div class="marginal">
+      <div>
+        <div class="lab" style="font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-faint)">1 000 € de CA en plus</div>
+        <div class="v num" id="marg-net">—</div>
+      </div>
+      <div class="t" id="marg-txt">—</div>
+    </div>
+  </aside>
+
+  <!-- ============ SAISIE ============ -->
+  <div class="col-in">
+
+    <details class="panel" open>
+      <summary>Structure <span class="tag" id="tag-forme">—</span></summary>
+      <div class="panel-body stack">
+        <div class="grid2">
+          <label class="field"><span>Forme juridique</span>
+            <select id="f-forme">
+              <option value="sasu">SAS / SASU — président assimilé salarié</option>
+              <option value="sarl">EURL / SARL — gérant majoritaire (TNS)</option>
+              <option value="ei">Entreprise individuelle à l'IR (réel)</option>
+              <option value="micro">Micro-entreprise</option>
+            </select>
+          </label>
+          <label class="field"><span>Capital social + comptes courants</span>
+            <input type="number" id="f-capital" step="100" min="0">
+          </label>
+        </div>
+        <div class="row-check" id="wrap-tauxreduit">
+          <input type="checkbox" id="f-isreduit">
+          <label for="f-isreduit">Éligible au taux réduit d'IS à 15 % (CA &lt; 10 M€, capital libéré, ≥ 75 % détenu par des personnes physiques)</label>
+        </div>
+        <div id="micro-opts" class="stack" hidden>
+          <div class="grid2">
+            <label class="field"><span>Nature de l'activité</span>
+              <select id="f-microtype">
+                <option value="vente">Vente de marchandises / hébergement</option>
+                <option value="bic">Prestations de services (BIC)</option>
+                <option value="bnc">Activité libérale (BNC)</option>
+              </select>
+            </label>
+            <label class="field"><span>&nbsp;</span>
+              <div class="row-check" style="padding-top:6px">
+                <input type="checkbox" id="f-vfl">
+                <label for="f-vfl">Versement libératoire de l'IR</label>
+              </div>
+            </label>
+          </div>
+          <div class="hint" id="micro-seuil"></div>
+        </div>
+      </div>
+    </details>
+
+    <details class="panel" open>
+      <summary>Chiffre d'affaires <span class="tag" id="tag-ca">—</span></summary>
+      <div class="panel-body">
+        <div class="lines-head"><span>Poste</span><span>Montant HT</span><span>TVA</span><span></span></div>
+        <div class="lines" id="ca-lines"></div>
+        <div class="inline-add">
+          <button class="btn" data-add="ca">+ Ligne de CA</button>
+          <span class="hint">Montants annuels, hors taxes.</span>
+        </div>
+      </div>
+    </details>
+
+    <details class="panel" open>
+      <summary>Charges d'exploitation <span class="tag" id="tag-ch">—</span></summary>
+      <div class="panel-body">
+        <div class="lines-head"><span>Poste</span><span>Montant HT</span><span>TVA</span><span></span></div>
+        <div class="lines" id="ch-lines"></div>
+        <div class="inline-add">
+          <button class="btn" data-add="ch">+ Ligne de charge</button>
+          <span class="hint">Hors rémunération du dirigeant (plus bas) et hors investissements.</span>
+        </div>
+      </div>
+    </details>
+
+    <details class="panel" open>
+      <summary>Investissements <span class="tag" id="tag-inv">—</span></summary>
+      <div class="panel-body">
+        <div class="lines-head invest"><span>Immobilisation</span><span>Montant HT</span><span>Durée</span><span>Mois</span><span></span></div>
+        <div class="lines" id="inv-lines"></div>
+        <div class="inline-add">
+          <button class="btn" data-add="inv">+ Investissement</button>
+        </div>
+        <div class="hint" style="margin-top:8px">
+          Amortissement linéaire, <em>prorata temporis</em> la première année à partir du mois de mise en service.
+          Repères d'usage : matériel informatique 3 ans, logiciels 3 ans, véhicule 5 ans, machines 5 à 10 ans, mobilier et agencements 10 ans.
+        </div>
+        <div class="tbl-wrap" style="margin-top:10px"><table class="det" id="inv-table"></table></div>
+      </div>
+    </details>
+
+    <details class="panel" open>
+      <summary>Ce que tu te verses <span class="tag" id="tag-remu">—</span></summary>
+      <div class="panel-body stack">
+        <div class="grid2">
+          <label class="field" id="wrap-remu"><span>Rémunération nette / an</span>
+            <input type="number" id="f-remu" step="500" min="0">
+          </label>
+          <label class="field" id="wrap-distrib"><span>Part du résultat distribuée en dividendes</span>
+            <input type="number" id="f-distrib" step="5" min="0" max="100">
+          </label>
+        </div>
+        <div class="field" id="wrap-divmode"><span>Imposition des dividendes</span>
+          <div class="seg" role="group">
+            <button id="div-pfu" aria-pressed="true">Flat tax 30 %</button>
+            <button id="div-bareme" aria-pressed="false">Barème + abattement 40 %</button>
+          </div>
+        </div>
+        <div class="note" id="remu-note"></div>
+      </div>
+    </details>
+
+    <details class="panel">
+      <summary>Foyer fiscal <span class="tag" id="tag-foyer">—</span></summary>
+      <div class="panel-body">
+        <div class="grid2">
+          <label class="field"><span>Situation</span>
+            <select id="f-situation">
+              <option value="seul">Célibataire / divorcé / veuf</option>
+              <option value="couple">Marié ou pacsé (imposition commune)</option>
+            </select>
+          </label>
+          <label class="field"><span>Nombre de parts</span>
+            <input type="number" id="f-parts" step="0.25" min="1">
+          </label>
+          <label class="field"><span>Autres revenus nets imposables du foyer</span>
+            <input type="number" id="f-autres" step="500" min="0">
+          </label>
+        </div>
+        <div class="hint" style="margin-top:8px">
+          Parts : 1 personne seule = 1 · couple = 2 · +0,5 par enfant pour les deux premiers, +1 à partir du troisième.
+        </div>
+      </div>
+    </details>
+
+    <details class="panel">
+      <summary>TVA <span class="tag" id="tag-tva">—</span></summary>
+      <div class="panel-body">
+        <div class="row-check" style="margin-bottom:10px">
+          <input type="checkbox" id="f-franchise">
+          <label for="f-franchise">Franchise en base de TVA (je ne facture ni ne récupère la TVA)</label>
+        </div>
+        <table class="det" id="tva-table"></table>
+        <div class="hint" style="margin-top:8px">La TVA transite par l'entreprise : elle ne fait jamais partie du résultat, elle est reversée à l'État.</div>
+      </div>
+    </details>
+
+    <details class="panel">
+      <summary>Prix de vente <span class="tag">outil</span></summary>
+      <div class="panel-body stack">
+        <div class="grid2">
+          <label class="field"><span>Prix de vente HT</span>
+            <input type="number" id="px-ht" step="10" min="0" value="1000">
+          </label>
+          <label class="field"><span>Taux de TVA</span>
+            <select id="px-tva"><option value="0.2">20 %</option><option value="0.1">10 %</option><option value="0.055">5,5 %</option><option value="0.021">2,1 %</option><option value="0">0 %</option></select>
+          </label>
+          <label class="field"><span>Coût direct de la prestation HT</span>
+            <input type="number" id="px-cout" step="10" min="0" value="0">
+          </label>
+        </div>
+        <table class="det" id="px-table"></table>
+      </div>
+    </details>
+
+    <details class="panel">
+      <summary>Barème et taux <span class="tag" id="tag-bareme">—</span></summary>
+      <div class="panel-body stack">
+        <div class="note" id="bareme-year-note"></div>
+
+        <h3 class="sec">Barème progressif de l'impôt sur le revenu</h3>
+        <div class="lines-head" style="grid-template-columns:1fr 120px 74px 28px"><span>Tranche</span><span>Jusqu'à (€)</span><span>Taux %</span><span></span></div>
+        <div class="lines" id="bar-lines"></div>
+        <div class="inline-add"><button class="btn" id="bar-add">+ Tranche</button><button class="btn" id="bar-reset">Rétablir les valeurs d'origine</button></div>
+
+        <h3 class="sec">Impôt sur les sociétés</h3>
+        <div class="grid2">
+          <label class="field"><span>Plafond du taux réduit (€)</span><input type="number" id="p-isSeuil" step="500"></label>
+          <label class="field"><span>Taux réduit %</span><input type="number" id="p-isReduit" step="0.5"></label>
+          <label class="field"><span>Taux normal %</span><input type="number" id="p-isNormal" step="0.5"></label>
+        </div>
+
+        <h3 class="sec">Cotisations sociales</h3>
+        <div class="grid2">
+          <label class="field"><span>Assimilé salarié — cotisations en % du net</span><input type="number" id="p-cotAS" step="1"></label>
+          <label class="field"><span>Travailleur non salarié — % du net</span><input type="number" id="p-cotTNS" step="1"></label>
+          <label class="field"><span>CSG/CRDS non déductible — % du net</span><input type="number" id="p-csgNd" step="0.1"></label>
+        </div>
+
+        <h3 class="sec">Revenus du capital</h3>
+        <div class="grid2">
+          <label class="field"><span>Prélèvements sociaux %</span><input type="number" id="p-ps" step="0.1"></label>
+          <label class="field"><span>IR forfaitaire (flat tax) %</span><input type="number" id="p-pfu" step="0.1"></label>
+          <label class="field"><span>Abattement dividendes au barème %</span><input type="number" id="p-abatDiv" step="1"></label>
+          <label class="field"><span>CSG déductible sur dividendes %</span><input type="number" id="p-csgDed" step="0.1"></label>
+        </div>
+
+        <h3 class="sec">Traitements et salaires</h3>
+        <div class="grid2">
+          <label class="field"><span>Abattement %</span><input type="number" id="p-abatSal" step="1"></label>
+          <label class="field"><span>Plafond de l'abattement (€)</span><input type="number" id="p-abatSalMax" step="100"></label>
+          <label class="field"><span>Plafond par demi-part (€)</span><input type="number" id="p-qf" step="10"></label>
+        </div>
+
+        <h3 class="sec">Décote et haut revenu</h3>
+        <div class="grid2">
+          <label class="field"><span>Décote — seuil personne seule (€)</span><input type="number" id="p-decSeul" step="10"></label>
+          <label class="field"><span>Décote — seuil couple (€)</span><input type="number" id="p-decCouple" step="10"></label>
+          <label class="field"><span>Décote — taux %</span><input type="number" id="p-decTaux" step="0.25"></label>
+          <label class="field"><span>CEHR — seuil 3 % personne seule (€)</span><input type="number" id="p-cehr1" step="1000"></label>
+        </div>
+
+        <h3 class="sec">Micro-entreprise</h3>
+        <div class="tbl-wrap"><table class="det" id="micro-table"></table></div>
+        <div class="grid2" style="margin-top:8px">
+          <label class="field"><span>Abattement vente %</span><input type="number" id="m-abV" step="1"></label>
+          <label class="field"><span>Abattement services BIC %</span><input type="number" id="m-abB" step="1"></label>
+          <label class="field"><span>Abattement BNC %</span><input type="number" id="m-abN" step="1"></label>
+          <label class="field"><span>Cotisations vente %</span><input type="number" id="m-coV" step="0.1"></label>
+          <label class="field"><span>Cotisations services BIC %</span><input type="number" id="m-coB" step="0.1"></label>
+          <label class="field"><span>Cotisations BNC %</span><input type="number" id="m-coN" step="0.1"></label>
+        </div>
+      </div>
+    </details>
+
+    <details class="panel">
+      <summary>Détail du calcul de l'impôt sur le revenu</summary>
+      <div class="panel-body">
+        <div class="tbl-wrap"><table class="det" id="ir-table"></table></div>
+      </div>
+    </details>
+
+    <details class="panel">
+      <summary>Compte de résultat</summary>
+      <div class="panel-body">
+        <div class="tbl-wrap"><table class="det" id="cr-table"></table></div>
+      </div>
+    </details>
+
+  </div>
+</main>
+
+<div class="foot">
+  <p><b>Ce que fait cet outil.</b> Il enchaîne les prélèvements dans l'ordre réel : charges et amortissements d'abord, puis cotisations sociales, puis impôt sur les sociétés, puis prélèvements sociaux et impôt sur le revenu sur ce que tu sors de la société. Le taux global rapporte tout ce qui est prélevé à la valeur dégagée par l'entreprise une fois les charges externes et les amortissements passés.</p>
+  <p><b>Ce qu'il ne fait pas.</b> Il ignore la CFE, la CVAE, la participation, les crédits d'impôt, le déficit reportable, les plus-values, l'IFI et les régimes particuliers (ZFU, JEI, ACRE, LMNP). Les cotisations sociales sont modélisées en pourcentage du net : ce sont des ordres de grandeur, pas les taux détaillés tranche par tranche de l'URSSAF. Tous les taux sont modifiables dans le panneau « Barème et taux ». <b>Ce n'est pas un conseil fiscal : fais valider une décision réelle par ton expert-comptable.</b></p>
+</div>
+  </div>
   <div id="ilreste" hidden>
 <div class="page">
 
@@ -1292,46 +1831,6 @@ summary.carte-tete:hover h2{color:var(--v1)}
     <button id="tab-factures" role="tab" aria-selected="false">Mes factures<span class="pastille" id="pastille" hidden>0</span></button>
     <button id="tab-livre"    role="tab" aria-selected="false">Mes rentrées</button>
     <button id="tab-calculs"  role="tab" aria-selected="false">Calculs</button>
-  </div>
-
-  <!-- ============ CALCULS ============ -->
-  <div class="panel noprint" id="p-calculs" role="tabpanel" hidden>
-
-    <div class="carte-calc">
-      <label class="ligne-calc" for="calc-montant">
-        <span>J'encaisse dans l'année</span>
-        <input id="calc-montant" type="number" min="0" step="any" inputmode="decimal" placeholder="40 000">
-      </label>
-
-      <div class="choix-calc" id="calc-statut" role="radiogroup" aria-label="Votre statut">
-        <button data-st="vente"    aria-pressed="false">Micro — vente</button>
-        <button data-st="services" aria-pressed="true">Micro — services</button>
-        <button data-st="liberal"  aria-pressed="false">Micro — libéral</button>
-        <button data-st="societe"  aria-pressed="false">Société à l'IS</button>
-      </div>
-
-      <label class="bascule-calc" id="ligne-lib">
-        <input type="checkbox" id="calc-lib">
-        <span>Versement libératoire de l'impôt</span>
-      </label>
-      <label class="bascule-calc" id="ligne-parts">
-        <span class="txt-parts">Parts fiscales du foyer</span>
-        <select id="calc-parts">
-          <option value="1">1 — seul</option>
-          <option value="2">2 — couple</option>
-          <option value="2.5">2,5 — couple, 1 enfant</option>
-          <option value="3">3 — couple, 2 enfants</option>
-        </select>
-      </label>
-    </div>
-
-    <div class="resultat-calc" id="calc-sortie" hidden>
-      <p class="cap-calc">Il vous restera</p>
-      <p class="net-calc" id="calc-net">—</p>
-      <div class="detail-calc" id="calc-detail"></div>
-      <p class="note-calc">Estimation d'après le barème 2026. Elle ne remplace pas votre comptable.</p>
-    </div>
-
   </div>
 
   <!-- ============ MON ARGENT ============ -->
@@ -2719,6 +3218,8 @@ function rendre(){
   const greffe = surAgenda || surCompta;
   $("#majournee").hidden = !surAgenda;
   $("#ilreste").hidden = !surCompta;
+  const np = document.getElementById("netenpoche");
+  if(np && !surCompta) np.hidden = true;
   $("#vue").hidden = greffe;
   $("#entete").hidden = greffe;
   document.body.classList.toggle("sur-agenda", surAgenda);
@@ -4814,109 +5315,19 @@ function rendreReglages(){
 function toutRendre(){ rendreReglages(); rendreLivre(); rendreFactures(); rendreBrouillon(); rendreObjectif(); rendreArgent(); }
 
 /* ---------- onglets ---------- */
-var ONGLETS=[["argent","p-argent"],["factures","p-factures"],["livre","p-livre"],["calculs","p-calculs"]];
+var ONGLETS=[["argent","p-argent"],["factures","p-factures"],["livre","p-livre"],["calculs","p-calculs-absent"]];
 function onglet(n){
   ONGLETS.forEach(function(p){
     $("tab-"+p[0]).setAttribute("aria-selected",p[0]===n);
-    $(p[1]).hidden=p[0]!==n;
+    var el=$(p[1]); if(el) el.hidden = p[0]!==n;
   });
+  /* l'onglet Calculs montre Net en Poche, qui vit à côté */
+  var np=document.getElementById("netenpoche");
+  if(np) np.hidden = n!=="calculs";
   etat.onglet=n; sauver();
 }
 ONGLETS.forEach(function(p){ $("tab-"+p[0]).addEventListener("click",function(){ onglet(p[0]); }); });
 function sauver(){ try{ localStorage.setItem("itrc5",JSON.stringify(etat)); }catch(e){} }
-
-/* ---------- calculs : ce que l'État prendra ----------
-   Barème de l'impôt sur le revenu 2026, abattements et cotisations de la
-   micro-entreprise, impôt sur les sociétés. Chiffres officiels. */
-var BAREME = [
-  {plafond: 11497,  taux: 0},
-  {plafond: 29315,  taux: 11},
-  {plafond: 83823,  taux: 30},
-  {plafond: 180294, taux: 41},
-  {plafond: null,   taux: 45}
-];
-var DECOTE_SEUL = 889, DECOTE_COUPLE = 1470, DECOTE_TAUX = 45.25;
-var IS_REDUIT = 15, IS_SEUIL = 42500, IS_PLEIN = 25;
-var STATUTS = {
-  vente:    {nom: "Micro — vente de marchandises", abat: 71, cotis: 12.3, liber: 1.0, plafond: 188700, tva: 85000},
-  services: {nom: "Micro — prestations de services", abat: 50, cotis: 21.2, liber: 1.7, plafond: 77700, tva: 37500},
-  liberal:  {nom: "Micro — profession libérale", abat: 34, cotis: 24.6, liber: 2.2, plafond: 77700, tva: 37500}
-};
-
-/* impôt d'après le barème, par tranches successives */
-function impotBareme(revenu, parts){
-  var q = revenu / parts, du = 0, bas = 0;
-  for (var i = 0; i < BAREME.length; i++){
-    var t = BAREME[i], haut = t.plafond === null ? Infinity : t.plafond;
-    if (q > bas) du += (Math.min(q, haut) - bas) * t.taux / 100;
-    bas = haut;
-    if (q <= haut) break;
-  }
-  du *= parts;
-  /* décote : elle allège les petits impôts */
-  var seuil = parts >= 2 ? DECOTE_COUPLE : DECOTE_SEUL;
-  if (du > 0 && du < seuil / (DECOTE_TAUX / 100)){
-    du = Math.max(0, du - Math.max(0, seuil - du * DECOTE_TAUX / 100));
-  }
-  return Math.max(0, du);
-}
-
-function calculer(){
-  var ca = Number($("calc-montant").value) || 0;
-  var st = etat.calcStatut || "services";
-  var parts = Number($("calc-parts").value) || 1;
-  var lib = $("calc-lib").checked;
-  var sortie = $("calc-sortie");
-  if (ca <= 0){ sortie.hidden = true; return; }
-  sortie.hidden = false;
-
-  var lignes = [], net = 0, ligne = function(lab, val, sous){
-    lignes.push('<div><span>' + lab + (sous ? '<small>' + sous + '</small>' : '') + '</span><b>' + eur.format(val) + '</b></div>');
-  };
-
-  if (st === "societe"){
-    var benef = ca;
-    var isDu = benef <= IS_SEUIL
-      ? benef * IS_REDUIT / 100
-      : IS_SEUIL * IS_REDUIT / 100 + (benef - IS_SEUIL) * IS_PLEIN / 100;
-    net = benef - isDu;
-    ligne("Bénéfice", benef);
-    ligne("Impôt sur les sociétés", -isDu,
-      benef <= IS_SEUIL ? IS_REDUIT + " % (taux réduit)"
-        : IS_REDUIT + " % jusqu'à " + eur.format(IS_SEUIL) + ", puis " + IS_PLEIN + " %");
-    lignes.push('<div class="total"><span>Il reste dans la société</span><b>' + eur.format(net) + '</b></div>');
-  } else {
-    var r = STATUTS[st] || STATUTS.services;
-    var cotis = ca * r.cotis / 100;
-    var imposable = ca * (100 - r.abat) / 100;
-    var ir = lib ? ca * r.liber / 100 : impotBareme(imposable, parts);
-    net = ca - cotis - ir;
-    ligne("Ce que vous encaissez", ca);
-    ligne("Cotisations sociales", -cotis, r.cotis + " % du chiffre d'affaires");
-    ligne("Impôt sur le revenu", -ir, lib
-      ? "versement libératoire, " + r.liber + " %"
-      : "barème, après abattement de " + r.abat + " % — base " + eur.format(imposable));
-    lignes.push('<div class="total"><span>Il vous reste</span><b>' + eur.format(net) + '</b></div>');
-    if (ca > r.tva) lignes.push('<div><span style="color:var(--chaud)">Vous dépassez ' + eur.format(r.tva) + ' : la TVA devient obligatoire.</span><b></b></div>');
-    if (ca > r.plafond) lignes.push('<div><span style="color:var(--chaud)">Vous dépassez ' + eur.format(r.plafond) + ' : vous sortez de la micro-entreprise.</span><b></b></div>');
-  }
-
-  $("calc-net").textContent = eur.format(net);
-  $("calc-detail").innerHTML = lignes.join("");
-}
-
-function majStatutCalc(){
-  var st = etat.calcStatut || "services";
-  var boutons = $("calc-statut").querySelectorAll("button");
-  for (var i = 0; i < boutons.length; i++){
-    boutons[i].setAttribute("aria-pressed", boutons[i].getAttribute("data-st") === st);
-  }
-  $("ligne-lib").hidden = st === "societe";
-  $("ligne-parts").hidden = st === "societe" || $("calc-lib").checked;
-  calculer();
-}
-
-
 
 /* ---------- rentrées ---------- */
 function ouvrirRentree(pre){
@@ -5023,18 +5434,1009 @@ try{
 toutRendre();
 onglet(etat.onglet||"argent");
 
-/* les calculs, une fois que etat existe */
-$("calc-statut").addEventListener("click", function(e){
-  var b = e.target.closest("button[data-st]");
-  if (!b) return;
-  etat.calcStatut = b.getAttribute("data-st");
-  sauver();
-  majStatutCalc();
+
+})();
+
+})();
+
+</script>
+
+<script>
+/* ══════════ NET EN POCHE — son programme, inchangé ══════════ */
+(function(){
+
+(function(){
+"use strict";
+
+/* ===================================================================
+   Paramètres fiscaux par défaut
+   Barème IR : revenus 2024, imposition 2025 (valeurs officielles).
+   Tout est modifiable dans le panneau « Barème et taux ».
+=================================================================== */
+const DEFAULT_PARAMS = {
+  anneeBareme: "revenus 2024 · imposition 2025",
+  bareme: [
+    {plafond: 11497,  taux: 0},
+    {plafond: 29315,  taux: 11},
+    {plafond: 83823,  taux: 30},
+    {plafond: 180294, taux: 41},
+    {plafond: null,   taux: 45}
+  ],
+  qfDemiPart: 1791,
+  decoteSeul: 889, decoteCouple: 1470, decoteTaux: 45.25,
+  abatSal: 10, abatSalMax: 14426, abatSalMin: 495,
+  isSeuil: 42500, isReduit: 15, isNormal: 25,
+  cotAS: 82, cotTNS: 45, csgNonDed: 2.9,
+  ps: 17.2, pfu: 12.8, abatDiv: 40, csgDed: 6.8,
+  cehrSeuil1: 250000, cehrTaux1: 3, cehrTaux2: 4,
+  micro: {
+    abat:  {vente: 71,     bic: 50,    bnc: 34},
+    cot:   {vente: 12.3,   bic: 21.2,  bnc: 24.6},
+    vfl:   {vente: 1,      bic: 1.7,   bnc: 2.2},
+    seuil: {vente: 188700, bic: 77700, bnc: 77700}
+  }
+};
+
+function exampleScenario(name){
+  return {
+    name: name || "Exemple — studio de design",
+    forme: "sasu",
+    capital: 10000,
+    isReduit: true,
+    microType: "bic",
+    vfl: false,
+    franchiseTVA: false,
+    ca: [
+      {id: uid(), label: "Prestations clients", montant: 140000, tva: 0.2},
+      {id: uid(), label: "Abonnement maintenance", montant: 18000, tva: 0.2}
+    ],
+    charges: [
+      {id: uid(), label: "Sous-traitance", montant: 22000, tva: 0.2},
+      {id: uid(), label: "Loyer et charges du bureau", montant: 9600, tva: 0.2},
+      {id: uid(), label: "Logiciels et hébergement", montant: 4200, tva: 0.2},
+      {id: uid(), label: "Assurance RC pro et mutuelle", montant: 2400, tva: 0},
+      {id: uid(), label: "Expert-comptable", montant: 3000, tva: 0.2},
+      {id: uid(), label: "Déplacements et représentation", montant: 3800, tva: 0.1}
+    ],
+    invests: [
+      {id: uid(), label: "Deux postes de travail", montant: 6400, duree: 3, mois: 1, tva: 0.2},
+      {id: uid(), label: "Mobilier de bureau", montant: 5200, duree: 10, mois: 4, tva: 0.2}
+    ],
+    remu: 36000,
+    distrib: 70,
+    divMode: "pfu",
+    situation: "couple",
+    parts: 2.5,
+    autresRevenus: 0
+  };
+}
+
+/* ===================================================================
+   Utilitaires
+=================================================================== */
+function uid(){ return Math.random().toString(36).slice(2,10); }
+function n(v){ const x = parseFloat(v); return isFinite(x) ? x : 0; }
+const eurFmt  = new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR",maximumFractionDigits:0});
+const eur2Fmt = new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR",minimumFractionDigits:2,maximumFractionDigits:2});
+const pctFmt  = new Intl.NumberFormat("fr-FR",{style:"percent",maximumFractionDigits:1});
+function eur(v){ return eurFmt.format(Math.round(v || 0)); }
+function eur2(v){ return eur2Fmt.format(v || 0); }
+function pct(v){ return pctFmt.format(isFinite(v) ? v : 0); }
+function esc(s){ return String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function clone(o){ return JSON.parse(JSON.stringify(o)); }
+
+/* ===================================================================
+   Moteur de calcul
+=================================================================== */
+
+// Annuité d'amortissement linéaire, prorata temporis la 1re année.
+function annuite(inv){
+  const d = n(inv.duree);
+  if (d <= 0) return 0;
+  const pleine = n(inv.montant) / d;
+  const mois = Math.min(12, Math.max(1, n(inv.mois) || 1));
+  return pleine * (13 - mois) / 12;
+}
+
+// Impôt issu du barème progressif, pour un quotient (revenu par part).
+function baremeSurQuotient(q, bareme){
+  let impot = 0, bas = 0;
+  for (const t of bareme){
+    const haut = (t.plafond === null || t.plafond === "" || t.plafond === undefined)
+      ? Infinity : n(t.plafond);
+    if (q > bas) impot += (Math.min(q, haut) - bas) * n(t.taux) / 100;
+    bas = haut;
+    if (q <= bas) break;
+  }
+  return Math.max(0, impot);
+}
+
+// IR complet : quotient familial plafonné, puis décote.
+function calcIR(revenuImposable, parts, situation, P){
+  const R = Math.max(0, revenuImposable);
+  const partsBase = situation === "couple" ? 2 : 1;
+  const effParts  = Math.max(partsBase, n(parts) || partsBase);
+
+  const impotBase = baremeSurQuotient(R / partsBase, P.bareme) * partsBase;
+  let impot       = baremeSurQuotient(R / effParts,  P.bareme) * effParts;
+
+  const demiPartsSup = (effParts - partsBase) * 2;
+  const avantage     = impotBase - impot;
+  const avantageMax  = demiPartsSup * n(P.qfDemiPart);
+  let plafonne = false;
+  if (demiPartsSup > 0 && avantage > avantageMax){
+    impot = impotBase - avantageMax;
+    plafonne = true;
+  }
+  const brut = impot;
+
+  // Décote
+  const seuilDecote = situation === "couple" ? n(P.decoteCouple) : n(P.decoteSeul);
+  let decote = 0;
+  if (brut < seuilDecote) decote = Math.max(0, seuilDecote - brut * n(P.decoteTaux) / 100);
+  decote = Math.min(decote, brut);
+
+  // Contribution exceptionnelle sur les hauts revenus
+  const s1 = n(P.cehrSeuil1) * (situation === "couple" ? 2 : 1);
+  const s2 = s1 * 2;
+  let cehr = 0;
+  if (R > s1) cehr += (Math.min(R, s2) - s1) * n(P.cehrTaux1) / 100;
+  if (R > s2) cehr += (R - s2) * n(P.cehrTaux2) / 100;
+
+  return {
+    revenuImposable: R, parts: effParts, quotient: R / effParts,
+    brut, plafonne, decote, cehr,
+    net: Math.max(0, brut - decote) + cehr
+  };
+}
+
+function calcIS(benefice, P, tauxReduit){
+  if (benefice <= 0) return 0;
+  if (tauxReduit){
+    const a = Math.min(benefice, n(P.isSeuil));
+    return a * n(P.isReduit)/100 + Math.max(0, benefice - a) * n(P.isNormal)/100;
+  }
+  return benefice * n(P.isNormal)/100;
+}
+
+function abattementSalaire(net, P){
+  const a = net * n(P.abatSal)/100;
+  return Math.min(Math.max(a, Math.min(net, n(P.abatSalMin))), n(P.abatSalMax));
+}
+
+/* -------------------------------------------------------------------
+   Le calcul complet d'un scénario.
+------------------------------------------------------------------- */
+function compute(s, P){
+  const r = {forme: s.forme, warnings: []};
+
+  r.caHT     = s.ca.reduce((a,l) => a + n(l.montant), 0);
+  r.chargesHT= s.charges.reduce((a,l) => a + n(l.montant), 0);
+  r.amort    = s.invests.reduce((a,l) => a + annuite(l), 0);
+
+  // --- TVA ---
+  if (s.franchiseTVA){
+    r.tvaCollectee = 0; r.tvaDeductible = 0;
+  } else {
+    r.tvaCollectee  = s.ca.reduce((a,l) => a + n(l.montant) * n(l.tva), 0);
+    r.tvaDeductible = s.charges.reduce((a,l) => a + n(l.montant) * n(l.tva), 0)
+                    + s.invests.reduce((a,l) => a + n(l.montant) * n(l.tva), 0);
+  }
+  r.tvaDue = r.tvaCollectee - r.tvaDeductible;
+
+  /* ============ MICRO-ENTREPRISE ============ */
+  if (s.forme === "micro"){
+    const t = s.microType || "bic";
+    r.microType   = t;
+    r.microSeuil  = n(P.micro.seuil[t]);
+    r.cotisations = r.caHT * n(P.micro.cot[t]) / 100;
+    r.abattement  = r.caHT * n(P.micro.abat[t]) / 100;
+    r.revenuPro   = Math.max(0, r.caHT - r.abattement);
+
+    if (r.caHT > r.microSeuil)
+      r.warnings.push("Le chiffre d'affaires dépasse le seuil du régime micro (" + eur(r.microSeuil) + ") : au-delà, tu bascules au réel.");
+
+    if (s.vfl){
+      r.vflMontant = r.caHT * n(P.micro.vfl[t]) / 100;
+      r.ir = {net: 0, brut: 0, decote: 0, cehr: 0, revenuImposable: r.revenuPro + n(s.autresRevenus), parts: n(s.parts), quotient: 0, plafonne: false};
+      r.irTotal = r.vflMontant;
+    } else {
+      r.vflMontant = 0;
+      r.ir = calcIR(r.revenuPro + n(s.autresRevenus), s.parts, s.situation, P);
+      // Part d'IR imputable à l'activité : on retire l'IR dû sur les seuls autres revenus.
+      const irAutres = calcIR(n(s.autresRevenus), s.parts, s.situation, P).net;
+      r.irTotal = Math.max(0, r.ir.net - irAutres);
+      r.irAutres = irAutres;
+    }
+
+    r.is = 0; r.psDiv = 0; r.dividendesBruts = 0; r.dividendesNets = 0;
+    r.reserves  = 0;
+
+    // Les charges réelles ne se déduisent pas de l'assiette, mais l'argent
+    // sort bien du compte : on le retire du net en poche.
+    r.netPoche  = r.caHT - r.chargesHT - r.cotisations - r.irTotal;
+    r.remuNette = r.netPoche;
+
+    if (r.chargesHT + r.amort > 0)
+      r.warnings.push("En micro, l'abattement forfaitaire de " + P.micro.abat[t] + " % remplace les charges réelles : cotisations et impôt sont calculés sur le chiffre d'affaires brut, pas sur ce qui reste après les " + eur(r.chargesHT) + " de charges saisies.");
+
+    r.valeurDispo    = r.caHT - r.chargesHT;
+    r.prelevements   = r.cotisations + r.irTotal;
+    r.tauxGlobal     = r.valeurDispo > 0 ? r.prelevements / r.valeurDispo : 0;
+    r.cascade = [
+      {k:"start", nm:"Chiffre d'affaires encaissé", v: r.caHT},
+      {k:"cut",   nm:"Charges réelles (non déductibles)", v: -r.chargesHT},
+      {k:"cut",   nm:"Cotisations sociales (" + String(P.micro.cot[t]).replace(".",",") + " % du CA brut)", v: -r.cotisations},
+      {k:"cut",   nm: s.vfl ? "Versement libératoire de l'IR" : "Impôt sur le revenu", v: -r.irTotal},
+      {k:"final", nm:"Net en poche", v: r.netPoche}
+    ];
+    r.repartition = [
+      {nm:"Toi",         v: r.netPoche,     c:"var(--ocre)"},
+      {nm:"Charges",     v: r.chargesHT,    c:"var(--hold)"},
+      {nm:"Cotisations", v: r.cotisations,  c:"var(--take)"},
+      {nm:"Impôt",       v: r.irTotal,      c:"var(--accent)"}
+    ];
+    return r;
+  }
+
+  /* ============ ENTREPRISE INDIVIDUELLE À L'IR ============ */
+  if (s.forme === "ei"){
+    const resultatAvantCot = r.caHT - r.chargesHT - r.amort;
+    const tx = n(P.cotTNS) / 100;
+    // Les cotisations sont déductibles de leur propre assiette :
+    // assiette = résultat / (1 + taux)
+    r.cotisations = resultatAvantCot > 0 ? resultatAvantCot * tx / (1 + tx) : 0;
+    r.resultatPro = resultatAvantCot - r.cotisations;
+
+    const netImposable = Math.max(0, r.resultatPro * (1 + n(P.csgNonDed)/100));
+    r.revenuPro = netImposable;
+    r.ir        = calcIR(netImposable + n(s.autresRevenus), s.parts, s.situation, P);
+    const irAutres = calcIR(n(s.autresRevenus), s.parts, s.situation, P).net;
+    r.irTotal   = Math.max(0, r.ir.net - irAutres);
+    r.irAutres  = irAutres;
+
+    r.is = 0; r.psDiv = 0; r.dividendesBruts = 0; r.dividendesNets = 0;
+    r.remuNette = r.resultatPro;
+    r.netPoche  = Math.max(0, r.resultatPro - r.irTotal);
+    r.reserves  = 0;
+
+    r.valeurDispo  = r.caHT - r.chargesHT - r.amort;
+    r.prelevements = r.cotisations + r.irTotal;
+    r.tauxGlobal   = r.valeurDispo > 0 ? r.prelevements / r.valeurDispo : 0;
+    r.cascade = [
+      {k:"start", nm:"Chiffre d'affaires HT",   v: r.caHT},
+      {k:"cut",   nm:"Charges d'exploitation",  v: -r.chargesHT},
+      {k:"cut",   nm:"Amortissements",          v: -r.amort},
+      {k:"cut",   nm:"Cotisations sociales TNS",v: -r.cotisations},
+      {k:"cut",   nm:"Impôt sur le revenu",     v: -r.irTotal},
+      {k:"final", nm:"Net en poche",            v: r.netPoche}
+    ];
+    r.repartition = [
+      {nm:"Toi",         v: r.netPoche,    c:"var(--ocre)"},
+      {nm:"Cotisations", v: r.cotisations, c:"var(--take)"},
+      {nm:"Impôt",       v: r.irTotal,     c:"var(--accent)"}
+    ];
+    return r;
+  }
+
+  /* ============ SOCIÉTÉ À L'IS (SASU/SAS, EURL/SARL) ============ */
+  const tns = s.forme === "sarl";
+  r.tns = tns;
+  const txCot = (tns ? n(P.cotTNS) : n(P.cotAS)) / 100;
+
+  r.remuNette   = Math.max(0, n(s.remu));
+  r.cotisations = r.remuNette * txCot;
+  r.coutRemu    = r.remuNette + r.cotisations;
+
+  r.resultatAvantRemu = r.caHT - r.chargesHT - r.amort;
+  r.resultatFiscal    = r.resultatAvantRemu - r.coutRemu;
+
+  if (r.resultatFiscal < 0)
+    r.warnings.push("Le résultat est déficitaire de " + eur(-r.resultatFiscal) + " : la rémunération dépasse ce que dégage l'activité.");
+
+  r.is = calcIS(r.resultatFiscal, P, !!s.isReduit);
+  r.resultatNet = r.resultatFiscal - r.is;
+
+  const partDistrib  = Math.min(100, Math.max(0, n(s.distrib))) / 100;
+  r.dividendesBruts  = Math.max(0, r.resultatNet) * partDistrib;
+  r.reserves         = Math.max(0, r.resultatNet) - r.dividendesBruts;
+  if (r.resultatNet < 0) r.reserves = r.resultatNet;
+
+  // Gérant majoritaire : la part de dividendes > 10 % du capital + comptes
+  // courants supporte les cotisations TNS au lieu des prélèvements sociaux.
+  r.divSoumisTNS = 0;
+  r.cotDiv = 0;
+  if (tns){
+    const seuil10 = n(s.capital) * 0.10;
+    r.seuil10 = seuil10;
+    r.divSoumisTNS = Math.max(0, r.dividendesBruts - seuil10);
+    r.cotDiv = r.divSoumisTNS * n(P.cotTNS)/100;
+    if (r.divSoumisTNS > 0)
+      r.warnings.push("Gérant majoritaire : " + eur(r.divSoumisTNS) + " de dividendes dépassent 10 % du capital et des comptes courants et supportent les cotisations TNS.");
+  }
+  const divClassiques = r.dividendesBruts - r.divSoumisTNS;
+
+  // Prélèvements sociaux sur la part non soumise aux cotisations TNS
+  r.psDiv = divClassiques * n(P.ps)/100;
+
+  // Base imposable à l'IR
+  const salaireNetImposable = r.remuNette * (1 + n(P.csgNonDed)/100);
+  r.abatSalaire = abattementSalaire(salaireNetImposable, P);
+  const salaireBase = Math.max(0, salaireNetImposable - r.abatSalaire);
+
+  // Les dividendes du gérant majoritaire au-delà de 10 % suivent toujours le barème.
+  const divTnsImposable = Math.max(0, r.divSoumisTNS - r.cotDiv);
+
+  let divBase = 0, irForfaitaire = 0;
+  if (s.divMode === "bareme"){
+    r.csgDeductible = divClassiques * n(P.csgDed)/100;
+    divBase = Math.max(0, divClassiques * (1 - n(P.abatDiv)/100) - r.csgDeductible);
+  } else {
+    r.csgDeductible = 0;
+    irForfaitaire = divClassiques * n(P.pfu)/100;
+  }
+
+  r.baseIR = salaireBase + divBase + divTnsImposable + n(s.autresRevenus);
+  r.ir     = calcIR(r.baseIR, s.parts, s.situation, P);
+  r.irForfaitaire = irForfaitaire;
+  const irAutres = calcIR(n(s.autresRevenus), s.parts, s.situation, P).net;
+  r.irAutres = irAutres;
+  r.irTotal  = Math.max(0, r.ir.net - irAutres) + irForfaitaire;
+
+  r.dividendesNets = r.dividendesBruts - r.cotDiv - r.psDiv;
+  r.netPoche = Math.max(0, r.remuNette + r.dividendesNets - Math.max(0, r.ir.net - irAutres) - irForfaitaire);
+
+  r.valeurDispo  = r.resultatAvantRemu;
+  r.prelevements = r.cotisations + r.cotDiv + r.is + r.psDiv + r.irTotal;
+  r.tauxGlobal   = r.valeurDispo > 0 ? r.prelevements / r.valeurDispo : 0;
+
+  r.cascade = [
+    {k:"start", nm:"Chiffre d'affaires HT",    v: r.caHT},
+    {k:"cut",   nm:"Charges d'exploitation",   v: -r.chargesHT},
+    {k:"cut",   nm:"Amortissements",           v: -r.amort},
+    {k:"cut",   nm:"Cotisations sociales" + (tns ? " TNS" : " (patronales et salariales)"), v: -(r.cotisations + r.cotDiv)},
+    {k:"cut",   nm:"Impôt sur les sociétés",   v: -r.is},
+    {k:"hold",  nm:"Conservé en réserves",     v: -r.reserves},
+    {k:"cut",   nm:"Prélèvements sociaux sur dividendes", v: -r.psDiv},
+    {k:"cut",   nm:"Impôt sur le revenu" + (s.divMode === "pfu" && r.dividendesBruts > 0 ? " et flat tax" : ""), v: -r.irTotal},
+    {k:"final", nm:"Net en poche",             v: r.netPoche}
+  ];
+  r.repartition = [
+    {nm:"Toi",           v: r.netPoche,                  c:"var(--ocre)"},
+    {nm:"Cotisations",   v: r.cotisations + r.cotDiv,    c:"var(--take)"},
+    {nm:"IS",            v: r.is,                        c:"var(--accent)"},
+    {nm:"IR et PS",      v: r.irTotal + r.psDiv,         c:"var(--keep)"},
+    {nm:"Réserves",      v: Math.max(0, r.reserves),     c:"var(--hold)"}
+  ];
+  return r;
+}
+
+/* ===================================================================
+   État
+=================================================================== */
+let PARAMS   = clone(DEFAULT_PARAMS);
+let SCEN     = {};           // id -> scénario
+let currentId= null;
+let periode  = "an";         // "an" | "mois"
+let db       = null;
+let saveTimer= null;
+
+const LSKEY = "nep.local.v1";
+
+function activeScenario(){ return SCEN[currentId]; }
+
+function setStatus(t){ document.getElementById("status").textContent = t || ""; }
+
+/* ---------- persistance ---------- */
+function localSave(){
+  try{
+    localStorage.setItem(LSKEY, JSON.stringify({scen: SCEN, params: PARAMS, currentId}));
+  }catch(e){ /* stockage indisponible : la page marche quand même */ }
+}
+function localLoad(){
+  try{
+    const raw = localStorage.getItem(LSKEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  }catch(e){ return null; }
+}
+
+function scheduleSave(){
+  localSave();
+  if (!db) return;
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(async () => {
+    const s = activeScenario();
+    if (!s) return;
+    setStatus("Enregistrement…");
+    try{
+      await db.doc("scenarios/" + currentId).set(clone(s));
+      await db.doc("reglages/fiscal").set(clone(PARAMS));
+      setStatus("Enregistré");
+      setTimeout(() => setStatus(""), 1600);
+    }catch(e){
+      setStatus(e && e.code === "quota_exceeded" ? "Espace saturé" : "Hors ligne — gardé sur cet appareil");
+    }
+  }, 700);
+}
+
+/* ===================================================================
+   Rendu — saisie
+=================================================================== */
+const TVA_OPTS = [
+  {v: 0.2,   l: "20 %"},
+  {v: 0.1,   l: "10 %"},
+  {v: 0.055, l: "5,5 %"},
+  {v: 0.021, l: "2,1 %"},
+  {v: 0,     l: "0 %"}
+];
+
+function tvaSelect(val){
+  return TVA_OPTS.map(o =>
+    '<option value="' + o.v + '"' + (Math.abs(o.v - val) < 1e-9 ? " selected" : "") + ">" + o.l + "</option>"
+  ).join("");
+}
+
+function renderLines(){
+  const s = activeScenario();
+  if (!s) return;
+
+  document.getElementById("ca-lines").innerHTML = s.ca.map(l =>
+    '<div class="line" data-k="ca" data-id="' + l.id + '">' +
+      '<input type="text" value="' + esc(l.label) + '" data-f="label" aria-label="Libellé">' +
+      '<input type="number" step="100" value="' + n(l.montant) + '" data-f="montant" aria-label="Montant HT">' +
+      '<select data-f="tva" aria-label="TVA">' + tvaSelect(n(l.tva)) + '</select>' +
+      '<button class="btn btn-ghost" data-del="1" title="Supprimer">✕</button>' +
+    '</div>').join("");
+
+  document.getElementById("ch-lines").innerHTML = s.charges.map(l =>
+    '<div class="line" data-k="charges" data-id="' + l.id + '">' +
+      '<input type="text" value="' + esc(l.label) + '" data-f="label" aria-label="Libellé">' +
+      '<input type="number" step="100" value="' + n(l.montant) + '" data-f="montant" aria-label="Montant HT">' +
+      '<select data-f="tva" aria-label="TVA">' + tvaSelect(n(l.tva)) + '</select>' +
+      '<button class="btn btn-ghost" data-del="1" title="Supprimer">✕</button>' +
+    '</div>').join("");
+
+  document.getElementById("inv-lines").innerHTML = s.invests.map(l =>
+    '<div class="line invest" data-k="invests" data-id="' + l.id + '">' +
+      '<input type="text" value="' + esc(l.label) + '" data-f="label" aria-label="Libellé">' +
+      '<input type="number" step="100" value="' + n(l.montant) + '" data-f="montant" aria-label="Montant HT">' +
+      '<input type="number" step="1" min="1" value="' + n(l.duree) + '" data-f="duree" aria-label="Durée en années">' +
+      '<input type="number" step="1" min="1" max="12" value="' + n(l.mois) + '" data-f="mois" aria-label="Mois de mise en service">' +
+      '<button class="btn btn-ghost" data-del="1" title="Supprimer">✕</button>' +
+    '</div>').join("");
+
+  document.getElementById("bar-lines").innerHTML = PARAMS.bareme.map((t,i) =>
+    '<div class="line" data-bar="' + i + '" style="grid-template-columns:1fr 120px 74px 28px">' +
+      '<span style="font-size:13px;color:var(--ink-soft)">' +
+        (i === 0 ? "Jusqu'au 1er seuil" : "Tranche " + (i+1)) +
+      '</span>' +
+      '<input type="number" step="100" value="' + (t.plafond === null ? "" : t.plafond) + '" data-bf="plafond" placeholder="au-delà" aria-label="Plafond">' +
+      '<input type="number" step="1" value="' + t.taux + '" data-bf="taux" aria-label="Taux">' +
+      '<button class="btn btn-ghost" data-bar-del="' + i + '" title="Supprimer">✕</button>' +
+    '</div>').join("");
+}
+
+function renderForm(){
+  const s = activeScenario();
+  if (!s) return;
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v; };
+  const chk = (id, v) => { const el = document.getElementById(id); if (el) el.checked = !!v; };
+
+  set("f-forme", s.forme);
+  set("f-capital", n(s.capital));
+  chk("f-isreduit", s.isReduit);
+  set("f-microtype", s.microType || "bic");
+  chk("f-vfl", s.vfl);
+  set("f-remu", n(s.remu));
+  set("f-distrib", n(s.distrib));
+  set("f-situation", s.situation);
+  set("f-parts", n(s.parts));
+  set("f-autres", n(s.autresRevenus));
+  chk("f-franchise", s.franchiseTVA);
+
+  document.getElementById("div-pfu").setAttribute("aria-pressed", s.divMode === "pfu");
+  document.getElementById("div-bareme").setAttribute("aria-pressed", s.divMode === "bareme");
+
+  const isSociete = s.forme === "sasu" || s.forme === "sarl";
+  document.getElementById("micro-opts").hidden        = s.forme !== "micro";
+  document.getElementById("wrap-tauxreduit").hidden   = !isSociete;
+  document.getElementById("wrap-remu").hidden         = !isSociete;
+  document.getElementById("wrap-distrib").hidden      = !isSociete;
+  document.getElementById("wrap-divmode").hidden      = !isSociete;
+
+  // paramètres
+  set("p-isSeuil", PARAMS.isSeuil);   set("p-isReduit", PARAMS.isReduit);  set("p-isNormal", PARAMS.isNormal);
+  set("p-cotAS", PARAMS.cotAS);       set("p-cotTNS", PARAMS.cotTNS);      set("p-csgNd", PARAMS.csgNonDed);
+  set("p-ps", PARAMS.ps);             set("p-pfu", PARAMS.pfu);            set("p-abatDiv", PARAMS.abatDiv);
+  set("p-csgDed", PARAMS.csgDed);     set("p-abatSal", PARAMS.abatSal);    set("p-abatSalMax", PARAMS.abatSalMax);
+  set("p-qf", PARAMS.qfDemiPart);     set("p-decSeul", PARAMS.decoteSeul); set("p-decCouple", PARAMS.decoteCouple);
+  set("p-decTaux", PARAMS.decoteTaux);set("p-cehr1", PARAMS.cehrSeuil1);
+  set("m-abV", PARAMS.micro.abat.vente); set("m-abB", PARAMS.micro.abat.bic); set("m-abN", PARAMS.micro.abat.bnc);
+  set("m-coV", PARAMS.micro.cot.vente);  set("m-coB", PARAMS.micro.cot.bic);  set("m-coN", PARAMS.micro.cot.bnc);
+
+  document.getElementById("bareme-year-note").innerHTML =
+    "Valeurs d'origine : <b>" + esc(PARAMS.anneeBareme) + "</b>. " +
+    "Les seuils sont revalorisés chaque année par la loi de finances — remplace-les ici dès que le nouveau barème est publié, tout le reste se recalcule.";
+
+  // sélecteur de scénarios
+  const sel = document.getElementById("sc-select");
+  sel.innerHTML = Object.keys(SCEN)
+    .sort((a,b) => (SCEN[a].name || "").localeCompare(SCEN[b].name || ""))
+    .map(id => '<option value="' + id + '"' + (id === currentId ? " selected" : "") + ">" + esc(SCEN[id].name) + "</option>")
+    .join("");
+}
+
+/* ===================================================================
+   Rendu — résultats
+=================================================================== */
+function per(v){ return periode === "mois" ? v / 12 : v; }
+
+function render(){
+  const s = activeScenario();
+  if (!s) return;
+  const R = compute(s, PARAMS);
+
+  /* --- bandeau --- */
+  document.getElementById("hl-per").textContent = periode === "mois" ? "/ mois" : "/ an";
+  document.getElementById("hl-net").textContent  = eur(per(R.netPoche));
+  document.getElementById("hl-prel").textContent = eur(per(R.prelevements));
+  document.getElementById("hl-taux").textContent = pct(R.tauxGlobal);
+
+  const formeLabel = {sasu:"SAS / SASU", sarl:"EURL / SARL", ei:"Entreprise individuelle", micro:"Micro-entreprise"}[s.forme];
+  let sub = formeLabel + " · " + eur(per(R.caHT)) + " de CA";
+  if (R.reserves > 0) sub += " · " + eur(per(R.reserves)) + " laissés en réserves";
+  document.getElementById("hl-sub").textContent = sub;
+
+  /* --- répartition --- */
+  const parts = R.repartition.filter(p => p.v > 0.5);
+  const totalRep = parts.reduce((a,p) => a + p.v, 0) || 1;
+  document.getElementById("split-bar").innerHTML = parts.map(p =>
+    '<i style="width:' + (p.v/totalRep*100).toFixed(2) + '%;background:' + p.c + '" title="' + esc(p.nm) + '"></i>'
+  ).join("");
+  document.getElementById("split-legend").innerHTML = parts.map(p =>
+    '<span><b style="background:' + p.c + '"></b>' + esc(p.nm) + ' <em>' + pct(p.v/totalRep) + '</em></span>'
+  ).join("");
+
+  /* --- cascade --- */
+  const base = Math.max(1, R.caHT);
+  let reste  = 0;
+  document.getElementById("casc").innerHTML = R.cascade.map(st => {
+    if (st.k === "start"){
+      reste = st.v;
+      return '<div class="step start">' +
+        '<div class="step-top"><span class="nm">' + esc(st.nm) + '</span><span class="amt num">' + eur(per(st.v)) + '</span></div>' +
+        '<div class="bar"><i class="rest" style="width:' + Math.min(100, st.v/base*100).toFixed(2) + '%"></i></div>' +
+      '</div>';
+    }
+    if (st.k === "final"){
+      return '<div class="step final">' +
+        '<div class="step-top"><span class="nm">' + esc(st.nm) + '</span><span class="amt num">' + eur(per(st.v)) + '</span></div>' +
+        '<div class="bar"><i class="rest" style="width:' + Math.max(0, Math.min(100, st.v/base*100)).toFixed(2) + '%"></i></div>' +
+      '</div>';
+    }
+    const cut = -st.v;                       // montant retiré, positif
+
+    reste = reste - cut;
+    const wRest = Math.max(0, Math.min(100, reste/base*100));
+    const wCut  = Math.max(0, Math.min(100 - wRest, cut/base*100));
+    const cls = st.k === "hold" ? " hold-row" : "";
+    if (cut <= 0.5 && st.k === "hold") return "";
+    return '<div class="step' + cls + '">' +
+      '<div class="step-top"><span class="nm">' + esc(st.nm) + '</span>' +
+      '<span class="amt num' + (st.k === "hold" ? "" : " neg") + '">' + (cut > 0 ? "− " : "+ ") + eur(per(Math.abs(cut))) + '</span></div>' +
+      '<div class="bar"><i class="rest" style="width:' + wRest.toFixed(2) + '%"></i>' +
+      '<i class="cut" style="left:' + wRest.toFixed(2) + '%;width:' + wCut.toFixed(2) + '%"></i></div>' +
+    '</div>';
+  }).join("");
+
+  /* --- effet marginal : 1 000 € de CA en plus --- */
+  const s2 = clone(s);
+  if (s2.ca.length) s2.ca[0].montant = n(s2.ca[0].montant) + 1000;
+  else s2.ca.push({id: uid(), label: "Marginal", montant: 1000, tva: 0.2});
+  const R2 = compute(s2, PARAMS);
+  const gain = R2.netPoche - R.netPoche;
+  document.getElementById("marg-net").textContent = eur2(gain) + " net";
+  document.getElementById("marg-txt").textContent =
+    "Sur 1 000 € facturés en plus, " + eur2(1000 - gain) + " partent en charges, cotisations et impôts" +
+    (R2.reserves - R.reserves > 1 ? ", dont " + eur2(R2.reserves - R.reserves) + " qui restent en réserves dans la société" : "") +
+    ". Taux marginal effectif : " + pct(1 - gain/1000) + ".";
+
+  /* --- tableau des amortissements --- */
+  const invRows = s.invests.map(l => {
+    const a = annuite(l);
+    const vnc = Math.max(0, n(l.montant) - a);
+    return "<tr><td>" + esc(l.label || "—") + "</td><td>" + eur(a) + "</td></tr>" +
+           '<tr class="sub"><td>' + n(l.duree) + " ans, mise en service au mois " + n(l.mois) +
+           " — valeur nette comptable en fin d'exercice " + eur(vnc) + "</td><td></td></tr>";
+  }).join("");
+  document.getElementById("inv-table").innerHTML = s.invests.length
+    ? "<tr class='sub'><td>Dotation aux amortissements de l'exercice</td><td></td></tr>" + invRows +
+      "<tr class='tot'><td>Total des dotations</td><td>" + eur(R.amort) + "</td></tr>"
+    : "<tr class='sub'><td>Aucun investissement saisi.</td><td></td></tr>";
+
+  /* --- TVA --- */
+  document.getElementById("tva-table").innerHTML = s.franchiseTVA
+    ? "<tr class='sub'><td>Franchise en base : aucune TVA facturée, aucune TVA récupérée. Tes achats te coûtent leur prix TTC.</td><td></td></tr>"
+    : "<tr><td>TVA collectée sur les ventes</td><td>" + eur(per(R.tvaCollectee)) + "</td></tr>" +
+      "<tr><td>TVA déductible sur les achats et investissements</td><td>− " + eur(per(R.tvaDeductible)) + "</td></tr>" +
+      "<tr class='tot'><td>" + (R.tvaDue >= 0 ? "TVA à reverser" : "Crédit de TVA") + "</td><td>" + eur(per(Math.abs(R.tvaDue))) + "</td></tr>";
+
+  /* --- détail IR --- */
+  const ir = R.ir;
+  let irRows = "";
+  if (s.forme === "micro" && s.vfl){
+    irRows = "<tr><td>Versement libératoire sur le chiffre d'affaires</td><td>" + eur(R.vflMontant) + "</td></tr>" +
+      "<tr class='sub'><td>L'impôt est prélevé à la source avec les cotisations ; le barème progressif ne s'applique pas à cette activité.</td><td></td></tr>";
+  } else {
+    irRows =
+      "<tr><td>Revenu net imposable du foyer</td><td>" + eur(ir.revenuImposable) + "</td></tr>" +
+      "<tr><td>Nombre de parts</td><td>" + ir.parts.toLocaleString("fr-FR") + "</td></tr>" +
+      "<tr><td>Quotient familial</td><td>" + eur(ir.quotient) + "</td></tr>" +
+      "<tr><td>Impôt brut" + (ir.plafonne ? " (avantage des parts plafonné)" : "") + "</td><td>" + eur(ir.brut) + "</td></tr>" +
+      (ir.decote > 0 ? "<tr><td>Décote</td><td>− " + eur(ir.decote) + "</td></tr>" : "") +
+      (ir.cehr  > 0 ? "<tr><td>Contribution exceptionnelle sur les hauts revenus</td><td>+ " + eur(ir.cehr) + "</td></tr>" : "") +
+      "<tr class='tot'><td>Impôt sur le revenu du foyer</td><td>" + eur(ir.net) + "</td></tr>" +
+      (n(s.autresRevenus) > 0
+        ? "<tr class='sub'><td>dont imputable aux autres revenus du foyer</td><td>" + eur(R.irAutres || 0) + "</td></tr>"
+        : "");
+    if (R.irForfaitaire > 0)
+      irRows += "<tr><td>Flat tax sur dividendes (" + PARAMS.pfu.toString().replace(".",",") + " %)</td><td>" + eur(R.irForfaitaire) + "</td></tr>" +
+                "<tr class='tot'><td>Impôt total lié à l'activité</td><td>" + eur(R.irTotal) + "</td></tr>";
+  }
+  document.getElementById("ir-table").innerHTML = irRows;
+
+  /* --- compte de résultat --- */
+  let cr = "<tr><td>Chiffre d'affaires HT</td><td>" + eur(per(R.caHT)) + "</td></tr>";
+  if (s.forme === "micro"){
+    cr += "<tr><td>Abattement forfaitaire de " + PARAMS.micro.abat[R.microType] + " %</td><td>− " + eur(per(R.abattement)) + "</td></tr>" +
+          "<tr class='tot'><td>Revenu professionnel imposable</td><td>" + eur(per(R.revenuPro)) + "</td></tr>" +
+          "<tr class='sub'><td>C'est cette base forfaitaire qui est imposée, quelles que soient tes charges réelles.</td><td></td></tr>" +
+          "<tr><td>Cotisations sociales sur le CA brut</td><td>− " + eur(per(R.cotisations)) + "</td></tr>" +
+          "<tr><td>" + (s.vfl ? "Versement libératoire" : "Impôt sur le revenu") + "</td><td>− " + eur(per(R.irTotal)) + "</td></tr>" +
+          "<tr><td>Charges réellement payées</td><td>− " + eur(per(R.chargesHT)) + "</td></tr>" +
+          "<tr class='tot'><td>Net en poche</td><td>" + eur(per(R.netPoche)) + "</td></tr>";
+  } else if (s.forme === "ei"){
+    cr += "<tr><td>Charges d'exploitation</td><td>− " + eur(per(R.chargesHT)) + "</td></tr>" +
+          "<tr><td>Amortissements</td><td>− " + eur(per(R.amort)) + "</td></tr>" +
+          "<tr><td>Cotisations sociales TNS</td><td>− " + eur(per(R.cotisations)) + "</td></tr>" +
+          "<tr class='tot'><td>Résultat professionnel imposable</td><td>" + eur(per(R.resultatPro)) + "</td></tr>" +
+          "<tr><td>Impôt sur le revenu</td><td>− " + eur(per(R.irTotal)) + "</td></tr>" +
+          "<tr class='tot'><td>Net en poche</td><td>" + eur(per(R.netPoche)) + "</td></tr>";
+  } else {
+    cr += "<tr><td>Charges d'exploitation</td><td>− " + eur(per(R.chargesHT)) + "</td></tr>" +
+          "<tr><td>Dotations aux amortissements</td><td>− " + eur(per(R.amort)) + "</td></tr>" +
+          "<tr class='tot'><td>Résultat avant rémunération</td><td>" + eur(per(R.resultatAvantRemu)) + "</td></tr>" +
+          "<tr><td>Rémunération nette du dirigeant</td><td>− " + eur(per(R.remuNette)) + "</td></tr>" +
+          "<tr><td>Cotisations sociales sur la rémunération</td><td>− " + eur(per(R.cotisations)) + "</td></tr>" +
+          "<tr class='tot'><td>Résultat fiscal</td><td>" + eur(per(R.resultatFiscal)) + "</td></tr>" +
+          "<tr><td>Impôt sur les sociétés" + (s.isReduit ? " (15 % jusqu'à " + eur(PARAMS.isSeuil) + ", puis " + PARAMS.isNormal + " %)" : " (" + PARAMS.isNormal + " %)") + "</td><td>− " + eur(per(R.is)) + "</td></tr>" +
+          "<tr class='tot'><td>Résultat net</td><td>" + eur(per(R.resultatNet)) + "</td></tr>" +
+          "<tr><td>Dividendes distribués (" + n(s.distrib) + " %)</td><td>" + eur(per(R.dividendesBruts)) + "</td></tr>" +
+          (R.cotDiv > 0 ? "<tr class='sub'><td>cotisations TNS sur la part au-delà de 10 % du capital</td><td>− " + eur(per(R.cotDiv)) + "</td></tr>" : "") +
+          "<tr class='sub'><td>prélèvements sociaux " + PARAMS.ps.toString().replace(".",",") + " %</td><td>− " + eur(per(R.psDiv)) + "</td></tr>" +
+          "<tr><td>Dividendes nets encaissés</td><td>" + eur(per(R.dividendesNets)) + "</td></tr>" +
+          "<tr><td>Réserves conservées dans la société</td><td>" + eur(per(R.reserves)) + "</td></tr>" +
+          "<tr><td>Impôt sur le revenu et flat tax</td><td>− " + eur(per(R.irTotal)) + "</td></tr>" +
+          "<tr class='tot'><td>Net en poche</td><td>" + eur(per(R.netPoche)) + "</td></tr>";
+  }
+  document.getElementById("cr-table").innerHTML = cr;
+
+  /* --- note rémunération --- */
+  const noteEl = document.getElementById("remu-note");
+  if (s.forme === "sasu"){
+    noteEl.innerHTML = "Président de SAS : assimilé salarié. Pour " + eur(R.remuNette) + " nets, la société débourse <b>" + eur(R.coutRemu) +
+      "</b> — soit " + eur(R.cotisations) + " de cotisations. En contrepartie tu cotises à la retraite du régime général et la rémunération est déductible du résultat. Pas de cotisations sur les dividendes.";
+  } else if (s.forme === "sarl"){
+    noteEl.innerHTML = "Gérant majoritaire : travailleur non salarié. Pour " + eur(R.remuNette) + " nets, la société débourse <b>" + eur(R.coutRemu) +
+      "</b>. Les dividendes au-delà de 10 % du capital et des comptes courants (" + eur(R.seuil10 || 0) + " ici) supportent les cotisations TNS.";
+  } else if (s.forme === "ei"){
+    noteEl.innerHTML = "En entreprise individuelle, tu ne te verses pas un salaire : c'est le résultat entier qui constitue ton revenu et l'assiette des cotisations. Le champ de rémunération et les dividendes ne s'appliquent pas.";
+  } else {
+    noteEl.innerHTML = "En micro-entreprise, tout le chiffre d'affaires est à toi une fois les cotisations et l'impôt payés. Les charges réelles ne se déduisent pas : c'est l'abattement forfaitaire qui en tient lieu.";
+  }
+
+  /* --- seuil micro --- */
+  if (s.forme === "micro"){
+    const t = s.microType || "bic";
+    document.getElementById("micro-seuil").innerHTML =
+      "Seuil de chiffre d'affaires : <b>" + eur(PARAMS.micro.seuil[t]) + "</b> · abattement " + PARAMS.micro.abat[t] +
+      " % · cotisations " + String(PARAMS.micro.cot[t]).replace(".",",") + " % du CA" +
+      (s.vfl ? " · versement libératoire " + String(PARAMS.micro.vfl[t]).replace(".",",") + " % (sous condition de revenu fiscal de référence)" : "");
+  }
+
+  /* --- micro : tableau comparatif --- */
+  document.getElementById("micro-table").innerHTML =
+    "<tr class='sub'><td>Régime</td><td>abattement · cotisations · seuil</td></tr>" +
+    ["vente","bic","bnc"].map(k => {
+      const nm = {vente:"Vente de marchandises", bic:"Services BIC", bnc:"Libéral BNC"}[k];
+      return "<tr><td>" + nm + "</td><td>" + PARAMS.micro.abat[k] + " % · " +
+        String(PARAMS.micro.cot[k]).replace(".",",") + " % · " + eur(PARAMS.micro.seuil[k]) + "</td></tr>";
+    }).join("");
+
+  /* --- outil prix de vente --- */
+  const pxHT   = n(document.getElementById("px-ht").value);
+  const pxTva  = n(document.getElementById("px-tva").value);
+  const pxCout = n(document.getElementById("px-cout").value);
+  const marge  = pxHT - pxCout;
+  const tauxMarg = 1 - gain/1000;          // taux marginal effectif du scénario
+  const netVente = marge * (1 - tauxMarg);
+  document.getElementById("px-table").innerHTML =
+    "<tr><td>Prix facturé au client (TTC)</td><td>" + eur2(pxHT * (1 + pxTva)) + "</td></tr>" +
+    "<tr class='sub'><td>dont TVA reversée à l'État</td><td>" + eur2(pxHT * pxTva) + "</td></tr>" +
+    "<tr><td>Recette hors taxes pour l'entreprise</td><td>" + eur2(pxHT) + "</td></tr>" +
+    (pxCout > 0 ? "<tr><td>Coût direct de la prestation</td><td>− " + eur2(pxCout) + "</td></tr>" : "") +
+    "<tr><td>Marge dégagée</td><td>" + eur2(marge) + "</td></tr>" +
+    "<tr><td>Cotisations et impôts au taux marginal de " + pct(tauxMarg) + "</td><td>− " + eur2(marge * tauxMarg) + "</td></tr>" +
+    "<tr class='tot'><td>Ce qui arrive sur ton compte perso</td><td>" + eur2(netVente) + "</td></tr>" +
+    "<tr class='sub'><td>Pour toucher 1 000 € nets, il faut facturer environ " +
+      (tauxMarg < 0.99 ? eur(pxCout + 1000/(1 - tauxMarg)) : "—") + " HT.</td><td></td></tr>";
+
+  /* --- étiquettes de panneaux --- */
+  document.getElementById("tag-forme").textContent = formeLabel;
+  document.getElementById("tag-ca").textContent    = eur(per(R.caHT));
+  document.getElementById("tag-ch").textContent    = "− " + eur(per(R.chargesHT));
+  document.getElementById("tag-inv").textContent   = s.invests.length + " poste" + (s.invests.length > 1 ? "s" : "") + " · " + eur(per(R.amort)) + "/an";
+  document.getElementById("tag-remu").textContent  = s.forme === "sasu" || s.forme === "sarl"
+    ? eur(per(R.remuNette)) + " + " + eur(per(R.dividendesNets)) : "—";
+  document.getElementById("tag-foyer").textContent = n(s.parts).toLocaleString("fr-FR") + " part" + (n(s.parts) > 1 ? "s" : "");
+  document.getElementById("tag-tva").textContent   = s.franchiseTVA ? "franchise" : eur(per(R.tvaDue));
+  document.getElementById("tag-bareme").textContent= PARAMS.bareme.length + " tranches";
+
+  /* --- avertissements --- */
+  const head = document.getElementById("hl-sub");
+  if (R.warnings.length){
+    head.innerHTML = esc(sub) + '<br><span class="pill warn" style="margin-top:4px;display:inline-block">' +
+      R.warnings.map(esc).join('</span><br><span class="pill warn" style="margin-top:3px;display:inline-block">') + '</span>';
+  }
+}
+
+function renderAll(){ renderForm(); renderLines(); render(); }
+
+/* ===================================================================
+   Événements
+=================================================================== */
+function onChange(){ scheduleSave(); render(); }
+
+// Lignes (CA, charges, investissements)
+document.addEventListener("input", (e) => {
+  const line = e.target.closest(".line[data-id]");
+  if (line){
+    const s = activeScenario();
+    const arr = s[line.dataset.k];
+    const item = arr.find(x => x.id === line.dataset.id);
+    if (item){
+      const f = e.target.dataset.f;
+      item[f] = (f === "label") ? e.target.value : n(e.target.value);
+      onChange();
+    }
+    return;
+  }
+  const bar = e.target.closest(".line[data-bar]");
+  if (bar){
+    const i = parseInt(bar.dataset.bar, 10);
+    const f = e.target.dataset.bf;
+    PARAMS.bareme[i][f] = (f === "plafond" && e.target.value.trim() === "") ? null : n(e.target.value);
+    onChange();
+    return;
+  }
 });
-$("calc-montant").addEventListener("input", calculer);
-$("calc-parts").addEventListener("change", calculer);
-$("calc-lib").addEventListener("change", majStatutCalc);
-majStatutCalc();
+
+document.addEventListener("change", (e) => {
+  const line = e.target.closest(".line[data-id]");
+  if (line && e.target.dataset.f === "tva"){
+    const s = activeScenario();
+    const item = s[line.dataset.k].find(x => x.id === line.dataset.id);
+    if (item){ item.tva = n(e.target.value); onChange(); }
+  }
+});
+
+document.addEventListener("click", (e) => {
+  const s = activeScenario();
+
+  // suppression d'une ligne
+  const del = e.target.closest("[data-del]");
+  if (del){
+    const line = del.closest(".line[data-id]");
+    s[line.dataset.k] = s[line.dataset.k].filter(x => x.id !== line.dataset.id);
+    renderLines(); onChange();
+    return;
+  }
+  // suppression d'une tranche
+  const barDel = e.target.closest("[data-bar-del]");
+  if (barDel){
+    const i = parseInt(barDel.getAttribute("data-bar-del"), 10);
+    if (PARAMS.bareme.length > 1){ PARAMS.bareme.splice(i,1); renderLines(); onChange(); }
+    return;
+  }
+  // ajout de ligne
+  const add = e.target.closest("[data-add]");
+  if (add){
+    const k = add.dataset.add;
+    if (k === "ca")  s.ca.push({id: uid(), label: "Nouvelle recette", montant: 0, tva: 0.2});
+    if (k === "ch")  s.charges.push({id: uid(), label: "Nouvelle charge", montant: 0, tva: 0.2});
+    if (k === "inv") s.invests.push({id: uid(), label: "Nouvel investissement", montant: 0, duree: 5, mois: 1, tva: 0.2});
+    renderLines(); onChange();
+    const last = add.closest(".panel-body").querySelector(".lines .line:last-child input");
+    if (last) last.focus();
+    return;
+  }
+});
+
+document.getElementById("bar-add").addEventListener("click", () => {
+  PARAMS.bareme.splice(PARAMS.bareme.length - 1, 0, {plafond: 100000, taux: 35});
+  renderLines(); onChange();
+});
+document.getElementById("bar-reset").addEventListener("click", () => {
+  PARAMS = clone(DEFAULT_PARAMS);
+  renderAll(); scheduleSave();
+});
+
+// Champs simples du scénario
+const FIELD_MAP = {
+  "f-forme":     (s,v) => s.forme = v,
+  "f-capital":   (s,v) => s.capital = n(v),
+  "f-microtype": (s,v) => s.microType = v,
+  "f-remu":      (s,v) => s.remu = n(v),
+  "f-distrib":   (s,v) => s.distrib = n(v),
+  "f-situation": (s,v) => s.situation = v,
+  "f-parts":     (s,v) => s.parts = n(v),
+  "f-autres":    (s,v) => s.autresRevenus = n(v)
+};
+Object.keys(FIELD_MAP).forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener("input", () => {
+    FIELD_MAP[id](activeScenario(), el.value);
+    if (id === "f-forme" || id === "f-microtype") renderForm();
+    onChange();
+  });
+});
+[["f-isreduit","isReduit"],["f-vfl","vfl"],["f-franchise","franchiseTVA"]].forEach(([id,key]) => {
+  document.getElementById(id).addEventListener("change", (e) => {
+    activeScenario()[key] = e.target.checked; onChange();
+  });
+});
+
+// Paramètres fiscaux
+const PARAM_MAP = {
+  "p-isSeuil":"isSeuil","p-isReduit":"isReduit","p-isNormal":"isNormal",
+  "p-cotAS":"cotAS","p-cotTNS":"cotTNS","p-csgNd":"csgNonDed",
+  "p-ps":"ps","p-pfu":"pfu","p-abatDiv":"abatDiv","p-csgDed":"csgDed",
+  "p-abatSal":"abatSal","p-abatSalMax":"abatSalMax","p-qf":"qfDemiPart",
+  "p-decSeul":"decoteSeul","p-decCouple":"decoteCouple","p-decTaux":"decoteTaux",
+  "p-cehr1":"cehrSeuil1"
+};
+Object.keys(PARAM_MAP).forEach(id => {
+  document.getElementById(id).addEventListener("input", (e) => { PARAMS[PARAM_MAP[id]] = n(e.target.value); onChange(); });
+});
+const MICRO_MAP = {
+  "m-abV":["abat","vente"],"m-abB":["abat","bic"],"m-abN":["abat","bnc"],
+  "m-coV":["cot","vente"], "m-coB":["cot","bic"], "m-coN":["cot","bnc"]
+};
+Object.keys(MICRO_MAP).forEach(id => {
+  document.getElementById(id).addEventListener("input", (e) => {
+    const [g,k] = MICRO_MAP[id]; PARAMS.micro[g][k] = n(e.target.value); onChange();
+  });
+});
+
+// Outil prix
+["px-ht","px-tva","px-cout"].forEach(id => document.getElementById(id).addEventListener("input", render));
+
+// Dividendes
+document.getElementById("div-pfu").addEventListener("click", () => {
+  activeScenario().divMode = "pfu"; renderForm(); onChange();
+});
+document.getElementById("div-bareme").addEventListener("click", () => {
+  activeScenario().divMode = "bareme"; renderForm(); onChange();
+});
+
+// Période
+document.getElementById("per-an").addEventListener("click", () => {
+  periode = "an";
+  document.getElementById("per-an").setAttribute("aria-pressed","true");
+  document.getElementById("per-mois").setAttribute("aria-pressed","false");
+  render();
+});
+document.getElementById("per-mois").addEventListener("click", () => {
+  periode = "mois";
+  document.getElementById("per-an").setAttribute("aria-pressed","false");
+  document.getElementById("per-mois").setAttribute("aria-pressed","true");
+  render();
+});
+
+// Scénarios
+document.getElementById("sc-select").addEventListener("change", (e) => {
+  currentId = e.target.value; localSave(); renderAll();
+});
+document.getElementById("sc-new").addEventListener("click", () => {
+  const name = prompt("Nom du scénario", "Nouveau scénario");
+  if (!name) return;
+  const id = uid();
+  SCEN[id] = exampleScenario(name);
+  SCEN[id].ca = [{id: uid(), label: "Ventes", montant: 0, tva: 0.2}];
+  SCEN[id].charges = [];
+  SCEN[id].invests = [];
+  SCEN[id].remu = 0;
+  currentId = id;
+  renderAll(); scheduleSave();
+});
+document.getElementById("sc-dup").addEventListener("click", () => {
+  const src = activeScenario(); if (!src) return;
+  const id = uid();
+  SCEN[id] = clone(src);
+  SCEN[id].name = src.name + " (copie)";
+  currentId = id;
+  renderAll(); scheduleSave();
+});
+document.getElementById("sc-del").addEventListener("click", async () => {
+  const ids = Object.keys(SCEN);
+  if (ids.length <= 1){ alert("Il faut garder au moins un scénario."); return; }
+  if (!confirm("Supprimer « " + activeScenario().name + " » ?")) return;
+  const gone = currentId;
+  delete SCEN[gone];
+  currentId = Object.keys(SCEN)[0];
+  renderAll(); localSave();
+  if (db){ try{ await db.doc("scenarios/" + gone).delete(); }catch(e){} }
+});
+
+/* ===================================================================
+   Démarrage
+=================================================================== */
+function bootLocal(){
+  const saved = localLoad();
+  if (saved && saved.scen && Object.keys(saved.scen).length){
+    SCEN = saved.scen;
+    PARAMS = Object.assign(clone(DEFAULT_PARAMS), saved.params || {});
+    if (saved.params && saved.params.micro) PARAMS.micro = Object.assign(clone(DEFAULT_PARAMS.micro), saved.params.micro);
+    currentId = saved.currentId && SCEN[saved.currentId] ? saved.currentId : Object.keys(SCEN)[0];
+  } else {
+    const id = uid();
+    SCEN = {}; SCEN[id] = exampleScenario();
+    currentId = id;
+  }
+  renderAll();
+}
+
+bootLocal();
+
+// Le stockage partagé arrive plus tard, s'il arrive.
+(async () => {
+  let store = null;
+  try{ store = await (window.claude && window.claude.use ? window.claude.use("db") : Promise.resolve(null)); }
+  catch(e){ store = null; }
+  if (!store) return;                     // on reste sur le stockage local
+  db = store;
+
+  try{
+    const [snapScen, snapParams] = await Promise.all([
+      db.collection("scenarios").limit(200).get(),
+      db.doc("reglages/fiscal").get()
+    ]);
+
+    if (snapParams.exists){
+      const p = snapParams.data();
+      PARAMS = Object.assign(clone(DEFAULT_PARAMS), p);
+      if (p.micro) PARAMS.micro = Object.assign(clone(DEFAULT_PARAMS.micro), p.micro);
+    }
+
+    if (snapScen.size > 0){
+      SCEN = {};
+      snapScen.docs.forEach(d => { SCEN[d.id] = d.data(); });
+      const saved = localLoad();
+      currentId = (saved && SCEN[saved.currentId]) ? saved.currentId : Object.keys(SCEN)[0];
+      renderAll();
+      setStatus("Synchronisé");
+    } else {
+      // première ouverture : on pousse ce qui est en local
+      for (const id of Object.keys(SCEN)) await db.doc("scenarios/" + id).set(clone(SCEN[id]));
+      await db.doc("reglages/fiscal").set(clone(PARAMS));
+      setStatus("Synchronisé");
+    }
+    setTimeout(() => setStatus(""), 1800);
+  }catch(e){
+    setStatus("Gardé sur cet appareil");
+  }
+})();
 
 })();
 
