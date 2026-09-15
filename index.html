@@ -14,7 +14,7 @@
   --deg:linear-gradient(135deg,#0B7D6E 0%,#17539F 100%);
   --deg-fonce:linear-gradient(140deg,#075C52 0%,#0F3C78 100%);
   --deg-pale:linear-gradient(135deg,#E2F2EF 0%,#E4ECFA 100%);
-  --fond:linear-gradient(165deg,#9CDDCB 0%,#A9CEF6 100%);
+  --fond:#F0F2F7;
   --tuile-neutre:linear-gradient(150deg,#FFFFFF 0%,#F1F7FF 100%);
   --tuile-vert:linear-gradient(150deg,#E9F9F1 0%,#D5EFE4 100%);
   --tuile-chaud:linear-gradient(150deg,#FEF5E8 0%,#FAE8CC 100%);
@@ -46,7 +46,7 @@
     --deg:linear-gradient(135deg,#17A794 0%,#3B82E0 100%);
     --deg-fonce:linear-gradient(140deg,#0A6B5F 0%,#144B92 100%);
     --deg-pale:linear-gradient(135deg,#0F2A27 0%,#12233C 100%);
-    --fond:linear-gradient(165deg,#062421 0%,#081730 100%);
+    --fond:#0B0D11;
     --tuile-neutre:linear-gradient(150deg,#16202E 0%,#131C2B 100%);
     --tuile-vert:linear-gradient(150deg,#0E2C22 0%,#0B2419 100%);
     --tuile-chaud:linear-gradient(150deg,#2B2214 0%,#241B0F 100%);
@@ -69,7 +69,7 @@
   --deg:linear-gradient(135deg,#17A794 0%,#3B82E0 100%);
   --deg-fonce:linear-gradient(140deg,#0A6B5F 0%,#144B92 100%);
   --deg-pale:linear-gradient(135deg,#0F2A27 0%,#12233C 100%);
-  --fond:linear-gradient(165deg,#062421 0%,#081730 100%);
+  --fond:#0B0D11;
   --tuile-neutre:linear-gradient(150deg,#16202E 0%,#131C2B 100%);
   --tuile-vert:linear-gradient(150deg,#0E2C22 0%,#0B2419 100%);
   --tuile-chaud:linear-gradient(150deg,#2B2214 0%,#241B0F 100%);
@@ -86,10 +86,7 @@
 }
 
 *{box-sizing:border-box}
-/* l'onglet Agenda rend son décor à Ma Journée */
-body.sur-agenda{background:#F3F4F8}
-@media (prefers-color-scheme:dark){ body.sur-agenda:not([data-theme="light"]){background:#0B0C0F} }
-body[data-theme="dark"].sur-agenda{background:#0B0C0F}
+/* l'agenda garde sa propre mise en page, mais le sol est commun */
 body.sur-agenda .page{max-width:none;padding:0}
 body{margin:0;background:var(--fond) fixed;color:var(--ink);font-family:var(--ui);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
 button,input,select{font:inherit;color:inherit}
@@ -1003,7 +1000,9 @@ summary.carte-tete:hover h2{color:var(--v1)}
 
 /* ── seule adaptation : vivre dans un onglet, pas dans un onglet de navigateur ── */
 #majournee .app{min-height:0}
-#majournee{padding-bottom:104px}
+#majournee{padding-bottom:104px;background:transparent!important}
+#majournee{--bg:#F0F2F7}
+@media (prefers-color-scheme:dark){ #majournee:not([data-theme="light"]){--bg:#0B0D11} }
 
 /* ══════════ IL TE RESTE COMBIEN ? — greffée telle quelle ══════════ */
 
