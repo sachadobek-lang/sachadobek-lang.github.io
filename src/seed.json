@@ -1,13 +1,5 @@
 {
  "taches": {
-  "t01": {
-   "titre": "Relancer la Brasserie du Quai — facture FA-2026-038",
-   "client": "Brasserie du Quai",
-   "priorite": "haute",
-   "echeance": "2026-09-11",
-   "fait": false,
-   "exemple": true
-  },
   "t02": {
    "titre": "Chiffrer l'agencement de la librairie — 12 m² d'étagères",
    "client": "Librairie Antoine",

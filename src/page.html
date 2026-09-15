@@ -186,6 +186,26 @@ h1,h2,h3,p{margin:0}
 .etiq.amb{background:var(--attente-doux);color:var(--attente)}
 .point{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
 
+/* ═══ tâche créée par l'application ═══ */
+.t.auto{background:linear-gradient(90deg,var(--tard-doux),transparent 55%)}
+.etiq.robot{background:var(--surface);color:var(--tard);box-shadow:inset 0 0 0 1.5px var(--tard)}
+.etiq.robot svg{width:13px;height:13px;stroke-width:2.4;fill:none}
+
+/* ═══ repli d'un groupe ═══ */
+details.pli > summary.groupe{cursor:pointer;list-style:none}
+details.pli > summary.groupe::-webkit-details-marker{display:none}
+summary.groupe .chev{width:9px;height:9px;border-right:2.6px solid var(--ink-3);border-bottom:2.6px solid var(--ink-3);
+  transform:rotate(45deg) translate(-2px,-2px);transition:transform .2s var(--doux);flex:none;margin-left:2px}
+details.pli[open] > summary.groupe .chev{transform:rotate(-135deg) translate(-3px,-3px)}
+summary.groupe:hover{background:var(--line)}
+
+/* ═══ facturer depuis la fiche ═══ */
+.action-client{display:flex;gap:10px;flex-wrap:wrap;padding:0 22px 22px}
+.action-client button{border:0;border-radius:999px;padding:13px 22px;background:var(--deg);color:#fff;
+  font-family:var(--num);font-weight:600;font-size:16px;transition:transform .16s var(--ressort),filter .2s}
+.action-client button:hover{filter:brightness(1.08)}
+.action-client button:active{transform:scale(.97)}
+
 /* ═══ ajout express ═══ */
 .vite{display:flex;align-items:center;gap:16px;padding:19px 24px;position:relative}
 .vite::before{content:"";position:absolute;left:64px;right:24px;top:0;height:1px;background:var(--line)}
@@ -479,6 +499,7 @@ let filtreT = "afaire";
 let filtreF = "encaisser";
 let filtreB = "depenses";
 let clientOuvert = null;
+let pliOuvert = false;
 const memoire = new Map();
 let stockOk = true;
 let animer = true;
@@ -577,6 +598,24 @@ function calculs(){
                   .reduce((s, f) => s + (Number(f.montant) || 0), 0)
   };
 }
+/* Une facture dépassée engendre sa propre tâche de relance.
+   Cochée, elle se tait une semaine ; payée, elle disparaît pour de bon. */
+function relancesAuto(){
+  return liste("factures").filter(f => statut(f) === "retard").filter(f => {
+    if(!f.relance) return true;
+    return Math.round((dt(auj()) - new Date(f.relance)) / 86400000) >= 7;
+  }).map(f => ({
+    id: "auto-" + f.id,
+    auto: true,
+    titre: "Relancer " + f.client + " — " + (f.ref || "facture"),
+    client: f.client,
+    montant: f.montant,
+    echeance: f.echeance,
+    priorite: "haute",
+    fait: false
+  }));
+}
+
 const ritFaits = () => state.rituel.semaine === semaineIso(new Date()) ? (state.rituel.faits || []) : [];
 
 /* ───────── entête ───────── */
@@ -598,6 +637,16 @@ function rendreEntete(){
 /* ───────── tâches ───────── */
 function ligneTache(t, ctx){
   const j = jours(t.echeance);
+  if(t.auto){
+    return '<div class="t auto">'
+      + '<input type="checkbox" class="coche" id="k-' + h(t.id) + '" data-relance="' + h(t.id.slice(5)) + '" aria-label="J\'ai relancé ' + h(t.client) + '">'
+      + '<span class="t-corps"><label class="t-titre" for="k-' + h(t.id) + '">' + h(t.titre) + "</label>"
+      + '<span class="t-meta"><span>' + eur(t.montant) + "</span>"
+      + '<span class="etiq feu"><i class="point"></i>' + (-j) + " jour" + (j < -1 ? "s" : "") + " de retard</span>"
+      + '<span class="etiq robot"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
+      + '<path d="M13 2.5 4.5 13.5H11l-.8 8L19.5 10H13Z"/></svg>ajouté pour vous</span>'
+      + "</span></span></div>";
+  }
   let et = "";
   if(ctx === "retard"){
     et = '<span class="etiq feu"><i class="point"></i>' + (j === -1 ? "1 jour de retard" : (-j) + " jours de retard") + "</span>";
@@ -643,7 +692,8 @@ function bienvenue(){
 function vueAfaire(){
   if(toutVide()) return bienvenue();
   const c = calculs();
-  const total = c.duJour.length, faits = c.faitsJour.length;
+  const relances = relancesAuto().length;
+  const total = c.duJour.length + relances, faits = c.faitsJour.length;
   const p = total ? faits / total : 0;
 
   /* 1. la carte du jour */
@@ -661,7 +711,8 @@ function vueAfaire(){
 
   /* 2. toutes les tâches, groupées par urgence */
   const tout = liste("taches").sort((x, y) => (x.fait - y.fait) || String(x.echeance).localeCompare(String(y.echeance)));
-  const vis = tout.filter(filtreT === "faites" ? (t => !!t.fait) : (t => !t.fait));
+  const vis = filtreT === "faites" ? tout.filter(t => !!t.fait)
+                                   : relancesAuto().concat(tout.filter(t => !t.fait));
   const libs = [["afaire", "À faire"], ["faites", "Terminées"]];
   let corps = '<div class="segments">' + libs.map(kv =>
     '<button data-ft="' + kv[0] + '" aria-pressed="' + (filtreT === kv[0]) + '">' + kv[1] + "</button>").join("") + "</div>";
@@ -682,11 +733,15 @@ function vueAfaire(){
       ["aujourdhui", "Aujourd'hui", vis.filter(t => jours(t.echeance) === 0), false],
       ["plustard", "Plus tard", vis.filter(t => jours(t.echeance) > 0), false]
     ];
+    const bande = g => '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
+      + ICO[g[0]] + "</svg>" + g[1] + '<span class="nb">' + g[2].length + " chose" + (g[2].length > 1 ? "s" : "") + "</span>";
     corps += grp.filter(g => g[2].length).map(g =>
-      '<p class="groupe' + (g[3] ? " chaud" : "") + '">'
-      + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' + ICO[g[0]] + "</svg>"
-      + g[1] + '<span class="nb">' + g[2].length + " chose" + (g[2].length > 1 ? "s" : "") + "</span></p>"
-      + listeTaches(g[2], g[0])).join("");
+      /* ce qui n'est pas pour maintenant reste plié : on ne voit que l'urgent */
+      g[0] === "plustard"
+        ? '<details class="pli"' + (pliOuvert ? " open" : "") + '><summary class="groupe">' + bande(g)
+          + '<span class="chev"></span></summary>' + listeTaches(g[2], g[0]) + "</details>"
+        : '<p class="groupe' + (g[3] ? " chaud" : "") + '">' + bande(g) + "</p>" + listeTaches(g[2], g[0])
+    ).join("");
   }
   if(filtreT !== "faites") corps += ligneVite();
 
@@ -735,7 +790,8 @@ function ficheClient(id){
     + '<p class="gros" data-compte="paye-' + h(c.id) + '" data-val="' + paye + '">' + eur(paye) + "</p>"
     + (attente ? '<p class="reste">Il reste <b>' + eur(attente) + "</b> à encaisser.</p>"
                : (paye ? '<p class="reste">Tout est réglé.</p>' : '<p class="reste">Aucune facture pour l\'instant.</p>'))
-    + "</div></section>"
+    + "</div>"
+    + '<div class="action-client"><button data-facturer="' + h(c.nom) + '">Faire une facture</button></div></section>'
 
     + (siennes.length ? '<section class="carte anim" style="animation-delay:.05s">'
         + '<div class="carte-tete"><h2>Ses factures</h2><span class="appoint">' + siennes.length + "</span></div>"
@@ -1024,7 +1080,7 @@ function typeDefaut(){ return vue === "budget" ? (filtreB === "depenses" ? "depe
 const NOM_TYPE = {tache: "Tâche", facture: "Facture", client: "Client", depense: "Dépense", investissement: "Investissement"};
 let typeActif = "tache", dernierFocus = null;
 
-function ouvrir(type){
+function ouvrir(type, prerempli){
   typeActif = type;
   const modele = CHAMPS[type]();
   const groupe = TYPES_VUE[vue] || TOUS_TYPES;
@@ -1041,7 +1097,16 @@ function ouvrir(type){
     + '<button class="valider" type="submit">Ajouter</button></form>';
   f.hidden = false; $("#voile").hidden = false;
   requestAnimationFrame(() => { f.classList.add("on"); $("#voile").classList.add("on"); });
-  setTimeout(() => { const p = f.querySelector("#f1"); if(p) p.focus({preventScroll: true}); }, 340);
+  if(prerempli){
+    Object.keys(prerempli).forEach(k => {
+      const champ = f.querySelector('[name="' + k + '"]');
+      if(champ) champ.value = prerempli[k];
+    });
+  }
+  setTimeout(() => {
+    const vide = f.querySelector("input:not([type=radio]):placeholder-shown") || f.querySelector("#f1");
+    if(vide) vide.focus({preventScroll: true});
+  }, 340);
 }
 function fermer(){
   const f = $("#feuille"), v = $("#voile");
@@ -1124,6 +1189,7 @@ $("#vue").addEventListener("click", e => {
   }
   if(b.dataset.retour){ clientOuvert = null; animer = true; memoire.clear(); rendre(); window.scrollTo({top: 0}); return; }
   if(b.dataset.ajoutNote){ noter(b.dataset.ajoutNote); return; }
+  if(b.dataset.facturer){ ouvrir("facture", {client: b.dataset.facturer}); return; }
   if(b.dataset.note){
     if(!armer(b)) return;
     const cl = state.clients[b.dataset.note];
@@ -1166,6 +1232,10 @@ $("#vue").addEventListener("click", e => {
   }
 });
 
+$("#vue").addEventListener("toggle", e => {
+  if(e.target.classList && e.target.classList.contains("pli")) pliOuvert = e.target.open;
+}, true);
+
 $("#vue").addEventListener("keydown", e => {
   if(e.key === "Enter" && e.target.id === "vite"){ e.preventDefault(); ajoutVite(); }
   if(e.key === "Enter" && (e.metaKey || e.ctrlKey) && e.target.dataset.notePour){
@@ -1183,6 +1253,13 @@ $("#vue").addEventListener("input", e => {
 
 $("#vue").addEventListener("change", e => {
   const t = e.target;
+  if(t.dataset.relance){
+    const f = state.factures[t.dataset.relance];
+    if(!f) return;
+    ecrire("factures", t.dataset.relance, Object.assign({}, f, {relance: new Date().toISOString()}));
+    bulle("Relance notée");
+    return;
+  }
   if(t.dataset.tache){
     const tache = state.taches[t.dataset.tache];
     if(!tache) return;

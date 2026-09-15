@@ -186,6 +186,26 @@ h1,h2,h3,p{margin:0}
 .etiq.amb{background:var(--attente-doux);color:var(--attente)}
 .point{width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}
 
+/* ═══ tâche créée par l'application ═══ */
+.t.auto{background:linear-gradient(90deg,var(--tard-doux),transparent 55%)}
+.etiq.robot{background:var(--surface);color:var(--tard);box-shadow:inset 0 0 0 1.5px var(--tard)}
+.etiq.robot svg{width:13px;height:13px;stroke-width:2.4;fill:none}
+
+/* ═══ repli d'un groupe ═══ */
+details.pli > summary.groupe{cursor:pointer;list-style:none}
+details.pli > summary.groupe::-webkit-details-marker{display:none}
+summary.groupe .chev{width:9px;height:9px;border-right:2.6px solid var(--ink-3);border-bottom:2.6px solid var(--ink-3);
+  transform:rotate(45deg) translate(-2px,-2px);transition:transform .2s var(--doux);flex:none;margin-left:2px}
+details.pli[open] > summary.groupe .chev{transform:rotate(-135deg) translate(-3px,-3px)}
+summary.groupe:hover{background:var(--line)}
+
+/* ═══ facturer depuis la fiche ═══ */
+.action-client{display:flex;gap:10px;flex-wrap:wrap;padding:0 22px 22px}
+.action-client button{border:0;border-radius:999px;padding:13px 22px;background:var(--deg);color:#fff;
+  font-family:var(--num);font-weight:600;font-size:16px;transition:transform .16s var(--ressort),filter .2s}
+.action-client button:hover{filter:brightness(1.08)}
+.action-client button:active{transform:scale(.97)}
+
 /* ═══ ajout express ═══ */
 .vite{display:flex;align-items:center;gap:16px;padding:19px 24px;position:relative}
 .vite::before{content:"";position:absolute;left:64px;right:24px;top:0;height:1px;background:var(--line)}
@@ -458,7 +478,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 
 <script>
 "use strict";
-const SEED = {"taches":{"t01":{"titre":"Relancer la Brasserie du Quai — facture FA-2026-038","client":"Brasserie du Quai","priorite":"haute","echeance":"2026-09-11","fait":false,"exemple":true},"t02":{"titre":"Chiffrer l'agencement de la librairie — 12 m² d'étagères","client":"Librairie Antoine","priorite":"haute","echeance":"2026-09-15","fait":false,"exemple":true},"t03":{"titre":"Commander le chêne massif — 2,4 m³","client":"Résidence Les Tilleuls","priorite":"normale","echeance":"2026-09-16","fait":false,"exemple":true},"t04":{"titre":"Envoyer le devis DV-2026-087","client":"Cabinet Lefèvre & Associés","priorite":"haute","echeance":"2026-09-17","fait":false,"exemple":true},"t05":{"titre":"Planifier la pose — 3 jours atelier + 2 jours chantier","client":"Résidence Les Tilleuls","priorite":"normale","echeance":"2026-09-18","fait":false,"exemple":true},"t06":{"titre":"Rassembler les justificatifs pour la déclaration de TVA","client":"","priorite":"normale","echeance":"2026-09-21","fait":false,"exemple":true},"t07":{"titre":"Rappeler le fournisseur de quincaillerie — poignées laiton","client":"","priorite":"basse","echeance":"2026-09-14","fait":false,"exemple":true},"t08":{"titre":"Entretien annuel de la toupie et de la dégauchisseuse","client":"","priorite":"basse","echeance":"2026-09-25","fait":false,"exemple":true},"t09":{"titre":"Faire le point trésorerie du mois","client":"","priorite":"normale","echeance":"2026-09-30","fait":false,"exemple":true},"t10":{"titre":"Rédiger la fiche de pose pour l'apprenti","client":"","priorite":"basse","echeance":"2026-10-02","fait":false,"exemple":true},"t11":{"titre":"Valider le plan d'exécution du comptoir","client":"Brasserie du Quai","priorite":"haute","echeance":"2026-09-09","fait":true,"exemple":true},"t12":{"titre":"Régler l'acompte de commande du placage","client":"","priorite":"normale","echeance":"2026-09-08","fait":true,"exemple":true}},"clients":{"c1":{"nom":"Brasserie du Quai","secteur":"Restauration","contact":"Nadia Brun","projet":"Comptoir et banquettes en chêne","budget":18400,"avancement":80,"statut":"actif","exemple":true,"notes":[{"d":"2026-09-08T10:15:00.000Z","t":"Nadia veut le comptoir livré avant la réouverture, le 2 octobre. Elle insiste : pas de bruit avant 10 h, le service du midi commence tôt."},{"d":"2026-09-11T16:40:00.000Z","t":"Rappelé pour la facture FA-2026-038. Elle la règle la semaine prochaine, budget bloqué jusqu'au versement de l'assurance."}]},"c2":{"nom":"Résidence Les Tilleuls","secteur":"Immobilier","contact":"Syndic Vasseur","projet":"34 placards sur mesure","budget":42000,"avancement":45,"statut":"actif","exemple":true},"c3":{"nom":"Cabinet Lefèvre & Associés","secteur":"Profession libérale","contact":"Hélène Lefèvre","projet":"Bibliothèque et banque d'accueil","budget":12600,"avancement":10,"statut":"prospect","exemple":true,"notes":[{"d":"2026-09-14T09:05:00.000Z","t":"Hélène hésite entre chêne et noyer pour la banque d'accueil. Lui envoyer deux échantillons avec le devis."}]},"c4":{"nom":"Librairie Antoine","secteur":"Commerce","contact":"Antoine Roy","projet":"Rayonnages toute hauteur","budget":9800,"avancement":0,"statut":"prospect","exemple":true},"c5":{"nom":"École Sainte-Croix","secteur":"Établissement public","contact":"M. Dartois","projet":"Réfection de 12 portes","budget":7300,"avancement":100,"statut":"termine","exemple":true}},"factures":{"fa-2026-021":{"ref":"FA-2026-021","client":"École Sainte-Croix","montant":4300,"emise":"2026-04-08","echeance":"2026-05-08","statut":"payee","exemple":true},"fa-2026-022":{"ref":"FA-2026-022","client":"Brasserie du Quai","montant":3600,"emise":"2026-04-22","echeance":"2026-05-22","statut":"payee","exemple":true},"fa-2026-025":{"ref":"FA-2026-025","client":"Résidence Les Tilleuls","montant":9800,"emise":"2026-05-06","echeance":"2026-06-05","statut":"payee","exemple":true},"fa-2026-027":{"ref":"FA-2026-027","client":"École Sainte-Croix","montant":3000,"emise":"2026-05-27","echeance":"2026-06-26","statut":"payee","exemple":true},"fa-2026-029":{"ref":"FA-2026-029","client":"Brasserie du Quai","montant":5200,"emise":"2026-06-10","echeance":"2026-07-10","statut":"payee","exemple":true},"fa-2026-031":{"ref":"FA-2026-031","client":"Résidence Les Tilleuls","montant":7400,"emise":"2026-06-24","echeance":"2026-07-24","statut":"payee","exemple":true},"fa-2026-033":{"ref":"FA-2026-033","client":"Librairie Antoine","montant":2150,"emise":"2026-07-09","echeance":"2026-08-08","statut":"payee","exemple":true},"fa-2026-034":{"ref":"FA-2026-034","client":"Résidence Les Tilleuls","montant":6900,"emise":"2026-07-23","echeance":"2026-08-22","statut":"payee","exemple":true},"fa-2026-036":{"ref":"FA-2026-036","client":"Brasserie du Quai","montant":4800,"emise":"2026-08-05","echeance":"2026-09-04","statut":"payee","exemple":true},"fa-2026-037":{"ref":"FA-2026-037","client":"Cabinet Lefèvre & Associés","montant":1900,"emise":"2026-08-26","echeance":"2026-09-25","statut":"payee","exemple":true},"fa-2026-038":{"ref":"FA-2026-038","client":"Brasserie du Quai","montant":5400,"emise":"2026-08-14","echeance":"2026-09-13","statut":"envoyee","exemple":true},"fa-2026-039":{"ref":"FA-2026-039","client":"Résidence Les Tilleuls","montant":11200,"emise":"2026-09-01","echeance":"2026-10-01","statut":"envoyee","exemple":true},"fa-2026-040":{"ref":"FA-2026-040","client":"École Sainte-Croix","montant":2450,"emise":"2026-09-04","echeance":"2026-10-04","statut":"payee","exemple":true},"fa-2026-041":{"ref":"FA-2026-041","client":"Brasserie du Quai","montant":3950,"emise":"2026-09-12","echeance":"2026-10-12","statut":"envoyee","exemple":true},"fa-2026-042":{"ref":"FA-2026-042","client":"Librairie Antoine","montant":1750,"emise":"2026-09-15","echeance":"2026-10-15","statut":"brouillon","exemple":true}},"depenses":{"d1":{"libelle":"Loyer de l'atelier","montant":1200,"date":"2026-09-01","exemple":true},"d2":{"libelle":"Électricité","montant":310,"date":"2026-09-05","exemple":true},"d3":{"libelle":"Assurance de l'atelier","montant":640,"date":"2026-08-20","exemple":true},"d4":{"libelle":"Bois et quincaillerie","montant":2150,"date":"2026-08-12","exemple":true}},"investissements":{"i1":{"libelle":"Dégauchisseuse-raboteuse","montant":6800,"date":"2026-05-14","exemple":true},"i2":{"libelle":"Camionnette d'occasion","montant":9500,"date":"2026-03-03","exemple":true},"i3":{"libelle":"Logiciel de plans","montant":420,"date":"2026-07-01","exemple":true}}};
+const SEED = {"taches":{"t02":{"titre":"Chiffrer l'agencement de la librairie — 12 m² d'étagères","client":"Librairie Antoine","priorite":"haute","echeance":"2026-09-15","fait":false,"exemple":true},"t03":{"titre":"Commander le chêne massif — 2,4 m³","client":"Résidence Les Tilleuls","priorite":"normale","echeance":"2026-09-16","fait":false,"exemple":true},"t04":{"titre":"Envoyer le devis DV-2026-087","client":"Cabinet Lefèvre & Associés","priorite":"haute","echeance":"2026-09-17","fait":false,"exemple":true},"t05":{"titre":"Planifier la pose — 3 jours atelier + 2 jours chantier","client":"Résidence Les Tilleuls","priorite":"normale","echeance":"2026-09-18","fait":false,"exemple":true},"t06":{"titre":"Rassembler les justificatifs pour la déclaration de TVA","client":"","priorite":"normale","echeance":"2026-09-21","fait":false,"exemple":true},"t07":{"titre":"Rappeler le fournisseur de quincaillerie — poignées laiton","client":"","priorite":"basse","echeance":"2026-09-14","fait":false,"exemple":true},"t08":{"titre":"Entretien annuel de la toupie et de la dégauchisseuse","client":"","priorite":"basse","echeance":"2026-09-25","fait":false,"exemple":true},"t09":{"titre":"Faire le point trésorerie du mois","client":"","priorite":"normale","echeance":"2026-09-30","fait":false,"exemple":true},"t10":{"titre":"Rédiger la fiche de pose pour l'apprenti","client":"","priorite":"basse","echeance":"2026-10-02","fait":false,"exemple":true},"t11":{"titre":"Valider le plan d'exécution du comptoir","client":"Brasserie du Quai","priorite":"haute","echeance":"2026-09-09","fait":true,"exemple":true},"t12":{"titre":"Régler l'acompte de commande du placage","client":"","priorite":"normale","echeance":"2026-09-08","fait":true,"exemple":true}},"clients":{"c1":{"nom":"Brasserie du Quai","secteur":"Restauration","contact":"Nadia Brun","projet":"Comptoir et banquettes en chêne","budget":18400,"avancement":80,"statut":"actif","exemple":true,"notes":[{"d":"2026-09-08T10:15:00.000Z","t":"Nadia veut le comptoir livré avant la réouverture, le 2 octobre. Elle insiste : pas de bruit avant 10 h, le service du midi commence tôt."},{"d":"2026-09-11T16:40:00.000Z","t":"Rappelé pour la facture FA-2026-038. Elle la règle la semaine prochaine, budget bloqué jusqu'au versement de l'assurance."}]},"c2":{"nom":"Résidence Les Tilleuls","secteur":"Immobilier","contact":"Syndic Vasseur","projet":"34 placards sur mesure","budget":42000,"avancement":45,"statut":"actif","exemple":true},"c3":{"nom":"Cabinet Lefèvre & Associés","secteur":"Profession libérale","contact":"Hélène Lefèvre","projet":"Bibliothèque et banque d'accueil","budget":12600,"avancement":10,"statut":"prospect","exemple":true,"notes":[{"d":"2026-09-14T09:05:00.000Z","t":"Hélène hésite entre chêne et noyer pour la banque d'accueil. Lui envoyer deux échantillons avec le devis."}]},"c4":{"nom":"Librairie Antoine","secteur":"Commerce","contact":"Antoine Roy","projet":"Rayonnages toute hauteur","budget":9800,"avancement":0,"statut":"prospect","exemple":true},"c5":{"nom":"École Sainte-Croix","secteur":"Établissement public","contact":"M. Dartois","projet":"Réfection de 12 portes","budget":7300,"avancement":100,"statut":"termine","exemple":true}},"factures":{"fa-2026-021":{"ref":"FA-2026-021","client":"École Sainte-Croix","montant":4300,"emise":"2026-04-08","echeance":"2026-05-08","statut":"payee","exemple":true},"fa-2026-022":{"ref":"FA-2026-022","client":"Brasserie du Quai","montant":3600,"emise":"2026-04-22","echeance":"2026-05-22","statut":"payee","exemple":true},"fa-2026-025":{"ref":"FA-2026-025","client":"Résidence Les Tilleuls","montant":9800,"emise":"2026-05-06","echeance":"2026-06-05","statut":"payee","exemple":true},"fa-2026-027":{"ref":"FA-2026-027","client":"École Sainte-Croix","montant":3000,"emise":"2026-05-27","echeance":"2026-06-26","statut":"payee","exemple":true},"fa-2026-029":{"ref":"FA-2026-029","client":"Brasserie du Quai","montant":5200,"emise":"2026-06-10","echeance":"2026-07-10","statut":"payee","exemple":true},"fa-2026-031":{"ref":"FA-2026-031","client":"Résidence Les Tilleuls","montant":7400,"emise":"2026-06-24","echeance":"2026-07-24","statut":"payee","exemple":true},"fa-2026-033":{"ref":"FA-2026-033","client":"Librairie Antoine","montant":2150,"emise":"2026-07-09","echeance":"2026-08-08","statut":"payee","exemple":true},"fa-2026-034":{"ref":"FA-2026-034","client":"Résidence Les Tilleuls","montant":6900,"emise":"2026-07-23","echeance":"2026-08-22","statut":"payee","exemple":true},"fa-2026-036":{"ref":"FA-2026-036","client":"Brasserie du Quai","montant":4800,"emise":"2026-08-05","echeance":"2026-09-04","statut":"payee","exemple":true},"fa-2026-037":{"ref":"FA-2026-037","client":"Cabinet Lefèvre & Associés","montant":1900,"emise":"2026-08-26","echeance":"2026-09-25","statut":"payee","exemple":true},"fa-2026-038":{"ref":"FA-2026-038","client":"Brasserie du Quai","montant":5400,"emise":"2026-08-14","echeance":"2026-09-13","statut":"envoyee","exemple":true},"fa-2026-039":{"ref":"FA-2026-039","client":"Résidence Les Tilleuls","montant":11200,"emise":"2026-09-01","echeance":"2026-10-01","statut":"envoyee","exemple":true},"fa-2026-040":{"ref":"FA-2026-040","client":"École Sainte-Croix","montant":2450,"emise":"2026-09-04","echeance":"2026-10-04","statut":"payee","exemple":true},"fa-2026-041":{"ref":"FA-2026-041","client":"Brasserie du Quai","montant":3950,"emise":"2026-09-12","echeance":"2026-10-12","statut":"envoyee","exemple":true},"fa-2026-042":{"ref":"FA-2026-042","client":"Librairie Antoine","montant":1750,"emise":"2026-09-15","echeance":"2026-10-15","statut":"brouillon","exemple":true}},"depenses":{"d1":{"libelle":"Loyer de l'atelier","montant":1200,"date":"2026-09-01","exemple":true},"d2":{"libelle":"Électricité","montant":310,"date":"2026-09-05","exemple":true},"d3":{"libelle":"Assurance de l'atelier","montant":640,"date":"2026-08-20","exemple":true},"d4":{"libelle":"Bois et quincaillerie","montant":2150,"date":"2026-08-12","exemple":true}},"investissements":{"i1":{"libelle":"Dégauchisseuse-raboteuse","montant":6800,"date":"2026-05-14","exemple":true},"i2":{"libelle":"Camionnette d'occasion","montant":9500,"date":"2026-03-03","exemple":true},"i3":{"libelle":"Logiciel de plans","montant":420,"date":"2026-07-01","exemple":true}}};
 
 const RITUEL = [
   "Réclamer l'argent en retard",
@@ -479,6 +499,7 @@ let filtreT = "afaire";
 let filtreF = "encaisser";
 let filtreB = "depenses";
 let clientOuvert = null;
+let pliOuvert = false;
 const memoire = new Map();
 let stockOk = true;
 let animer = true;
@@ -577,6 +598,24 @@ function calculs(){
                   .reduce((s, f) => s + (Number(f.montant) || 0), 0)
   };
 }
+/* Une facture dépassée engendre sa propre tâche de relance.
+   Cochée, elle se tait une semaine ; payée, elle disparaît pour de bon. */
+function relancesAuto(){
+  return liste("factures").filter(f => statut(f) === "retard").filter(f => {
+    if(!f.relance) return true;
+    return Math.round((dt(auj()) - new Date(f.relance)) / 86400000) >= 7;
+  }).map(f => ({
+    id: "auto-" + f.id,
+    auto: true,
+    titre: "Relancer " + f.client + " — " + (f.ref || "facture"),
+    client: f.client,
+    montant: f.montant,
+    echeance: f.echeance,
+    priorite: "haute",
+    fait: false
+  }));
+}
+
 const ritFaits = () => state.rituel.semaine === semaineIso(new Date()) ? (state.rituel.faits || []) : [];
 
 /* ───────── entête ───────── */
@@ -598,6 +637,16 @@ function rendreEntete(){
 /* ───────── tâches ───────── */
 function ligneTache(t, ctx){
   const j = jours(t.echeance);
+  if(t.auto){
+    return '<div class="t auto">'
+      + '<input type="checkbox" class="coche" id="k-' + h(t.id) + '" data-relance="' + h(t.id.slice(5)) + '" aria-label="J\'ai relancé ' + h(t.client) + '">'
+      + '<span class="t-corps"><label class="t-titre" for="k-' + h(t.id) + '">' + h(t.titre) + "</label>"
+      + '<span class="t-meta"><span>' + eur(t.montant) + "</span>"
+      + '<span class="etiq feu"><i class="point"></i>' + (-j) + " jour" + (j < -1 ? "s" : "") + " de retard</span>"
+      + '<span class="etiq robot"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
+      + '<path d="M13 2.5 4.5 13.5H11l-.8 8L19.5 10H13Z"/></svg>ajouté pour vous</span>'
+      + "</span></span></div>";
+  }
   let et = "";
   if(ctx === "retard"){
     et = '<span class="etiq feu"><i class="point"></i>' + (j === -1 ? "1 jour de retard" : (-j) + " jours de retard") + "</span>";
@@ -643,7 +692,8 @@ function bienvenue(){
 function vueAfaire(){
   if(toutVide()) return bienvenue();
   const c = calculs();
-  const total = c.duJour.length, faits = c.faitsJour.length;
+  const relances = relancesAuto().length;
+  const total = c.duJour.length + relances, faits = c.faitsJour.length;
   const p = total ? faits / total : 0;
 
   /* 1. la carte du jour */
@@ -661,7 +711,8 @@ function vueAfaire(){
 
   /* 2. toutes les tâches, groupées par urgence */
   const tout = liste("taches").sort((x, y) => (x.fait - y.fait) || String(x.echeance).localeCompare(String(y.echeance)));
-  const vis = tout.filter(filtreT === "faites" ? (t => !!t.fait) : (t => !t.fait));
+  const vis = filtreT === "faites" ? tout.filter(t => !!t.fait)
+                                   : relancesAuto().concat(tout.filter(t => !t.fait));
   const libs = [["afaire", "À faire"], ["faites", "Terminées"]];
   let corps = '<div class="segments">' + libs.map(kv =>
     '<button data-ft="' + kv[0] + '" aria-pressed="' + (filtreT === kv[0]) + '">' + kv[1] + "</button>").join("") + "</div>";
@@ -682,11 +733,15 @@ function vueAfaire(){
       ["aujourdhui", "Aujourd'hui", vis.filter(t => jours(t.echeance) === 0), false],
       ["plustard", "Plus tard", vis.filter(t => jours(t.echeance) > 0), false]
     ];
+    const bande = g => '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
+      + ICO[g[0]] + "</svg>" + g[1] + '<span class="nb">' + g[2].length + " chose" + (g[2].length > 1 ? "s" : "") + "</span>";
     corps += grp.filter(g => g[2].length).map(g =>
-      '<p class="groupe' + (g[3] ? " chaud" : "") + '">'
-      + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' + ICO[g[0]] + "</svg>"
-      + g[1] + '<span class="nb">' + g[2].length + " chose" + (g[2].length > 1 ? "s" : "") + "</span></p>"
-      + listeTaches(g[2], g[0])).join("");
+      /* ce qui n'est pas pour maintenant reste plié : on ne voit que l'urgent */
+      g[0] === "plustard"
+        ? '<details class="pli"' + (pliOuvert ? " open" : "") + '><summary class="groupe">' + bande(g)
+          + '<span class="chev"></span></summary>' + listeTaches(g[2], g[0]) + "</details>"
+        : '<p class="groupe' + (g[3] ? " chaud" : "") + '">' + bande(g) + "</p>" + listeTaches(g[2], g[0])
+    ).join("");
   }
   if(filtreT !== "faites") corps += ligneVite();
 
@@ -735,7 +790,8 @@ function ficheClient(id){
     + '<p class="gros" data-compte="paye-' + h(c.id) + '" data-val="' + paye + '">' + eur(paye) + "</p>"
     + (attente ? '<p class="reste">Il reste <b>' + eur(attente) + "</b> à encaisser.</p>"
                : (paye ? '<p class="reste">Tout est réglé.</p>' : '<p class="reste">Aucune facture pour l\'instant.</p>'))
-    + "</div></section>"
+    + "</div>"
+    + '<div class="action-client"><button data-facturer="' + h(c.nom) + '">Faire une facture</button></div></section>'
 
     + (siennes.length ? '<section class="carte anim" style="animation-delay:.05s">'
         + '<div class="carte-tete"><h2>Ses factures</h2><span class="appoint">' + siennes.length + "</span></div>"
@@ -1024,7 +1080,7 @@ function typeDefaut(){ return vue === "budget" ? (filtreB === "depenses" ? "depe
 const NOM_TYPE = {tache: "Tâche", facture: "Facture", client: "Client", depense: "Dépense", investissement: "Investissement"};
 let typeActif = "tache", dernierFocus = null;
 
-function ouvrir(type){
+function ouvrir(type, prerempli){
   typeActif = type;
   const modele = CHAMPS[type]();
   const groupe = TYPES_VUE[vue] || TOUS_TYPES;
@@ -1041,7 +1097,16 @@ function ouvrir(type){
     + '<button class="valider" type="submit">Ajouter</button></form>';
   f.hidden = false; $("#voile").hidden = false;
   requestAnimationFrame(() => { f.classList.add("on"); $("#voile").classList.add("on"); });
-  setTimeout(() => { const p = f.querySelector("#f1"); if(p) p.focus({preventScroll: true}); }, 340);
+  if(prerempli){
+    Object.keys(prerempli).forEach(k => {
+      const champ = f.querySelector('[name="' + k + '"]');
+      if(champ) champ.value = prerempli[k];
+    });
+  }
+  setTimeout(() => {
+    const vide = f.querySelector("input:not([type=radio]):placeholder-shown") || f.querySelector("#f1");
+    if(vide) vide.focus({preventScroll: true});
+  }, 340);
 }
 function fermer(){
   const f = $("#feuille"), v = $("#voile");
@@ -1124,6 +1189,7 @@ $("#vue").addEventListener("click", e => {
   }
   if(b.dataset.retour){ clientOuvert = null; animer = true; memoire.clear(); rendre(); window.scrollTo({top: 0}); return; }
   if(b.dataset.ajoutNote){ noter(b.dataset.ajoutNote); return; }
+  if(b.dataset.facturer){ ouvrir("facture", {client: b.dataset.facturer}); return; }
   if(b.dataset.note){
     if(!armer(b)) return;
     const cl = state.clients[b.dataset.note];
@@ -1166,6 +1232,10 @@ $("#vue").addEventListener("click", e => {
   }
 });
 
+$("#vue").addEventListener("toggle", e => {
+  if(e.target.classList && e.target.classList.contains("pli")) pliOuvert = e.target.open;
+}, true);
+
 $("#vue").addEventListener("keydown", e => {
   if(e.key === "Enter" && e.target.id === "vite"){ e.preventDefault(); ajoutVite(); }
   if(e.key === "Enter" && (e.metaKey || e.ctrlKey) && e.target.dataset.notePour){
@@ -1183,6 +1253,13 @@ $("#vue").addEventListener("input", e => {
 
 $("#vue").addEventListener("change", e => {
   const t = e.target;
+  if(t.dataset.relance){
+    const f = state.factures[t.dataset.relance];
+    if(!f) return;
+    ecrire("factures", t.dataset.relance, Object.assign({}, f, {relance: new Date().toISOString()}));
+    bulle("Relance notée");
+    return;
+  }
   if(t.dataset.tache){
     const tache = state.taches[t.dataset.tache];
     if(!tache) return;
