@@ -139,6 +139,24 @@ h1,h2,h3,p{margin:0}
 .heros-delta svg{width:14px;height:14px}
 .heros-delta.haut{color:var(--ok);background:var(--ok-doux)}
 .heros-delta.bas{color:var(--tard);background:var(--tard-doux)}
+/* ═══ interrupteur ═══ */
+.bascule{display:flex;align-items:flex-start;gap:12px;cursor:pointer;font-size:14.5px;color:var(--ink-2);margin-top:14px}
+.bascule input{appearance:none;width:46px;height:27px;border-radius:999px;background:var(--line);flex:none;
+  position:relative;transition:background .22s var(--doux);margin-top:1px}
+.bascule input::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;
+  background:var(--surface);box-shadow:var(--o1);transition:transform .22s var(--ressort)}
+.bascule input:checked{background:var(--v1)}
+.bascule input:checked::after{transform:translateX(19px)}
+.bascule em{font-style:normal;color:var(--ink-3)}
+
+/* ═══ plafond du régime ═══ */
+.plafond{padding:2px 24px 22px}
+.plafond .piste-p{height:9px;background:var(--surface-3);border-radius:999px;overflow:hidden}
+.plafond .piste-p i{display:block;height:100%;border-radius:999px;background:var(--deg);transition:width .8s var(--doux)}
+.plafond .piste-p i.chaud{background:var(--tard)}
+.plafond .txt{display:flex;justify-content:space-between;gap:12px;margin-top:9px;font-size:13.5px;color:var(--ink-3)}
+.plafond .txt b{font-family:var(--num);font-weight:600;color:var(--ink-2)}
+
 /* ═══ bilan ═══ */
 .bilan{display:flex;flex-direction:column;margin-top:18px;border-top:2px solid var(--line)}
 .bl{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid var(--line);font-size:15.5px;font-weight:600;color:var(--ink-2)}
@@ -207,6 +225,25 @@ summary.groupe:hover{background:var(--line)}
   font-family:var(--num);font-weight:600;font-size:16px;transition:transform .16s var(--ressort),filter .2s}
 .action-client button:hover{filter:brightness(1.08)}
 .action-client button:active{transform:scale(.97)}
+
+/* ═══ l'heure d'une tâche ═══ */
+.heure{font-family:var(--num);font-weight:600;font-size:15px;color:var(--ink-2);flex:none;
+  min-width:52px;text-align:right;font-variant-numeric:tabular-nums;padding-top:2px}
+.t.passee .heure{color:var(--ink-3)}
+.t.encours{background:linear-gradient(90deg,var(--deg-pale),transparent 60%)}
+.t.encours .heure{color:var(--v1)}
+
+.maintenant{display:flex;align-items:center;gap:14px;padding:18px 24px;background:rgba(255,255,255,.1);
+  border-radius:calc(var(--rxl) - 7px);margin:0 4px 4px;color:#fff}
+.maintenant .quand-m{font-family:var(--num);font-weight:600;font-size:15px;opacity:.75;flex:none}
+.maintenant .quoi{flex:1;min-width:0;font-size:16.5px;font-weight:600;overflow-wrap:anywhere}
+.maintenant .pastille-m{width:9px;height:9px;border-radius:50%;background:#fff;flex:none;
+  box-shadow:0 0 0 0 rgba(255,255,255,.7);animation:battement 2.4s infinite}
+@keyframes battement{
+  0%{box-shadow:0 0 0 0 rgba(255,255,255,.55)}
+  70%{box-shadow:0 0 0 9px rgba(255,255,255,0)}
+  100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}
+}
 
 /* ═══ ajout express ═══ */
 .vite{display:flex;align-items:center;gap:16px;padding:19px 24px;position:relative}
@@ -500,7 +537,7 @@ const MOIS_LONG = ["janvier", "février", "mars", "avril", "mai", "juin", "juill
 
 const state = {
   taches: {}, clients: {}, factures: {}, depenses: {}, investissements: {},
-  moi: {nom: "", adresse: "", siret: "", email: "", tva: 0},
+  moi: {nom: "", adresse: "", siret: "", email: "", tva: 0, regime: "services", liberatoire: false},
   rituel: {semaine: "", faits: []},
   serie: {n: 0, dernier: ""}
 };
@@ -567,7 +604,7 @@ function charger(){
   if(d && typeof d === "object"){
     COLS.forEach(c => { state[c] = d[c] && typeof d[c] === "object" ? d[c] : {}; });
     if(d.rituel) state.rituel = d.rituel;
-    if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0}, d.moi);
+    if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0, regime: "services", liberatoire: false}, d.moi);
     if(d.serie) state.serie = d.serie;
   }else{
     COLS.forEach(c => { state[c] = JSON.parse(JSON.stringify(SEED[c] || {})); });
@@ -627,6 +664,19 @@ function relancesAuto(){
   }));
 }
 
+/* « déjeuner client 12h30 » : on retire l'heure du titre et on la garde */
+function lireHeure(texte){
+  const m = /(?:^|\s)(?:à\s*)?(\d{1,2})\s*(?:h|:)\s*(\d{2})?(?=\s|$)/i.exec(texte);
+  if(!m) return {titre: texte.trim(), heure: ""};
+  const hh = Number(m[1]), mm = Number(m[2] || 0);
+  if(hh > 23 || mm > 59) return {titre: texte.trim(), heure: ""};
+  const titre = (texte.slice(0, m.index) + " " + texte.slice(m.index + m[0].length)).replace(/\s+/g, " ").trim();
+  return {titre: titre || texte.trim(), heure: String(hh).padStart(2, "0") + ":" + String(mm).padStart(2, "0")};
+}
+const minutesMaintenant = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
+const enMinutes = h => h ? Number(h.slice(0, 2)) * 60 + Number(h.slice(3, 5)) : null;
+const heureLisible = h => h ? h.replace(":", " h ").replace(/ 00$/, "").trim() : "";
+
 const ritFaits = () => state.rituel.semaine === semaineIso(new Date()) ? (state.rituel.faits || []) : [];
 
 /* ───────── entête ───────── */
@@ -667,16 +717,30 @@ function ligneTache(t, ctx){
   const meta = (t.client ? "<span>" + h(t.client) + "</span>" : "")
     + (t.priorite === "haute" && !t.fait ? '<span class="etiq feu">Important</span>' : "")
     + et;
-  return '<div class="t' + (t.fait ? " ok" : "") + '">'
+  /* une tâche à l'heure : passée, en cours, ou à venir */
+  let etat = "";
+  if(t.heure && ctx === "aujourdhui" && !t.fait){
+    const deb = enMinutes(t.heure), now = minutesMaintenant();
+    etat = now >= deb && now < deb + 60 ? " encours" : (now >= deb + 60 ? " passee" : "");
+  }
+  return '<div class="t' + (t.fait ? " ok" : "") + etat + '">'
     + '<input type="checkbox" class="coche" id="k-' + h(t.id) + '" data-tache="' + h(t.id) + '"' + (t.fait ? " checked" : "") + ' aria-label="Terminer : ' + h(t.titre) + '">'
     + '<span class="t-corps" data-modif="tache" data-id="' + h(t.id) + '" role="button" tabindex="0">'
     + '<span class="t-titre">' + h(t.titre) + "</span>"
     + (meta ? '<span class="t-meta">' + meta + "</span>" : "") + "</span>"
+    + (t.heure ? '<span class="heure">' + heureLisible(t.heure) + "</span>" : "")
     + '<button class="sup" data-sup="taches" data-id="' + h(t.id) + '"><span class="mot">Supprimer</span></button></div>';
 }
-const listeTaches = (arr, ctx) => arr.map(t => ligneTache(t, ctx)).join("");
+function parHeure(a, b){
+  const ha = a.heure || "", hb = b.heure || "";
+  if(ha && hb) return ha.localeCompare(hb);
+  if(ha) return -1;
+  if(hb) return 1;
+  return 0;
+}
+const listeTaches = (arr, ctx) => arr.slice().sort(parHeure).map(t => ligneTache(t, ctx)).join("");
 const ligneVite = () => '<div class="vite"><span class="rond"></span>'
-  + '<input id="vite" placeholder="Ajouter une tâche…" maxlength="140" autocomplete="off" aria-label="Ajouter une tâche pour aujourd\'hui">'
+  + '<input id="vite" placeholder="Ajouter… « devis 14h »" maxlength="140" autocomplete="off" aria-label="Ajouter une tâche pour aujourd\'hui">'
   + '<button class="go" data-vite="1">Ajouter</button></div>';
 
 /* ───────── vue : aujourd'hui ───────── */
@@ -758,7 +822,25 @@ function vueAfaire(){
   if(filtreT !== "faites") corps += ligneVite();
 
   let out = "";
-  out += '<section class="heros anim">' + tete + '<div class="liste-jour">' + corps + "</div></section>";
+  /* ce qui vient maintenant : l'idée d'agenda, réduite à une seule ligne */
+  const aHeure = c.resteJour.filter(t => t.heure).sort(parHeure);
+  const now = minutesMaintenant();
+  const prochaine = aHeure.find(t => enMinutes(t.heure) + 60 > now);
+  let bandeau = "";
+  if(prochaine){
+    const deb = enMinutes(prochaine.heure);
+    const enCours = now >= deb;
+    const reste = deb - now;
+    const quand = enCours ? "en ce moment"
+      : reste < 60 ? "dans " + reste + " min"
+      : heureLisible(prochaine.heure);
+    bandeau = '<div class="maintenant">'
+      + (enCours ? '<span class="pastille-m"></span>' : "")
+      + '<span class="quand-m">' + quand + "</span>"
+      + '<span class="quoi">' + h(prochaine.titre) + "</span></div>";
+  }
+
+  out += '<section class="heros anim">' + tete + bandeau + '<div class="liste-jour">' + corps + "</div></section>";
 
   out += demo();
   return out;
@@ -920,16 +1002,9 @@ function rangeeSortie(o, col){
     + '<button class="sup" data-sup="' + col + '" data-id="' + h(o.id) + '"><span class="mot">Supprimer</span></button></div>';
 }
 function vueBudget(){
-  const c = calculs();
-  const an = String(new Date().getFullYear());
-  const cetteAnnee = o => String(o.date || o.emise || "").slice(0, 4) === an;
-  const somme = arr => arr.reduce((t, o) => t + (Number(o.montant) || 0), 0);
-  const ca = somme(c.fact.filter(f => f.statut !== "brouillon" && cetteAnnee(f)));
+  const k = comptes();
   const dep = liste("depenses").sort((x, y) => String(y.date).localeCompare(String(x.date)));
   const inv = liste("investissements").sort((x, y) => String(y.date).localeCompare(String(x.date)));
-  const totDep = somme(dep.filter(cetteAnnee)), totInv = somme(inv.filter(cetteAnnee));
-  const reste = ca - totDep - totInv;
-
   const surDep = filtreB === "depenses";
   const vis = surDep ? dep : inv;
   const libs = [["depenses", "Dépenses"], ["investissements", "Investissements"]];
@@ -937,23 +1012,79 @@ function vueBudget(){
     ? '<p class="vide"><b>Aucune dépense</b>Loyer, matières, essence : notez-les au fil de l\'eau.</p>'
     : '<p class="vide"><b>Aucun investissement</b>Une machine, un véhicule : ce qui vous sert des années.</p>';
 
-  return '<section class="carte anim"><div class="mois" style="padding-top:22px">'
-    + '<p class="heros-lab">Cette année, il vous reste</p>'
-    + '<p class="heros-val' + (reste < 0 ? " negatif" : "") + '" data-compte="reste" data-val="' + reste + '">' + eur(reste) + "</p>"
-    + '<div class="bilan">'
-    + '<div class="bl"><span>Ce qui rentre</span><b class="plus">+ ' + eur(ca) + "</b></div>"
-    + '<div class="bl"><span>Dépenses</span><b>− ' + eur(totDep) + "</b></div>"
-    + '<div class="bl"><span>Investissements</span><b>− ' + eur(totInv) + "</b></div>"
-    + "</div></div></section>"
+  const ligne = (lab, val, cls) => '<div class="bl"><span>' + lab + '</span><b' + (cls ? ' class="' + cls + '"' : "")
+    + ">" + val + "</b></div>";
 
+  /* ce qui reste vraiment : encaissé, moins les cotisations, l'impôt et les sorties */
+  let bilan = '<section class="carte anim"><div class="mois" style="padding-top:22px">'
+    + '<p class="heros-lab">Sur ' + k.an + ", il vous reste vraiment</p>"
+    + '<p class="heros-val' + (k.reste < 0 ? " negatif" : "") + '" data-compte="reste" data-val="' + k.reste + '">' + eur(k.reste) + "</p>"
+    + '<div class="bilan">'
+    + ligne("Encaissé", "+ " + eur(k.encaisse), "plus")
+    + ligne("Cotisations sociales <em style=\'font-style:normal;color:var(--ink-3)\'>" + k.regle.cotis + " %</em>", "− " + eur(k.cotis))
+    + (k.impot ? ligne("Impôt sur le revenu <em style=\'font-style:normal;color:var(--ink-3)\'>" + k.regle.liber + " %</em>", "− " + eur(k.impot)) : "")
+    + ligne("Dépenses", "− " + eur(k.depenses))
+    + ligne("Investissements", "− " + eur(k.invest))
+    + "</div></div>";
+
+  /* le plafond du régime, qu'on ne voit venir qu'une fois dépassé */
+  const pc = Math.round(k.partPlafond * 100);
+  bilan += '<div class="plafond"><div class="piste-p"><i class="' + (pc >= 80 ? "chaud" : "")
+    + '" style="width:' + pc + '%"></i></div><div class="txt">'
+    + "<span>" + h(k.regle.nom) + "</span>"
+    + "<span><b>" + pc + " %</b> du plafond de " + eur(k.regle.plafond) + "</span>"
+    + "</div></div></section>";
+
+  if(!(state.moi && state.moi.nom)){
+    bilan += '<button class="ajout-ligne" data-moi="1"><span class="rond" style="border-style:solid">'
+      + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;stroke-width:2.2;fill:none">'
+      + '<circle cx="12" cy="8.4" r="3.6"/><path d="M4.8 20c0-3.6 3.2-5.8 7.2-5.8s7.2 2.2 7.2 5.8"/></svg></span>'
+      + "Dites votre activité pour ajuster les taux</button>";
+  }
+
+  return bilan
     + '<section class="carte anim" style="animation-delay:.06s"><div class="carte-tete"><h2>Ce qui sort</h2>'
-    + '<span class="appoint">' + eur(surDep ? totDep : totInv) + " cette année</span></div>"
+    + '<span class="appoint">' + eur(surDep ? k.depenses : k.invest) + " cette année</span></div>"
     + '<div class="segments">' + libs.map(kv =>
         '<button data-fb="' + kv[0] + '" aria-pressed="' + (filtreB === kv[0]) + '">' + kv[1] + "</button>").join("") + "</div>"
     + (vis.length ? vis.map(o => rangeeSortie(o, surDep ? "depenses" : "investissements")).join("") : vide)
     + '<button class="ajout-ligne" data-feuille="' + (surDep ? "depense" : "investissement") + '"><span class="rond"></span>'
     + (surDep ? "Ajouter une dépense" : "Ajouter un investissement") + "</button></section>"
+
+    + '<section class="carte anim" style="animation-delay:.1s"><div class="carte-tete"><h2>Livre des recettes</h2>'
+    + '<span class="appoint">obligatoire</span></div>'
+    + '<p style="padding:0 24px;font-size:14.5px;color:var(--ink-2)">La liste de tout ce que vos clients vous ont réglé sur '
+    + k.an + ". L\'administration peut vous la demander à tout moment.</p>"
+    + '<div class="action-client" style="padding:18px 24px 24px"><button data-recettes="1">Éditer le livre en PDF</button></div></section>'
     + demo();
+}
+
+/* ═══ ce que la micro-entreprise garde vraiment ═══
+   Taux 2026 : cotisations sociales, versement libératoire de l'impôt,
+   et plafond de chiffre d'affaires au-delà duquel le régime tombe. */
+const REGIMES = {
+  vente:    {nom: "Vente de marchandises", cotis: 12.3, liber: 1.0, plafond: 188700},
+  services: {nom: "Prestations de services", cotis: 21.2, liber: 1.7, plafond: 77700},
+  liberal:  {nom: "Profession libérale", cotis: 24.6, liber: 2.2, plafond: 77700}
+};
+function reglesMoi(){ return REGIMES[(state.moi && state.moi.regime) || "services"] || REGIMES.services; }
+
+function comptes(){
+  const an = String(new Date().getFullYear());
+  const cetteAnnee = o => String(o.date || o.emise || "").slice(0, 4) === an;
+  const somme = arr => arr.reduce((t, o) => t + (Number(o.montant) || 0), 0);
+  const fact = liste("factures");
+  const r = reglesMoi();
+  const encaisse = somme(fact.filter(f => statut(f) === "payee" && cetteAnnee(f)));
+  const facture = somme(fact.filter(f => f.statut !== "brouillon" && cetteAnnee(f)));
+  const depenses = somme(liste("depenses").filter(cetteAnnee));
+  const invest = somme(liste("investissements").filter(cetteAnnee));
+  const cotis = Math.round(encaisse * r.cotis) / 100;
+  const impot = (state.moi && state.moi.liberatoire) ? Math.round(encaisse * r.liber) / 100 : 0;
+  return {an: an, regle: r, encaisse: encaisse, facture: facture, depenses: depenses,
+    invest: invest, cotis: cotis, impot: impot,
+    reste: encaisse - cotis - impot - depenses - invest,
+    partPlafond: r.plafond ? Math.min(1, encaisse / r.plafond) : 0};
 }
 
 /* ═══ la facture en PDF ═══ */
@@ -1051,6 +1182,81 @@ function pdfFacture(f){
   return doc;
 }
 
+/* Le livre des recettes : ce que la loi exige d'un micro-entrepreneur —
+   date, client, désignation, référence et montant, dans l'ordre chronologique. */
+async function livreRecettes(){
+  if(!window.jspdf || !window.jspdf.jsPDF){ bulle("PDF indisponible ici"); return; }
+  const k = comptes();
+  const moi = state.moi || {};
+  const lignes = liste("factures")
+    .filter(f => statut(f) === "payee" && String(f.emise || "").slice(0, 4) === k.an)
+    .sort((a, b) => String(a.emise).localeCompare(String(b.emise)));
+
+  const doc = new window.jspdf.jsPDF({unit: "mm", format: "a4"});
+  const G = 18, D = 192;
+  let y = 22;
+
+  doc.setFont("helvetica", "bold").setFontSize(17).setTextColor(20, 32, 46);
+  doc.text("LIVRE DES RECETTES " + k.an, G, y);
+  y += 7;
+  doc.setFont("helvetica", "normal").setFontSize(10).setTextColor(110, 122, 140);
+  doc.text((moi.nom || "") + (moi.siret ? "  ·  SIRET " + moi.siret : ""), G, y);
+  y += 10;
+
+  function entete(){
+    doc.setFillColor(243, 247, 251).rect(G, y, D - G, 9, "F");
+    doc.setFont("helvetica", "bold").setFontSize(8.5).setTextColor(90, 102, 120);
+    doc.text("DATE", G + 3, y + 6);
+    doc.text("CLIENT", G + 26, y + 6);
+    doc.text("DÉSIGNATION", G + 80, y + 6);
+    doc.text("RÉFÉRENCE", D - 36, y + 6, {align: "right"});
+    doc.text("MONTANT", D - 3, y + 6, {align: "right"});
+    y += 14;
+    doc.setFont("helvetica", "normal").setFontSize(9.5).setTextColor(20, 32, 46);
+  }
+  entete();
+
+  lignes.forEach(f => {
+    if(y > 268){ doc.addPage(); y = 22; entete(); }
+    doc.text(dateTxt(f.emise), G + 3, y);
+    doc.text(doc.splitTextToSize(String(f.client || ""), 50)[0] || "", G + 26, y);
+    doc.text(doc.splitTextToSize(String(f.objet || ""), 58)[0] || "", G + 80, y);
+    doc.text(String(f.ref || ""), D - 36, y, {align: "right"});
+    doc.text(euroTxt(f.montant), D - 3, y, {align: "right"});
+    y += 6.6;
+  });
+
+  if(!lignes.length){
+    doc.setTextColor(130, 142, 160);
+    doc.text("Aucune recette encaissée sur " + k.an + ".", G + 3, y);
+    y += 7;
+  }
+
+  y += 3;
+  doc.setDrawColor(200, 212, 226).setLineWidth(0.5).line(G, y, D, y);
+  y += 9;
+  doc.setFont("helvetica", "bold").setFontSize(12.5).setTextColor(20, 32, 46);
+  doc.text("Total encaissé " + k.an, D - 48, y, {align: "right"});
+  doc.text(euroTxt(k.encaisse), D - 3, y, {align: "right"});
+  y += 11;
+  doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(110, 122, 140);
+  doc.text("Édité le " + dateTxt(auj()) + " · " + lignes.length + " recette"
+    + (lignes.length > 1 ? "s" : "") + " · " + k.regle.nom, G, y);
+
+  const nom = "livre-des-recettes-" + k.an + ".pdf";
+  if(window.claude && window.claude.use){
+    const dl = await window.claude.use("downloads").catch(() => null);
+    if(!dl){ bulle("Téléchargement indisponible ici"); return; }
+    try{
+      await dl.save({filename: nom, data: doc.output("arraybuffer")});
+      bulle("Livre édité");
+    }catch(e){ bulle(e && e.code === "declined" ? "Annulé" : "Téléchargement impossible"); }
+    return;
+  }
+  doc.save(nom);
+  bulle("Livre édité");
+}
+
 async function telechargerFacture(id){
   const brut = state.factures[id];
   if(!brut) return;
@@ -1141,7 +1347,7 @@ function importerTout(){
         return;
       }
       COLS.forEach(c => { state[c] = d[c] && typeof d[c] === "object" ? d[c] : {}; });
-      if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0}, d.moi);
+      if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0, regime: "services", liberatoire: false}, d.moi);
       if(d.rituel) state.rituel = d.rituel;
       if(d.serie) state.serie = d.serie;
       clientOuvert = null;
@@ -1249,6 +1455,8 @@ const CHAMPS = {
     + '<label><input type="radio" name="quand" value="1"><span>Demain</span></label>'
     + '<label><input type="radio" name="quand" value="x"><span>Plus tard…</span></label></div>'
     + '<input class="date-libre" name="echeance" type="date" value="' + auj() + '" aria-label="Date précise" hidden></div>'
+    + '<div class="champ"><label for="f7">À quelle heure ?</label>'
+    + '<input id="f7" name="heure" type="time" step="300"></div>'
     + '<details class="detail"><summary>Plus de détails</summary>'
     + '<div class="champ"><label for="f3">Pour quel client ?</label><input id="f3" name="client" maxlength="60" placeholder="facultatif" list="lc" autocomplete="off"></div>'
     + '<div class="champ"><label>Priorité</label><div class="choix">'
@@ -1280,7 +1488,14 @@ const CHAMPS = {
     + '<option value="0"' + (Number(state.moi.tva) === 0 ? " selected" : "") + '>Je ne facture pas la TVA</option>'
     + '<option value="20"' + (Number(state.moi.tva) === 20 ? " selected" : "") + '>20 %</option>'
     + '<option value="10"' + (Number(state.moi.tva) === 10 ? " selected" : "") + '>10 %</option>'
-    + "</select></div></div></details>"}),
+    + "</select></div></div>"
+    + '<div class="champ"><label for="f8">Votre activité</label><select id="f8" name="regime">'
+    + Object.keys(REGIMES).map(k => '<option value="' + k + '"' + (state.moi.regime === k ? " selected" : "")
+        + ">" + REGIMES[k].nom + " — " + REGIMES[k].cotis + " % de cotisations</option>").join("")
+    + "</select></div>"
+    + '<label class="bascule"><input type="checkbox" name="liberatoire"' + (state.moi.liberatoire ? " checked" : "") + ">"
+    + "<span>Je paie l'impôt en même temps que mes cotisations <em>(versement libératoire)</em></span></label>"
+    + "</details>"}),
 
   facture: () => ({titre: "Nouvelle facture", html:
     '<div class="champ"><label for="f1">Pour qui ?</label><input id="f1" name="client" required maxlength="80" list="lc" placeholder="Nom du client" autocomplete="off"></div>'
@@ -1388,8 +1603,10 @@ function ajoutVite(){
   if(!i) return;
   const t = i.value.trim();
   if(!t) return;
-  ecrire("taches", neuf(), {titre: t, client: "", priorite: "normale", echeance: auj(), fait: false});
-  bulle("Tâche ajoutée");
+  const lu = lireHeure(t);
+  ecrire("taches", neuf(), {titre: lu.titre, client: "", priorite: "normale",
+    echeance: auj(), heure: lu.heure, fait: false});
+  bulle(lu.heure ? "Ajouté à " + heureLisible(lu.heure) : "Tâche ajoutée");
   const suivant = $("#vite");
   if(suivant) suivant.focus();
 }
@@ -1451,6 +1668,7 @@ $("#vue").addEventListener("click", e => {
     return;
   }
   if(b.dataset.pdf){ telechargerFacture(b.dataset.pdf); return; }
+  if(b.dataset.recettes){ livreRecettes(); return; }
   if(b.dataset.moi){ ouvrir("moi"); return; }
   if(b.dataset.note){
     if(!armer(b)) return;
@@ -1586,9 +1804,10 @@ $("#feuille").addEventListener("submit", e => {
     if(!String(d.titre || "").trim()) return;
     let ech = d.echeance || auj();
     if(d.quand && d.quand !== "x") ech = dans(Number(d.quand));
-    ecrire("taches", id, Object.assign(garder, {titre: String(d.titre).trim(),
+    const lu = lireHeure(String(d.titre).trim());
+    ecrire("taches", id, Object.assign(garder, {titre: lu.titre,
       client: String(d.client || "").trim(), priorite: d.priorite || "normale",
-      echeance: ech, fait: !!garder.fait}));
+      echeance: ech, heure: d.heure || lu.heure || "", fait: !!garder.fait}));
     bulle(mot || "Tâche ajoutée");
   }else if(typeActif === "client"){
     ecrire("clients", id, Object.assign(garder, {nom: String(d.nom).trim(),
@@ -1608,7 +1827,8 @@ $("#feuille").addEventListener("submit", e => {
     return;
   }else if(typeActif === "moi"){
     state.moi = {nom: String(d.nom).trim(), adresse: String(d.adresse || "").trim(),
-      siret: String(d.siret || "").trim(), email: String(d.email || "").trim(), tva: Number(d.tva) || 0};
+      siret: String(d.siret || "").trim(), email: String(d.email || "").trim(), tva: Number(d.tva) || 0,
+      regime: d.regime || "services", liberatoire: !!d.liberatoire};
     sauver(); rendre();
     bulle("C'est enregistré");
     enModif = null;

@@ -54,3 +54,25 @@ for ouvrant, l in pile:
 if erreurs:
     print("SYNTAXE INCORRECTE"); [print("  " + e) for e in erreurs[:8]]; sys.exit(1)
 print(f"syntaxe correcte · {len(js)} caractères de script")
+
+# ── Toute fonction appelée doit exister ──────────────────────────────
+import re
+declarees = set(re.findall(r'(?:async\s+)?function\s+([A-Za-zÀ-ÿ_$][\w$]*)\s*\(', js))
+declarees |= set(re.findall(r'(?:const|let|var)\s+([A-Za-zÀ-ÿ_$][\w$]*)\s*=\s*(?:async\s*)?(?:\([^)]*\)|[\w$]+)\s*=>', js))
+declarees |= set(re.findall(r'(?:const|let|var)\s+([A-Za-zÀ-ÿ_$][\w$]*)\s*=', js))
+connues = {
+    'if','for','while','switch','catch','return','typeof','function','await','new','do','else',
+    'Math','Number','String','Object','Array','JSON','Date','Intl','Boolean','Set','Map','parseInt',
+    'parseFloat','isNaN','setTimeout','clearTimeout','requestAnimationFrame','FormData','Blob','URL',
+    'FileReader','TextDecoder','CSS','Promise','Error','encodeURIComponent','decodeURIComponent','alert',
+    'console','document','window','localStorage','performance','fetch','constructor','super','this',
+    'not','var','let','const','in','of','delete','void','instanceof','yield','case','throw',
+}
+appels = set(re.findall(r'(?<![.\w$])([A-Za-zÀ-ÿ_$][\w$]*)\s*\(', js))
+manquantes = sorted(a for a in appels - declarees - connues if not a[0].isupper())
+if manquantes:
+    print("FONCTIONS APPELÉES MAIS ABSENTES")
+    for m in manquantes[:10]:
+        print("  " + m)
+    sys.exit(1)
+print("toutes les fonctions appelées existent")
