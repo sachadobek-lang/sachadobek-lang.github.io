@@ -106,7 +106,17 @@
    "budget": 18400,
    "avancement": 80,
    "statut": "actif",
-   "exemple": true
+   "exemple": true,
+   "notes": [
+    {
+     "d": "2026-09-08T10:15:00.000Z",
+     "t": "Nadia veut le comptoir livré avant la réouverture, le 2 octobre. Elle insiste : pas de bruit avant 10 h, le service du midi commence tôt."
+    },
+    {
+     "d": "2026-09-11T16:40:00.000Z",
+     "t": "Rappelé pour la facture FA-2026-038. Elle la règle la semaine prochaine, budget bloqué jusqu'au versement de l'assurance."
+    }
+   ]
   },
   "c2": {
    "nom": "Résidence Les Tilleuls",
@@ -126,7 +136,13 @@
    "budget": 12600,
    "avancement": 10,
    "statut": "prospect",
-   "exemple": true
+   "exemple": true,
+   "notes": [
+    {
+     "d": "2026-09-14T09:05:00.000Z",
+     "t": "Hélène hésite entre chêne et noyer pour la banque d'accueil. Lui envoyer deux échantillons avec le devis."
+    }
+   ]
   },
   "c4": {
    "nom": "Librairie Antoine",
