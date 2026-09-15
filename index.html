@@ -1234,6 +1234,45 @@ summary.carte-tete:hover h2{color:var(--v1)}
   @page{margin:14mm}#ilreste{background:#fff;color:#111}#ilreste .page{max-width:none;padding:0;gap:0}#ilreste .noprint{display:none!important}#ilreste .apercu{border:0;border-radius:0;padding:0;font-size:12pt}#ilreste .apercu th{border-bottom:1px solid #999}#ilreste .apercu td{border-bottom:1px solid #ddd}#ilreste .mentions{color:#444;font-size:9pt;margin-top:18px}#ilreste .liste{border:0;border-radius:0}#ilreste .ligne{border-bottom:1px solid #ddd}#ilreste .ligne .sup{display:none}
 }
 
+/* ══ l'onglet Calculs ══ */
+#ilreste .carte-calc{background:var(--surface);border:1px solid var(--rule);border-radius:18px;padding:22px;display:flex;flex-direction:column;gap:18px}
+#ilreste .ligne-calc{display:flex;flex-direction:column;gap:9px}
+#ilreste .ligne-calc span{font-size:15px;font-weight:600;color:var(--ink-soft)}
+#ilreste .ligne-calc input{font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:30px;font-weight:600;
+  border:0;border-bottom:2px solid var(--rule);background:none;padding:6px 0;width:100%;color:var(--ink)}
+#ilreste .ligne-calc input:focus{outline:0;border-bottom-color:var(--moi)}
+#ilreste .choix-calc{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+#ilreste .choix-calc button{border:2px solid var(--rule);background:var(--surface);color:var(--ink-soft);
+  border-radius:12px;padding:13px 10px;font-size:15px;font-weight:600;cursor:pointer;transition:all .16s}
+#ilreste .choix-calc button[aria-pressed="true"]{border-color:var(--moi);background:var(--moi-bg);color:var(--moi)}
+#ilreste .bascule-calc{display:flex;align-items:center;gap:13px;font-size:15px;color:var(--ink-soft);cursor:pointer}
+#ilreste .bascule-calc select{margin-left:auto;border:2px solid var(--rule);background:var(--surface);color:var(--ink);
+  border-radius:10px;padding:9px 11px;font-size:15px}
+#ilreste .bascule-calc input[type=checkbox]{appearance:none;width:46px;height:27px;border-radius:99px;background:var(--rule);
+  flex:none;position:relative;transition:background .2s;cursor:pointer}
+#ilreste .bascule-calc input[type=checkbox]::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;
+  border-radius:50%;background:var(--surface);transition:transform .2s}
+#ilreste .bascule-calc input[type=checkbox]:checked{background:var(--moi)}
+#ilreste .bascule-calc input[type=checkbox]:checked::after{transform:translateX(19px)}
+
+#ilreste .resultat-calc{margin-top:22px;background:var(--surface);border:1px solid var(--rule);border-radius:18px;padding:26px 22px}
+#ilreste .cap-calc{margin:0;font-size:15px;font-weight:600;color:var(--ink-faint)}
+#ilreste .net-calc{margin:6px 0 20px;font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:clamp(34px,8vw,46px);
+  font-weight:600;color:var(--moi);letter-spacing:-.02em}
+#ilreste .detail-calc{display:flex;flex-direction:column;border-top:1px solid var(--rule)}
+#ilreste .detail-calc div{display:flex;align-items:baseline;justify-content:space-between;gap:14px;
+  padding:13px 0;border-bottom:1px solid var(--rule);font-size:15.5px;color:var(--ink-soft)}
+#ilreste .detail-calc div b{font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:600;color:var(--ink);white-space:nowrap}
+#ilreste .detail-calc small{display:block;font-size:13px;color:var(--ink-faint);margin-top:2px}
+#ilreste .detail-calc div.total{border-bottom:0;font-weight:700;color:var(--ink)}
+#ilreste .note-calc{margin:16px 0 0;font-size:13.5px;color:var(--ink-faint)}
+@media(max-width:520px){
+  #ilreste .choix-calc{grid-template-columns:1fr}
+  #ilreste .bascule-calc{flex-wrap:wrap;gap:10px}
+  #ilreste .bascule-calc .txt-parts{flex:1 1 100%}
+  #ilreste .bascule-calc select{margin-left:0;width:100%}
+}
+
 /* ── pour vivre à l'intérieur de Cadence ── */
 #ilreste{display:block;background:transparent!important;padding-bottom:104px}
 #ilreste .enveloppe,#ilreste .wrap,#ilreste main{min-height:0;max-width:none}
@@ -1252,6 +1291,47 @@ summary.carte-tete:hover h2{color:var(--v1)}
     <button id="tab-argent"   role="tab" aria-selected="true">Mon argent</button>
     <button id="tab-factures" role="tab" aria-selected="false">Mes factures<span class="pastille" id="pastille" hidden>0</span></button>
     <button id="tab-livre"    role="tab" aria-selected="false">Mes rentrées</button>
+    <button id="tab-calculs"  role="tab" aria-selected="false">Calculs</button>
+  </div>
+
+  <!-- ============ CALCULS ============ -->
+  <div class="panel noprint" id="p-calculs" role="tabpanel" hidden>
+
+    <div class="carte-calc">
+      <label class="ligne-calc" for="calc-montant">
+        <span>J'encaisse dans l'année</span>
+        <input id="calc-montant" type="number" min="0" step="any" inputmode="decimal" placeholder="40 000">
+      </label>
+
+      <div class="choix-calc" id="calc-statut" role="radiogroup" aria-label="Votre statut">
+        <button data-st="vente"    aria-pressed="false">Micro — vente</button>
+        <button data-st="services" aria-pressed="true">Micro — services</button>
+        <button data-st="liberal"  aria-pressed="false">Micro — libéral</button>
+        <button data-st="societe"  aria-pressed="false">Société à l'IS</button>
+      </div>
+
+      <label class="bascule-calc" id="ligne-lib">
+        <input type="checkbox" id="calc-lib">
+        <span>Versement libératoire de l'impôt</span>
+      </label>
+      <label class="bascule-calc" id="ligne-parts">
+        <span class="txt-parts">Parts fiscales du foyer</span>
+        <select id="calc-parts">
+          <option value="1">1 — seul</option>
+          <option value="2">2 — couple</option>
+          <option value="2.5">2,5 — couple, 1 enfant</option>
+          <option value="3">3 — couple, 2 enfants</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="resultat-calc" id="calc-sortie" hidden>
+      <p class="cap-calc">Il vous restera</p>
+      <p class="net-calc" id="calc-net">—</p>
+      <div class="detail-calc" id="calc-detail"></div>
+      <p class="note-calc">Estimation d'après le barème 2026. Elle ne remplace pas votre comptable.</p>
+    </div>
+
   </div>
 
   <!-- ============ MON ARGENT ============ -->
@@ -4734,7 +4814,7 @@ function rendreReglages(){
 function toutRendre(){ rendreReglages(); rendreLivre(); rendreFactures(); rendreBrouillon(); rendreObjectif(); rendreArgent(); }
 
 /* ---------- onglets ---------- */
-var ONGLETS=[["argent","p-argent"],["factures","p-factures"],["livre","p-livre"]];
+var ONGLETS=[["argent","p-argent"],["factures","p-factures"],["livre","p-livre"],["calculs","p-calculs"]];
 function onglet(n){
   ONGLETS.forEach(function(p){
     $("tab-"+p[0]).setAttribute("aria-selected",p[0]===n);
@@ -4744,6 +4824,99 @@ function onglet(n){
 }
 ONGLETS.forEach(function(p){ $("tab-"+p[0]).addEventListener("click",function(){ onglet(p[0]); }); });
 function sauver(){ try{ localStorage.setItem("itrc5",JSON.stringify(etat)); }catch(e){} }
+
+/* ---------- calculs : ce que l'État prendra ----------
+   Barème de l'impôt sur le revenu 2026, abattements et cotisations de la
+   micro-entreprise, impôt sur les sociétés. Chiffres officiels. */
+var BAREME = [
+  {plafond: 11497,  taux: 0},
+  {plafond: 29315,  taux: 11},
+  {plafond: 83823,  taux: 30},
+  {plafond: 180294, taux: 41},
+  {plafond: null,   taux: 45}
+];
+var DECOTE_SEUL = 889, DECOTE_COUPLE = 1470, DECOTE_TAUX = 45.25;
+var IS_REDUIT = 15, IS_SEUIL = 42500, IS_PLEIN = 25;
+var STATUTS = {
+  vente:    {nom: "Micro — vente de marchandises", abat: 71, cotis: 12.3, liber: 1.0, plafond: 188700, tva: 85000},
+  services: {nom: "Micro — prestations de services", abat: 50, cotis: 21.2, liber: 1.7, plafond: 77700, tva: 37500},
+  liberal:  {nom: "Micro — profession libérale", abat: 34, cotis: 24.6, liber: 2.2, plafond: 77700, tva: 37500}
+};
+
+/* impôt d'après le barème, par tranches successives */
+function impotBareme(revenu, parts){
+  var q = revenu / parts, du = 0, bas = 0;
+  for (var i = 0; i < BAREME.length; i++){
+    var t = BAREME[i], haut = t.plafond === null ? Infinity : t.plafond;
+    if (q > bas) du += (Math.min(q, haut) - bas) * t.taux / 100;
+    bas = haut;
+    if (q <= haut) break;
+  }
+  du *= parts;
+  /* décote : elle allège les petits impôts */
+  var seuil = parts >= 2 ? DECOTE_COUPLE : DECOTE_SEUL;
+  if (du > 0 && du < seuil / (DECOTE_TAUX / 100)){
+    du = Math.max(0, du - Math.max(0, seuil - du * DECOTE_TAUX / 100));
+  }
+  return Math.max(0, du);
+}
+
+function calculer(){
+  var ca = Number($("calc-montant").value) || 0;
+  var st = etat.calcStatut || "services";
+  var parts = Number($("calc-parts").value) || 1;
+  var lib = $("calc-lib").checked;
+  var sortie = $("calc-sortie");
+  if (ca <= 0){ sortie.hidden = true; return; }
+  sortie.hidden = false;
+
+  var lignes = [], net = 0, ligne = function(lab, val, sous){
+    lignes.push('<div><span>' + lab + (sous ? '<small>' + sous + '</small>' : '') + '</span><b>' + eur.format(val) + '</b></div>');
+  };
+
+  if (st === "societe"){
+    var benef = ca;
+    var isDu = benef <= IS_SEUIL
+      ? benef * IS_REDUIT / 100
+      : IS_SEUIL * IS_REDUIT / 100 + (benef - IS_SEUIL) * IS_PLEIN / 100;
+    net = benef - isDu;
+    ligne("Bénéfice", benef);
+    ligne("Impôt sur les sociétés", -isDu,
+      benef <= IS_SEUIL ? IS_REDUIT + " % (taux réduit)"
+        : IS_REDUIT + " % jusqu'à " + eur.format(IS_SEUIL) + ", puis " + IS_PLEIN + " %");
+    lignes.push('<div class="total"><span>Il reste dans la société</span><b>' + eur.format(net) + '</b></div>');
+  } else {
+    var r = STATUTS[st] || STATUTS.services;
+    var cotis = ca * r.cotis / 100;
+    var imposable = ca * (100 - r.abat) / 100;
+    var ir = lib ? ca * r.liber / 100 : impotBareme(imposable, parts);
+    net = ca - cotis - ir;
+    ligne("Ce que vous encaissez", ca);
+    ligne("Cotisations sociales", -cotis, r.cotis + " % du chiffre d'affaires");
+    ligne("Impôt sur le revenu", -ir, lib
+      ? "versement libératoire, " + r.liber + " %"
+      : "barème, après abattement de " + r.abat + " % — base " + eur.format(imposable));
+    lignes.push('<div class="total"><span>Il vous reste</span><b>' + eur.format(net) + '</b></div>');
+    if (ca > r.tva) lignes.push('<div><span style="color:var(--chaud)">Vous dépassez ' + eur.format(r.tva) + ' : la TVA devient obligatoire.</span><b></b></div>');
+    if (ca > r.plafond) lignes.push('<div><span style="color:var(--chaud)">Vous dépassez ' + eur.format(r.plafond) + ' : vous sortez de la micro-entreprise.</span><b></b></div>');
+  }
+
+  $("calc-net").textContent = eur.format(net);
+  $("calc-detail").innerHTML = lignes.join("");
+}
+
+function majStatutCalc(){
+  var st = etat.calcStatut || "services";
+  var boutons = $("calc-statut").querySelectorAll("button");
+  for (var i = 0; i < boutons.length; i++){
+    boutons[i].setAttribute("aria-pressed", boutons[i].getAttribute("data-st") === st);
+  }
+  $("ligne-lib").hidden = st === "societe";
+  $("ligne-parts").hidden = st === "societe" || $("calc-lib").checked;
+  calculer();
+}
+
+
 
 /* ---------- rentrées ---------- */
 function ouvrirRentree(pre){
@@ -4849,6 +5022,19 @@ try{
 }catch(e){}
 toutRendre();
 onglet(etat.onglet||"argent");
+
+/* les calculs, une fois que etat existe */
+$("calc-statut").addEventListener("click", function(e){
+  var b = e.target.closest("button[data-st]");
+  if (!b) return;
+  etat.calcStatut = b.getAttribute("data-st");
+  sauver();
+  majStatutCalc();
+});
+$("calc-montant").addEventListener("input", calculer);
+$("calc-parts").addEventListener("change", calculer);
+$("calc-lib").addEventListener("change", majStatutCalc);
+majStatutCalc();
 
 })();
 
