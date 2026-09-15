@@ -157,7 +157,9 @@ h1,h2,h3,p{margin:0}
 .coche:checked{background:var(--ok);border-color:var(--ok)}
 .coche:checked::after{transform:rotate(-45deg) scale(1)}
 .t-corps{min-width:0;flex:1;display:flex;flex-direction:column;gap:6px}
-.t-titre{font-size:16.5px;font-weight:600;overflow-wrap:anywhere;cursor:pointer;transition:color .25s}
+.t-titre{font-size:16.5px;font-weight:600;overflow-wrap:anywhere;transition:color .25s}
+[data-modif]{cursor:pointer;border-radius:10px}
+[data-modif]:hover .t-titre,[data-modif]:hover .r-titre{color:var(--v1)}
 .t-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:13.5px;color:var(--ink-3)}
 .t.ok .t-titre{color:var(--ink-3);font-weight:400;text-decoration:line-through}
 .sup{opacity:.3;background:none;border:0;color:var(--ink-3);padding:6px 8px;border-radius:10px;font-size:14px;line-height:1;transition:opacity .15s,color .15s,background .15s;flex:none}
@@ -416,7 +418,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 .demo button{margin-left:auto;border:0;background:var(--surface-3);color:var(--ink-2);padding:8px 16px;border-radius:999px;font-size:14px;font-weight:700;white-space:nowrap;transition:background .18s,color .18s}
 .demo button:hover{background:var(--deg-pale);color:var(--v1)}
 .demo button[data-arme="1"]{background:var(--tard);color:#fff}
-.pied{text-align:center;font-size:13px;color:var(--ink-3);padding:6px 10px 0;display:flex;align-items:center;justify-content:center;gap:8px}
+.pied{text-align:center;font-size:13px;color:var(--ink-3);padding:8px 10px 0;display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap}
 .pied i{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
 .pied button{border:0;background:var(--surface);color:var(--ink-2);padding:6px 14px;border-radius:999px;font-size:13px;font-weight:700;box-shadow:var(--o1);transition:color .18s}
 .pied button:hover{color:var(--v1)}
@@ -667,7 +669,8 @@ function ligneTache(t, ctx){
     + et;
   return '<div class="t' + (t.fait ? " ok" : "") + '">'
     + '<input type="checkbox" class="coche" id="k-' + h(t.id) + '" data-tache="' + h(t.id) + '"' + (t.fait ? " checked" : "") + ' aria-label="Terminer : ' + h(t.titre) + '">'
-    + '<span class="t-corps"><label class="t-titre" for="k-' + h(t.id) + '">' + h(t.titre) + "</label>"
+    + '<span class="t-corps" data-modif="tache" data-id="' + h(t.id) + '" role="button" tabindex="0">'
+    + '<span class="t-titre">' + h(t.titre) + "</span>"
     + (meta ? '<span class="t-meta">' + meta + "</span>" : "") + "</span>"
     + '<button class="sup" data-sup="taches" data-id="' + h(t.id) + '"><span class="mot">Supprimer</span></button></div>';
 }
@@ -846,9 +849,12 @@ function rangeeFacture(f, chezLui){
   }[st];
   return '<div class="r"><span class="pastille ' + e[1] + '">'
     + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' + ico + "</svg></span>"
-    + '<span class="r-corps"><span class="r-titre">' + (chezLui ? h(f.ref || "Facture") : h(f.client)) + "</span>"
+    + '<span class="r-corps" data-modif="facture" data-id="' + h(f.id) + '" role="button" tabindex="0">'
+    + '<span class="r-titre">' + (chezLui ? h(f.ref || "Facture") : h(f.client)) + "</span>"
     + '<span class="r-meta">' + (chezLui ? "" : '<span class="ref">' + h(f.ref || "") + "</span>")
-    + '<span class="etiq ' + e[1] + '">' + e[0] + "</span><span>" + quand + "</span></span></span>"
+    + '<span class="etiq ' + e[1] + '">' + e[0] + "</span>"
+    + (f.objet ? "<span>" + h(f.objet) + "</span>" : "")
+    + "<span>" + quand + "</span></span></span>"
     + '<span class="r-som' + (st === "payee" ? " paye" : "") + '">' + eur(f.montant) + "</span>"
     + '<button class="pdf" data-pdf="' + h(f.id) + '" title="Télécharger la facture en PDF">'
     + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
@@ -907,7 +913,8 @@ function rangeeSortie(o, col){
     ? '<path d="M6 8.5h12l-1.2 11H7.2Z"/><path d="M9 8.5V7a3 3 0 0 1 6 0v1.5"/>'
     : '<path d="M14.5 5.5a4 4 0 0 0-5.3 5.3L4 16l2.2 2.2 5.2-5.2a4 4 0 0 0 5.3-5.3l-2.4 2.4-2-2Z"/>';
   return '<div class="r"><span class="pastille att"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' + ico + "</svg></span>"
-    + '<span class="r-corps"><span class="r-titre">' + h(o.libelle) + "</span>"
+    + '<span class="r-corps" data-modif="' + (col === "depenses" ? "depense" : "investissement") + '" data-id="' + h(o.id) + '" role="button" tabindex="0">'
+    + '<span class="r-titre">' + h(o.libelle) + "</span>"
     + '<span class="r-meta"><span>le ' + jour(o.date) + "</span></span></span>"
     + '<span class="r-som">' + eur(o.montant) + "</span>"
     + '<button class="sup" data-sup="' + col + '" data-id="' + h(o.id) + '"><span class="mot">Supprimer</span></button></div>';
@@ -1083,8 +1090,69 @@ function demo(){
   return '<p class="pied"><i class="' + (stockOk ? "" : "ko") + '"></i>'
     + (stockOk ? "Tout est gardé dans ce navigateur, sur cet appareil."
                : "Ce navigateur bloque l'enregistrement : tout disparaîtra en fermant l'onglet.")
-    + (n ? ' · données d\'exemple <button data-demo="1">Repartir de zéro</button>' : "")
+    + ' <button data-sauver="1">Enregistrer une copie</button>'
+    + ' <button data-restaurer="1">Restaurer</button>'
+    + (n ? ' <button data-demo="1">Effacer les exemples</button>' : "")
     + "</p>";
+}
+
+/* ═══ emporter ses données ailleurs ═══ */
+async function exporterTout(){
+  const paquet = {application: "Cadence", version: 1, date: new Date().toISOString()};
+  COLS.forEach(c => { paquet[c] = state[c]; });
+  paquet.moi = state.moi;
+  paquet.rituel = state.rituel;
+  paquet.serie = state.serie;
+  const texte = JSON.stringify(paquet, null, 1);
+  const nom = "cadence-" + auj() + ".json";
+
+  if(window.claude && window.claude.use){
+    const dl = await window.claude.use("downloads").catch(() => null);
+    if(!dl){ bulle("Enregistrement indisponible ici"); return; }
+    try{
+      await dl.save({filename: nom, data: texte});
+      bulle("Copie enregistrée");
+    }catch(e){
+      bulle(e && e.code === "declined" ? "Enregistrement annulé" : "Enregistrement impossible");
+    }
+    return;
+  }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([texte], {type: "application/json"}));
+  a.download = nom;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  bulle("Copie enregistrée");
+}
+
+function importerTout(){
+  const ch = document.createElement("input");
+  ch.type = "file";
+  ch.accept = "application/json,.json";
+  ch.addEventListener("change", () => {
+    const fichier = ch.files && ch.files[0];
+    if(!fichier) return;
+    const lecteur = new FileReader();
+    lecteur.onload = () => {
+      let d = null;
+      try{ d = JSON.parse(lecteur.result); }catch(e){}
+      if(!d || typeof d !== "object" || d.application !== "Cadence"){
+        bulle("Ce fichier n'est pas une copie de Cadence");
+        return;
+      }
+      COLS.forEach(c => { state[c] = d[c] && typeof d[c] === "object" ? d[c] : {}; });
+      if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0}, d.moi);
+      if(d.rituel) state.rituel = d.rituel;
+      if(d.serie) state.serie = d.serie;
+      clientOuvert = null;
+      sauver(); memoire.clear(); animer = true; rendre();
+      let total = 0;
+      COLS.forEach(c => { total += Object.keys(state[c]).length; });
+      bulle(total + " fiche" + (total > 1 ? "s" : "") + " restaurée" + (total > 1 ? "s" : ""));
+    };
+    lecteur.readAsText(fichier);
+  });
+  ch.click();
 }
 
 const RENDU = {afaire: vueAfaire, argent: vueArgent, clients: vueClients, budget: vueBudget};
@@ -1240,31 +1308,40 @@ const TYPES_VUE = {afaire: TOUS_TYPES, argent: TOUS_TYPES, clients: TOUS_TYPES, 
 const TYPE_DEFAUT = {afaire: "tache", argent: "facture", clients: "client"};
 function typeDefaut(){ return vue === "budget" ? (filtreB === "depenses" ? "depense" : "investissement") : TYPE_DEFAUT[vue]; }
 const NOM_TYPE = {tache: "Tâche", facture: "Facture", client: "Client", depense: "Dépense", investissement: "Investissement", moi: "Vous"};
-let typeActif = "tache", dernierFocus = null, apresFeuille = null;
+let typeActif = "tache", dernierFocus = null, apresFeuille = null, enModif = null, minuteurFeuille = null;
 
-function ouvrir(type, prerempli, ensuite){
+function ouvrir(type, prerempli, ensuite, modifId){
   apresFeuille = ensuite || null;
+  enModif = modifId || null;
   typeActif = type;
   const modele = CHAMPS[type]();
   const groupe = TYPES_VUE[vue] || TOUS_TYPES;
-  const choix = groupe.indexOf(type) === -1 ? [] : groupe;
+  const choix = (enModif || groupe.indexOf(type) === -1) ? [] : groupe;
   const f = $("#feuille");
   if($("#feuille").hidden) dernierFocus = document.activeElement;
   f.innerHTML = '<div class="poignee"></div>'
-    + '<div class="feuille-tete"><h2 id="feuille-titre">' + modele.titre + "</h2>"
+    + '<div class="feuille-tete"><h2 id="feuille-titre">' + (enModif ? "Modifier" : modele.titre) + "</h2>"
     + '<button class="fermer" id="x" aria-label="Fermer">×</button></div>'
     + (choix.length > 1 ? '<div class="segments" style="margin:0 22px 6px">' + choix.map(t =>
         '<button type="button" data-type="' + t + '" aria-pressed="' + (t === type) + '">' + NOM_TYPE[t] + "</button>").join("") + "</div>" : "")
     + '<form id="form">' + modele.html
     + '<datalist id="lc">' + liste("clients").map(c => '<option value="' + h(c.nom) + '">').join("") + "</datalist>"
-    + '<button class="valider" type="submit">Ajouter</button></form>';
+    + '<button class="valider" type="submit">' + (enModif ? "Enregistrer" : "Ajouter") + "</button></form>";
+  clearTimeout(minuteurFeuille);
   f.hidden = false; $("#voile").hidden = false;
   requestAnimationFrame(() => { f.classList.add("on"); $("#voile").classList.add("on"); });
   if(prerempli){
     Object.keys(prerempli).forEach(k => {
+      const radios = f.querySelectorAll('[name="' + k + '"][type="radio"]');
+      if(radios.length){
+        radios.forEach(r => { r.checked = String(r.value) === String(prerempli[k]); });
+        return;
+      }
       const champ = f.querySelector('[name="' + k + '"]');
       if(champ) champ.value = prerempli[k];
     });
+    const libre = f.querySelector(".date-libre");
+    if(libre && f.querySelector('[name="quand"][value="x"]:checked')) libre.hidden = false;
   }
   setTimeout(() => {
     const vide = f.querySelector("input:not([type=radio]):placeholder-shown") || f.querySelector("#f1");
@@ -1272,10 +1349,24 @@ function ouvrir(type, prerempli, ensuite){
   }, 340);
 }
 function fermer(){
+  enModif = null;
   const f = $("#feuille"), v = $("#voile");
   f.classList.remove("on"); v.classList.remove("on");
-  setTimeout(() => { f.hidden = true; v.hidden = true; }, 380);
+  clearTimeout(minuteurFeuille);
+  minuteurFeuille = setTimeout(() => { f.hidden = true; v.hidden = true; }, 380);
   if(dernierFocus && dernierFocus.isConnected) dernierFocus.focus({preventScroll: true});
+}
+
+const COL_TYPE = {tache: "taches", facture: "factures", client: "clients",
+  depense: "depenses", investissement: "investissements"};
+
+function modifier(type, id){
+  const o = state[COL_TYPE[type]] && state[COL_TYPE[type]][id];
+  if(!o) return;
+  const champs = {};
+  Object.keys(o).forEach(k => { if(o[k] !== null && typeof o[k] !== "object") champs[k] = o[k]; });
+  if(type === "tache") champs.quand = "x";
+  ouvrir(type, champs, null, id);
 }
 
 function noter(id){
@@ -1338,6 +1429,8 @@ function armer(b){
 $("#vue").addEventListener("click", e => {
   const b = e.target.closest("button");
   if(!b){
+    const cible = e.target.closest("[data-modif]");
+    if(cible){ modifier(cible.dataset.modif, cible.dataset.id); return; }
     const carte = e.target.closest("[data-client]");
     if(carte){
       clientOuvert = carte.dataset.client;
@@ -1352,7 +1445,11 @@ $("#vue").addEventListener("click", e => {
   }
   if(b.dataset.retour){ clientOuvert = null; animer = true; memoire.clear(); rendre(); window.scrollTo({top: 0}); return; }
   if(b.dataset.ajoutNote){ noter(b.dataset.ajoutNote); return; }
-  if(b.dataset.facturer){ ouvrir("facture", {client: b.dataset.facturer}); return; }
+  if(b.dataset.facturer){
+    const cl = liste("clients").find(x => x.nom === b.dataset.facturer);
+    ouvrir("facture", {client: b.dataset.facturer, objet: (cl && cl.projet) || ""});
+    return;
+  }
   if(b.dataset.pdf){ telechargerFacture(b.dataset.pdf); return; }
   if(b.dataset.moi){ ouvrir("moi"); return; }
   if(b.dataset.note){
@@ -1384,6 +1481,12 @@ $("#vue").addEventListener("click", e => {
     bulle("Encaissement noté");
     return;
   }
+  if(b.dataset.sauver){ exporterTout(); return; }
+  if(b.dataset.restaurer){
+    if(!armer(b)) return;
+    importerTout();
+    return;
+  }
   if(b.dataset.demo){
     if(!armer(b)) return;
     COLS.forEach(c => liste(c).filter(o => o.exemple).forEach(o => { delete state[c][o.id]; }));
@@ -1402,6 +1505,9 @@ $("#vue").addEventListener("toggle", e => {
 }, true);
 
 $("#vue").addEventListener("keydown", e => {
+  if((e.key === "Enter" || e.key === " ") && e.target.dataset && e.target.dataset.modif){
+    e.preventDefault(); modifier(e.target.dataset.modif, e.target.dataset.id); return;
+  }
   if(e.key === "Enter" && e.target.id === "vite"){ e.preventDefault(); ajoutVite(); }
   if(e.key === "Enter" && (e.metaKey || e.ctrlKey) && e.target.dataset.notePour){
     e.preventDefault(); noter(e.target.dataset.notePour);
@@ -1470,38 +1576,51 @@ $("#feuille").addEventListener("submit", e => {
   e.preventDefault();
   const d = {}, fd = new FormData(e.target);
   fd.forEach((v, k) => { d[k] = v; });
-  const id = neuf();
+  /* modifier une fiche, c'est réécrire la même : on garde ce que le formulaire ne montre pas */
+  const id = enModif || neuf();
+  const col = COL_TYPE[typeActif];
+  const garder = (enModif && col && state[col][enModif]) ? Object.assign({}, state[col][enModif]) : {};
+  const mot = enModif ? "Modifié" : null;
+
   if(typeActif === "tache"){
     if(!String(d.titre || "").trim()) return;
     let ech = d.echeance || auj();
     if(d.quand && d.quand !== "x") ech = dans(Number(d.quand));
-    ecrire("taches", id, {titre: String(d.titre).trim(), client: String(d.client || "").trim(),
-      priorite: d.priorite || "normale", echeance: ech, fait: false});
-    bulle("Tâche ajoutée");
+    ecrire("taches", id, Object.assign(garder, {titre: String(d.titre).trim(),
+      client: String(d.client || "").trim(), priorite: d.priorite || "normale",
+      echeance: ech, fait: !!garder.fait}));
+    bulle(mot || "Tâche ajoutée");
   }else if(typeActif === "client"){
-    ecrire("clients", id, {nom: String(d.nom).trim(), projet: String(d.projet || "").trim(),
-      contact: String(d.contact || "").trim(), statut: d.statut || "actif"});
-    bulle("Client ajouté");
+    ecrire("clients", id, Object.assign(garder, {nom: String(d.nom).trim(),
+      projet: String(d.projet || "").trim(), contact: String(d.contact || "").trim(),
+      statut: d.statut || "actif"}));
+    bulle(mot || "Client ajouté");
   }else if(typeActif === "facture"){
-    ecrire("factures", id, {ref: String(d.ref || "").trim() || refSuivante(), client: String(d.client).trim(),
-      objet: String(d.objet || "").trim(), montant: Number(d.montant) || 0, emise: auj(),
-      echeance: d.echeance || dans(30), statut: d.statut || "envoyee"});
+    ecrire("factures", id, Object.assign(garder, {
+      ref: String(d.ref || "").trim() || refSuivante(), client: String(d.client).trim(),
+      objet: String(d.objet || "").trim(), montant: Number(d.montant) || 0,
+      emise: garder.emise || auj(), echeance: d.echeance || dans(30),
+      statut: d.statut || "envoyee"}));
+    const etaitModif = !!enModif;
+    enModif = null;
     fermer();
-    telechargerFacture(id);
+    if(etaitModif) bulle("Modifié"); else telechargerFacture(id);
     return;
   }else if(typeActif === "moi"){
     state.moi = {nom: String(d.nom).trim(), adresse: String(d.adresse || "").trim(),
       siret: String(d.siret || "").trim(), email: String(d.email || "").trim(), tva: Number(d.tva) || 0};
     sauver(); rendre();
     bulle("C'est enregistré");
+    enModif = null;
     fermer();
     if(apresFeuille){ const suite = apresFeuille; apresFeuille = null; setTimeout(suite, 420); }
     return;
   }else if(typeActif === "depense" || typeActif === "investissement"){
-    ecrire(typeActif === "depense" ? "depenses" : "investissements", id,
-      {libelle: String(d.libelle).trim(), montant: Number(d.montant) || 0, date: d.date || auj()});
-    bulle(typeActif === "depense" ? "Dépense notée" : "Investissement noté");
+    ecrire(col, id, Object.assign(garder, {libelle: String(d.libelle).trim(),
+      montant: Number(d.montant) || 0, date: d.date || auj()}));
+    bulle(mot || (typeActif === "depense" ? "Dépense notée" : "Investissement noté"));
   }
+  enModif = null;
   fermer();
 });
 
