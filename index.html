@@ -445,6 +445,7 @@ const state = {
 let vue = "afaire";
 let filtreT = "afaire";
 let filtreF = "encaisser";
+let filtreB = "depenses";
 const memoire = new Map();
 let stockOk = true;
 let animer = true;
@@ -769,26 +770,29 @@ function vueBudget(){
   const totDep = somme(dep.filter(cetteAnnee)), totInv = somme(inv.filter(cetteAnnee));
   const reste = ca - totDep - totInv;
 
+  const surDep = filtreB === "depenses";
+  const vis = surDep ? dep : inv;
+  const libs = [["depenses", "Dépenses"], ["investissements", "Investissements"]];
+  const vide = surDep
+    ? '<p class="vide"><b>Aucune dépense</b>Loyer, matières, essence : notez-les au fil de l\'eau.</p>'
+    : '<p class="vide"><b>Aucun investissement</b>Une machine, un véhicule : ce qui vous sert des années.</p>';
+
   return '<section class="carte anim"><div class="mois" style="padding-top:22px">'
     + '<p class="heros-lab">Cette année, il vous reste</p>'
     + '<p class="heros-val' + (reste < 0 ? " negatif" : "") + '" data-compte="reste" data-val="' + reste + '">' + eur(reste) + "</p>"
     + '<div class="bilan">'
-    + '<div class="bl"><span>Chiffre d\'affaires</span><b class="plus">+ ' + eur(ca) + "</b></div>"
+    + '<div class="bl"><span>Ce qui rentre</span><b class="plus">+ ' + eur(ca) + "</b></div>"
     + '<div class="bl"><span>Dépenses</span><b>− ' + eur(totDep) + "</b></div>"
     + '<div class="bl"><span>Investissements</span><b>− ' + eur(totInv) + "</b></div>"
     + "</div></div></section>"
 
-    + '<section class="carte anim" style="animation-delay:.06s"><div class="carte-tete"><h2>Dépenses</h2>'
-    + '<span class="appoint">' + eur(totDep) + " cette année</span></div>"
-    + (dep.length ? dep.map(o => rangeeSortie(o, "depenses")).join("")
-       : '<p class="vide"><b>Aucune dépense</b>Loyer, matières, essence : notez-les au fil de l\'eau.</p>')
-    + '<button class="ajout-ligne" data-feuille="depense"><span class="rond"></span>Ajouter une dépense</button></section>'
-
-    + '<section class="carte anim" style="animation-delay:.1s"><div class="carte-tete"><h2>Investissements</h2>'
-    + '<span class="appoint">' + eur(totInv) + " cette année</span></div>"
-    + (inv.length ? inv.map(o => rangeeSortie(o, "investissements")).join("")
-       : '<p class="vide"><b>Aucun investissement</b>Une machine, un véhicule, un logiciel : ce qui vous sert longtemps.</p>')
-    + '<button class="ajout-ligne" data-feuille="investissement"><span class="rond"></span>Ajouter un investissement</button></section>'
+    + '<section class="carte anim" style="animation-delay:.06s"><div class="carte-tete"><h2>Ce qui sort</h2>'
+    + '<span class="appoint">' + eur(surDep ? totDep : totInv) + " cette année</span></div>"
+    + '<div class="segments">' + libs.map(kv =>
+        '<button data-fb="' + kv[0] + '" aria-pressed="' + (filtreB === kv[0]) + '">' + kv[1] + "</button>").join("") + "</div>"
+    + (vis.length ? vis.map(o => rangeeSortie(o, surDep ? "depenses" : "investissements")).join("") : vide)
+    + '<button class="ajout-ligne" data-feuille="' + (surDep ? "depense" : "investissement") + '"><span class="rond"></span>'
+    + (surDep ? "Ajouter une dépense" : "Ajouter un investissement") + "</button></section>"
     + demo();
 }
 
@@ -934,7 +938,8 @@ function formSortie(ex){
 }
 const TOUS_TYPES = ["tache", "facture", "client"];
 const TYPES_VUE = {afaire: TOUS_TYPES, argent: TOUS_TYPES, clients: TOUS_TYPES, budget: ["depense", "investissement"]};
-const TYPE_DEFAUT = {afaire: "tache", argent: "facture", clients: "client", budget: "depense"};
+const TYPE_DEFAUT = {afaire: "tache", argent: "facture", clients: "client"};
+function typeDefaut(){ return vue === "budget" ? (filtreB === "depenses" ? "depense" : "investissement") : TYPE_DEFAUT[vue]; }
 const NOM_TYPE = {tache: "Tâche", facture: "Facture", client: "Client", depense: "Dépense", investissement: "Investissement"};
 let typeActif = "tache", dernierFocus = null;
 
@@ -979,7 +984,7 @@ function ajoutVite(){
 $("#nav").addEventListener("click", e => {
   const b = e.target.closest("button");
   if(!b) return;
-  if(b.id === "plus"){ ouvrir(TYPE_DEFAUT[vue]); return; }
+  if(b.id === "plus"){ ouvrir(typeDefaut()); return; }
   if(!b.dataset.vue) return;
   vue = b.dataset.vue;
   const tous = document.querySelectorAll("#nav button[data-vue]");
@@ -1027,6 +1032,7 @@ $("#vue").addEventListener("click", e => {
   if(b.dataset.premier){ ouvrir("tache"); return; }
   if(b.dataset.ft){ filtreT = b.dataset.ft; rendre(); return; }
   if(b.dataset.ff){ filtreF = b.dataset.ff; rendre(); return; }
+  if(b.dataset.fb){ filtreB = b.dataset.fb; rendre(); return; }
   if(b.dataset.paye){
     const f = state.factures[b.dataset.paye];
     if(!f) return;
