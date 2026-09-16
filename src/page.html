@@ -212,6 +212,7 @@ h1,h2,h3,p{margin:0}
 .barre-part i.moi{background:var(--v1)}
 .barre-part i.cotis{background:var(--tard)}
 .barre-part i.impot{background:var(--ink-2)}
+.barre-part i.depense{background:var(--line-fort)}
 .legende{display:flex;flex-direction:column;margin-top:18px}
 .legende div{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
 .legende div:last-child{border-bottom:0}
@@ -219,6 +220,7 @@ h1,h2,h3,p{margin:0}
 .legende .pastille-l.moi{background:var(--v1)}
 .legende .pastille-l.cotis{background:var(--tard)}
 .legende .pastille-l.impot{background:var(--ink-2)}
+.legende .pastille-l.depense{background:var(--line-fort)}
 .legende .quoi-l{flex:1;min-width:0;font-size:16px;font-weight:600}
 .legende .quoi-l small{display:block;font-size:13.5px;font-weight:400;color:var(--ink-3);margin-top:1px}
 .legende .combien-l{font-family:var(--num);font-weight:600;font-size:17px;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -1660,7 +1662,7 @@ const MOIS_LONG = ["janvier", "février", "mars", "avril", "mai", "juin", "juill
 
 const state = {
   taches: {}, clients: {}, factures: {}, depenses: {}, investissements: {},
-  moi: {nom: "", adresse: "", siret: "", email: "", tva: 0, regime: "", liberatoire: false, parts: 1},
+  moi: {nom: "", adresse: "", siret: "", email: "", tva: 0, forme: "", regime: "", liberatoire: false, parts: 1},
   rituel: {semaine: "", faits: []},
   serie: {n: 0, dernier: ""}
 };
@@ -1676,6 +1678,8 @@ let calcTouche = false;   /* vrai dès que le chiffre est saisi à la main */
    réglages d'écran : ce sont des faits vous concernant. Ils vivent donc
    dans state.moi, sont enregistrés, et tout le monde les relit là. On ne
    pose plus trois fois la même question pour obtenir trois réponses. */
+const calcForme  = () => (state.moi && FORMES[state.moi.forme]) ? state.moi.forme : "micro";
+const calcGenre  = () => FORMES[calcForme()].genre;
 const calcStatut = () => (state.moi && ACTIVITES[state.moi.regime]) ? state.moi.regime : "services";
 const calcLib    = () => !!(state.moi && state.moi.liberatoire);
 const calcParts  = () => Number(state.moi && state.moi.parts) || 1;
@@ -1786,7 +1790,14 @@ function charger(){
   if(d && typeof d === "object"){
     COLS.forEach(c => { state[c] = d[c] && typeof d[c] === "object" ? d[c] : {}; });
     if(d.rituel) state.rituel = d.rituel;
-    if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0, regime: "", liberatoire: false, parts: 1}, d.moi);
+    if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0, forme: "", regime: "", liberatoire: false, parts: 1}, d.moi);
+    /* avant, une seule question mêlait l'activité et la forme juridique :
+       « societe » voulait dire une société, le reste une micro. On traduit
+       plutôt que de faire recommencer. */
+    if(!state.moi.forme && state.moi.regime){
+      state.moi.forme = state.moi.regime === "societe" ? "sarl" : "micro";
+      if(state.moi.regime === "societe") state.moi.regime = "services";
+    }
     if(d.serie) state.serie = d.serie;
     /* d'anciennes fiches d'exemple, écrites par une version précédente,
        ne s'accordaient pas entre elles : le total encaissé ne correspondait
@@ -2426,9 +2437,38 @@ const IS_REDUIT = 15, IS_SEUIL = 42500, IS_PLEIN = 25;
 const ACTIVITES = {
   vente:    {nom: "Je vends des choses", note: "commerce, artisanat de vente", court: "Vente", formel: "Vente de marchandises", abat: 71, cotis: 12.3, liber: 1.0, plaf: 203100, tva: 85000},
   services: {nom: "Je rends des services", note: "travaux, prestations, artisanat", court: "Services", formel: "Prestations de services", abat: 50, cotis: 21.2, liber: 1.7, plaf: 83600, tva: 37500},
-  liberal:  {nom: "Je suis en libéral", note: "conseil, santé, création", court: "Libéral", formel: "Profession libérale", abat: 34, cotis: 25.6, liber: 2.2, plaf: 83600, tva: 37500},
-  societe:  {nom: "J'ai une PME", note: "SARL, SAS, EURL — impôt sur les sociétés", court: "PME", formel: "Société à l'impôt sur les sociétés", abat: 0, cotis: 0, liber: 0, plaf: 0, tva: 0}
+  liberal:  {nom: "Je suis en libéral", note: "conseil, santé, création", court: "Libéral", formel: "Profession libérale", abat: 34, cotis: 25.6, liber: 2.2, plaf: 83600, tva: 37500}
 };
+
+/* ═══ les quatre formes les plus répandues en France ═══
+   La question posée était « que faites-vous ? ». C'est maintenant « que
+   êtes-vous ? », qui est celle que les gens se posent vraiment. L'activité
+   (vendre, servir, libéral) reste nécessaire pour la micro-entreprise
+   seule : elle devient une sous-question, posée uniquement dans ce cas.
+     · micro  cotisations sur le chiffre d'affaires, abattement forfaitaire
+     · ei     cotisations puis barème, sur le bénéfice réel
+     · sarl   impôt sur les sociétés
+     · sas    impôt sur les sociétés — même calcul que la SARL tant qu'on
+              ne sait pas ce que le dirigeant se verse */
+const FORMES = {
+  micro: {nom: "Micro-entreprise", note: "auto-entrepreneur", court: "Micro",
+    formel: "Micro-entreprise", genre: "micro"},
+  ei:    {nom: "Entreprise individuelle", note: "au réel, sans société", court: "EI",
+    formel: "Entreprise individuelle au réel", genre: "ei"},
+  sarl:  {nom: "SARL / EURL", note: "impôt sur les sociétés", court: "SARL",
+    formel: "SARL ou EURL", genre: "is"},
+  sas:   {nom: "SAS / SASU", note: "impôt sur les sociétés", court: "SAS",
+    formel: "SAS ou SASU", genre: "is"}
+};
+
+/* Le seul chiffre de cette application qui ne soit pas un taux officiel.
+   Les cotisations d'un entrepreneur individuel au réel sont progressives
+   (maladie, retraite, invalidité, allocations familiales, CSG-CRDS, sur
+   une assiette que la réforme du printemps 2026 vient de redéfinir) et
+   pèsent en pratique entre 40 et 45 % du bénéfice. On retient le haut de
+   la fourchette pour ne pas faire de fausse promesse, et l'écran dit
+   « environ ». */
+const EI_COTIS = 45;
 
 const pct = v => String(v).replace(".", ",");
 
@@ -2446,25 +2486,47 @@ function impotBareme(revenu, parts){
   return Math.max(0, du);
 }
 
+function impotIS(benefice){
+  const b = Math.max(0, Number(benefice) || 0);
+  return b <= IS_SEUIL ? b * IS_REDUIT / 100
+    : IS_SEUIL * IS_REDUIT / 100 + (b - IS_SEUIL) * IS_PLEIN / 100;
+}
+
 function partageImpot(){
   const ca = Number(calcCA) || 0;
+  const f = FORMES[calcForme()];
   const a = ACTIVITES[calcStatut()] || ACTIVITES.services;
-  if(calcStatut() === "societe"){
-    /* l'impôt sur les sociétés se calcule sur le bénéfice, pas sur le
-       chiffre d'affaires. Plutôt que de poser une question de plus, on
-       retire les dépenses déjà notées dans l'application : encore une
-       fois, l'argent n'a qu'une source. */
+  const genre = f.genre;
+
+  /* Société : l'impôt porte sur le bénéfice, pas sur le chiffre
+     d'affaires. Plutôt que de poser une question de plus, on retire les
+     dépenses déjà notées dans l'application — l'argent n'a qu'une source. */
+  if(genre === "is"){
     const charges = Math.min(ca, chargesAn());
     const benef = Math.max(0, ca - charges);
-    const is = benef <= IS_SEUIL ? benef * IS_REDUIT / 100
-      : IS_SEUIL * IS_REDUIT / 100 + (benef - IS_SEUIL) * IS_PLEIN / 100;
-    return {ca: ca, act: a, cotis: 0, charges: charges, base: benef,
-      impot: is, net: ca - charges - is, societe: true};
+    const is = impotIS(benef);
+    return {ca: ca, forme: f, act: a, cotis: 0, charges: charges, base: benef,
+      impot: is, net: ca - charges - is, genre: genre, societe: true};
   }
+
+  /* Entreprise individuelle au réel : cotisations sur le bénéfice, puis
+     barème sur ce qu'il en reste — les cotisations sont déductibles. */
+  if(genre === "ei"){
+    const charges = Math.min(ca, chargesAn());
+    const benef = Math.max(0, ca - charges);
+    const cotis = benef * EI_COTIS / 100;
+    const base = Math.max(0, benef - cotis);
+    const impot = impotBareme(base, calcParts());
+    return {ca: ca, forme: f, act: a, cotis: cotis, charges: charges, base: base,
+      benef: benef, impot: impot, net: ca - charges - cotis - impot, genre: genre};
+  }
+
+  /* Micro-entreprise : tout se calcule sur le chiffre d'affaires. */
   const cotis = ca * a.cotis / 100;
   const base = ca * (100 - a.abat) / 100;
   const impot = calcLib() ? ca * a.liber / 100 : impotBareme(base, calcParts());
-  return {ca: ca, act: a, cotis: cotis, impot: impot, base: base, net: ca - cotis - impot, societe: false};
+  return {ca: ca, forme: f, act: a, cotis: cotis, impot: impot, base: base,
+    net: ca - cotis - impot, genre: genre, micro: true};
 }
 
 function vueBudget(){
@@ -2491,21 +2553,33 @@ function vueCalculs(){
     + (ca > 0 ? '<div class="reponse-c"><p class="heros-val" data-compte="calcnet" data-val="' + k.net + '">'
         + eur(k.net) + '</p><span>' + (k.societe ? "restera dans la société" : "il vous restera, une fois tout payé")
         + '</span></div>' : "")
-    + '<div class="statuts">' + Object.keys(ACTIVITES).map(cle => {
-        const a = ACTIVITES[cle];
-        return '<button data-act="' + cle + '" aria-pressed="' + (calcStatut() === cle) + '">'
-          + '<span class="rond-s"></span><span><strong>' + a.nom + "</strong><small>" + a.note + "</small></span></button>";
+    + '<div class="statuts">' + Object.keys(FORMES).map(cle => {
+        const f = FORMES[cle];
+        return '<button data-forme="' + cle + '" aria-pressed="' + (calcForme() === cle) + '">'
+          + '<span class="rond-s"></span><span><strong>' + f.nom + "</strong><small>" + f.note + "</small></span></button>";
       }).join("") + "</div>";
 
-  if(!k.societe){
+  /* Ce qui dépend de la forme, et rien d'autre. Une société n'a rien à
+     régler ici ; la micro a besoin de savoir ce qu'elle vend, parce que
+     ses cotisations en dépendent. */
+  const foyer = '<label class="ligne-c"><span>Mon foyer</span><select id="c-parts">'
+    + [[1, "Je vis seul"], [2, "En couple"], [2.5, "Couple, 1 enfant"], [3, "Couple, 2 enfants"]].map(o =>
+        '<option value="' + o[0] + '"' + (calcParts() === o[0] ? " selected" : "") + ">" + o[1] + "</option>").join("")
+    + "</select></label>";
+
+  if(k.genre === "micro"){
     out += '<div class="reglages-c">'
+      + '<label class="ligne-c"><span>Ce que je fais</span><select id="c-act">'
+      + Object.keys(ACTIVITES).map(c =>
+          '<option value="' + c + '"' + (calcStatut() === c ? " selected" : "") + ">"
+          + ACTIVITES[c].formel + "</option>").join("")
+      + "</select></label>"
       + '<label class="bascule"><input type="checkbox" id="c-lib"' + (calcLib() ? " checked" : "") + ">"
       + "<span>Je paie l'impôt en même temps que mes cotisations <em>(versement libératoire)</em></span></label>"
-      + (calcLib() ? "" : '<label class="ligne-c"><span>Mon foyer</span><select id="c-parts">'
-          + [[1, "Je vis seul"], [2, "En couple"], [2.5, "Couple, 1 enfant"], [3, "Couple, 2 enfants"]].map(o =>
-              '<option value="' + o[0] + '"' + (calcParts() === o[0] ? " selected" : "") + ">" + o[1] + "</option>").join("")
-          + "</select></label>")
+      + (calcLib() ? "" : foyer)
       + "</div>";
+  }else if(k.genre === "ei"){
+    out += '<div class="reglages-c">' + foyer + "</div>";
   }
   out += "</section>";
 
@@ -2519,25 +2593,30 @@ function vueCalculs(){
     + '<span class="appoint">sur ' + eur(ca) + "</span></div>"
     + '<div class="schema" style="padding-top:2px"><div class="barre-part">'
     + '<i class="moi" style="width:' + pc(k.net).toFixed(1) + '%"></i>'
-    + (k.cotis || k.charges ? '<i class="cotis" style="width:' + pc(k.cotis || k.charges).toFixed(1) + '%"></i>' : "")
+    + (k.charges ? '<i class="depense" style="width:' + pc(k.charges).toFixed(1) + '%"></i>' : "")
+    + (k.cotis ? '<i class="cotis" style="width:' + pc(k.cotis).toFixed(1) + '%"></i>' : "")
     + (k.impot ? '<i class="impot" style="width:' + pc(k.impot).toFixed(1) + '%"></i>' : "")
     + "</div>"
     + '<div class="legende">'
     + ligneLegende("moi", k.societe ? "Pour la société" : "Pour vous", k.societe ? "après impôt" : "une fois tout payé", k.net, part(k.net))
-    + (k.cotis ? ligneLegende("cotis", "Cotisations sociales", "retraite, santé, chômage — " + pct(k.act.cotis) + " %", k.cotis, part(k.cotis)) : "")
-    + (k.charges ? ligneLegende("cotis", "Vos dépenses", "ce que vous avez noté cette année", k.charges, part(k.charges)) : "")
+    + (k.charges ? ligneLegende("depense", "Vos dépenses", "ce que vous avez noté cette année", k.charges, part(k.charges)) : "")
+    + (k.cotis ? ligneLegende("cotis", "Cotisations sociales",
+        k.genre === "ei" ? "retraite, santé — environ " + pct(EI_COTIS) + " % de votre bénéfice"
+                         : "retraite, santé, chômage — " + pct(k.act.cotis) + " %",
+        k.cotis, part(k.cotis)) : "")
     + (k.impot ? ligneLegende("impot", k.societe ? "Impôt sur les sociétés" : "Impôt sur le revenu",
         k.societe ? ((k.base <= IS_SEUIL ? "taux réduit de 15 %" : "15 % jusqu'à " + eur(IS_SEUIL) + ", puis 25 %")
             + (k.charges ? ", sur " + eur(k.base) + " de bénéfice" : ""))
-          : (calcLib() ? "versement libératoire, " + pct(k.act.liber) + " %"
-             : "barème, calculé sur " + eur(k.base) + " après abattement de " + pct(k.act.abat) + " %"),
+          : (k.genre === "ei" ? "barème, calculé sur " + eur(k.base) + " une fois vos cotisations déduites"
+             : (calcLib() ? "versement libératoire, " + pct(k.act.liber) + " %"
+                : "barème, calculé sur " + eur(k.base) + " après abattement de " + pct(k.act.abat) + " %")),
         k.impot, part(k.impot)) : "")
     + "</div></div></section>";
 
   /* les murs, seulement s'ils sont franchis */
   const murs = [];
-  if(!k.societe && ca > k.act.tva) murs.push("Au-delà de " + eur(k.act.tva) + ", vous devez facturer la TVA à vos clients.");
-  if(!k.societe && ca > k.act.plaf) murs.push("Au-delà de " + eur(k.act.plaf) + ", vous sortez de la micro-entreprise.");
+  if(k.genre === "micro" && ca > k.act.tva) murs.push("Au-delà de " + eur(k.act.tva) + ", vous devez facturer la TVA à vos clients.");
+  if(k.genre === "micro" && ca > k.act.plaf) murs.push("Au-delà de " + eur(k.act.plaf) + ", vous sortez de la micro-entreprise.");
   if(murs.length){
     out += '<section class="carte anim" style="animation-delay:.1s">'
       + murs.map(m => '<div class="r"><span class="pastille feu">!</span><span class="r-corps"><span class="r-titre" style="font-weight:600">'
@@ -2545,9 +2624,12 @@ function vueCalculs(){
   }
 
   out += '<p class="pied" style="padding-top:2px">Chiffres 2026. C\'est une estimation : '
-    + (k.societe
+    + (k.genre === "is"
         ? "l'impôt porte sur votre bénéfice, calculé ici avec les seules dépenses que vous avez notées."
-        : "votre impôt réel dépend aussi de vos autres revenus.")
+        : k.genre === "ei"
+          ? "vos cotisations réelles dépendent de votre niveau de revenu ; on retient ici environ "
+            + pct(EI_COTIS) + " % du bénéfice."
+          : "votre impôt réel dépend aussi de vos autres revenus.")
     + "</p>";
   return out + demo();
 }
@@ -2663,7 +2745,7 @@ function ligneLegende(cls, titre, sous, montant, pourcent){
    plus aucun écran n'affichait. Le livre demande trois choses, les voici. */
 function bilanLivre(){
   const an = String(new Date().getFullYear());
-  return {an: an, regle: ACTIVITES[calcStatut()] || ACTIVITES.services,
+  return {an: an, regle: FORMES[calcForme()],
     encaisse: liste("factures")
       .filter(f => statut(f) === "payee" && String(f.emise || "").slice(0, 4) === an)
       .reduce((t, f) => t + (Number(f.montant) || 0), 0)};
@@ -2941,7 +3023,7 @@ function importerTout(){
         return;
       }
       COLS.forEach(c => { state[c] = d[c] && typeof d[c] === "object" ? d[c] : {}; });
-      if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0, regime: "", liberatoire: false, parts: 1}, d.moi);
+      if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0, forme: "", regime: "", liberatoire: false, parts: 1}, d.moi);
       if(d.rituel) state.rituel = d.rituel;
       if(d.serie) state.serie = d.serie;
       clientOuvert = null;
@@ -2999,6 +3081,12 @@ window.__CADENCE__ = {
      choix d'activité dans son coin. Deux mémoires pour un seul fait, et
      elles avaient déjà divergé. Elle lit désormais celle-ci. */
   activites: () => ACTIVITES,
+  formes: () => FORMES,
+  maForme: () => calcForme(),
+  monGenre: () => calcGenre(),
+  choisirForme: id => { if(FORMES[id]){ state.moi.forme = id; sauver(); memoire.clear(); } },
+  cotisEI: ca => Math.max(0, (Number(ca) || 0) - chargesAn()) * EI_COTIS / 100,
+  tauxEI: () => EI_COTIS,
   monActivite: () => calcStatut(),
   monVfl: () => calcLib(),
   choisirActivite: id => { if(ACTIVITES[id]){ state.moi.regime = id; sauver(); memoire.clear(); } },
@@ -3440,7 +3528,7 @@ $("#vue").addEventListener("click", e => {
   if(b.dataset.ft){ filtreT = b.dataset.ft; rendre(); return; }
   if(b.dataset.fa){ filtreA = b.dataset.fa; clientOuvert = null; memoire.clear(); rendre(); return; }
   if(b.dataset.fc){ filtreC = b.dataset.fc; memoire.clear(); rendre(); return; }
-  if(b.dataset.act){ state.moi.regime = b.dataset.act; sauver(); memoire.clear(); rendre(); return; }
+  if(b.dataset.forme){ state.moi.forme = b.dataset.forme; sauver(); memoire.clear(); rendre(); return; }
   if(b.dataset.ff){ filtreF = b.dataset.ff; rendre(); return; }
   if(b.dataset.fb){ filtreB = b.dataset.fb; rendre(); return; }
   if(b.dataset.paye){
@@ -3522,6 +3610,7 @@ $("#vue").addEventListener("change", e => {
   const t = e.target;
   if(t.id === "c-lib"){ state.moi.liberatoire = t.checked; sauver(); memoire.clear(); rendre(); return; }
   if(t.id === "c-parts"){ state.moi.parts = Number(t.value) || 1; sauver(); memoire.clear(); rendre(); return; }
+  if(t.id === "c-act"){ state.moi.regime = t.value; sauver(); memoire.clear(); rendre(); return; }
   if(t.dataset.relance){
     const f = state.factures[t.dataset.relance];
     if(!f) return;
@@ -3634,7 +3723,8 @@ $("#feuille").addEventListener("submit", e => {
       siret: String(d.siret || "").trim(), email: String(d.email || "").trim(), tva: Number(d.tva) || 0,
       /* activité, versement libératoire et foyer se règlent dans
          « Calculs » : on ne les écrase pas depuis ce formulaire. */
-      regime: state.moi.regime, liberatoire: state.moi.liberatoire, parts: state.moi.parts});
+      forme: state.moi.forme, regime: state.moi.regime,
+      liberatoire: state.moi.liberatoire, parts: state.moi.parts});
     sauver(); rendre();
     bulle("C'est enregistré");
     enModif = null;
@@ -3659,7 +3749,7 @@ charger();
 /* l'atelier de menuiserie vend des choses : c'est le bon point de départ
    pour les fiches d'exemple. Mais seulement tant que personne n'a
    répondu — sinon on écraserait son choix à chaque ouverture. */
-if(!state.moi.regime && liste("factures").some(f => f.exemple)) state.moi.regime = "vente";
+if(!state.moi.forme && liste("factures").some(f => f.exemple)){ state.moi.forme = "micro"; state.moi.regime = "vente"; }
 rendre();
 
 </script>
@@ -4857,6 +4947,12 @@ setInterval(function(){
    recopie pas. La copie qui était ici avait déjà dérivé — le libéral
    payait 25,6 % sur cet écran et 24,6 % sur celui d'à côté, et les
    plafonds dataient d'avant 2026. */
+var FORMES = (function(){
+  var t = (window.__CADENCE__ && window.__CADENCE__.formes()) || {};
+  return Object.keys(t).map(function(k){
+    return {id:k, nom:t[k].nom, court:t[k].court, desc:t[k].note, genre:t[k].genre};
+  });
+})();
 var ACTIVITES = (function(){
   var t = (window.__CADENCE__ && window.__CADENCE__.activites()) || {};
   return Object.keys(t).map(function(k){
@@ -4922,7 +5018,16 @@ function activite(){
   for(var i=0;i<ACTIVITES.length;i++) if(ACTIVITES[i].id===etat.activite) return ACTIVITES[i];
   return ACTIVITES[1];
 }
-var estPME = function(){ return activite().id === "societe"; };
+function C2(){ return window.__CADENCE__ || {tauxEI:function(){return 0;}}; }
+function genre(){ return (window.__CADENCE__ && window.__CADENCE__.monGenre()) || "micro"; }
+function forme(){
+  var id = window.__CADENCE__ ? window.__CADENCE__.maForme() : "micro";
+  for(var i=0;i<FORMES.length;i++) if(FORMES[i].id===id) return FORMES[i];
+  return FORMES[0];
+}
+var estSociete = function(){ return genre() === "is"; };
+var estEI      = function(){ return genre() === "ei"; };
+var surCA      = function(){ return genre() === "micro"; };
 function etatNeuf(){
   var d=new Date(), an=d.getFullYear();
   var il=function(j){ var x=new Date(d); x.setDate(x.getDate()-j); return iso(x); };
@@ -4946,9 +5051,10 @@ function bilan(){
   var taux=(a.cot+(etat.vfl?a.vfl:0))/100;
   /* une PME ne paie pas de cotisations sur son chiffre d'affaires : ce
      qu'elle doit, c'est l'impôt sur les sociétés, sur son bénéfice. */
-  var urssaf = a.id==="societe"
-    ? (window.__CADENCE__ ? window.__CADENCE__.impotSociete(ca) : 0)
-    : ca*taux;
+  var C = window.__CADENCE__;
+  var urssaf = estSociete() ? (C ? C.impotSociete(ca) : 0)
+             : estEI()     ? (C ? C.cotisEI(ca) : 0)
+             : ca*taux;
 
   var mois=iso(new Date()).slice(0,7);
   var encMois=cette.filter(function(r){ return String(r.date).slice(0,7)===mois; })
@@ -5004,14 +5110,17 @@ function rendreArgent(){
   roule("v-tva",eur.format(b.tva));
   roule("v-urssaf",eur.format(b.urssaf));
   $("l-tva").hidden=!etat.tva;
-  $("lbl-urssaf").textContent = estPME() ? "sur ton bénéfice"
+  $("lbl-urssaf").textContent = estSociete() ? "sur ton bénéfice"
+    : estEI() ? "environ "+String(C2().tauxEI()).replace(".",",")+" % de ton bénéfice"
     : (etat.vfl ? "retraite, maladie, et ton impôt" : "retraite, maladie");
-  $("nom-urssaf").textContent = estPME() ? "Impôt sur les sociétés" : "Cotisations";
+  $("nom-urssaf").textContent = estSociete() ? "Impôt sur les sociétés" : "Cotisations";
 
   roule("t-garde",eur.format(b.garde));
   var fin=finDuMoisProchain();
-  $("t-quand").innerHTML = estPME()
+  $("t-quand").innerHTML = estSociete()
     ? "L'impôt sur les sociétés se règle après la clôture de ton exercice, pas tous les mois."
+    : estEI()
+    ? "Tes cotisations sont appelées par l'Urssaf sur ton bénéfice de l'année, pas sur ce que tu encaisses au mois."
     : (b.encMois>0
       ? "Ce mois-ci tu as encaissé <b>"+nb(eur.format(b.encMois))+"</b>. À déclarer avant le <b>"+nb(jour(iso(fin)))+"</b> : environ <b>"+nb(eur.format(b.urssafMois))+"</b>."
       : "Rien encaissé ce mois-ci. <b>Déclare quand même "+nb("0 €")+"</b> avant le "+nb(jour(iso(fin)))+".");
@@ -5046,17 +5155,22 @@ function rendreArgent(){
     $("conc-txt").innerHTML="<b>"+nb(eur.format(b.topBrut))+"</b> vient d'un seul client. Au-dessus de "+nb("30 %")+", s'il part ou ne paie pas, tu tombes avec lui.";
   } else conc.hidden=true;
 
-  $("note-bas").innerHTML = estPME()
+  $("note-bas").innerHTML = estSociete()
     ? "<b>C'est une estimation.</b> L'impôt est calculé sur ton bénéfice, "
       + "c'est-à-dire ce que tu encaisses moins les dépenses que tu as notées ici. "
       + "Les salaires et leurs cotisations n'y sont pas."
+    : estEI()
+    ? "<b>C'est une estimation.</b> Tes cotisations réelles dépendent de ton niveau de revenu ; "
+      + "on retient ici environ "+nb(String(C2().tauxEI()).replace(".",",")+" %")+" du bénéfice. "
+      + "L'impôt sur le revenu n'est pas là-dedans."
     : ((etat.vfl
     ? "<b>Ton impôt est déjà compté</b> — le versement libératoire ajoute "+nb(String(a.vfl).replace(".",",")+" %")+" à tes cotisations. "
     : "<b>L'impôt sur le revenu n'est pas là-dedans.</b> Les "+nb(String(a.cot).replace(".",",")+" %")+" couvrent tes cotisations seulement ; l'impôt dépend de ton foyer et arrive plus tard. ")
     + "L'app ne déclare rien à ta place : la déclaration URSSAF reste à faire, <b>même à "+nb("0 €")+"</b>.");
 
-  $("sum-act").textContent = estPME() ? "PME · impôt sur les sociétés"
-    : a.court + " · " + String(a.cot).replace(".",",") + " %";
+  $("sum-act").textContent = estSociete() ? forme().court + " · impôt sur les sociétés"
+    : estEI() ? "EI · environ " + String(C2().tauxEI()).replace(".",",") + " %"
+    : forme().court + " · " + a.court + " · " + String(a.cot).replace(".",",") + " %";
   sauver();
 }
 
@@ -5168,15 +5282,29 @@ function rendreBrouillon(){
   sauver();
 }
 
+function boutonChoix(id, attr, actif, titre, sous){
+  return '<button type="button" '+attr+'="'+id+'" aria-pressed="'+actif+'">'+
+    '<span class="mark"><svg width="13" height="13" viewBox="0 0 14 14" aria-hidden="true">'+
+    '<path d="M2.5 7.5 L5.5 10.5 L11.5 3.5" fill="none" stroke="currentColor" stroke-width="2.4" '+
+    'stroke-linecap="round" stroke-linejoin="round" style="color:var(--surface)"></path></svg></span>'+
+    '<span class="txt"><b>'+esc(titre)+'</b><small>'+esc(sous)+'</small></span></button>';
+}
 function rendreReglages(){
-  $("choix-activite").innerHTML=ACTIVITES.map(function(a){
-    return '<button type="button" data-a="'+a.id+'" aria-pressed="'+(a.id===etat.activite)+'">'+
-      '<span class="mark"><svg width="13" height="13" viewBox="0 0 14 14" aria-hidden="true">'+
-      '<path d="M2.5 7.5 L5.5 10.5 L11.5 3.5" fill="none" stroke="currentColor" stroke-width="2.4" '+
-      'stroke-linecap="round" stroke-linejoin="round" style="color:var(--surface)"></path></svg></span>'+
-      '<span class="txt"><b>'+esc(a.nom)+'</b><small>'+esc(a.desc)+
-      (a.id==="societe" ? '' : ' · '+nb(String(a.cot).replace(".",",")+" %")+' de cotisations')+'</small></span></button>';
+  /* la forme d'abord ; l'activité seulement si c'est une micro, parce
+     qu'elle seule en dépend. Même question, mêmes mots que « Calculs ». */
+  var f = forme();
+  var html = FORMES.map(function(x){
+    return boutonChoix(x.id, "data-f", x.id===f.id, x.nom, x.desc);
   }).join("");
+  if(surCA()){
+    html += '<p class="note" style="margin:14px 0 6px">Ce que tu fais</p>'
+      + ACTIVITES.map(function(a){
+          return boutonChoix(a.id, "data-a", a.id===etat.activite, a.nom,
+            a.desc+' · '+String(a.cot).replace(".",",")+' % de cotisations');
+        }).join("");
+  }
+  $("choix-activite").innerHTML = html;
+  $("r-vfl").closest("label").hidden = !surCA();
   $("r-vfl").checked=!!etat.vfl; $("r-tva").checked=!!etat.tva;
 }
 
@@ -5190,6 +5318,7 @@ function synchroniser(){
   /* l'activité et le versement libératoire sont à toi, pas à cet écran :
      on les relit chez Comptabilité au lieu d'en garder une copie */
   etat.activite = C.monActivite();
+  etat.forme = C.maForme();
   etat.vfl = C.monVfl();
 }
 function toutRendre(){ rendreReglages(); rendreLivre(); rendreFactures(); rendreBrouillon(); rendreObjectif(); rendreArgent(); }
@@ -5300,9 +5429,14 @@ $("envoyer-facture").addEventListener("click",function(){
   $(p[0]).addEventListener("input",function(e){ etat.objectif[p[1]]=num(e.target.value); rendreObjectif(); });
 });
 $("choix-activite").addEventListener("click",function(e){
-  var b=e.target.closest("[data-a]"); if(!b) return;
-  etat.activite=b.getAttribute("data-a");
-  if(window.__CADENCE__) window.__CADENCE__.choisirActivite(etat.activite);
+  var b=e.target.closest("[data-a],[data-f]"); if(!b) return;
+  if(b.hasAttribute("data-f")){
+    etat.forme=b.getAttribute("data-f");
+    if(window.__CADENCE__) window.__CADENCE__.choisirForme(etat.forme);
+  }else{
+    etat.activite=b.getAttribute("data-a");
+    if(window.__CADENCE__) window.__CADENCE__.choisirActivite(etat.activite);
+  }
   rendreReglages(); rendreArgent(); rendreObjectif();
 });
 $("r-vfl").addEventListener("change",function(e){
