@@ -186,6 +186,49 @@ h1,h2,h3,p{margin:0}
 .seuil.chaud .piste-s i{background:var(--tard)}
 .seuil.franchi .reste-s{color:var(--tard)}
 
+/* ═══ le calcul, en clair ═══ */
+.saisie-gros{padding:4px 24px 24px}
+.saisie-gros label{display:block;font-size:14px;font-weight:600;color:var(--ink-3);margin-bottom:6px}
+.saisie-gros input{width:100%;border:0;border-bottom:2.5px solid var(--line);background:none;padding:8px 0;
+  font-family:var(--num);font-weight:600;font-size:clamp(34px,8.5vw,46px);letter-spacing:-.03em;
+  color:var(--ink);font-variant-numeric:tabular-nums;transition:border-color .18s}
+.saisie-gros input:focus{outline:0;border-bottom-color:var(--v1)}
+.saisie-gros input::placeholder{color:var(--ink-3)}
+
+.statuts{display:grid;gap:10px;padding:0 24px 22px}
+.statuts button{display:flex;align-items:center;gap:13px;text-align:left;border:2px solid var(--line);
+  background:var(--surface);border-radius:var(--rm);padding:15px 17px;transition:border-color .16s,background .16s}
+.statuts button .rond-s{flex:none;width:22px;height:22px;border-radius:50%;border:2.5px solid var(--line-fort);position:relative}
+.statuts button strong{display:block;font-size:16px;font-weight:700;color:var(--ink)}
+.statuts button small{display:block;font-size:13.5px;color:var(--ink-3);margin-top:1px}
+.statuts button[aria-pressed="true"]{border-color:var(--v1);background:var(--deg-pale)}
+.statuts button[aria-pressed="true"] .rond-s{border-color:var(--v1);background:var(--v1)}
+.statuts button[aria-pressed="true"] .rond-s::after{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--surface)}
+
+/* le schéma : une barre, trois morceaux */
+.schema{padding:4px 24px 24px}
+.barre-part{display:flex;height:34px;border-radius:12px;overflow:hidden;background:var(--surface-3)}
+.barre-part i{display:block;height:100%;min-width:2px;transition:width .6s var(--doux)}
+.barre-part i.moi{background:var(--v1)}
+.barre-part i.cotis{background:var(--tard)}
+.barre-part i.impot{background:var(--ink-2)}
+.legende{display:flex;flex-direction:column;margin-top:18px}
+.legende div{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
+.legende div:last-child{border-bottom:0}
+.legende .pastille-l{width:14px;height:14px;border-radius:4px;flex:none}
+.legende .pastille-l.moi{background:var(--v1)}
+.legende .pastille-l.cotis{background:var(--tard)}
+.legende .pastille-l.impot{background:var(--ink-2)}
+.legende .quoi-l{flex:1;min-width:0;font-size:16px;font-weight:600}
+.legende .quoi-l small{display:block;font-size:13.5px;font-weight:400;color:var(--ink-3);margin-top:1px}
+.legende .combien-l{font-family:var(--num);font-weight:600;font-size:17px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.legende .combien-l em{font-style:normal;font-size:13.5px;color:var(--ink-3);display:block;text-align:right;font-family:var(--ui);font-weight:600}
+
+.reglages-c{display:flex;flex-direction:column;gap:16px;padding:0 24px 24px}
+.ligne-c{display:flex;align-items:center;gap:12px;font-size:15.5px;color:var(--ink-2)}
+.ligne-c select{margin-left:auto;border:2px solid var(--line);background:var(--surface);color:var(--ink);
+  border-radius:var(--rs);padding:10px 13px;font-size:15px}
+
 /* ═══ plafond du régime ═══ */
 .plafond{padding:2px 24px 22px}
 .plafond .piste-p{height:9px;background:var(--surface-3);border-radius:999px;overflow:hidden}
@@ -1234,36 +1277,6 @@ summary.carte-tete:hover h2{color:var(--v1)}
   @page{margin:14mm}#ilreste{background:#fff;color:#111}#ilreste .page{max-width:none;padding:0;gap:0}#ilreste .noprint{display:none!important}#ilreste .apercu{border:0;border-radius:0;padding:0;font-size:12pt}#ilreste .apercu th{border-bottom:1px solid #999}#ilreste .apercu td{border-bottom:1px solid #ddd}#ilreste .mentions{color:#444;font-size:9pt;margin-top:18px}#ilreste .liste{border:0;border-radius:0}#ilreste .ligne{border-bottom:1px solid #ddd}#ilreste .ligne .sup{display:none}
 }
 
-/* ══ l'onglet Calculs ══ */
-#ilreste .big-input{border:0;background:none;width:100%;padding:4px 0;color:var(--ink);
-  font-family:"IBM Plex Mono",ui-monospace,monospace;font-size:clamp(30px,8vw,40px);font-weight:600;letter-spacing:-.01em}
-#ilreste .big-input:focus{outline:0}
-#ilreste .big-input::placeholder{color:var(--ink-faint)}
-#ilreste .choix-k{display:flex;flex-direction:column;gap:9px;margin-top:16px}
-#ilreste .choix-k > button{display:flex;align-items:center;gap:13px;width:100%;text-align:left;cursor:pointer;
-  border:2px solid var(--rule);background:var(--surface);border-radius:14px;padding:14px 16px;transition:border-color .16s,background .16s}
-#ilreste .choix-k > button .mark{flex:none;width:22px;height:22px;border-radius:50%;border:2px solid var(--rule);background:var(--surface);position:relative}
-#ilreste .choix-k > button[aria-pressed="true"]{border-color:var(--moi);background:var(--moi-bg)}
-#ilreste .choix-k > button[aria-pressed="true"] .mark{border-color:var(--moi);background:var(--moi)}
-#ilreste .choix-k > button[aria-pressed="true"] .mark::after{content:"";position:absolute;inset:4px;border-radius:50%;background:var(--surface)}
-#ilreste .choix-k > button b{display:block;font-size:16px;font-weight:600;color:var(--ink)}
-#ilreste .choix-k > button small{display:block;font-size:13px;color:var(--ink-faint);margin-top:1px}
-#ilreste .reglages-k{margin-top:18px;display:flex;flex-direction:column;gap:14px}
-#ilreste .ligne-k{display:flex;align-items:center;gap:12px;font-size:16px;color:var(--ink-soft)}
-#ilreste .ligne-k select{margin-left:auto;border:2px solid var(--rule);background:var(--surface);color:var(--ink);
-  border-radius:10px;padding:9px 12px;font-size:15px}
-#ilreste .resultat-k{margin-top:24px;border-color:var(--moi);gap:6px;padding:22px 20px}
-#ilreste .resultat-k .big{color:var(--moi);font-family:"IBM Plex Mono",ui-monospace,monospace;
-  font-size:clamp(32px,8.5vw,44px);font-weight:600;letter-spacing:-.015em;line-height:1.1}
-#ilreste .sous-k{font-size:14px;color:var(--ink-faint)}
-#ilreste .liste-k{margin-top:14px}
-#ilreste .liste-k .ligne{justify-content:space-between;align-items:baseline}
-#ilreste .liste-k .ligne:last-child{border-bottom:0}
-#ilreste .liste-k b{font-family:"IBM Plex Mono",ui-monospace,monospace;font-weight:600;white-space:nowrap}
-#ilreste .liste-k small{display:block;font-size:13px;color:var(--ink-faint);margin-top:2px}
-#ilreste .liste-k .ligne.somme{font-weight:700;color:var(--ink)}
-#ilreste .liste-k .ligne.avert{color:var(--chaud);background:var(--chaud-bg)}
-
 /* ── pour vivre à l'intérieur de Cadence ── */
 #ilreste{display:block;background:transparent!important;padding-bottom:104px}
 #ilreste .enveloppe,#ilreste .wrap,#ilreste main{min-height:0;max-width:none}
@@ -1279,50 +1292,11 @@ summary.carte-tete:hover h2{color:var(--v1)}
 
   <h1 class="noprint">Il te reste combien&nbsp;?</h1>
 
-  <div class="tabs noprint" role="tablist">
+  <div class="tabs noprint" role="tablist" hidden>
     <button id="tab-argent"   role="tab" aria-selected="true">Mon argent</button>
     <button id="tab-factures" role="tab" aria-selected="false" hidden>Mes factures<span class="pastille" id="pastille" hidden>0</span></button>
     <button id="tab-livre"    role="tab" aria-selected="false" hidden>Mes rentrées</button>
     <button id="tab-calculs"  role="tab" aria-selected="false">Calculs</button>
-  </div>
-
-  <!-- ============ CALCULS ============ -->
-  <div class="panel" id="p-calculs" role="tabpanel" hidden>
-
-    <label class="cadre" for="k-ca">
-      <span class="cap">Je facture dans l'année</span>
-      <input class="big-input" id="k-ca" type="number" min="0" step="any" inputmode="decimal" placeholder="40 000">
-    </label>
-
-    <div class="choix-k" id="k-statut">
-      <button class="opt" data-st="vente"><span class="mark"></span><span><b>Je vends des choses</b><small>cotisations 12,3 % · abattement 71 %</small></span></button>
-      <button class="opt" data-st="services" aria-pressed="true"><span class="mark"></span><span><b>Je rends des services</b><small>cotisations 21,2 % · abattement 50 %</small></span></button>
-      <button class="opt" data-st="liberal"><span class="mark"></span><span><b>Je suis en libéral</b><small>cotisations 24,6 % · abattement 34 %</small></span></button>
-      <button class="opt" data-st="societe"><span class="mark"></span><span><b>J'ai une société à l'IS</b><small>15 % jusqu'à 42 500 €, puis 25 %</small></span></button>
-    </div>
-
-    <div class="reglages-k" id="k-reglages">
-      <label class="bascule"><input type="checkbox" id="k-lib"><span>Je paie l'impôt avec mes cotisations <small>versement libératoire</small></span></label>
-      <label class="ligne-k"><span>Mon foyer</span>
-        <select id="k-parts">
-          <option value="1">Je vis seul</option>
-          <option value="2">En couple</option>
-          <option value="2.5">Couple, 1 enfant</option>
-          <option value="3">Couple, 2 enfants</option>
-        </select>
-      </label>
-    </div>
-
-    <div id="k-sortie" hidden>
-      <div class="cadre resultat-k">
-        <span class="cap">Il te restera</span>
-        <b class="big" id="k-net">—</b>
-        <span class="sous-k" id="k-taux"></span>
-      </div>
-      <div class="liste liste-k" id="k-detail"></div>
-      <p class="mentions">Barème 2026. C'est une estimation : ton impôt réel dépend aussi de tes autres revenus et de ta situation.</p>
-    </div>
-
   </div>
 
   <!-- ============ MON ARGENT ============ -->
@@ -1661,6 +1635,8 @@ let filtreT = "afaire";
 let filtreF = "encaisser";
 let filtreB = "depenses";
 let filtreA = "factures";   /* Argent : factures ou clients */
+let filtreC = "calculs";    /* Comptabilité : calculs ou mon argent */
+let calcCA = 0, calcStatut = "services", calcLib = false, calcParts = 1;
 let clientOuvert = null;
 let pliOuvert = false;
 let vueAgenda = "jour";        /* jour · semaine · liste */
@@ -2272,102 +2248,125 @@ function rangeeSortie(o, col){
     + '<span class="r-som">' + eur(o.montant) + "</span>"
     + '<button class="sup" data-sup="' + col + '" data-id="' + h(o.id) + '"><span class="mot">Supprimer</span></button></div>';
 }
-function vueBudget(){
-  const k = comptes();
-  const dep = liste("depenses").sort((x, y) => String(y.date).localeCompare(String(x.date)));
-  const inv = liste("investissements").sort((x, y) => String(y.date).localeCompare(String(x.date)));
-  const surDep = filtreB === "depenses";
-  const vis = surDep ? dep : inv;
-  const libs = [["depenses", "Dépenses"], ["investissements", "Investissements"]];
-  const vide = surDep
-    ? '<p class="vide"><b>Aucune dépense</b>Loyer, matières, essence : notez-les au fil de l\'eau.</p>'
-    : '<p class="vide"><b>Aucun investissement</b>Une machine, un véhicule : ce qui vous sert des années.</p>';
+/* ═══ ce que l'État prendra — barème officiel 2026 ═══ */
+const BAREME = [{p: 11497, t: 0}, {p: 29315, t: 11}, {p: 83823, t: 30}, {p: 180294, t: 41}, {p: null, t: 45}];
+const DEC_SEUL = 889, DEC_COUPLE = 1470, DEC_TAUX = 45.25;
+const IS_REDUIT = 15, IS_SEUIL = 42500, IS_PLEIN = 25;
+const ACTIVITES = {
+  vente:    {nom: "Je vends des choses", note: "commerce, artisanat de vente", abat: 71, cotis: 12.3, liber: 1.0, plaf: 188700, tva: 85000},
+  services: {nom: "Je rends des services", note: "travaux, prestations, artisanat", abat: 50, cotis: 21.2, liber: 1.7, plaf: 77700, tva: 37500},
+  liberal:  {nom: "Je suis en libéral", note: "conseil, santé, création", abat: 34, cotis: 24.6, liber: 2.2, plaf: 77700, tva: 37500},
+  societe:  {nom: "J'ai une société", note: "SAS, SARL — impôt sur les sociétés", abat: 0, cotis: 0, liber: 0, plaf: 0, tva: 0}
+};
 
-  const ligne = (lab, val, cls) => '<div class="bl"><span>' + lab + '</span><b' + (cls ? ' class="' + cls + '"' : "")
-    + ">" + val + "</b></div>";
+const pct = v => String(v).replace(".", ",");
 
-  /* ce qui reste vraiment : encaissé, moins les cotisations, l'impôt et les sorties */
-  let bilan = '<section class="carte anim"><div class="carte-tete"><h2>Comptabilité</h2>'
-    + '<span class="appoint">' + eur(k.ceMois) + " encaissés ce mois-ci</span></div>"
-    + '<div class="mois" style="padding-top:2px">'
-    + '<p class="heros-lab">Sur ' + k.an + ", il vous reste vraiment</p>"
-    + '<p class="heros-val' + (k.reste < 0 ? " negatif" : "") + '" data-compte="reste" data-val="' + k.reste + '">' + eur(k.reste) + "</p>"
-    + '<div class="bilan">'
-    + ligne("Encaissé", "+ " + eur(k.encaisse), "plus")
-    + ligne("Cotisations sociales <em style=\'font-style:normal;color:var(--ink-3)\'>" + k.regle.cotis + " %</em>", "− " + eur(k.cotis))
-    + (k.impot ? ligne("Impôt sur le revenu <em style=\'font-style:normal;color:var(--ink-3)\'>" + k.regle.liber + " %</em>", "− " + eur(k.impot)) : "")
-    + ligne("Dépenses", "− " + eur(k.depenses))
-    + ligne("Investissements", "− " + eur(k.invest))
-    + "</div></div>";
-
-  bilan += "</div>";
-
-  /* les deux murs qu'on ne voit qu'une fois dedans */
-  const carteSeuil = (titre, encaisse, seuil, part, apres) => {
-    const pcs = Math.round(part * 100);
-    const restant = seuil - encaisse;
-    const cls = restant <= 0 ? " franchi" : (pcs >= 80 ? " chaud" : "");
-    return '<div class="seuil' + cls + '"><span class="quoi-s">' + titre + "</span>"
-      + '<span class="reste-s">' + (restant > 0 ? "encore " + eur(restant) : "franchi") + "</span>"
-      + '<div class="piste-s"><i style="width:' + Math.min(100, pcs) + '%"></i></div>'
-      + '<span class="sous-s">' + (restant > 0 ? apres : "Le seuil de " + eur(seuil) + " est dépassé.") + "</span></div>";
-  };
-  bilan += '<div class="seuils">'
-    + carteSeuil("Avant de devoir facturer la TVA", k.encaisse, k.regle.tva, k.partTva,
-        "Au-delà de " + eur(k.regle.tva) + ", vous ajoutez la TVA à vos prix.")
-    + carteSeuil("Avant de sortir de la micro-entreprise", k.encaisse, k.regle.plafond, k.partPlafond,
-        "Au-delà de " + eur(k.regle.plafond) + ", changement de régime.")
-    + "</div></section>";
-
-  /* ── ce qu'il faut facturer pour se verser ce qu'on vise ── */
-  if(k.caNecessaire > 0){
-    const pc = Math.round(k.partObjectif * 100);
-    bilan += '<section class="carte anim" style="animation-delay:.04s"><div class="carte-tete"><h2>Votre prix plancher</h2>'
-      + '<span class="appoint">' + eur(state.moi.objectif) + " par mois</span></div>"
-      + '<div class="objectif"><div class="gros-prix"><b>' + eur(Math.ceil(k.prixJour)) + "</b><span>par jour facturé</span></div>"
-      + '<p class="ou-en">En dessous, vous travaillez à perte une fois les cotisations et les frais payés. '
-      + "Il vous faut <b>" + eur(Math.ceil(k.caNecessaire)) + "</b> sur l'année, sur " + k.jours + " jours facturés.</p>"
-      + '<div class="piste-p" style="margin-top:16px"><i style="width:' + pc + '%"></i></div>'
-      + '<p class="ou-en" style="margin-top:10px">'
-      + (k.manque <= 0
-          ? '<span class="atteint">Objectif atteint.</span> Tout ce qui rentre maintenant est en plus.'
-          : "<b>" + pc + " %</b> du chemin. Il manque <b>" + eur(Math.ceil(k.manque)) + "</b> — environ <b>"
-            + k.joursRestants + " jour" + (k.joursRestants > 1 ? "s" : "") + "</b> à facturer.")
-      + "</p>";
-    /* dépendance à un seul client */
-    if(k.grosPart >= 0.5 && k.nbClients > 0){
-      bilan += '<div class="risque">'
-        + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
-        + '<path d="M12 3.5 21 19.5H3Z"/><path d="M12 10v4"/><circle cx="12" cy="17" r=".9" fill="currentColor" stroke="none"/></svg>'
-        + Math.round(k.grosPart * 100) + " % de vos rentrées viennent de " + h(k.grosClient) + "."
-        + (k.nbClients < 3 ? " Cherchez-en d'autres." : "") + "</div>";
-    }
-    bilan += "</div></section>";
+function impotBareme(revenu, parts){
+  let q = revenu / parts, du = 0, bas = 0;
+  for(let i = 0; i < BAREME.length; i++){
+    const t = BAREME[i], haut = t.p === null ? Infinity : t.p;
+    if(q > bas) du += (Math.min(q, haut) - bas) * t.t / 100;
+    bas = haut;
+    if(q <= haut) break;
   }
-
-  if(!(state.moi && state.moi.nom)){
-    bilan += '<button class="ajout-ligne" data-moi="1"><span class="rond" style="border-style:solid">'
-      + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;stroke-width:2.2;fill:none">'
-      + '<circle cx="12" cy="8.4" r="3.6"/><path d="M4.8 20c0-3.6 3.2-5.8 7.2-5.8s7.2 2.2 7.2 5.8"/></svg></span>'
-      + "Dites votre activité et ce que vous visez</button>";
-  }
-
-  return bilan
-    + '<section class="carte anim" style="animation-delay:.06s"><div class="carte-tete"><h2>Ce qui sort</h2>'
-    + '<span class="appoint">' + eur(surDep ? k.depenses : k.invest) + " cette année</span></div>"
-    + '<div class="segments">' + libs.map(kv =>
-        '<button data-fb="' + kv[0] + '" aria-pressed="' + (filtreB === kv[0]) + '">' + kv[1] + "</button>").join("") + "</div>"
-    + (vis.length ? vis.map(o => rangeeSortie(o, surDep ? "depenses" : "investissements")).join("") : vide)
-    + '<button class="ajout-ligne" data-feuille="' + (surDep ? "depense" : "investissement") + '"><span class="rond"></span>'
-    + (surDep ? "Ajouter une dépense" : "Ajouter un investissement") + "</button></section>"
-
-    + '<section class="carte anim" style="animation-delay:.1s"><div class="carte-tete"><h2>Livre des recettes</h2>'
-    + '<span class="appoint">obligatoire</span></div>'
-    + '<p style="padding:0 24px;font-size:14.5px;color:var(--ink-2)">La liste de tout ce que vos clients vous ont réglé sur '
-    + k.an + ". L\'administration peut vous la demander à tout moment.</p>"
-    + '<div class="action-client" style="padding:18px 24px 24px"><button data-recettes="1">Éditer le livre en PDF</button></div></section>'
-    + demo();
+  du *= parts;
+  const seuil = parts >= 2 ? DEC_COUPLE : DEC_SEUL;
+  if(du > 0 && du < seuil / (DEC_TAUX / 100)) du = Math.max(0, du - Math.max(0, seuil - du * DEC_TAUX / 100));
+  return Math.max(0, du);
 }
+
+function partageImpot(){
+  const ca = Number(calcCA) || 0;
+  const a = ACTIVITES[calcStatut] || ACTIVITES.services;
+  if(calcStatut === "societe"){
+    const is = ca <= IS_SEUIL ? ca * IS_REDUIT / 100
+      : IS_SEUIL * IS_REDUIT / 100 + (ca - IS_SEUIL) * IS_PLEIN / 100;
+    return {ca: ca, act: a, cotis: 0, impot: is, net: ca - is, societe: true};
+  }
+  const cotis = ca * a.cotis / 100;
+  const base = ca * (100 - a.abat) / 100;
+  const impot = calcLib ? ca * a.liber / 100 : impotBareme(base, calcParts);
+  return {ca: ca, act: a, cotis: cotis, impot: impot, base: base, net: ca - cotis - impot, societe: false};
+}
+
+function vueBudget(){
+  const onglets = '<div class="segments segments-haut">'
+    + [["calculs", "Calculs"], ["argent", "Mon argent"]].map(kv =>
+        '<button data-fc="' + kv[0] + '" aria-pressed="' + (filtreC === kv[0]) + '">' + kv[1] + "</button>").join("")
+    + "</div>";
+  return onglets + (filtreC === "calculs" ? vueCalculs() : "");
+}
+
+function vueCalculs(){
+  const k = partageImpot();
+  const ca = k.ca;
+
+  let out = '<section class="carte anim"><div class="carte-tete"><h2>Combien vous restera-t-il ?</h2></div>'
+    + '<div class="saisie-gros"><label for="c-ca">Ce que vous encaissez dans l\'année</label>'
+    + '<input id="c-ca" type="number" min="0" step="any" inputmode="decimal" placeholder="40 000" value="'
+    + (ca ? ca : "") + '"></div>'
+    + '<div class="statuts">' + Object.keys(ACTIVITES).map(cle => {
+        const a = ACTIVITES[cle];
+        return '<button data-act="' + cle + '" aria-pressed="' + (calcStatut === cle) + '">'
+          + '<span class="rond-s"></span><span><strong>' + a.nom + "</strong><small>" + a.note + "</small></span></button>";
+      }).join("") + "</div>";
+
+  if(!k.societe){
+    out += '<div class="reglages-c">'
+      + '<label class="bascule"><input type="checkbox" id="c-lib"' + (calcLib ? " checked" : "") + ">"
+      + "<span>Je paie l'impôt en même temps que mes cotisations <em>(versement libératoire)</em></span></label>"
+      + (calcLib ? "" : '<label class="ligne-c"><span>Mon foyer</span><select id="c-parts">'
+          + [[1, "Je vis seul"], [2, "En couple"], [2.5, "Couple, 1 enfant"], [3, "Couple, 2 enfants"]].map(o =>
+              '<option value="' + o[0] + '"' + (calcParts === o[0] ? " selected" : "") + ">" + o[1] + "</option>").join("")
+          + "</select></label>")
+      + "</div>";
+  }
+  out += "</section>";
+
+  if(ca <= 0) return out + demo();
+
+  /* le schéma : une barre découpée en trois, rien de plus */
+  const pc = v => Math.max(0, v / ca * 100);
+  const part = v => Math.round(v / ca * 1000) / 10;
+  out += '<section class="carte anim" style="animation-delay:.05s">'
+    + '<div class="carte-tete"><h2>' + (k.societe ? "Il restera dans la société" : "Il vous restera") + "</h2>"
+    + '<span class="appoint">sur ' + eur(ca) + "</span></div>"
+    + '<div class="mois" style="padding-top:2px"><p class="heros-val" data-compte="calcnet" data-val="' + k.net + '">' + eur(k.net) + "</p></div>"
+    + '<div class="schema"><div class="barre-part">'
+    + '<i class="moi" style="width:' + pc(k.net).toFixed(1) + '%"></i>'
+    + (k.cotis ? '<i class="cotis" style="width:' + pc(k.cotis).toFixed(1) + '%"></i>' : "")
+    + (k.impot ? '<i class="impot" style="width:' + pc(k.impot).toFixed(1) + '%"></i>' : "")
+    + "</div>"
+    + '<div class="legende">'
+    + ligneLegende("moi", k.societe ? "Pour la société" : "Pour vous", k.societe ? "après impôt" : "une fois tout payé", k.net, part(k.net))
+    + (k.cotis ? ligneLegende("cotis", "Cotisations sociales", "retraite, santé, chômage — " + pct(k.act.cotis) + " %", k.cotis, part(k.cotis)) : "")
+    + (k.impot ? ligneLegende("impot", k.societe ? "Impôt sur les sociétés" : "Impôt sur le revenu",
+        k.societe ? (ca <= IS_SEUIL ? "taux réduit de 15 %" : "15 % jusqu'à " + eur(IS_SEUIL) + ", puis 25 %")
+          : (calcLib ? "versement libératoire, " + pct(k.act.liber) + " %"
+             : "barème, calculé sur " + eur(k.base) + " après abattement de " + pct(k.act.abat) + " %"),
+        k.impot, part(k.impot)) : "")
+    + "</div></div></section>";
+
+  /* les murs, seulement s'ils sont franchis */
+  const murs = [];
+  if(!k.societe && ca > k.act.tva) murs.push("Au-delà de " + eur(k.act.tva) + ", vous devez facturer la TVA à vos clients.");
+  if(!k.societe && ca > k.act.plaf) murs.push("Au-delà de " + eur(k.act.plaf) + ", vous sortez de la micro-entreprise.");
+  if(murs.length){
+    out += '<section class="carte anim" style="animation-delay:.1s">'
+      + murs.map(m => '<div class="r"><span class="pastille feu">!</span><span class="r-corps"><span class="r-titre" style="font-weight:600">'
+        + m + "</span></span></div>").join("") + "</section>";
+  }
+
+  out += '<p class="pied" style="padding-top:2px">Barème 2026. C\'est une estimation : votre impôt réel dépend aussi de vos autres revenus.</p>';
+  return out + demo();
+}
+
+function ligneLegende(cls, titre, sous, montant, pourcent){
+  return '<div><span class="pastille-l ' + cls + '"></span>'
+    + '<span class="quoi-l">' + titre + "<small>" + sous + "</small></span>"
+    + '<span class="combien-l">' + eur(montant) + "<em>" + String(pourcent).replace(".", ",") + " %</em></span></div>";
+}
+
 
 /* ═══ ce que la micro-entreprise garde vraiment ═══
    Taux 2026 : cotisations sociales, versement libératoire de l'impôt,
@@ -2707,17 +2706,17 @@ function rendre(){
   badge("#n-argent", c.impayees.length);
   const surAgenda = vue === "afaire";
   const surCompta = vue === "budget";
-  const greffe = surAgenda || surCompta;
+  const greffeCompta = surCompta && filtreC === "argent";
+  const greffe = surAgenda || greffeCompta;
   $("#majournee").hidden = !surAgenda;
-  $("#ilreste").hidden = !surCompta;
-  $("#vue").hidden = greffe;
+  $("#ilreste").hidden = !greffeCompta;
+  $("#vue").hidden = surAgenda;
   $("#entete").hidden = greffe;
   document.body.classList.toggle("sur-agenda", surAgenda);
-  if(greffe){
+  if(surAgenda){
     document.querySelector(".page").dataset.sec = vue;
     animer = false;
-    if(surAgenda && window.majourneeReveil) window.majourneeReveil();
-    if(surCompta && window.ilresteReveil) window.ilresteReveil();
+    if(window.majourneeReveil) window.majourneeReveil();
     return;
   }
   rendreEntete();
@@ -3137,6 +3136,8 @@ $("#vue").addEventListener("click", e => {
   if(b.dataset.aujourdhui){ jourVu = null; rendre(); return; }
   if(b.dataset.ft){ filtreT = b.dataset.ft; rendre(); return; }
   if(b.dataset.fa){ filtreA = b.dataset.fa; clientOuvert = null; memoire.clear(); rendre(); return; }
+  if(b.dataset.fc){ filtreC = b.dataset.fc; memoire.clear(); rendre(); return; }
+  if(b.dataset.act){ calcStatut = b.dataset.act; memoire.clear(); rendre(); return; }
   if(b.dataset.ff){ filtreF = b.dataset.ff; rendre(); return; }
   if(b.dataset.fb){ filtreB = b.dataset.fb; rendre(); return; }
   if(b.dataset.paye){
@@ -3179,6 +3180,22 @@ $("#vue").addEventListener("toggle", e => {
   if(e.target.classList && e.target.classList.contains("pli")) pliOuvert = e.target.open;
 }, true);
 
+/* le montant se recalcule à la frappe : on redessine, puis on rend le curseur */
+$("#vue").addEventListener("input", e => {
+  if(e.target.id !== "c-ca") return;
+  calcCA = Number(e.target.value) || 0;
+  const texte = e.target.value, curseur = e.target.selectionStart;
+  memoire.set("calcnet", partageImpot().net);   /* pas d'animation à chaque touche */
+  animer = false;
+  rendre();
+  const champ = $("#c-ca");
+  if(champ){
+    champ.value = texte;
+    champ.focus({preventScroll: true});
+    try{ champ.setSelectionRange(curseur, curseur); }catch(err){}
+  }
+});
+
 $("#vue").addEventListener("keydown", e => {
   if((e.key === "Enter" || e.key === " ") && e.target.dataset && e.target.dataset.modif){
     e.preventDefault(); modifier(e.target.dataset.modif, e.target.dataset.id); return;
@@ -3199,6 +3216,8 @@ $("#vue").addEventListener("input", e => {
 
 $("#vue").addEventListener("change", e => {
   const t = e.target;
+  if(t.id === "c-lib"){ calcLib = t.checked; memoire.clear(); rendre(); return; }
+  if(t.id === "c-parts"){ calcParts = Number(t.value) || 1; memoire.clear(); rendre(); return; }
   if(t.dataset.relance){
     const f = state.factures[t.dataset.relance];
     if(!f) return;
@@ -4816,78 +4835,6 @@ function onglet(n){
 ONGLETS.forEach(function(p){ $("tab-"+p[0]).addEventListener("click",function(){ onglet(p[0]); }); });
 function sauver(){ try{ localStorage.setItem("itrc5",JSON.stringify(etat)); }catch(e){} }
 
-/* ---------- calculs : la grille officielle de l'impôt ----------
-   Barème de l'impôt sur le revenu 2026, décote, abattements et cotisations
-   de la micro-entreprise, impôt sur les sociétés. */
-var BAREME=[{p:11497,t:0},{p:29315,t:11},{p:83823,t:30},{p:180294,t:41},{p:null,t:45}];
-var DEC_SEUL=889, DEC_COUPLE=1470, DEC_TAUX=45.25;
-var IS_REDUIT=15, IS_SEUIL=42500, IS_PLEIN=25;
-var REGIMES_K={
-  vente:    {abat:71, cotis:12.3, liber:1.0, plaf:188700, tva:85000},
-  services: {abat:50, cotis:21.2, liber:1.7, plaf:77700,  tva:37500},
-  liberal:  {abat:34, cotis:24.6, liber:2.2, plaf:77700,  tva:37500}
-};
-
-function impotSurBareme(revenu, parts){
-  var q=revenu/parts, du=0, bas=0;
-  for(var i=0;i<BAREME.length;i++){
-    var t=BAREME[i], haut=t.p===null?Infinity:t.p;
-    if(q>bas) du+=(Math.min(q,haut)-bas)*t.t/100;
-    bas=haut;
-    if(q<=haut) break;
-  }
-  du*=parts;
-  var seuil = parts>=2 ? DEC_COUPLE : DEC_SEUL;
-  if(du>0 && du < seuil/(DEC_TAUX/100)) du=Math.max(0, du-Math.max(0, seuil-du*DEC_TAUX/100));
-  return Math.max(0,du);
-}
-
-function calculerK(){
-  var ca=num($("k-ca").value), st=etat.kStatut||"services";
-  var parts=Number($("k-parts").value)||1, lib=$("k-lib").checked;
-  if(ca<=0){ $("k-sortie").hidden=true; return; }
-  $("k-sortie").hidden=false;
-
-  var rows=[], net=0, preleve=0;
-  function row(lab, val, sous, cls){
-    rows.push('<div class="ligne'+(cls?" "+cls:"")+'"><span>'+lab+(sous?'<small>'+sous+'</small>':'')+'</span><b>'+eur.format(val)+'</b></div>');
-  }
-
-  if(st==="societe"){
-    var is = ca<=IS_SEUIL ? ca*IS_REDUIT/100 : IS_SEUIL*IS_REDUIT/100+(ca-IS_SEUIL)*IS_PLEIN/100;
-    preleve=is; net=ca-is;
-    row("Bénéfice", ca);
-    row("Impôt sur les sociétés", -is, ca<=IS_SEUIL ? IS_REDUIT+" % (taux réduit)" : IS_REDUIT+" % jusqu'à "+eur.format(IS_SEUIL)+", puis "+IS_PLEIN+" %");
-    row("Il reste dans la société", net, null, "somme");
-  }else{
-    var r=REGIMES_K[st]||REGIMES_K.services;
-    var cot=ca*r.cotis/100;
-    var base=ca*(100-r.abat)/100;
-    var ir=lib ? ca*r.liber/100 : impotSurBareme(base, parts);
-    preleve=cot+ir; net=ca-preleve;
-    row("Tu factures", ca);
-    row("Cotisations sociales", -cot, r.cotis+" % de ce que tu encaisses");
-    row("Impôt sur le revenu", -ir, lib ? "versement libératoire, "+r.liber+" %"
-      : "barème, après abattement de "+r.abat+" % — base "+eur.format(base));
-    row("Il te reste", net, null, "somme");
-    if(ca>r.tva)  rows.push('<div class="ligne avert"><span>Au-delà de '+eur.format(r.tva)+', tu dois facturer la TVA.</span><b></b></div>');
-    if(ca>r.plaf) rows.push('<div class="ligne avert"><span>Au-delà de '+eur.format(r.plaf)+', tu sors de la micro-entreprise.</span><b></b></div>');
-  }
-
-  $("k-net").textContent=eur.format(net);
-  var pc=(Math.round(preleve/ca*1000)/10).toLocaleString("fr-FR",{minimumFractionDigits:1,maximumFractionDigits:1});
-  $("k-taux").textContent = ca>0 ? "soit "+pc+" % prélevé sur "+eur.format(ca) : "";
-  $("k-detail").innerHTML=rows.join("");
-}
-
-function majK(){
-  var st=etat.kStatut||"services";
-  var bs=$("k-statut").querySelectorAll("button");
-  for(var i=0;i<bs.length;i++) bs[i].setAttribute("aria-pressed", bs[i].getAttribute("data-st")===st);
-  $("k-lib").parentNode.hidden = st==="societe";
-  $("k-parts").parentNode.hidden = st==="societe" || $("k-lib").checked;
-  calculerK();
-}
 
 /* ---------- rentrées ---------- */
 function ouvrirRentree(pre){
@@ -4994,16 +4941,6 @@ try{
 toutRendre();
 onglet(etat.onglet||"argent");
 
-/* les calculs, une fois que etat existe */
-$("k-statut").addEventListener("click",function(e){
-  var b=e.target.closest("button[data-st]");
-  if(!b) return;
-  etat.kStatut=b.getAttribute("data-st"); sauver(); majK();
-});
-$("k-ca").addEventListener("input", calculerK);
-$("k-parts").addEventListener("change", calculerK);
-$("k-lib").addEventListener("change", majK);
-majK();
 
 
 })();
