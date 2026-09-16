@@ -2456,7 +2456,7 @@ function vueCalculs(){
 
   let out = '<section class="carte anim"><div class="carte-tete"><h2>Combien vous restera-t-il ?</h2></div>'
     + '<div class="saisie-gros"><label for="c-ca">Ce que vous encaissez dans l\'année</label>'
-    + '<input id="c-ca" type="number" min="0" step="any" inputmode="decimal" placeholder="40 000" value="'
+    + '<input id="c-ca" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="40 000" value="'
     + (ca ? ca : "") + '"></div>'
     + (ca > 0 ? '<div class="reponse-c"><p class="heros-val" data-compte="calcnet" data-val="' + k.net + '">'
         + eur(k.net) + '</p><span>' + (k.societe ? "restera dans la société" : "il vous restera, une fois tout payé")
@@ -3482,7 +3482,7 @@ $("#vue").addEventListener("toggle", e => {
 /* le montant se recalcule à la frappe : on redessine, puis on rend le curseur */
 $("#vue").addEventListener("input", e => {
   if(e.target.id !== "c-ca") return;
-  calcCA = Number(e.target.value) || 0;
+  calcCA = Number(String(e.target.value).replace(/[^\d.,]/g, "").replace(",", ".")) || 0;
   calcTouche = true;
   const texte = e.target.value, curseur = e.target.selectionStart;
   memoire.set("calcnet", partageImpot().net);   /* pas d'animation à chaque touche */
