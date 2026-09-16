@@ -7,7 +7,7 @@
 :root{
   --ground:#EFF3F8; --surface:#FFFFFF; --surface-2:#F5F8FC; --surface-3:#E9EFF6;
   --line:#DFE7F0; --line-fort:#C6D2E0;
-  --ink:#14202E; --ink-2:#4F5B70; --ink-3:#7F8CA1;
+  --ink:#14202E; --ink-2:#4F5B70; --ink-3:#6B7890;
 
   /* la signature : un seul dégradé, du graphite au noir, à peine bleuté */
   --v1:#2F3B4D; --v2:#55637A;
@@ -36,7 +36,7 @@
   --doux:cubic-bezier(.22,.61,.36,1);
   /* relais pour l'agenda greffé */
   --cad-surface:#FFFFFF; --cad-surface-2:#F5F8FC; --cad-line:#DFE7F0; --cad-line-fort:#C6D2E0;
-  --cad-ink:#14202E; --cad-ink-2:#4F5B70; --cad-ink-3:#7F8CA1; --cad-v1:#2F3B4D; --cad-tard:#A3670F;
+  --cad-ink:#14202E; --cad-ink-2:#4F5B70; --cad-ink-3:#6B7890; --cad-v1:#2F3B4D; --cad-tard:#A3670F;
   --cad-tard-doux:#FBEDD6; --cad-attente-doux:#E3ECFB; --cad-deg-pale:#EEF1F6; --cad-rouge:#C63D2A;
 }
 @media (prefers-color-scheme:dark){
@@ -508,7 +508,9 @@ button.tuile:active{transform:scale(.985)}
 .pile-go:active{transform:scale(.97)}
 .pile-go svg{width:17px;height:17px;stroke-width:2.1;fill:none;flex:none}
 .pile-autre{display:flex;justify-content:center;gap:30px;margin-top:17px;animation-delay:.1s}
-.pile-autre button{border:0;background:none;color:var(--ink-3);font:inherit;font-size:15px;font-weight:700;
+/* un texte d'annotation peut rester pâle, un bouton non : celui-ci se
+   lit à 6:1 au lieu de 3,4 sans cesser d'être discret */
+.pile-autre button{border:0;background:none;color:var(--ink-2);font:inherit;font-size:15px;font-weight:700;
   padding:8px 10px;border-radius:999px;cursor:pointer;transition:color .18s}
 .pile-autre button:hover{color:var(--v-txt)}
 .pile-pied{display:flex;justify-content:center;margin-top:34px}
