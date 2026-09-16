@@ -19,6 +19,7 @@
   --tuile-neutre:linear-gradient(150deg,#FFFFFF 0%,#F1F7FF 100%);
   --tuile-vert:linear-gradient(150deg,#E9F9F1 0%,#D5EFE4 100%);
   --tuile-chaud:linear-gradient(150deg,#FEF5E8 0%,#FAE8CC 100%);
+  --tuile-bleu:linear-gradient(150deg,#E8F0FC 0%,#D7E5F8 100%);
 
   /* sémantique : trois états, jamais plus */
   --ok:#0E7D57; --ok-doux:#DDF1E8;
@@ -59,6 +60,8 @@
     --tuile-neutre:linear-gradient(150deg,#16202E 0%,#131C2B 100%);
     --tuile-vert:linear-gradient(150deg,#0E2C22 0%,#0B2419 100%);
     --tuile-chaud:linear-gradient(150deg,#2B2214 0%,#241B0F 100%);
+  --tuile-bleu:linear-gradient(150deg,#121F33 0%,#0E1928 100%);
+    --tuile-bleu:linear-gradient(150deg,#121F33 0%,#0E1928 100%);
     --ok:#3FC391; --ok-doux:#0C2A20;
     --tard:#DFA850; --tard-doux:#2A2113;
     --attente:#74A8F0; --attente-doux:#142740;
@@ -84,6 +87,7 @@
   --tuile-neutre:linear-gradient(150deg,#16202E 0%,#131C2B 100%);
   --tuile-vert:linear-gradient(150deg,#0E2C22 0%,#0B2419 100%);
   --tuile-chaud:linear-gradient(150deg,#2B2214 0%,#241B0F 100%);
+  --tuile-bleu:linear-gradient(150deg,#121F33 0%,#0E1928 100%);
   --ok:#3FC391; --ok-doux:#0C2A20;
   --tard:#DFA850; --tard-doux:#2A2113;
   --attente:#74A8F0; --attente-doux:#142740;
@@ -488,6 +492,11 @@ button.tuile:active{transform:scale(.985)}
 .tuile .sous{font-size:13.5px;color:var(--ink-3)}
 .tuile.chaud{background:var(--tuile-chaud)}
 .tuile.chaud .val,.tuile.chaud .sous,.tuile.chaud .lab{color:var(--tard)}
+/* l'argent qui attend chez les clients : bleu, comme l'attente partout
+   ailleurs dans l'application. Ni vert — il n'est pas rentré — ni ambre,
+   réservé au retard, et tout n'est pas en retard. */
+.tuile.bleu{background:var(--tuile-bleu)}
+.tuile.bleu .val,.tuile.bleu .sous,.tuile.bleu .lab{color:var(--attente)}
 .tuile.vert{background:var(--tuile-vert)}
 .tuile.vert .val{color:var(--ok)}
 
@@ -2899,15 +2908,9 @@ function ecranFactures(){
   const an = bilanAn();
   const combien = c.attente.length;
   const tete = '<section class="carte anim"><div class="mois" style="padding-top:22px">'
-    + '<p class="heros-lab">On vous doit</p>'
-    + '<p class="heros-val" data-compte="dus" data-val="' + c.duAttente + '">' + eur(c.duAttente) + "</p>"
-    + '<p class="heros-sous">' + (combien === 0
-        ? "tout le monde vous a payé"
-        : (c.impayees.length
-            ? combien + " facture" + (combien > 1 ? "s" : "") + ", dont "
-              + c.impayees.length + " à relancer"
-            : combien + " facture" + (combien > 1 ? "s" : "") + " en attente"))
-    + "</p></div></section>";
+    + '<p class="heros-lab">Facturé</p>'
+    + '<p class="heros-val" data-compte="ca" data-val="' + an.facture + '">' + eur(an.facture) + "</p>"
+    + '<p class="heros-sous">depuis janvier</p></div></section>';
 
     return '<button class="faire-facture anim" data-neuf="facture">'
     + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
@@ -2916,9 +2919,15 @@ function ecranFactures(){
     + '<div class="duo anim" style="animation-delay:.06s"><div class="tuile vert"><span class="lab">Déjà encaissé</span>'
     + '<span class="val" data-compte="encaisse" data-val="' + an.encaisse + '">' + eur(an.encaisse) + "</span>"
     + '<span class="sous">rentré depuis janvier</span></div>'
-    + '<div class="tuile"><span class="lab">Facturé</span>'
-    + '<span class="val" data-compte="ca" data-val="' + an.facture + '">' + eur(an.facture) + "</span>"
-    + '<span class="sous">depuis janvier</span></div></div>'
+    + '<div class="tuile bleu"><span class="lab">On vous doit</span>'
+    + '<span class="val" data-compte="dus" data-val="' + c.duAttente + '">' + eur(c.duAttente) + "</span>"
+    + '<span class="sous">' + (combien === 0
+        ? "tout le monde a payé"
+        : (c.impayees.length
+            ? combien + " facture" + (combien > 1 ? "s" : "") + ", dont "
+              + c.impayees.length + " à relancer"
+            : combien + " facture" + (combien > 1 ? "s" : "") + " en attente"))
+    + "</span></div></div>"
 
 
     + '<section class="carte anim" style="animation-delay:.06s"><div class="carte-tete"><h2>Vos factures</h2>'
