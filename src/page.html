@@ -386,6 +386,24 @@ summary.groupe:hover{background:var(--line)}
 .ajout-ligne:hover{color:var(--v1)}
 .ajout-ligne:hover .rond{border-color:var(--v1);border-style:solid}
 
+/* ═══ la relance ═══ */
+.action-client button.doux{background:var(--surface-3);color:var(--v1)}
+.action-client button.doux:hover{filter:none;background:var(--surface-2)}
+.relance{padding:4px 22px 22px;display:flex;flex-direction:column;gap:12px}
+.relance .aide{margin:0}
+.relance textarea{width:100%;border:1px solid var(--line);border-radius:18px;padding:16px;
+  background:var(--surface-2);color:var(--ink);font:inherit;font-size:15.5px;line-height:1.55;resize:vertical}
+.relance textarea:focus-visible{outline:2px solid var(--v1);outline-offset:1px}
+.relance-actions{display:flex;gap:10px;flex-wrap:wrap}
+.relance-actions button{flex:1;min-width:150px;border:0;border-radius:999px;padding:15px 20px;
+  background:var(--deg);color:#fff;font:inherit;font-size:16px;font-weight:700;cursor:pointer}
+.relance-actions button.doux{background:var(--surface-3);color:var(--v1)}
+
+/* ═══ la réponse de Calculs, juste sous le nombre saisi ═══ */
+.reponse-c{margin:2px 24px 18px;padding:16px 18px;border-radius:20px;background:var(--surface-3);text-align:center}
+.reponse-c .heros-val{margin:0;line-height:1.05}
+.reponse-c span{display:block;margin-top:4px;font-size:14.5px;color:var(--ink-2)}
+
 /* ═══ segments ═══ */
 .segments{display:flex;gap:5px;padding:7px;background:var(--surface-3);border-radius:999px;margin:16px 24px 12px}
 .segments-haut{margin:0 0 4px;background:var(--surface);box-shadow:var(--o1)}
@@ -1097,7 +1115,9 @@ summary.carte-tete:hover h2{color:var(--v1)}
 }
 #ilreste h1{font-family:Spectral,Georgia,serif;font-weight:700;font-size:clamp(25px,6.6vw,32px);line-height:1.1;margin:0;letter-spacing:-.015em}
 #ilreste .chiffre{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;font-size:.97em}
-#ilreste .tabs{display:flex;gap:6px;background:var(--sunken);padding:5px;border-radius:16px}
+/* la barre d'onglets de Comptabilité suffit : deux barres l'une dans
+   l'autre, avec les mêmes mots, personne ne s'y retrouve */
+#ilreste .tabs{display:none}
 #ilreste .tabs button{
   flex:1;min-height:48px;border:0;border-radius:11px;background:none;
   color:var(--ink-soft);font:inherit;font-size:15.5px;font-weight:500;cursor:pointer;
@@ -1296,7 +1316,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
     <button id="tab-argent"   role="tab" aria-selected="true">Mon argent</button>
     <button id="tab-factures" role="tab" aria-selected="false" hidden>Mes factures<span class="pastille" id="pastille" hidden>0</span></button>
     <button id="tab-livre"    role="tab" aria-selected="false" hidden>Mes rentrées</button>
-    <button id="tab-calculs"  role="tab" aria-selected="false">Calculs</button>
+    <button id="tab-calculs"  role="tab" aria-selected="false" hidden>Calculs</button>
   </div>
 
   <!-- ============ MON ARGENT ============ -->
@@ -2169,7 +2189,9 @@ function ficheClient(id){
     + (attente ? '<p class="reste">Il reste <b>' + eur(attente) + "</b> à encaisser.</p>"
                : (paye ? '<p class="reste">Tout est réglé.</p>' : '<p class="reste">Aucune facture pour l\'instant.</p>'))
     + "</div>"
-    + '<div class="action-client"><button data-facturer="' + h(c.nom) + '">Faire une facture</button></div></section>'
+    + '<div class="action-client"><button data-facturer="' + h(c.nom) + '">Faire une facture</button>'
+    + (attente ? '<button class="doux" data-relance="' + h(c.nom) + '">Relancer</button>' : "")
+    + "</div></section>"
 
     + (siennes.length ? '<section class="carte anim" style="animation-delay:.05s">'
         + '<div class="carte-tete"><h2>Ses factures</h2><span class="appoint">' + siennes.length + "</span></div>"
@@ -2351,6 +2373,9 @@ function vueCalculs(){
     + '<div class="saisie-gros"><label for="c-ca">Ce que vous encaissez dans l\'année</label>'
     + '<input id="c-ca" type="number" min="0" step="any" inputmode="decimal" placeholder="40 000" value="'
     + (ca ? ca : "") + '"></div>'
+    + (ca > 0 ? '<div class="reponse-c"><p class="heros-val" data-compte="calcnet" data-val="' + k.net + '">'
+        + eur(k.net) + '</p><span>' + (k.societe ? "restera dans la société" : "il vous restera, une fois tout payé")
+        + '</span></div>' : "")
     + '<div class="statuts">' + Object.keys(ACTIVITES).map(cle => {
         const a = ACTIVITES[cle];
         return '<button data-act="' + cle + '" aria-pressed="' + (calcStatut === cle) + '">'
@@ -2375,10 +2400,9 @@ function vueCalculs(){
   const pc = v => Math.max(0, v / ca * 100);
   const part = v => Math.round(v / ca * 1000) / 10;
   out += '<section class="carte anim" style="animation-delay:.05s">'
-    + '<div class="carte-tete"><h2>' + (k.societe ? "Il restera dans la société" : "Il vous restera") + "</h2>"
+    + '<div class="carte-tete"><h2>Où va votre argent</h2>'
     + '<span class="appoint">sur ' + eur(ca) + "</span></div>"
-    + '<div class="mois" style="padding-top:2px"><p class="heros-val" data-compte="calcnet" data-val="' + k.net + '">' + eur(k.net) + "</p></div>"
-    + '<div class="schema"><div class="barre-part">'
+    + '<div class="schema" style="padding-top:2px"><div class="barre-part">'
     + '<i class="moi" style="width:' + pc(k.net).toFixed(1) + '%"></i>'
     + (k.cotis ? '<i class="cotis" style="width:' + pc(k.cotis).toFixed(1) + '%"></i>' : "")
     + (k.impot ? '<i class="impot" style="width:' + pc(k.impot).toFixed(1) + '%"></i>' : "")
@@ -2405,6 +2429,81 @@ function vueCalculs(){
 
   out += '<p class="pied" style="padding-top:2px">Barème 2026. C\'est une estimation : votre impôt réel dépend aussi de vos autres revenus.</p>';
   return out + demo();
+}
+
+/* ═══ la relance qui s'écrit toute seule ═══
+   Deux tons selon la situation : un rappel poli tant que l'échéance n'est
+   pas passée, une relance ferme avec la mention légale une fois le délai
+   dépassé. C'est la gêne qui empêche de relancer, pas l'oubli. */
+function texteRelance(nom){
+  const f = liste("factures")
+    .filter(x => x.client === nom && x.statut !== "brouillon" && statut(x) !== "payee")
+    .sort((a, b) => String(a.echeance).localeCompare(String(b.echeance)));
+  if(!f.length) return null;
+
+  const enRetard = f.filter(x => statut(x) === "retard");
+  /* espaces ordinaires : les espaces fines insécables passent mal d'un
+     logiciel de courrier à l'autre */
+  const som = n => nf.format(Math.round(Number(n) || 0)).replace(/[\u202f\u00a0]/g, " ") + " €";
+  const dL = v => v ? dt(v).getDate() + " " + MOIS_LONG[dt(v).getMonth()] + " " + dt(v).getFullYear() : "";
+  const moi = (state.moi && state.moi.nom) || "";
+  const total = f.reduce((t, x) => t + (Number(x.montant) || 0), 0);
+
+  let corps = "Bonjour,\n\n";
+  if(f.length === 1){
+    const x = f[0];
+    corps += enRetard.length
+      ? "Sauf erreur de ma part, la facture " + (x.ref || "") + " du " + dL(x.emise)
+        + ", d'un montant de " + som(x.montant) + ", est arrivée à échéance le "
+        + dL(x.echeance) + " et n'a pas encore été réglée.\n\n"
+        + "Je vous remercie de bien vouloir procéder à son règlement dans les meilleurs délais.\n\n"
+      : "Je me permets de vous rappeler que la facture " + (x.ref || "") + " du " + dL(x.emise)
+        + ", d'un montant de " + som(x.montant) + ", arrive à échéance le " + dL(x.echeance) + ".\n\n"
+        + "Je vous remercie par avance de votre règlement.\n\n";
+  } else {
+    corps += "Sauf erreur de ma part, les factures suivantes restent à ce jour impayées :\n\n"
+      + f.map(x => "— " + (x.ref || "facture") + " du " + dL(x.emise) + ", " + som(x.montant)
+              + ", à régler avant le " + dL(x.echeance)).join("\n")
+      + "\n\nSoit un total de " + som(total) + ".\n\n"
+      + "Je vous remercie de bien vouloir procéder à leur règlement.\n\n";
+  }
+  if(enRetard.length){
+    corps += "Je vous rappelle qu'en cas de retard de paiement, des pénalités sont dues "
+      + "au taux de trois fois le taux d'intérêt légal, ainsi qu'une indemnité forfaitaire "
+      + "de 40 € pour frais de recouvrement (articles L441-10 et D441-5 du code de commerce).\n\n";
+  }
+  corps += "Si le règlement a été effectué entre-temps, merci de ne pas tenir compte de ce message.\n\n"
+    + "Bien cordialement,\n" + (moi || "[votre nom]");
+
+  return {corps: corps, total: total, retard: enRetard.length, nb: f.length,
+    objet: (f.length === 1 ? "Facture " + (f[0].ref || "") : "Vos factures en attente")
+      + (moi ? " — " + moi : "")};
+}
+
+function ouvrirRelance(nom){
+  const r = texteRelance(nom);
+  if(!r) return;
+  const cl = liste("clients").find(x => x.nom === nom);
+  const mail = cl && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(cl.contact || "").trim())
+    ? String(cl.contact).trim() : "";
+  const f = $("#feuille");
+  if(f.hidden) dernierFocus = document.activeElement;
+  f.innerHTML = '<div class="poignee"></div>'
+    + '<div class="feuille-tete"><h2 id="feuille-titre">Relancer ' + h(nom) + "</h2>"
+    + '<button class="fermer" id="x" aria-label="Fermer">×</button></div>'
+    + '<div class="relance">'
+    + '<p class="aide">' + (r.retard
+        ? "Le délai est passé. Le message le dit fermement, et rappelle la loi."
+        : "L'échéance approche. Le message reste un simple rappel.")
+      + " Relisez-le, il part sous votre nom.</p>"
+    + '<textarea id="relance-txt" rows="13" aria-label="Le message">' + h(r.corps) + "</textarea>"
+    + '<div class="relance-actions">'
+    + '<button data-copier-relance="1">Copier le message</button>'
+    + '<button class="doux" data-mail-relance="' + h(mail) + '" data-objet="' + h(r.objet) + '">Ouvrir dans mon mail</button>'
+    + "</div></div>";
+  clearTimeout(minuteurFeuille);
+  f.hidden = false; $("#voile").hidden = false;
+  requestAnimationFrame(() => { f.classList.add("on"); $("#voile").classList.add("on"); });
 }
 
 function ligneLegende(cls, titre, sous, montant, pourcent){
@@ -3152,6 +3251,7 @@ $("#vue").addEventListener("click", e => {
   }
   if(b.dataset.retour){ clientOuvert = null; filtreA = "clients"; animer = true; memoire.clear(); rendre(); window.scrollTo({top: 0}); return; }
   if(b.dataset.ajoutNote){ noter(b.dataset.ajoutNote); return; }
+  if(b.dataset.relance){ ouvrirRelance(b.dataset.relance); return; }
   if(b.dataset.facturer){
     const cl = liste("clients").find(x => x.nom === b.dataset.facturer);
     ouvrir("facture", {client: b.dataset.facturer, objet: (cl && cl.projet) || ""});
@@ -3301,6 +3401,29 @@ $("#vue").addEventListener("change", e => {
 
 $("#feuille").addEventListener("click", e => {
   if(e.target.closest("#x")){ fermer(); return; }
+  const b = e.target.closest("button");
+  if(b && b.dataset.copierRelance){
+    const z = $("#relance-txt");
+    if(z){
+      /* la sélection puis execCommand marchent partout et tout de suite ;
+         l'API presse-papiers peut rester en attente sans jamais répondre */
+      z.focus(); z.select();
+      try{ document.execCommand("copy"); }catch(err){}
+      if(navigator.clipboard && navigator.clipboard.writeText){
+        try{ navigator.clipboard.writeText(z.value).catch(() => {}); }catch(err){}
+      }
+      b.textContent = "Copié";
+      setTimeout(() => { if(b.isConnected) b.textContent = "Copier le message"; }, 1800);
+    }
+    return;
+  }
+  if(b && b.dataset.mailRelance !== undefined && b.dataset.objet){
+    const z = $("#relance-txt");
+    window.location.href = "mailto:" + encodeURIComponent(b.dataset.mailRelance)
+      + "?subject=" + encodeURIComponent(b.dataset.objet)
+      + "&body=" + encodeURIComponent(z ? z.value : "");
+    return;
+  }
   const t = e.target.closest("[data-type]");
   if(t) ouvrir(t.dataset.type);
 });
@@ -4898,7 +5021,7 @@ function ouvrirRentree(pre){
 }
 $("gros-1").addEventListener("click",function(){ ouvrirRentree(); });
 $("gros-2").addEventListener("click",function(){ ouvrirRentree(); });
-$("annuler-rentree").addEventListener("click",function(){ $("form-rentree").hidden=true; });
+$("annuler-rentree").addEventListener("click",function(){ $("form-rentree").hidden=true; onglet("argent"); });
 $("valider-rentree").addEventListener("click",function(){
   var m=num($("n-montant").value);
   if(m<=0){ $("n-montant").focus(); return; }
@@ -4907,6 +5030,7 @@ $("valider-rentree").addEventListener("click",function(){
     montant:m,mode:$("n-mode").value,exemple:false});
   $("form-rentree").hidden=true;
   rendreLivre(); rendreArgent(); rendreObjectif();
+  onglet("argent");   /* la barre est masquée : on ramène l'utilisateur */
 });
 $("livre").addEventListener("click",function(e){
   var b=e.target.closest("[data-sup]"); if(!b) return;
@@ -4994,7 +5118,7 @@ try{
   if(s&&s.rentrees&&sien) etat=Object.assign(etatNeuf(),s);
 }catch(e){}
 toutRendre();
-onglet(etat.onglet||"argent");
+onglet("argent");
 
 
 
