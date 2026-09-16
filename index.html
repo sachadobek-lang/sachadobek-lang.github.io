@@ -2,7 +2,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Cadence</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Outfit:wght@500;600;700;800&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap">
 <style>
 :root{
   --ground:#EFF3F8; --surface:#FFFFFF; --surface-2:#F5F8FC; --surface-3:#E9EFF6;
@@ -36,6 +36,7 @@
   --o2:0 14px 38px -16px rgba(11,70,110,.42);
   --o3:0 18px 46px -14px rgba(20,32,46,.30);
   --ui:"Nunito",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --ui-cadence:"Nunito",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   --num:"Outfit","Nunito",-apple-system,sans-serif;
   --ressort:cubic-bezier(.34,1.46,.44,1);
   --doux:cubic-bezier(.22,.61,.36,1);
@@ -756,8 +757,11 @@ summary.carte-tete:hover h2{color:var(--v1)}
 /* ══════════ MA JOURNÉE — greffée telle quelle, couleurs d'origine ══════════ */
 
 #majournee{
-  --display:"Manrope","Helvetica Neue",Arial,sans-serif;
-  --ui:"Instrument Sans","Helvetica Neue",Arial,sans-serif;
+  /* Les mêmes polices que le reste de Cadence. Ma Journée demandait Manrope
+     et Instrument Sans, que la page ne charge pas : elle retombait sur
+     Helvetica, et l'Agenda ne ressemblait à aucun autre écran. */
+  --display:var(--num);
+  --ui:var(--ui-cadence);
 
   --bg:#F3F4F8;
   --surface:#FFFFFF;
