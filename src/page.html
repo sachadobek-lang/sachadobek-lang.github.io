@@ -22,6 +22,11 @@
 
   /* sémantique : trois états, jamais plus */
   --ok:#0E7D57; --ok-doux:#DDF1E8;
+  /* la part « impôt » du schéma. Elle empruntait --ink-2 puis --ink-3,
+     des jetons de texte : chaque fois qu'on les ajuste pour la lisibilité
+     d'un paragraphe, la part se rapproche du graphite de « Pour vous ».
+     Elle a sa propre valeur, choisie pour tenir 3,9:1 contre lui. */
+  --part-impot:#8C99AD;
   --tard:#A3670F; --tard-doux:#FBEDD6;
   --attente:#1D5BA8; --attente-doux:#E3ECFB;
   --sur-plein:#FFFFFF;
@@ -56,6 +61,7 @@
     --ok:#3FC391; --ok-doux:#0C2A20;
     --tard:#DFA850; --tard-doux:#2A2113;
     --attente:#74A8F0; --attente-doux:#142740;
+    --part-impot:#8C99AD;
     --sur-plein:#FFFFFF;
     --o1:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -20px rgba(0,0,0,.8);
     --o2:0 14px 38px -16px rgba(0,0,0,.8);
@@ -80,6 +86,7 @@
   --ok:#3FC391; --ok-doux:#0C2A20;
   --tard:#DFA850; --tard-doux:#2A2113;
   --attente:#74A8F0; --attente-doux:#142740;
+  --part-impot:#8C99AD;
   --sur-plein:#FFFFFF;
   --o1:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -20px rgba(0,0,0,.8);
   --o2:0 14px 38px -16px rgba(0,0,0,.8);
@@ -215,7 +222,7 @@ h1,h2,h3,p{margin:0}
 .barre-part i{display:block;height:100%;min-width:2px;transition:width .6s var(--doux)}
 .barre-part i.moi{background:var(--v1)}
 .barre-part i.cotis{background:var(--tard)}
-.barre-part i.impot{background:var(--ink-3)}
+.barre-part i.impot{background:var(--part-impot)}
 .barre-part i.depense{background:var(--line-fort)}
 .legende{display:flex;flex-direction:column;margin-top:18px}
 .legende div{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
@@ -223,7 +230,7 @@ h1,h2,h3,p{margin:0}
 .legende .pastille-l{width:14px;height:14px;border-radius:4px;flex:none}
 .legende .pastille-l.moi{background:var(--v1)}
 .legende .pastille-l.cotis{background:var(--tard)}
-.legende .pastille-l.impot{background:var(--ink-3)}
+.legende .pastille-l.impot{background:var(--part-impot)}
 .legende .pastille-l.depense{background:var(--line-fort)}
 .legende .quoi-l{flex:1;min-width:0;font-size:16px;font-weight:600}
 .legende .quoi-l small{display:block;font-size:13.5px;font-weight:400;color:var(--ink-3);margin-top:1px}
