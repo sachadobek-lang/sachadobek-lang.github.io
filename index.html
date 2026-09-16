@@ -1550,21 +1550,9 @@ summary.carte-tete:hover h2{color:var(--v1)}
   <!-- ============ MON ARGENT ============ -->
   <div class="panel noprint" id="p-argent" role="tabpanel">
 
-    <!-- La première chose qu'on doit voir, c'est ce qu'on ne doit pas
-         dépenser, et la date avant laquelle déclarer. C'est la peur n°1
-         de tous ceux qui vivent de leur métier, et l'oubli se paie
-         60,10 € même à zéro euro. Avant, c'était le troisième bloc. -->
-    <div class="cadre">
-      <span class="t">Gardez ça de côté. Ce n'est pas à vous.</span>
-      <span class="v" id="t-garde">—</span>
-      <span class="s" id="t-sur">—</span>
-    </div>
-
-    <div class="echeance">
-      <span class="compte"><b id="e-nb">—</b><span id="e-unite">jours</span></span>
-      <span class="txt"><b id="e-quoi">—</b><span id="t-quand">—</span></span>
-    </div>
-
+    <!-- L'ordre voulu par Sacha : ce qu'on vient faire, puis l'argent,
+         puis ce que l'État prendra, puis ce qu'il faut mettre de côté.
+         On agit d'abord, on regarde ensuite, on provisionne en dernier. -->
     <div class="deux-gros">
       <button class="gros" id="gros-1">＋ J'ai été payé</button>
       <button class="gros doux" id="gros-fact">＋ Faire une facture</button>
@@ -1599,6 +1587,17 @@ summary.carte-tete:hover h2{color:var(--v1)}
           <span class="nom"><span id="nom-urssaf">Pour l'URSSAF</span><small id="lbl-urssaf">retraite, maladie</small></span>
           <span class="v" id="v-urssaf">—</span></div>
       </div>
+    </div>
+
+    <div class="echeance">
+      <span class="compte"><b id="e-nb">—</b><span id="e-unite">jours</span></span>
+      <span class="txt"><b id="e-quoi">—</b><span id="t-quand">—</span></span>
+    </div>
+
+    <div class="cadre">
+      <span class="t">Gardez ça de côté. Ce n'est pas à vous.</span>
+      <span class="v" id="t-garde">—</span>
+      <span class="s" id="t-sur">—</span>
     </div>
 
     <!-- Retirés : les douze barres de mois, la jauge de plafond et
