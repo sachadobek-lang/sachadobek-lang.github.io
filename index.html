@@ -486,8 +486,15 @@ button.tuile:active{transform:scale(.985)}
 .joindre svg{width:16px;height:16px;stroke-width:2.1;fill:none;flex:none}
 .joindre .vide{background:none;color:var(--ink-3);padding-left:2px}
 .joindre .vide:hover{background:none;color:var(--v-txt)}
+.joindre-nu{display:inline-flex;gap:2px;margin-left:-4px}
+.joindre-nu a{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;
+  border-radius:999px;color:var(--ink-3);transition:color .18s,background .18s}
+.joindre-nu a:hover{color:var(--v-txt);background:var(--surface-3)}
+.joindre-nu svg{width:16px;height:16px;stroke-width:2.1;fill:none}
+
 /* au doigt, la cible doit faire 44 px : on ne rate pas un appel */
-@media (pointer:coarse){.joindre a,.joindre button{padding:13px 17px}}
+@media (pointer:coarse){.joindre a,.joindre button{padding:13px 17px}
+  .joindre-nu a{width:38px;height:38px}}
 .paye{padding:16px 22px 22px}
 .paye .gros{font-family:var(--num);font-weight:600;font-size:38px;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.1;color:var(--ok)}
 .paye .lab{font-size:14px;font-weight:600;color:var(--ink-3)}
@@ -2245,6 +2252,7 @@ function fiche(c){
     + '<div class="fiche-pied"><span class="chiffres">' + eur(fx) + "<small>facturé"
     + (nb ? " · " + nb + " note" + (nb > 1 ? "s" : "") : "") + "</small></span>"
     + '<button class="etat-btn ' + e[1] + '" data-etat="' + h(c.id) + '" title="Appuyez pour changer">' + e[0] + "</button>"
+    + joindreMenu(c)
     + '<button class="sup" data-sup="clients" data-id="' + h(c.id) + '"><span class="mot">Supprimer</span></button></div></article>';
 }
 
@@ -2295,27 +2303,39 @@ const ICO_JOINDRE = {
   carte: '<path d="M12 20.8s6.3-5.5 6.3-10.1a6.3 6.3 0 1 0-12.6 0c0 4.6 6.3 10.1 6.3 10.1Z"/><circle cx="12" cy="10.4" r="2.3"/>',
   plus: '<path d="M12 6v12M6 12h12"/>'
 };
-function boutonJoindre(href, ico, mot, ext){
-  return '<a href="' + h(href) + '"' + (ext ? ' target="_blank" rel="noopener noreferrer"' : "") + '>'
+function boutonJoindre(href, ico, mot, ext, nu){
+  return '<a href="' + h(href) + '"' + (ext ? ' target="_blank" rel="noopener noreferrer"' : "")
+    + (nu ? ' title="' + h(mot) + '" aria-label="' + h(mot) + '"' : "") + '>'
     + '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">'
-    + ICO_JOINDRE[ico] + "</svg>" + mot + "</a>";
+    + ICO_JOINDRE[ico] + "</svg>" + (nu ? "" : mot) + "</a>";
 }
 
 /* Appeler · Écrire · M'y conduire — jamais plus de trois, souvent un seul.
    Le SMS n'apparaît que sur un appareil qui sait en envoyer. */
-function rangeeJoindre(c){
+function liensJoindre(c, nu){
   const j = joindre(c.contact);
   let liens = "";
-  if(j.tel) liens += boutonJoindre("tel:" + j.tel, "tel", "Appeler");
-  if(j.mail) liens += boutonJoindre("mailto:" + j.mail, "mail", "Écrire");
+  if(j.tel) liens += boutonJoindre("tel:" + j.tel, "tel", "Appeler", false, nu);
+  if(j.mail) liens += boutonJoindre("mailto:" + j.mail, "mail", "Écrire", false, nu);
   else if(j.tel && window.matchMedia("(pointer:coarse)").matches)
-    liens += boutonJoindre("sms:" + j.tel, "mail", "Écrire");
-  if(j.adresse) liens += boutonJoindre(lienCarte(j.adresse), "carte", "M'y conduire", true);
-
+    liens += boutonJoindre("sms:" + j.tel, "mail", "Écrire", false, nu);
+  if(j.adresse) liens += boutonJoindre(lienCarte(j.adresse), "carte", "M'y conduire", true, nu);
+  return liens;
+}
+function rangeeJoindre(c){
+  let liens = liensJoindre(c, false);
   if(!liens) liens = '<button class="vide" data-fiche="' + h(c.id) + '">'
     + '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">'
     + ICO_JOINDRE.plus + "</svg>Ajouter son numéro</button>";
   return '<div class="joindre">' + liens + "</div>";
+}
+
+/* Dans le carnet, les mêmes chemins mais muets : l'icône seule, en gris,
+   au bout du pied de la vignette. On les voit quand on les cherche, et
+   on ne les voit pas quand on parcourt la liste. */
+function joindreMenu(c){
+  const liens = liensJoindre(c, true);
+  return liens ? '<span class="joindre-nu">' + liens + "</span>" : "";
 }
 
 function ficheClient(id){
@@ -3505,6 +3525,7 @@ function armer(b){
 }
 
 $("#vue").addEventListener("click", e => {
+  if(e.target.closest("a")) return;   /* appeler, ce n'est pas ouvrir la fiche */
   const b = e.target.closest("button");
   if(!b){
     const bloc = e.target.closest("[data-bloc]");
