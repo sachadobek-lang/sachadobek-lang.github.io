@@ -1657,6 +1657,7 @@ let filtreB = "depenses";
 let filtreA = "factures";   /* Argent : factures ou clients */
 let filtreC = "calculs";    /* Comptabilité : calculs ou mon argent */
 let calcCA = 0, calcStatut = "services", calcLib = false, calcParts = 1;
+let calcTouche = false;   /* vrai dès que le chiffre est saisi à la main */
 let clientOuvert = null;
 let pliOuvert = false;
 let vueAgenda = "jour";        /* jour · semaine · liste */
@@ -1692,17 +1693,17 @@ function jourLong(iso){
    s'additionnent vraiment. Tout disparaît d'un coup à la première fiche. */
 const DEMO_LIGNES = [
   /* réf · client · montant · émise il y a n jours · payée · objet */
-  ["001", "Boulangerie Mercier", 18400, 246, 1, "Comptoir et vitrine"],
+  ["001", "Boulangerie Mercier", 19400, 246, 1, "Comptoir et vitrine"],
   ["002", "Atelier Ferrand",     22750, 219, 1, "Série de cent tabourets"],
   ["003", "Camille Roux",         9600, 193, 1, "Bibliothèque sur mesure"],
-  ["004", "Mairie de Montreuil", 31200, 152, 1, "Mobilier de la médiathèque"],
+  ["004", "Mairie de Montreuil", 30200, 152, 1, "Mobilier de la médiathèque"],
   ["005", "Garage Delaunay",     14300, 127, 1, "Établi et rangements"],
-  ["006", "Épicerie Tahar",      12850,  85, 1, "Étagères et comptoir"],
+  ["006", "Épicerie Tahar",      13850,  85, 1, "Étagères et comptoir"],
   ["007", "Hôtel Beauséjour",    26500,  70, 1, "Têtes de lit, trente chambres"],
-  ["008", "Atelier Ferrand",     19900,  28, 1, "Deuxième série de tabourets"],
-  ["009", "Boulangerie Mercier", 20900,  14, 1, "Agencement de la seconde boutique"],
-  ["010", "Mairie de Montreuil", 14200,  20, 0, "Signalétique du parc"],
-  ["011", "Garage Delaunay",      9400,  40, 0, "Établi supplémentaire"]
+  ["008", "Atelier Ferrand",     20900,  28, 1, "Deuxième série de tabourets"],
+  ["009", "Boulangerie Mercier", 20500,  14, 1, "Agencement de la seconde boutique"],
+  ["010", "Mairie de Montreuil", 13600,  20, 0, "Signalétique du parc"],
+  ["011", "Garage Delaunay",      8400,  40, 0, "Établi supplémentaire"]
 ];
 const DEMO_CLIENTS = [
   ["Boulangerie Mercier", "Agencement des deux boutiques", "actif"],
@@ -1771,7 +1772,17 @@ function charger(){
     COLS.forEach(c => { state[c] = JSON.parse(JSON.stringify(SEED[c] || {})); });
   }
 }
-function ecrire(col, id, obj){ state[col][id] = obj; sauver(); rendre(); }
+function ecrire(col, id, obj){
+  state[col][id] = obj;
+  /* facturer quelqu'un l'inscrit au carnet : sans ça l'argent existe
+     quelque part et le client nulle part, et les écrans se contredisent */
+  if(col === "factures" && obj && obj.client){
+    const nom = String(obj.client).trim();
+    const connu = Object.keys(state.clients).some(k => state.clients[k].nom === nom);
+    if(nom && !connu) state.clients[neuf()] = {nom: nom, projet: obj.objet || "", statut: "actif"};
+  }
+  sauver(); rendre();
+}
 function retirer(col, id){ delete state[col][id]; sauver(); rendre(); }
 
 function majSerie(){
@@ -2288,6 +2299,12 @@ function ecranFactures(){
         ? "dont " + c.impayees.length + " à relancer"
         : "chez vos clients") + "</span></div></div>"
 
+    /* le pont entre le mois et l'année : sans cette ligne, on compare
+       20 500 € du mois aux totaux annuels des clients et on croit à une
+       erreur */
+    + '<p class="pied" style="margin:-4px 2px 0">Depuis janvier : <b>' + eur(bilanAn().facture)
+      + "</b> facturés, dont <b>" + eur(bilanAn().encaisse) + "</b> encaissés.</p>"
+
     + '<section class="carte anim" style="animation-delay:.06s"><div class="carte-tete"><h2>Vos factures</h2>'
     + '<span class="appoint">' + vis.length + " ligne" + (vis.length > 1 ? "s" : "") + "</span></div>"
     + '<div class="segments">' + libs.map(kv =>
@@ -2366,6 +2383,9 @@ function vueBudget(){
 }
 
 function vueCalculs(){
+  /* tant que personne n'a tapé de chiffre, on calcule sur ce qui a
+     réellement été encaissé : une seule vérité, pas deux */
+  if(!calcTouche) calcCA = window.__CADENCE__.encaisse();
   const k = partageImpot();
   const ca = k.ca;
 
@@ -2504,6 +2524,14 @@ function ouvrirRelance(nom){
   clearTimeout(minuteurFeuille);
   f.hidden = false; $("#voile").hidden = false;
   requestAnimationFrame(() => { f.classList.add("on"); $("#voile").classList.add("on"); });
+}
+
+/* les totaux de l'année, ceux auxquels les fiches clients se comparent */
+function bilanAn(){
+  const an = String(new Date().getFullYear());
+  const f = liste("factures").filter(x => x.statut !== "brouillon" && String(x.emise || "").slice(0, 4) === an);
+  return {facture: f.reduce((t, x) => t + (Number(x.montant) || 0), 0),
+    encaisse: f.filter(x => statut(x) === "payee").reduce((t, x) => t + (Number(x.montant) || 0), 0)};
 }
 
 function ligneLegende(cls, titre, sous, montant, pourcent){
@@ -2871,9 +2899,37 @@ function rendre(){
   document.querySelector(".page").dataset.sec = vue;
   document.querySelector(".page").classList.toggle("sans-anim", !animer);
   animer = false;
+  if(greffeCompta && window.__MAJ_ARGENT__) window.__MAJ_ARGENT__();
   apres();
 }
 function badge(sel, n){ const e = $(sel); e.hidden = n === 0; e.textContent = n; }
+
+/* ═══ une seule source pour tout l'argent ═══
+   « Mon argent » est une application à part, avec sa propre mémoire. Tant
+   qu'elle tenait sa liste dans son coin, ses totaux ne pouvaient pas
+   correspondre aux factures : deux vérités pour le même argent. Elle lit
+   désormais exactement les mêmes fiches, et tout ce qui est ajouté d'un
+   côté apparaît de l'autre. */
+const anIci = () => String(new Date().getFullYear());
+window.__CADENCE__ = {
+  rentrees: () => liste("factures").filter(f => statut(f) === "payee").map(f => ({
+    id: f.id, date: f.emise || auj(), client: f.client || "", ref: f.ref || "",
+    montant: Number(f.montant) || 0, mode: f.mode || "Virement", exemple: !!f.demo})),
+  creances: () => liste("factures").filter(f => f.statut !== "brouillon" && statut(f) !== "payee").map(f => ({
+    id: f.id, client: f.client || "", ref: f.ref || "", montant: Number(f.montant) || 0,
+    desc: f.objet || "", emission: f.emise || auj(), echeance: f.echeance || auj(), exemple: !!f.demo})),
+  encaisse: () => liste("factures")
+    .filter(f => statut(f) === "payee" && String(f.emise || "").slice(0, 4) === anIci())
+    .reduce((t, f) => t + (Number(f.montant) || 0), 0),
+  /* noter un paiement depuis « Mon argent » crée une facture payée :
+     une seule façon d'entrer de l'argent dans l'application */
+  noterPaiement: o => ecrire("factures", neuf(), {
+    client: (o && o.client) || "", montant: Number(o && o.montant) || 0,
+    objet: (o && o.objet) || "", ref: (o && o.ref) || refSuivante(),
+    emise: (o && o.date) || auj(), echeance: (o && o.date) || auj(),
+    statut: "payee", mode: (o && o.mode) || "Virement"}),
+  retirerFacture: id => { if(state.factures[id]) retirer("factures", id); }
+};
 
 function apres(){
   const j = $(".anneau .jauge");
@@ -3332,6 +3388,7 @@ $("#vue").addEventListener("toggle", e => {
 $("#vue").addEventListener("input", e => {
   if(e.target.id !== "c-ca") return;
   calcCA = Number(e.target.value) || 0;
+  calcTouche = true;
   const texte = e.target.value, curseur = e.target.selectionStart;
   memoire.set("calcnet", partageImpot().net);   /* pas d'animation à chaque touche */
   animer = false;
@@ -3499,7 +3556,7 @@ window.addEventListener("resize", () => {
 });
 
 charger();
-if(enDemo()){ calcCA = DEMO_ENCAISSE; calcStatut = "vente"; }
+if(enDemo()) calcStatut = "vente";
 rendre();
 
 </script>
@@ -4748,19 +4805,12 @@ function activite(){
 }
 function etatNeuf(){
   var d=new Date(), an=d.getFullYear();
-  var DEMO = window.__DEMO__ || [];
   var il=function(j){ var x=new Date(d); x.setDate(x.getDate()-j); return iso(x); };
   return {
     activite:"vente", vfl:false, tva:false, onglet:"argent",
-    /* les mêmes factures que Comptabilité : un seul jeu de chiffres pour
-       toute l'application, sinon les totaux ne se répondent pas */
-    rentrees: DEMO.filter(function(l){ return l[4]; }).map(function(l){
-      return {id:uid(),date:il(l[3]),client:l[1],ref:an+"-"+l[0],montant:l[2],mode:"Virement",exemple:true};
-    }),
-    creances: DEMO.filter(function(l){ return !l[4]; }).map(function(l){
-      return {id:uid(),client:l[1],ref:an+"-"+l[0],montant:l[2],desc:l[5],
-              emission:il(l[3]),echeance:il(l[3]-30),exemple:true};
-    }),
+    /* vides : elles sont remplies par synchroniser(), à partir des
+       factures de Comptabilité. Un seul endroit où l'argent existe. */
+    rentrees: [], creances: [],
     objectif:{net:9000,frais:36000,jours:220},
     facture:{eNom:"",eSiret:"",eAdr:"",cNom:"",cAdr:"",num:an+"-012",date:iso(d),ech:iso(new Date(d.getTime()+30*864e5)),desc:"",montant:0}
   };
@@ -4994,7 +5044,16 @@ function rendreReglages(){
   $("r-vfl").checked=!!etat.vfl; $("r-tva").checked=!!etat.tva;
 }
 
+/* les factures de Comptabilité sont la seule source : on les recopie
+   avant chaque affichage plutôt que d'en tenir une deuxième liste */
+function synchroniser(){
+  var C = window.__CADENCE__;
+  if(!C) return;
+  etat.rentrees = C.rentrees();
+  etat.creances = C.creances();
+}
 function toutRendre(){ rendreReglages(); rendreLivre(); rendreFactures(); rendreBrouillon(); rendreObjectif(); rendreArgent(); }
+window.__MAJ_ARGENT__ = function(){ synchroniser(); toutRendre(); };
 
 /* ---------- onglets ---------- */
 var ONGLETS=[["argent","p-argent"],["factures","p-factures"],["livre","p-livre"],["calculs","p-calculs"]];
@@ -5025,17 +5084,19 @@ $("annuler-rentree").addEventListener("click",function(){ $("form-rentree").hidd
 $("valider-rentree").addEventListener("click",function(){
   var m=num($("n-montant").value);
   if(m<=0){ $("n-montant").focus(); return; }
-  etat.rentrees.push({id:uid(),date:$("n-date").value||iso(new Date()),
-    client:$("n-client").value.trim(),ref:$("n-ref").value.trim(),
-    montant:m,mode:$("n-mode").value,exemple:false});
+  if(window.__CADENCE__){
+    window.__CADENCE__.noterPaiement({date:$("n-date").value||iso(new Date()),
+      client:$("n-client").value.trim(), ref:$("n-ref").value.trim(),
+      montant:m, mode:$("n-mode").value});
+  }
   $("form-rentree").hidden=true;
-  rendreLivre(); rendreArgent(); rendreObjectif();
+  synchroniser(); rendreLivre(); rendreArgent(); rendreObjectif();
   onglet("argent");   /* la barre est masquée : on ramène l'utilisateur */
 });
 $("livre").addEventListener("click",function(e){
   var b=e.target.closest("[data-sup]"); if(!b) return;
-  etat.rentrees=etat.rentrees.filter(function(r){ return r.id!==b.getAttribute("data-sup"); });
-  rendreLivre(); rendreArgent(); rendreObjectif();
+  if(window.__CADENCE__) window.__CADENCE__.retirerFacture(b.getAttribute("data-sup"));
+  synchroniser(); rendreLivre(); rendreArgent(); rendreObjectif();
 });
 $("vider-exemples").addEventListener("click",function(){
   etat.rentrees=etat.rentrees.filter(function(r){ return !r.exemple; });
@@ -5116,7 +5177,9 @@ try{
   var sien = s && ((s.rentrees||[]).some(function(r){ return !r.exemple; })
                 || (s.creances||[]).some(function(c){ return !c.exemple; }));
   if(s&&s.rentrees&&sien) etat=Object.assign(etatNeuf(),s);
+  else if(s&&s.objectif) etat.objectif=s.objectif;
 }catch(e){}
+synchroniser();
 toutRendre();
 onglet("argent");
 
