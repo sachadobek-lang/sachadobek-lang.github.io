@@ -1594,7 +1594,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 
 <nav class="nav" id="nav" aria-label="Sections">
   <button data-vue="afaire" aria-current="page"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="5" width="17.6" height="15.8" rx="3.4"/><path d="M3.2 10h17.6M8.2 2.6v3.6M15.8 2.6v3.6"/></svg><span class="nom">Agenda</span><span class="compte" id="n-taches" hidden></span></button>
-  <button data-vue="argent"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="2.8" y="5.5" width="18.4" height="13" rx="3"/><circle cx="12" cy="12" r="2.6"/></svg><span class="nom">Argent</span><span class="compte" id="n-argent" hidden></span></button>
+  <button data-vue="argent"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c0-3.4 2.8-5.6 6.2-5.6s6.2 2.2 6.2 5.6"/><path d="M16.2 5.2a3.4 3.4 0 0 1 0 6.4M18 14.8c2 .7 3.2 2.5 3.2 5.2"/></svg><span class="nom">Clients</span><span class="compte" id="n-argent" hidden></span></button>
   <button data-vue="budget"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 17.2 9 11.4l3.6 3.6 8-8"/><path d="M15.8 7h4.8v4.8"/></svg><span class="nom">Comptabilité</span></button>
   <button class="plus" id="plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round"><path d="M12 5.5v13M5.5 12h13"/></svg><span class="nom">Ajouter</span></button>
 </nav>
@@ -2182,16 +2182,12 @@ function rangeeFacture(f, chezLui){
     + '<button class="sup" data-sup="factures" data-id="' + h(f.id) + '"><span class="mot">Supprimer</span></button></div>';
 }
 function vueArgent(){
-  /* le carnet de clients vit désormais sous l'onglet Argent */
-  const onglets = '<div class="segments segments-haut">'
-    + [["factures", "Factures"], ["clients", "Clients"]].map(kv =>
-        '<button data-fa="' + kv[0] + '" aria-pressed="' + (filtreA === kv[0]) + '">' + kv[1] + "</button>").join("")
-    + "</div>";
-  if(filtreA === "clients"){
-    if(clientOuvert) return ficheClient(clientOuvert);
-    return onglets + carnetClients();
-  }
+  /* l'onglet de la barre : le carnet de clients */
+  if(clientOuvert) return ficheClient(clientOuvert);
+  return carnetClients();
+}
 
+function ecranFactures(){
   const c = calculs();
   const tout = c.fact.slice().sort((x, y) => String(y.emise).localeCompare(String(x.emise)));
   const vis = filtreF === "payee" ? tout.filter(f => statut(f) === "payee")
@@ -2212,7 +2208,7 @@ function vueArgent(){
   }
   mois += "</div></section>";
 
-  return onglets + mois
+    return mois
     + '<div class="duo anim" style="animation-delay:.06s"><div class="tuile vert"><span class="lab">Déjà encaissé</span>'
     + '<span class="val" data-compte="encaisse" data-val="' + c.encaisse + '">' + eur(c.encaisse) + "</span>"
     + '<span class="sous">factures réglées ce mois</span></div>'
@@ -2291,10 +2287,12 @@ function partageImpot(){
 
 function vueBudget(){
   const onglets = '<div class="segments segments-haut">'
-    + [["calculs", "Calculs"], ["argent", "Mon argent"]].map(kv =>
+    + [["calculs", "Calculs"], ["factures", "Factures"], ["argent", "Mon argent"]].map(kv =>
         '<button data-fc="' + kv[0] + '" aria-pressed="' + (filtreC === kv[0]) + '">' + kv[1] + "</button>").join("")
     + "</div>";
-  return onglets + (filtreC === "calculs" ? vueCalculs() : "");
+  if(filtreC === "calculs")  return onglets + vueCalculs();
+  if(filtreC === "factures") return onglets + ecranFactures();
+  return onglets;
 }
 
 function vueCalculs(){
@@ -2703,7 +2701,7 @@ const RENDU = {afaire: vueAfaire, argent: vueArgent, budget: vueBudget};
 function rendre(){
   const c = calculs();
   badge("#n-taches", c.resteJour.length);
-  badge("#n-argent", c.impayees.length);
+  badge("#n-argent", 0);
   const surAgenda = vue === "afaire";
   const surCompta = vue === "budget";
   const greffeCompta = surCompta && filtreC === "argent";
@@ -2882,8 +2880,8 @@ const TOUS_TYPES = ["tache", "facture", "client"];
 const TYPES_VUE = {afaire: TOUS_TYPES, argent: TOUS_TYPES, budget: ["depense", "investissement"]};
 const TYPE_DEFAUT = {afaire: "tache", argent: "facture"};
 function typeDefaut(){
-  if(vue === "budget") return filtreB === "depenses" ? "depense" : "investissement";
-  if(vue === "argent" && filtreA === "clients") return "client";
+  if(vue === "argent") return "client";
+  if(vue === "budget") return filtreC === "factures" ? "facture" : "tache";
   return TYPE_DEFAUT[vue];
 }
 const NOM_TYPE = {tache: "Tâche", facture: "Facture", client: "Client", depense: "Dépense", investissement: "Investissement", moi: "Vous"};
