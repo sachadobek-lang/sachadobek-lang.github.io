@@ -9,12 +9,12 @@
   --line:#DFE7F0; --line-fort:#C6D2E0;
   --ink:#14202E; --ink-2:#4F5B70; --ink-3:#7F8CA1;
 
-  /* la signature : un seul dégradé vert → bleu, partout */
-  --v1:#0B7D6E; --v2:#17539F;
-  --v-txt:#0A6A5D;   /* le vert quand il sert de texte : assez sombre pour être lu */
-  --deg:linear-gradient(135deg,#0B7D6E 0%,#17539F 100%);
-  --deg-fonce:linear-gradient(140deg,#075C52 0%,#0F3C78 100%);
-  --deg-pale:linear-gradient(135deg,#E2F2EF 0%,#E4ECFA 100%);
+  /* la signature : un seul dégradé, du graphite au noir, à peine bleuté */
+  --v1:#2F3B4D; --v2:#55637A;
+  --v-txt:#2C3749;   /* l'accent quand il sert de texte : assez sombre pour être lu */
+  --deg:linear-gradient(135deg,#3A465A 0%,#11161E 100%);
+  --deg-fonce:linear-gradient(140deg,#242C3A 0%,#070A0F 100%);
+  --deg-pale:linear-gradient(135deg,#F0F2F6 0%,#E6EAF1 100%);
   --fond:linear-gradient(180deg,#F5F7FB 0%,#EBEEF4 100%);
   --tuile-neutre:linear-gradient(150deg,#FFFFFF 0%,#F1F7FF 100%);
   --tuile-vert:linear-gradient(150deg,#E9F9F1 0%,#D5EFE4 100%);
@@ -36,18 +36,19 @@
   --doux:cubic-bezier(.22,.61,.36,1);
   /* relais pour l'agenda greffé */
   --cad-surface:#FFFFFF; --cad-surface-2:#F5F8FC; --cad-line:#DFE7F0; --cad-line-fort:#C6D2E0;
-  --cad-ink:#14202E; --cad-ink-2:#4F5B70; --cad-ink-3:#7F8CA1; --cad-v1:#0B7D6E; --cad-tard:#A3670F;
-  --cad-tard-doux:#FBEDD6; --cad-attente-doux:#E3ECFB; --cad-deg-pale:#E2F2EF; --cad-rouge:#C63D2A;
+  --cad-ink:#14202E; --cad-ink-2:#4F5B70; --cad-ink-3:#7F8CA1; --cad-v1:#2F3B4D; --cad-tard:#A3670F;
+  --cad-tard-doux:#FBEDD6; --cad-attente-doux:#E3ECFB; --cad-deg-pale:#EEF1F6; --cad-rouge:#C63D2A;
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"]){
     --ground:#080E16; --surface:#131C28; --surface-2:#1A2431; --surface-3:#101924;
     --line:#233040; --line-fort:#334152;
     --ink:#ECF2F9; --ink-2:#A2AFC2; --ink-3:#73819A;
-    --v-txt:#2FBDA8;
-    --deg:linear-gradient(135deg,#17A794 0%,#3B82E0 100%);
-    --deg-fonce:linear-gradient(140deg,#0A6B5F 0%,#144B92 100%);
-    --deg-pale:linear-gradient(135deg,#0F2A27 0%,#12233C 100%);
+    --v-txt:#B9C4D6;
+    --deg:linear-gradient(135deg,#4C5A72 0%,#1A212C 100%);
+    --deg-fonce:linear-gradient(140deg,#2B3442 0%,#0C1118 100%);
+    --deg-pale:linear-gradient(135deg,#1A212B 0%,#161C25 100%);
+    --v1:#AEB9CA; --v2:#8593A8; --v-txt:#B9C4D6;
     --fond:linear-gradient(180deg,#0E1116 0%,#080A0D 100%);
     --tuile-neutre:linear-gradient(150deg,#16202E 0%,#131C2B 100%);
     --tuile-vert:linear-gradient(150deg,#0E2C22 0%,#0B2419 100%);
@@ -60,17 +61,18 @@
     --o2:0 14px 38px -16px rgba(0,0,0,.8);
     --o3:0 18px 46px -14px rgba(0,0,0,.8);
     --cad-surface:#141C28; --cad-surface-2:#1A2431; --cad-line:#233040; --cad-line-fort:#334152;
-    --cad-ink:#ECF2F9; --cad-ink-2:#A2AFC2; --cad-ink-3:#73819A; --cad-v1:#17A794; --cad-tard:#DFA850;
-    --cad-tard-doux:#2A2113; --cad-attente-doux:#142740; --cad-deg-pale:#0F2A27; --cad-rouge:#F0644C;
+    --cad-ink:#ECF2F9; --cad-ink-2:#A2AFC2; --cad-ink-3:#73819A; --cad-v1:#AEB9CA; --cad-tard:#DFA850;
+    --cad-tard-doux:#2A2113; --cad-attente-doux:#142740; --cad-deg-pale:#1A212B; --cad-rouge:#F0644C;
   }
 }
 :root[data-theme="dark"]{
   --ground:#080E16; --surface:#131C28; --surface-2:#1A2431; --surface-3:#101924;
   --line:#233040; --line-fort:#334152;
   --ink:#ECF2F9; --ink-2:#A2AFC2; --ink-3:#73819A;
-  --deg:linear-gradient(135deg,#17A794 0%,#3B82E0 100%);
-  --deg-fonce:linear-gradient(140deg,#0A6B5F 0%,#144B92 100%);
-  --deg-pale:linear-gradient(135deg,#0F2A27 0%,#12233C 100%);
+  --deg:linear-gradient(135deg,#4C5A72 0%,#1A212C 100%);
+  --deg-fonce:linear-gradient(140deg,#2B3442 0%,#0C1118 100%);
+  --deg-pale:linear-gradient(135deg,#1A212B 0%,#161C25 100%);
+    --v1:#AEB9CA; --v2:#8593A8; --v-txt:#B9C4D6;
   --fond:linear-gradient(180deg,#0E1116 0%,#080A0D 100%);
   --tuile-neutre:linear-gradient(150deg,#16202E 0%,#131C2B 100%);
   --tuile-vert:linear-gradient(150deg,#0E2C22 0%,#0B2419 100%);
@@ -83,8 +85,8 @@
   --o2:0 14px 38px -16px rgba(0,0,0,.8);
   --o3:0 18px 46px -14px rgba(0,0,0,.8);
   --cad-surface:#141C28; --cad-surface-2:#1A2431; --cad-line:#233040; --cad-line-fort:#334152;
-  --cad-ink:#ECF2F9; --cad-ink-2:#A2AFC2; --cad-ink-3:#73819A; --cad-v1:#17A794; --cad-tard:#DFA850;
-  --cad-tard-doux:#2A2113; --cad-attente-doux:#142740; --cad-deg-pale:#0F2A27; --cad-rouge:#F0644C;
+  --cad-ink:#ECF2F9; --cad-ink-2:#A2AFC2; --cad-ink-3:#73819A; --cad-v1:#AEB9CA; --cad-tard:#DFA850;
+  --cad-tard-doux:#2A2113; --cad-attente-doux:#142740; --cad-deg-pale:#1A212B; --cad-rouge:#F0644C;
 }
 
 *{box-sizing:border-box}
