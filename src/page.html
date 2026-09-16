@@ -214,6 +214,7 @@ h1,h2,h3,p{margin:0}
 .barre-part i.moi{background:var(--v1)}
 .barre-part i.cotis{background:var(--tard)}
 .barre-part i.impot{background:var(--ink-2)}
+.barre-part i.depense{background:var(--line-fort)}
 .legende{display:flex;flex-direction:column;margin-top:18px}
 .legende div{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line)}
 .legende div:last-child{border-bottom:0}
@@ -221,6 +222,7 @@ h1,h2,h3,p{margin:0}
 .legende .pastille-l.moi{background:var(--v1)}
 .legende .pastille-l.cotis{background:var(--tard)}
 .legende .pastille-l.impot{background:var(--ink-2)}
+.legende .pastille-l.depense{background:var(--line-fort)}
 .legende .quoi-l{flex:1;min-width:0;font-size:16px;font-weight:600}
 .legende .quoi-l small{display:block;font-size:13.5px;font-weight:400;color:var(--ink-3);margin-top:1px}
 .legende .combien-l{font-family:var(--num);font-weight:600;font-size:17px;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -416,6 +418,15 @@ summary.groupe:hover{background:var(--line)}
 .reponse-c .heros-val{margin:0;line-height:1.05}
 .reponse-c span{display:block;margin-top:4px;font-size:14.5px;color:var(--ink-2)}
 
+/* ═══ le geste principal de l'écran Factures ═══ */
+.faire-facture{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
+  border:0;border-radius:var(--rl);padding:19px 22px;background:var(--deg);color:#fff;
+  font-family:var(--num);font-weight:600;font-size:18.5px;letter-spacing:-.01em;
+  box-shadow:var(--o2);transition:transform .16s var(--ressort),filter .2s}
+.faire-facture svg{width:21px;height:21px;stroke-width:2.6;fill:none}
+.faire-facture:hover{filter:brightness(1.08)}
+.faire-facture:active{transform:scale(.982)}
+
 /* ═══ segments ═══ */
 .segments{display:flex;gap:5px;padding:7px;background:var(--surface-3);border-radius:999px;margin:16px 24px 12px}
 .segments-haut{margin:0 0 4px;background:var(--surface);box-shadow:var(--o1)}
@@ -450,7 +461,14 @@ summary.groupe:hover{background:var(--line)}
 
 /* ═══ tuiles cliquables ═══ */
 .duo{display:grid;grid-template-columns:1fr 1fr;gap:13px}
-@media(max-width:439px){ .duo{grid-template-columns:1fr} }
+/* elles s'empilaient sur téléphone et rallongeaient l'écran d'un plein
+   défilement pour deux nombres courts : elles restent côte à côte */
+@media(max-width:439px){
+  .duo{gap:9px}
+  .duo .tuile{padding:15px 14px}
+  .duo .tuile .val{font-size:22px;letter-spacing:-.03em}
+  .duo .tuile .lab,.duo .tuile .sous{font-size:12px}
+}
 .tuile{background:var(--tuile-neutre);border:0;border-radius:var(--rm);padding:19px 20px;box-shadow:var(--o1);display:flex;flex-direction:column;gap:4px;text-align:left;transition:transform .18s var(--doux),box-shadow .2s}
 button.tuile:hover{transform:translateY(-2px);box-shadow:var(--o3)}
 button.tuile:active{transform:scale(.985)}
@@ -1222,7 +1240,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   --ink:var(--cad-ink); --ink-soft:var(--cad-ink-2); --ink-faint:var(--cad-ink-3); --rule:var(--cad-line);
   --moi:var(--cad-v1); --moi-bg:var(--cad-deg-pale); --on-moi:#FFFFFF;
   --tva:#17539F; --tva-bg:var(--cad-attente-doux);
-  --urssaf:var(--cad-ink); --urssaf-bg:var(--cad-surface-2);
+  --urssaf:var(--cad-tard); --urssaf-bg:var(--cad-tard-doux);
   --chaud:var(--cad-tard); --chaud-bg:var(--cad-tard-doux);
   --focus:var(--cad-v1);
   color-scheme:light;
@@ -1232,7 +1250,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
     --ink:var(--cad-ink); --ink-soft:var(--cad-ink-2); --ink-faint:var(--cad-ink-3); --rule:var(--cad-line);
     --moi:var(--cad-v1); --moi-bg:var(--cad-deg-pale); --on-moi:#FFFFFF;
     --tva:#17539F; --tva-bg:var(--cad-attente-doux);
-    --urssaf:var(--cad-ink); --urssaf-bg:var(--cad-surface-2);
+    --urssaf:var(--cad-tard); --urssaf-bg:var(--cad-tard-doux);
     --chaud:var(--cad-tard); --chaud-bg:var(--cad-tard-doux);
     --focus:var(--cad-v1);
     color-scheme:dark;
@@ -1243,7 +1261,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   --ink:var(--cad-ink); --ink-soft:var(--cad-ink-2); --ink-faint:var(--cad-ink-3); --rule:var(--cad-line);
   --moi:var(--cad-v1); --moi-bg:var(--cad-deg-pale); --on-moi:#FFFFFF;
   --tva:#17539F; --tva-bg:var(--cad-attente-doux);
-  --urssaf:var(--cad-ink); --urssaf-bg:var(--cad-surface-2);
+  --urssaf:var(--cad-tard); --urssaf-bg:var(--cad-tard-doux);
   --chaud:var(--cad-tard); --chaud-bg:var(--cad-tard-doux);
   --focus:var(--cad-v1);
   color-scheme:dark;
@@ -1293,6 +1311,11 @@ summary.carte-tete:hover h2{color:var(--v1)}
   cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
   transition:transform .08s,background .15s;
 }
+#ilreste .deux-gros{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:420px){#ilreste .deux-gros{grid-template-columns:1fr}}
+#ilreste .deux-gros .gros{width:100%}
+#ilreste .gros.doux{background:var(--surface);color:var(--moi);border:2px solid var(--moi)}
+#ilreste .gros.doux:hover{background:var(--moi);color:var(--on-moi)}
 #ilreste .gros:hover{background:var(--ink);color:var(--paper)}
 #ilreste .gros:active{transform:scale(.985)}
 #ilreste .bloc-disque{display:flex;flex-direction:column;align-items:center;gap:14px}
@@ -1450,6 +1473,49 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste{display:block;background:transparent!important;padding-bottom:104px}
 #ilreste .enveloppe,#ilreste .wrap,#ilreste main{min-height:0;max-width:none}
 
+/* ═══ mêmes polices et mêmes cartes que Calculs et Factures ═══ */
+#ilreste .chiffre,
+#ilreste .disc-center .big,
+#ilreste .disc-center .pc,
+#ilreste .legende .v,
+#ilreste .cadre .v,
+#ilreste .mois .m span,
+#ilreste .jauge .haut .n,
+#ilreste .det td,
+#ilreste .rs,#ilreste .rc > span{
+  font-family:var(--num)!important;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+#ilreste .cadre,#ilreste .card,#ilreste .echeance{
+  border:0;border-radius:var(--rl);background:var(--surface);box-shadow:var(--o1);padding:21px 22px}
+#ilreste .cadre.alerte{background:var(--chaud-bg);box-shadow:none}
+#ilreste .cadre .v{font-size:38px;letter-spacing:-.03em;line-height:1.1}
+#ilreste .gros{border-radius:var(--rm);font-family:var(--num);font-size:17.5px;font-weight:600}
+#ilreste .repli{border:0;border-radius:var(--rm);background:var(--surface);box-shadow:var(--o1)}
+#ilreste details.repli > summary{padding:16px 19px;font-size:15.5px}
+#ilreste details.repli > summary .titre{flex:none;font-weight:700;color:var(--ink)}
+#ilreste details.repli > summary .rep{font-family:var(--num);font-size:14.5px;color:var(--ink-soft);
+  white-space:normal;text-align:right;letter-spacing:0}
+#ilreste .repli-corps{border-top:1px solid var(--rule);padding:6px 19px 19px}
+/* la mention du bas est une phrase, pas un tableau : elle ne se coupe plus */
+#ilreste .note .chiffre{white-space:nowrap}
+#ilreste .note{border-top:0;color:var(--ink-faint);text-align:center;padding-top:4px}
+
+/* ═══ la prochaine échéance, sur sa propre carte ═══
+   Elle était collée sous « gardez ça de côté », si bien que l'encadré
+   portait deux chiffres différents — ce qu'il faut garder sur l'année, et
+   ce qu'il faut déclarer ce mois-ci. Personne ne peut lire ça. */
+#ilreste .echeance{display:flex;gap:14px;align-items:center}
+#ilreste .echeance .compte{flex:none;width:56px;height:56px;border-radius:18px;
+  background:var(--moi-bg);display:flex;flex-direction:column;align-items:center;
+  justify-content:center;line-height:1}
+#ilreste .echeance .compte b{font-family:var(--num);font-weight:600;font-size:21px;color:var(--moi)}
+#ilreste .echeance .compte span{font-size:9.5px;font-weight:700;color:var(--moi);
+  text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+#ilreste .echeance .txt{min-width:0}
+#ilreste .echeance .txt > b{display:block;font-size:15.5px;font-weight:700}
+#ilreste .echeance .txt > span b{font-weight:700;color:var(--ink)}
+#ilreste .echeance .txt > span{display:block;font-size:13.5px;color:var(--ink-soft);margin-top:1px}
+
+
 
 </style>
 
@@ -1459,7 +1525,9 @@ summary.carte-tete:hover h2{color:var(--v1)}
   <div id="ilreste" hidden>
 <div class="page">
 
-  <h1 class="noprint">Il te reste combien&nbsp;?</h1>
+  <!-- l'onglet « Mon argent » nomme déjà l'écran : ce titre faisait une
+       troisième formulation à lire avant d'arriver au chiffre -->
+  <h1 class="noprint" hidden>Il te reste combien&nbsp;?</h1>
 
   <div class="tabs noprint" role="tablist" hidden>
     <button id="tab-argent"   role="tab" aria-selected="true">Mon argent</button>
@@ -1471,12 +1539,30 @@ summary.carte-tete:hover h2{color:var(--v1)}
   <!-- ============ MON ARGENT ============ -->
   <div class="panel noprint" id="p-argent" role="tabpanel">
 
-    <button class="gros" id="gros-1">＋ J'ai été payé</button>
+    <!-- La première chose qu'on doit voir, c'est ce qu'on ne doit pas
+         dépenser, et la date avant laquelle déclarer. C'est la peur n°1
+         de tous ceux qui vivent de leur métier, et l'oubli se paie
+         60,10 € même à zéro euro. Avant, c'était le troisième bloc. -->
+    <div class="cadre">
+      <span class="t">Gardez ça de côté. Ce n'est pas à vous.</span>
+      <span class="v" id="t-garde">—</span>
+      <span class="s" id="t-sur">—</span>
+    </div>
+
+    <div class="echeance">
+      <span class="compte"><b id="e-nb">—</b><span id="e-unite">jours</span></span>
+      <span class="txt"><b id="e-quoi">—</b><span id="t-quand">—</span></span>
+    </div>
+
+    <div class="deux-gros">
+      <button class="gros" id="gros-1">＋ J'ai été payé</button>
+      <button class="gros doux" id="gros-fact">＋ Faire une facture</button>
+    </div>
 
     <div class="bloc-disque">
       <div class="disc">
         <svg viewBox="0 0 240 240" role="img" aria-labelledby="d-t">
-          <title id="d-t">Partage de tout ce que tu as encaissé cette année</title>
+          <title id="d-t">Partage de tout ce que vous avez encaissé cette année</title>
           <circle cx="120" cy="120" r="96" fill="none" stroke="var(--sunken)" stroke-width="32"></circle>
           <g transform="rotate(-90 120 120)">
             <circle class="seg" id="s-moi"    cx="120" cy="120" r="96" stroke="var(--moi)"    stroke-width="32"></circle>
@@ -1485,7 +1571,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
           </g>
         </svg>
         <div class="disc-center">
-          <span class="cap">à toi cette année</span>
+          <span class="cap">à vous cette année</span>
           <span class="big" id="c-moi">—</span>
           <span class="pc" id="c-pc">—</span>
         </div>
@@ -1493,36 +1579,21 @@ summary.carte-tete:hover h2{color:var(--v1)}
 
       <div class="legende">
         <div class="l moi"><span class="d"></span>
-          <span class="nom">À toi<small>tu peux le dépenser</small></span>
+          <span class="nom">À vous<small>vous pouvez le dépenser</small></span>
           <span class="v" id="v-moi">—</span></div>
         <div class="l tva" id="l-tva"><span class="d"></span>
-          <span class="nom">La TVA<small>elle n'a jamais été à toi</small></span>
+          <span class="nom">La TVA<small>elle n'a jamais été à vous</small></span>
           <span class="v" id="v-tva">—</span></div>
         <div class="l urssaf"><span class="d"></span>
-          <span class="nom">Pour l'URSSAF<small id="lbl-urssaf">retraite, maladie</small></span>
+          <span class="nom"><span id="nom-urssaf">Pour l'URSSAF</span><small id="lbl-urssaf">retraite, maladie</small></span>
           <span class="v" id="v-urssaf">—</span></div>
       </div>
     </div>
 
-    <div class="cadre">
-      <span class="t">Ne dépense pas ça. Mets-le sur un autre compte.</span>
-      <span class="v" id="t-garde">—</span>
-      <span class="s" id="t-quand">—</span>
-    </div>
-
-    <div class="mois" id="mois"></div>
-
-    <div class="jauge" id="jauge">
-      <div class="haut"><span id="j-quoi">—</span><span class="n" id="j-chiffre">—</span></div>
-      <div class="barre"><i id="j-barre" style="width:0%"></i></div>
-      <div class="bas" id="j-reste">—</div>
-    </div>
-
-    <div class="cadre alerte" id="concentration" hidden>
-      <span class="t">Un seul client pèse trop lourd</span>
-      <span class="v" id="conc-pc">—</span>
-      <span class="s" id="conc-txt">—</span>
-    </div>
+    <!-- Retirés : les douze barres de mois, la jauge de plafond et
+         l'alerte « un client pèse trop lourd ». Aucune des trois ne
+         demandait de décision, et l'alerte peignait en ambre une chose
+         sur laquelle on ne peut rien le jour où on la lit. -->
 
     <details class="repli">
       <summary><span class="titre">Mon prix minimum</span><span class="rep" id="sum-tjm">—</span></summary>
@@ -1535,7 +1606,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
         <p class="note-inline">Un indépendant facture <b>120 à 180 jours par an</b>, jamais 200 : les congés et le travail non facturé mangent le reste.</p>
         <table class="det" id="o-table"></table>
         <div class="jauge" id="jauge-obj">
-          <div class="haut"><span>Où tu en es cette année</span><span class="n" id="o-chiffre">—</span></div>
+          <div class="haut"><span>Où vous en êtes cette année</span><span class="n" id="o-chiffre">—</span></div>
           <div class="barre"><i id="o-barre" style="width:0%"></i></div>
           <div class="bas" id="o-reste">—</div>
         </div>
@@ -1545,7 +1616,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
     <details class="repli">
       <summary><span class="titre">Mon activité</span><span class="rep" id="sum-act">—</span></summary>
       <div class="repli-corps">
-        <div class="choix" id="choix-activite" role="group" aria-label="Ton activité"></div>
+        <div class="choix" id="choix-activite" role="group" aria-label="Votre activité"></div>
         <label class="bascule"><input type="checkbox" id="r-vfl"> Je paie mon impôt avec mes cotisations</label>
         <label class="bascule"><input type="checkbox" id="r-tva"> Je facture la TVA</label>
         <div class="actions"><button class="btn" id="vider-exemples">Effacer les exemples</button></div>
@@ -1574,14 +1645,14 @@ summary.carte-tete:hover h2{color:var(--v1)}
         <div class="card noprint">
           <h2>Toi</h2>
           <div class="frow">
-            <label class="f"><span>Ton nom</span><input type="text" id="e-nom" placeholder="Studio Belleville"></label>
+            <label class="f"><span>Votre nom</span><input type="text" id="e-nom" placeholder="Studio Belleville"></label>
             <label class="f"><span>SIRET</span><input type="text" id="e-siret" placeholder="123 456 789 00012"></label>
           </div>
-          <label class="f"><span>Ton adresse</span><textarea id="e-adr" placeholder="12 rue des Cascades&#10;75020 Paris"></textarea></label>
+          <label class="f"><span>Votre adresse</span><textarea id="e-adr" placeholder="12 rue des Cascades&#10;75020 Paris"></textarea></label>
         </div>
 
         <div class="card noprint">
-          <h2>Ton client</h2>
+          <h2>Votre client</h2>
           <label class="f"><span>Son nom</span><input type="text" id="c-nom" placeholder="Boulangerie Mercier"></label>
           <label class="f"><span>Son adresse</span><textarea id="c-adr" placeholder="4 place du Marché&#10;75011 Paris"></textarea></label>
         </div>
@@ -1593,7 +1664,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
             <label class="f"><span>Date</span><input type="date" id="f-date"></label>
             <label class="f"><span>À payer avant le</span><input type="date" id="f-ech"></label>
           </div>
-          <label class="f"><span>Ce que tu as fait</span><input type="text" id="f-desc" placeholder="Création du logo"></label>
+          <label class="f"><span>Ce que vous avez fait</span><input type="text" id="f-desc" placeholder="Création du logo"></label>
           <label class="f"><span>Combien</span><input type="text" inputmode="decimal" id="f-montant" placeholder="1200"></label>
         </div>
 
@@ -1797,7 +1868,7 @@ const MOIS_LONG = ["janvier", "février", "mars", "avril", "mai", "juin", "juill
 
 const state = {
   taches: {}, clients: {}, factures: {}, depenses: {}, investissements: {},
-  moi: {nom: "", adresse: "", siret: "", email: "", tva: 0, regime: "services", liberatoire: false, objectif: 0, joursFactures: 200},
+  moi: {nom: "", adresse: "", siret: "", email: "", tva: 0, forme: "", regime: "", liberatoire: false, parts: 1},
   rituel: {semaine: "", faits: []},
   serie: {n: 0, dernier: ""}
 };
@@ -1806,9 +1877,18 @@ let filtreT = "afaire";
 let filtreF = "encaisser";
 let filtreB = "depenses";
 let filtreA = "factures";   /* Argent : factures ou clients */
-let filtreC = "calculs";    /* Comptabilité : calculs ou mon argent */
-let calcCA = 0, calcStatut = "services", calcLib = false, calcParts = 1;
+let filtreC = "argent";     /* Comptabilité : mon argent, factures, calculs */
+let calcCA = 0;
 let calcTouche = false;   /* vrai dès que le chiffre est saisi à la main */
+/* Votre activité, le versement libératoire et votre foyer ne sont pas des
+   réglages d'écran : ce sont des faits vous concernant. Ils vivent donc
+   dans state.moi, sont enregistrés, et tout le monde les relit là. On ne
+   pose plus trois fois la même question pour obtenir trois réponses. */
+const calcForme  = () => (state.moi && FORMES[state.moi.forme]) ? state.moi.forme : "micro";
+const calcGenre  = () => FORMES[calcForme()].genre;
+const calcStatut = () => (state.moi && ACTIVITES[state.moi.regime]) ? state.moi.regime : "services";
+const calcLib    = () => !!(state.moi && state.moi.liberatoire);
+const calcParts  = () => Number(state.moi && state.moi.parts) || 1;
 let clientOuvert = null;
 let ecranClients = "pile";   /* « pile » : qui rappeler · « carnet » : l'annuaire */
 let pliOuvert = false;
@@ -1945,7 +2025,14 @@ function charger(){
   if(d && typeof d === "object"){
     COLS.forEach(c => { state[c] = d[c] && typeof d[c] === "object" ? d[c] : {}; });
     if(d.rituel) state.rituel = d.rituel;
-    if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0, regime: "services", liberatoire: false, objectif: 0, joursFactures: 200}, d.moi);
+    if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0, forme: "", regime: "", liberatoire: false, parts: 1}, d.moi);
+    /* avant, une seule question mêlait l'activité et la forme juridique :
+       « societe » voulait dire une société, le reste une micro. On traduit
+       plutôt que de faire recommencer. */
+    if(!state.moi.forme && state.moi.regime){
+      state.moi.forme = state.moi.regime === "societe" ? "sarl" : "micro";
+      if(state.moi.regime === "societe") state.moi.regime = "services";
+    }
     if(d.serie) state.serie = d.serie;
     /* d'anciennes fiches d'exemple, écrites par une version précédente,
        ne s'accordaient pas entre elles : le total encaissé ne correspondait
@@ -2784,24 +2871,33 @@ function ecranFactures(){
                                   : tout.filter(f => statut(f) !== "payee");
   const libs = [["encaisser", "À encaisser"], ["payee", "Payées"]];
 
-  /* le grand chiffre est celui de l'année : c'est lui qui doit répondre
-     au total des clients. Le mois passe en dessous, en petit. */
+  /* La question de cet écran est « qui me doit de l'argent ? ». C'est
+     donc elle qui prend le grand chiffre. Ce qui a été facturé et ce qui
+     est déjà rentré sont le décor, pas la question : ils passent en
+     dessous, en petit. */
   const an = bilanAn();
-  let mois = '<section class="carte anim"><div class="mois" style="padding-top:22px">'
-    + '<p class="heros-lab">Vous avez facturé</p>'
-    + '<p class="heros-val" data-compte="ca" data-val="' + an.facture + '">' + eur(an.facture) + "</p>"
-    + '<p class="heros-sous">depuis janvier</p>';
-  mois += "</div></section>";
+  const combien = c.attente.length;
+  const tete = '<section class="carte anim"><div class="mois" style="padding-top:22px">'
+    + '<p class="heros-lab">On vous doit</p>'
+    + '<p class="heros-val" data-compte="dus" data-val="' + c.duAttente + '">' + eur(c.duAttente) + "</p>"
+    + '<p class="heros-sous">' + (combien === 0
+        ? "tout le monde vous a payé"
+        : (c.impayees.length
+            ? combien + " facture" + (combien > 1 ? "s" : "") + ", dont "
+              + c.impayees.length + " à relancer"
+            : combien + " facture" + (combien > 1 ? "s" : "") + " en attente"))
+    + "</p></div></section>";
 
-    return mois
+    return '<button class="faire-facture anim" data-neuf="facture">'
+    + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
+    + '<path d="M12 5.5v13M5.5 12h13"/></svg>Faire une facture</button>'
+    + tete
     + '<div class="duo anim" style="animation-delay:.06s"><div class="tuile vert"><span class="lab">Déjà encaissé</span>'
     + '<span class="val" data-compte="encaisse" data-val="' + an.encaisse + '">' + eur(an.encaisse) + "</span>"
-    + '<span class="sous">déjà réglé par vos clients</span></div>'
-    + '<div class="tuile' + (c.impayees.length ? " chaud" : "") + '"><span class="lab">À encaisser</span>'
-    + '<span class="val" data-compte="impaye" data-val="' + c.duAttente + '">' + eur(c.duAttente) + "</span>"
-    + '<span class="sous">' + (c.impayees.length
-        ? "dont " + c.impayees.length + " à relancer"
-        : "chez vos clients") + "</span></div></div>"
+    + '<span class="sous">rentré depuis janvier</span></div>'
+    + '<div class="tuile"><span class="lab">Facturé</span>'
+    + '<span class="val" data-compte="ca" data-val="' + an.facture + '">' + eur(an.facture) + "</span>"
+    + '<span class="sous">depuis janvier</span></div></div>'
 
 
     + '<section class="carte anim" style="animation-delay:.06s"><div class="carte-tete"><h2>Vos factures</h2>'
@@ -2830,16 +2926,59 @@ function rangeeSortie(o, col){
     + '<span class="r-som">' + eur(o.montant) + "</span>"
     + '<button class="sup" data-sup="' + col + '" data-id="' + h(o.id) + '"><span class="mot">Supprimer</span></button></div>';
 }
-/* ═══ ce que l'État prendra — barème officiel 2026 ═══ */
-const BAREME = [{p: 11497, t: 0}, {p: 29315, t: 11}, {p: 83823, t: 30}, {p: 180294, t: 41}, {p: null, t: 45}];
-const DEC_SEUL = 889, DEC_COUPLE = 1470, DEC_TAUX = 45.25;
+/* ═══ ce que l'État prendra — chiffres officiels 2026 ═══
+   Barème indexé de 0,9 % par la loi de finances du 19 février 2026, qui
+   porte sur les revenus 2025. Décote et impôt sur les sociétés avec. */
+const BAREME = [{p: 11600, t: 0}, {p: 29579, t: 11}, {p: 84577, t: 30}, {p: 181917, t: 41}, {p: null, t: 45}];
+const DEC_SEUL = 897, DEC_COUPLE = 1483, DEC_TAUX = 45.25;
 const IS_REDUIT = 15, IS_SEUIL = 42500, IS_PLEIN = 25;
+/* l'abattement micro ne peut pas descendre sous 305 €, et ne peut pas
+   dépasser le chiffre d'affaires : sur les tout petits montants, le
+   pourcentage seul donnait un impôt trop élevé */
+const ABAT_MINI = 305;
+
+/* ═══ UNE SEULE TABLE DE TAUX POUR TOUTE L'APPLICATION ═══
+   « Calculs », « Mon argent » et le carnet la lisent tous. Il y en avait
+   trois, et elles ne disaient pas la même chose : le libéral payait
+   24,6 % sur un écran et 25,6 % sur le suivant. Même faute que les deux
+   listes d'argent d'autrefois, au même prix. Une seule table, un seul
+   chiffre. Les taux sont ceux du 1er janvier 2026 (décret 2025-943 pour
+   le BNC) et les plafonds ceux de la période 2026-2028. */
 const ACTIVITES = {
-  vente:    {nom: "Je vends des choses", note: "commerce, artisanat de vente", abat: 71, cotis: 12.3, liber: 1.0, plaf: 188700, tva: 85000},
-  services: {nom: "Je rends des services", note: "travaux, prestations, artisanat", abat: 50, cotis: 21.2, liber: 1.7, plaf: 77700, tva: 37500},
-  liberal:  {nom: "Je suis en libéral", note: "conseil, santé, création", abat: 34, cotis: 24.6, liber: 2.2, plaf: 77700, tva: 37500},
-  societe:  {nom: "J'ai une société", note: "SAS, SARL — impôt sur les sociétés", abat: 0, cotis: 0, liber: 0, plaf: 0, tva: 0}
+  vente:    {nom: "Je vends des choses", note: "commerce, artisanat de vente", court: "Vente", formel: "Vente de marchandises", abat: 71, cotis: 12.3, liber: 1.0, plaf: 203100, tva: 85000},
+  services: {nom: "Je rends des services", note: "travaux, prestations, artisanat", court: "Services", formel: "Prestations de services", abat: 50, cotis: 21.2, liber: 1.7, plaf: 83600, tva: 37500},
+  liberal:  {nom: "Je suis en libéral", note: "conseil, santé, création", court: "Libéral", formel: "Profession libérale", abat: 34, cotis: 25.6, liber: 2.2, plaf: 83600, tva: 37500}
 };
+
+/* ═══ les quatre formes les plus répandues en France ═══
+   La question posée était « que faites-vous ? ». C'est maintenant « que
+   êtes-vous ? », qui est celle que les gens se posent vraiment. L'activité
+   (vendre, servir, libéral) reste nécessaire pour la micro-entreprise
+   seule : elle devient une sous-question, posée uniquement dans ce cas.
+     · micro  cotisations sur le chiffre d'affaires, abattement forfaitaire
+     · ei     cotisations puis barème, sur le bénéfice réel
+     · sarl   impôt sur les sociétés
+     · sas    impôt sur les sociétés — même calcul que la SARL tant qu'on
+              ne sait pas ce que le dirigeant se verse */
+const FORMES = {
+  micro: {nom: "Micro-entreprise", note: "auto-entrepreneur", court: "Micro",
+    formel: "Micro-entreprise", genre: "micro"},
+  ei:    {nom: "Entreprise individuelle", note: "au réel, sans société", court: "EI",
+    formel: "Entreprise individuelle au réel", genre: "ei"},
+  sarl:  {nom: "SARL / EURL", note: "impôt sur les sociétés", court: "SARL",
+    formel: "SARL ou EURL", genre: "is"},
+  sas:   {nom: "SAS / SASU", note: "impôt sur les sociétés", court: "SAS",
+    formel: "SAS ou SASU", genre: "is"}
+};
+
+/* Le seul chiffre de cette application qui ne soit pas un taux officiel.
+   Les cotisations d'un entrepreneur individuel au réel sont progressives
+   (maladie, retraite, invalidité, allocations familiales, CSG-CRDS, sur
+   une assiette que la réforme du printemps 2026 vient de redéfinir) et
+   pèsent en pratique entre 40 et 45 % du bénéfice. On retient le haut de
+   la fourchette pour ne pas faire de fausse promesse, et l'écran dit
+   « environ ». */
+const EI_COTIS = 45;
 
 const pct = v => String(v).replace(".", ",");
 
@@ -2857,23 +2996,53 @@ function impotBareme(revenu, parts){
   return Math.max(0, du);
 }
 
+function impotIS(benefice){
+  const b = Math.max(0, Number(benefice) || 0);
+  return b <= IS_SEUIL ? b * IS_REDUIT / 100
+    : IS_SEUIL * IS_REDUIT / 100 + (b - IS_SEUIL) * IS_PLEIN / 100;
+}
+
 function partageImpot(){
   const ca = Number(calcCA) || 0;
-  const a = ACTIVITES[calcStatut] || ACTIVITES.services;
-  if(calcStatut === "societe"){
-    const is = ca <= IS_SEUIL ? ca * IS_REDUIT / 100
-      : IS_SEUIL * IS_REDUIT / 100 + (ca - IS_SEUIL) * IS_PLEIN / 100;
-    return {ca: ca, act: a, cotis: 0, impot: is, net: ca - is, societe: true};
+  const f = FORMES[calcForme()];
+  const a = ACTIVITES[calcStatut()] || ACTIVITES.services;
+  const genre = f.genre;
+
+  /* Société : l'impôt porte sur le bénéfice, pas sur le chiffre
+     d'affaires. Plutôt que de poser une question de plus, on retire les
+     dépenses déjà notées dans l'application — l'argent n'a qu'une source. */
+  if(genre === "is"){
+    const charges = Math.min(ca, chargesAn());
+    const benef = Math.max(0, ca - charges);
+    const is = impotIS(benef);
+    return {ca: ca, forme: f, act: a, cotis: 0, charges: charges, base: benef,
+      impot: is, net: ca - charges - is, genre: genre, societe: true};
   }
+
+  /* Entreprise individuelle au réel : cotisations sur le bénéfice, puis
+     barème sur ce qu'il en reste — les cotisations sont déductibles. */
+  if(genre === "ei"){
+    const charges = Math.min(ca, chargesAn());
+    const benef = Math.max(0, ca - charges);
+    const cotis = benef * EI_COTIS / 100;
+    const base = Math.max(0, benef - cotis);
+    const impot = impotBareme(base, calcParts());
+    return {ca: ca, forme: f, act: a, cotis: cotis, charges: charges, base: base,
+      benef: benef, impot: impot, net: ca - charges - cotis - impot, genre: genre};
+  }
+
+  /* Micro-entreprise : tout se calcule sur le chiffre d'affaires. */
   const cotis = ca * a.cotis / 100;
-  const base = ca * (100 - a.abat) / 100;
-  const impot = calcLib ? ca * a.liber / 100 : impotBareme(base, calcParts);
-  return {ca: ca, act: a, cotis: cotis, impot: impot, base: base, net: ca - cotis - impot, societe: false};
+  const abattu = Math.min(ca, Math.max(ABAT_MINI, ca * a.abat / 100));
+  const base = Math.max(0, ca - abattu);
+  const impot = calcLib() ? ca * a.liber / 100 : impotBareme(base, calcParts());
+  return {ca: ca, forme: f, act: a, cotis: cotis, impot: impot, base: base,
+    net: ca - cotis - impot, genre: genre, micro: true};
 }
 
 function vueBudget(){
   const onglets = '<div class="segments segments-haut">'
-    + [["calculs", "Calculs"], ["factures", "Factures"], ["argent", "Mon argent"]].map(kv =>
+    + [["argent", "Mon argent"], ["factures", "Factures"], ["calculs", "Calculs"]].map(kv =>
         '<button data-fc="' + kv[0] + '" aria-pressed="' + (filtreC === kv[0]) + '">' + kv[1] + "</button>").join("")
     + "</div>";
   if(filtreC === "calculs")  return onglets + vueCalculs();
@@ -2895,21 +3064,33 @@ function vueCalculs(){
     + (ca > 0 ? '<div class="reponse-c"><p class="heros-val" data-compte="calcnet" data-val="' + k.net + '">'
         + eur(k.net) + '</p><span>' + (k.societe ? "restera dans la société" : "il vous restera, une fois tout payé")
         + '</span></div>' : "")
-    + '<div class="statuts">' + Object.keys(ACTIVITES).map(cle => {
-        const a = ACTIVITES[cle];
-        return '<button data-act="' + cle + '" aria-pressed="' + (calcStatut === cle) + '">'
-          + '<span class="rond-s"></span><span><strong>' + a.nom + "</strong><small>" + a.note + "</small></span></button>";
+    + '<div class="statuts">' + Object.keys(FORMES).map(cle => {
+        const f = FORMES[cle];
+        return '<button data-forme="' + cle + '" aria-pressed="' + (calcForme() === cle) + '">'
+          + '<span class="rond-s"></span><span><strong>' + f.nom + "</strong><small>" + f.note + "</small></span></button>";
       }).join("") + "</div>";
 
-  if(!k.societe){
+  /* Ce qui dépend de la forme, et rien d'autre. Une société n'a rien à
+     régler ici ; la micro a besoin de savoir ce qu'elle vend, parce que
+     ses cotisations en dépendent. */
+  const foyer = '<label class="ligne-c"><span>Mon foyer</span><select id="c-parts">'
+    + [[1, "Je vis seul"], [2, "En couple"], [2.5, "Couple, 1 enfant"], [3, "Couple, 2 enfants"]].map(o =>
+        '<option value="' + o[0] + '"' + (calcParts() === o[0] ? " selected" : "") + ">" + o[1] + "</option>").join("")
+    + "</select></label>";
+
+  if(k.genre === "micro"){
     out += '<div class="reglages-c">'
-      + '<label class="bascule"><input type="checkbox" id="c-lib"' + (calcLib ? " checked" : "") + ">"
+      + '<label class="ligne-c"><span>Ce que je fais</span><select id="c-act">'
+      + Object.keys(ACTIVITES).map(c =>
+          '<option value="' + c + '"' + (calcStatut() === c ? " selected" : "") + ">"
+          + ACTIVITES[c].formel + "</option>").join("")
+      + "</select></label>"
+      + '<label class="bascule"><input type="checkbox" id="c-lib"' + (calcLib() ? " checked" : "") + ">"
       + "<span>Je paie l'impôt en même temps que mes cotisations <em>(versement libératoire)</em></span></label>"
-      + (calcLib ? "" : '<label class="ligne-c"><span>Mon foyer</span><select id="c-parts">'
-          + [[1, "Je vis seul"], [2, "En couple"], [2.5, "Couple, 1 enfant"], [3, "Couple, 2 enfants"]].map(o =>
-              '<option value="' + o[0] + '"' + (calcParts === o[0] ? " selected" : "") + ">" + o[1] + "</option>").join("")
-          + "</select></label>")
+      + (calcLib() ? "" : foyer)
       + "</div>";
+  }else if(k.genre === "ei"){
+    out += '<div class="reglages-c">' + foyer + "</div>";
   }
   out += "</section>";
 
@@ -2923,30 +3104,44 @@ function vueCalculs(){
     + '<span class="appoint">sur ' + eur(ca) + "</span></div>"
     + '<div class="schema" style="padding-top:2px"><div class="barre-part">'
     + '<i class="moi" style="width:' + pc(k.net).toFixed(1) + '%"></i>'
+    + (k.charges ? '<i class="depense" style="width:' + pc(k.charges).toFixed(1) + '%"></i>' : "")
     + (k.cotis ? '<i class="cotis" style="width:' + pc(k.cotis).toFixed(1) + '%"></i>' : "")
     + (k.impot ? '<i class="impot" style="width:' + pc(k.impot).toFixed(1) + '%"></i>' : "")
     + "</div>"
     + '<div class="legende">'
     + ligneLegende("moi", k.societe ? "Pour la société" : "Pour vous", k.societe ? "après impôt" : "une fois tout payé", k.net, part(k.net))
-    + (k.cotis ? ligneLegende("cotis", "Cotisations sociales", "retraite, santé, chômage — " + pct(k.act.cotis) + " %", k.cotis, part(k.cotis)) : "")
+    + (k.charges ? ligneLegende("depense", "Vos dépenses", "ce que vous avez noté cette année", k.charges, part(k.charges)) : "")
+    + (k.cotis ? ligneLegende("cotis", "Cotisations sociales",
+        k.genre === "ei" ? "retraite, santé — environ " + pct(EI_COTIS) + " % de votre bénéfice"
+                         : "retraite, santé, chômage — " + pct(k.act.cotis) + " %",
+        k.cotis, part(k.cotis)) : "")
     + (k.impot ? ligneLegende("impot", k.societe ? "Impôt sur les sociétés" : "Impôt sur le revenu",
-        k.societe ? (ca <= IS_SEUIL ? "taux réduit de 15 %" : "15 % jusqu'à " + eur(IS_SEUIL) + ", puis 25 %")
-          : (calcLib ? "versement libératoire, " + pct(k.act.liber) + " %"
-             : "barème, calculé sur " + eur(k.base) + " après abattement de " + pct(k.act.abat) + " %"),
+        k.societe ? ((k.base <= IS_SEUIL ? "taux réduit de 15 %" : "15 % jusqu'à " + eur(IS_SEUIL) + ", puis 25 %")
+            + (k.charges ? ", sur " + eur(k.base) + " de bénéfice" : ""))
+          : (k.genre === "ei" ? "barème, calculé sur " + eur(k.base) + " une fois vos cotisations déduites"
+             : (calcLib() ? "versement libératoire, " + pct(k.act.liber) + " %"
+                : "barème, calculé sur " + eur(k.base) + " après abattement de " + pct(k.act.abat) + " %")),
         k.impot, part(k.impot)) : "")
     + "</div></div></section>";
 
   /* les murs, seulement s'ils sont franchis */
   const murs = [];
-  if(!k.societe && ca > k.act.tva) murs.push("Au-delà de " + eur(k.act.tva) + ", vous devez facturer la TVA à vos clients.");
-  if(!k.societe && ca > k.act.plaf) murs.push("Au-delà de " + eur(k.act.plaf) + ", vous sortez de la micro-entreprise.");
+  if(k.genre === "micro" && ca > k.act.tva) murs.push("Au-delà de " + eur(k.act.tva) + ", vous devez facturer la TVA à vos clients.");
+  if(k.genre === "micro" && ca > k.act.plaf) murs.push("Au-delà de " + eur(k.act.plaf) + ", vous sortez de la micro-entreprise.");
   if(murs.length){
     out += '<section class="carte anim" style="animation-delay:.1s">'
       + murs.map(m => '<div class="r"><span class="pastille feu">!</span><span class="r-corps"><span class="r-titre" style="font-weight:600">'
         + m + "</span></span></div>").join("") + "</section>";
   }
 
-  out += '<p class="pied" style="padding-top:2px">Barème 2026. C\'est une estimation : votre impôt réel dépend aussi de vos autres revenus.</p>';
+  out += '<p class="pied" style="padding-top:2px">Chiffres 2026. C\'est une estimation : '
+    + (k.genre === "is"
+        ? "l'impôt porte sur votre bénéfice, calculé ici avec les seules dépenses que vous avez notées."
+        : k.genre === "ei"
+          ? "vos cotisations réelles dépendent de votre niveau de revenu ; on retient ici environ "
+            + pct(EI_COTIS) + " % du bénéfice."
+          : "votre impôt réel dépend aussi de vos autres revenus.")
+    + "</p>";
   return out + demo();
 }
 
@@ -3115,57 +3310,24 @@ function ligneLegende(cls, titre, sous, montant, pourcent){
 }
 
 
-/* ═══ ce que la micro-entreprise garde vraiment ═══
-   Taux 2026 : cotisations sociales, versement libératoire de l'impôt,
-   et plafond de chiffre d'affaires au-delà duquel le régime tombe. */
-const REGIMES = {
-  vente:    {nom: "Vente de marchandises", cotis: 12.3, liber: 1.0, plafond: 188700, tva: 85000},
-  services: {nom: "Prestations de services", cotis: 21.2, liber: 1.7, plafond: 77700, tva: 37500},
-  liberal:  {nom: "Profession libérale", cotis: 24.6, liber: 2.2, plafond: 77700, tva: 37500}
-};
-function reglesMoi(){ return REGIMES[(state.moi && state.moi.regime) || "services"] || REGIMES.services; }
-
-function comptes(){
+/* ═══ ce dont le livre des recettes a besoin ═══
+   Il y avait ici une deuxième table de taux et une cinquantaine de lignes
+   de calculs (objectif mensuel, prix de journée, plus gros client) que
+   plus aucun écran n'affichait. Le livre demande trois choses, les voici. */
+function bilanLivre(){
   const an = String(new Date().getFullYear());
-  const cetteAnnee = o => String(o.date || o.emise || "").slice(0, 4) === an;
-  const somme = arr => arr.reduce((t, o) => t + (Number(o.montant) || 0), 0);
-  const fact = liste("factures");
-  const r = reglesMoi();
-  const encaisse = somme(fact.filter(f => statut(f) === "payee" && cetteAnnee(f)));
-  const facture = somme(fact.filter(f => f.statut !== "brouillon" && cetteAnnee(f)));
-  const depenses = somme(liste("depenses").filter(cetteAnnee));
-  const invest = somme(liste("investissements").filter(cetteAnnee));
-  const cotis = Math.round(encaisse * r.cotis) / 100;
-  const impot = (state.moi && state.moi.liberatoire) ? Math.round(encaisse * r.liber) / 100 : 0;
-  /* combien faut-il encaisser pour se verser ce qu'on vise ? */
-  const vise = (Number(state.moi && state.moi.objectif) || 0) * 12;
-  const jours = Math.max(1, Number(state.moi && state.moi.joursFactures) || 200);
-  const taux = (r.cotis + ((state.moi && state.moi.liberatoire) ? r.liber : 0)) / 100;
-  const besoin = vise + depenses + invest;
-  const caNecessaire = vise > 0 && taux < 1 ? besoin / (1 - taux) : 0;
-  const prixJour = caNecessaire > 0 ? caNecessaire / jours : 0;
-  const manque = Math.max(0, caNecessaire - encaisse);
+  return {an: an, regle: FORMES[calcForme()],
+    encaisse: liste("factures")
+      .filter(f => statut(f) === "payee" && String(f.emise || "").slice(0, 4) === an)
+      .reduce((t, f) => t + (Number(f.montant) || 0), 0)};
+}
 
-  /* quelle part du chiffre vient du plus gros client ? */
-  const parClient = {};
-  fact.filter(f => statut(f) === "payee" && cetteAnnee(f))
-      .forEach(f => { parClient[f.client] = (parClient[f.client] || 0) + (Number(f.montant) || 0); });
-  const noms = Object.keys(parClient);
-  let gros = null;
-  noms.forEach(nm => { if(!gros || parClient[nm] > parClient[gros]) gros = nm; });
-
-  return {an: an, regle: r, encaisse: encaisse, facture: facture, depenses: depenses,
-    invest: invest, cotis: cotis, impot: impot, jours: jours,
-    reste: encaisse - cotis - impot - depenses - invest,
-    partPlafond: r.plafond ? Math.min(1, encaisse / r.plafond) : 0,
-    vise: vise, caNecessaire: caNecessaire, prixJour: prixJour, manque: manque,
-    joursRestants: prixJour > 0 ? Math.ceil(manque / prixJour) : 0,
-    partObjectif: caNecessaire > 0 ? Math.min(1, encaisse / caNecessaire) : 0,
-    grosClient: gros, grosPart: gros && encaisse > 0 ? parClient[gros] / encaisse : 0,
-    nbClients: noms.length,
-    ceMois: fact.filter(f => statut(f) === "payee" && String(f.emise || "").slice(0, 7) === auj().slice(0, 7))
-                .reduce((t, f) => t + (Number(f.montant) || 0), 0),
-    partTva: r.tva ? Math.min(1, encaisse / r.tva) : 0};
+/* ═══ ce que vous avez déjà noté comme dépenses cette année ═══ */
+function chargesAn(){
+  const an = String(new Date().getFullYear());
+  const cette = o => String(o.date || "").slice(0, 4) === an;
+  const somme = a => a.reduce((t, o) => t + (Number(o.montant) || 0), 0);
+  return somme(liste("depenses").filter(cette)) + somme(liste("investissements").filter(cette));
 }
 
 /* ═══ la facture en PDF ═══ */
@@ -3267,7 +3429,7 @@ function pdfFacture(f){
    date, client, désignation, référence et montant, dans l'ordre chronologique. */
 async function livreRecettes(){
   if(!window.jspdf || !window.jspdf.jsPDF){ bulle("PDF indisponible ici"); return; }
-  const k = comptes();
+  const k = bilanLivre();
   const moi = state.moi || {};
   const lignes = liste("factures")
     .filter(f => statut(f) === "payee" && String(f.emise || "").slice(0, 4) === k.an)
@@ -3324,7 +3486,7 @@ async function livreRecettes(){
   y += 11;
   doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(110, 122, 140);
   doc.text("Édité le " + dateTxt(auj()) + " · " + lignes.length + " recette"
-    + (lignes.length > 1 ? "s" : "") + " · " + k.regle.nom, G, y);
+    + (lignes.length > 1 ? "s" : "") + " · " + k.regle.formel, G, y);
 
   const nom = "livre-des-recettes-" + k.an + ".pdf";
   if(window.claude && window.claude.use){
@@ -3432,7 +3594,7 @@ function importerTout(){
         return;
       }
       COLS.forEach(c => { state[c] = d[c] && typeof d[c] === "object" ? d[c] : {}; });
-      if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0, regime: "services", liberatoire: false, objectif: 0, joursFactures: 200}, d.moi);
+      if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0, forme: "", regime: "", liberatoire: false, parts: 1}, d.moi);
       if(d.rituel) state.rituel = d.rituel;
       if(d.serie) state.serie = d.serie;
       clientOuvert = null;
@@ -3486,6 +3648,28 @@ function badge(sel, n){ const e = $(sel); e.hidden = n === 0; e.textContent = n;
    côté apparaît de l'autre. */
 const anIci = () => String(new Date().getFullYear());
 window.__CADENCE__ = {
+  /* « Mon argent » lisait sa propre table de taux et gardait son propre
+     choix d'activité dans son coin. Deux mémoires pour un seul fait, et
+     elles avaient déjà divergé. Elle lit désormais celle-ci. */
+  activites: () => ACTIVITES,
+  formes: () => FORMES,
+  maForme: () => calcForme(),
+  monGenre: () => calcGenre(),
+  choisirForme: id => { if(FORMES[id]){ state.moi.forme = id; sauver(); memoire.clear(); } },
+  cotisEI: ca => Math.max(0, (Number(ca) || 0) - chargesAn()) * EI_COTIS / 100,
+  tauxEI: () => EI_COTIS,
+  monActivite: () => calcStatut(),
+  /* faire une facture depuis « Mon argent » : c'est le même formulaire
+     que partout ailleurs, il n'y en a qu'un */
+  nouvelleFacture: () => ouvrir("facture"),
+  monVfl: () => calcLib(),
+  choisirActivite: id => { if(ACTIVITES[id]){ state.moi.regime = id; sauver(); memoire.clear(); } },
+  choisirVfl: v => { state.moi.liberatoire = !!v; sauver(); memoire.clear(); },
+  impotSociete: ca => {
+    const b = Math.max(0, (Number(ca) || 0) - chargesAn());
+    return b <= IS_SEUIL ? b * IS_REDUIT / 100
+      : IS_SEUIL * IS_REDUIT / 100 + (b - IS_SEUIL) * IS_PLEIN / 100;
+  },
   rentrees: () => liste("factures").filter(f => statut(f) === "payee").map(f => ({
     id: f.id, date: f.emise || auj(), client: f.client || "", ref: f.ref || "",
     montant: Number(f.montant) || 0, mode: f.mode || "Virement", exemple: !!f.demo})),
@@ -3636,18 +3820,6 @@ const CHAMPS = {
     + '<option value="20"' + (Number(state.moi.tva) === 20 ? " selected" : "") + '>20 %</option>'
     + '<option value="10"' + (Number(state.moi.tva) === 10 ? " selected" : "") + '>10 %</option>'
     + "</select></div></div>"
-    + '<div class="champ"><label for="f8">Votre activité</label><select id="f8" name="regime">'
-    + Object.keys(REGIMES).map(k => '<option value="' + k + '"' + (state.moi.regime === k ? " selected" : "")
-        + ">" + REGIMES[k].nom + " — " + REGIMES[k].cotis + " % de cotisations</option>").join("")
-    + "</select></div>"
-    + '<label class="bascule"><input type="checkbox" name="liberatoire"' + (state.moi.liberatoire ? " checked" : "") + ">"
-    + "<span>Je paie l'impôt en même temps que mes cotisations <em>(versement libératoire)</em></span></label>"
-    + '<div class="paire" style="margin-top:14px"><div class="champ"><label for="f10">Je veux me verser par mois</label>'
-    + '<input id="f10" name="objectif" type="number" min="0" step="any" inputmode="decimal" placeholder="2 500" value="'
-    + (Number(state.moi.objectif) || "") + '"></div>'
-    + '<div class="champ"><label for="f11">Jours facturés par an</label>'
-    + '<input id="f11" name="joursFactures" type="number" min="1" max="365" inputmode="numeric" value="'
-    + (Number(state.moi.joursFactures) || 200) + '"></div></div>'
     + "</details>"}),
 
   facture: () => ({titre: "Nouvelle facture", html:
@@ -3922,6 +4094,7 @@ $("#vue").addEventListener("click", e => {
   if(b.dataset.pdf){ telechargerFacture(b.dataset.pdf); return; }
   if(b.dataset.recettes){ livreRecettes(); return; }
   if(b.dataset.moi){ ouvrir("moi"); return; }
+  if(b.dataset.neuf){ ouvrir(b.dataset.neuf); return; }
   if(b.dataset.note){
     if(!armer(b)) return;
     const cl = state.clients[b.dataset.note];
@@ -3947,7 +4120,7 @@ $("#vue").addEventListener("click", e => {
   if(b.dataset.ft){ filtreT = b.dataset.ft; rendre(); return; }
   if(b.dataset.fa){ filtreA = b.dataset.fa; clientOuvert = null; memoire.clear(); rendre(); return; }
   if(b.dataset.fc){ filtreC = b.dataset.fc; memoire.clear(); rendre(); return; }
-  if(b.dataset.act){ calcStatut = b.dataset.act; memoire.clear(); rendre(); return; }
+  if(b.dataset.forme){ state.moi.forme = b.dataset.forme; sauver(); memoire.clear(); rendre(); return; }
   if(b.dataset.ff){ filtreF = b.dataset.ff; rendre(); return; }
   if(b.dataset.fb){ filtreB = b.dataset.fb; rendre(); return; }
   if(b.dataset.paye){
@@ -4027,8 +4200,9 @@ $("#vue").addEventListener("input", e => {
 
 $("#vue").addEventListener("change", e => {
   const t = e.target;
-  if(t.id === "c-lib"){ calcLib = t.checked; memoire.clear(); rendre(); return; }
-  if(t.id === "c-parts"){ calcParts = Number(t.value) || 1; memoire.clear(); rendre(); return; }
+  if(t.id === "c-lib"){ state.moi.liberatoire = t.checked; sauver(); memoire.clear(); rendre(); return; }
+  if(t.id === "c-parts"){ state.moi.parts = Number(t.value) || 1; sauver(); memoire.clear(); rendre(); return; }
+  if(t.id === "c-act"){ state.moi.regime = t.value; sauver(); memoire.clear(); rendre(); return; }
   if(t.dataset.relance){
     const f = state.factures[t.dataset.relance];
     if(!f) return;
@@ -4142,10 +4316,12 @@ $("#feuille").addEventListener("submit", e => {
     if(etaitModif) bulle("Modifié"); else telechargerFacture(id);
     return;
   }else if(typeActif === "moi"){
-    state.moi = {nom: String(d.nom).trim(), adresse: String(d.adresse || "").trim(),
+    state.moi = Object.assign({}, state.moi, {nom: String(d.nom).trim(), adresse: String(d.adresse || "").trim(),
       siret: String(d.siret || "").trim(), email: String(d.email || "").trim(), tva: Number(d.tva) || 0,
-      regime: d.regime || "services", liberatoire: !!d.liberatoire,
-      objectif: Number(d.objectif) || 0, joursFactures: Number(d.joursFactures) || 200};
+      /* activité, versement libératoire et foyer se règlent dans
+         « Calculs » : on ne les écrase pas depuis ce formulaire. */
+      forme: state.moi.forme, regime: state.moi.regime,
+      liberatoire: state.moi.liberatoire, parts: state.moi.parts});
     sauver(); rendre();
     bulle("C'est enregistré");
     enModif = null;
@@ -4166,8 +4342,24 @@ window.addEventListener("resize", () => {
   if(!c.hidden){ c.width = window.innerWidth; c.height = window.innerHeight; }
 });
 
+/* ═══ Cadence reste en clair ═══
+   Elle suivait le thème du système, et s'affichait donc en noir chez
+   ceux qui l'ont réglé ainsi. Sacha la veut blanche. Les trois feuilles
+   de style prévoient déjà ce cas — chacune protège ses couleurs claires
+   par :not([data-theme="light"]) — il suffit de poser la marque. */
+(function(){
+  document.documentElement.setAttribute("data-theme", "light");
+  ["majournee", "ilreste"].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.setAttribute("data-theme", "light");
+  });
+})();
+
 charger();
-if(liste("factures").some(f => f.exemple)) calcStatut = "vente";
+/* l'atelier de menuiserie vend des choses : c'est le bon point de départ
+   pour les fiches d'exemple. Mais seulement tant que personne n'a
+   répondu — sinon on écraserait son choix à chaque ouverture. */
+if(!state.moi.forme && liste("factures").some(f => f.exemple)){ state.moi.forme = "micro"; state.moi.regime = "vente"; }
 rendre();
 
 </script>
@@ -5624,11 +5816,24 @@ setInterval(function(){
 (function(){
 "use strict";
 
-var ACTIVITES = [
-  {id:"vente",   nom:"Je vends des choses",   court:"Vente",   desc:"marchandises, nourriture, hébergement", cot:12.3, vfl:1.0, seuil:188700, seuilTva:85000},
-  {id:"service", nom:"Je rends des services", court:"Services",desc:"artisanat, travaux, prestations",       cot:21.2, vfl:1.7, seuil:77700,  seuilTva:37500},
-  {id:"liberal", nom:"Je suis en libéral",    court:"Libéral", desc:"conseil, design, code, formation",      cot:25.6, vfl:2.2, seuil:77700,  seuilTva:37500}
-];
+/* La table des taux appartient à Comptabilité : on la lit, on ne la
+   recopie pas. La copie qui était ici avait déjà dérivé — le libéral
+   payait 25,6 % sur cet écran et 24,6 % sur celui d'à côté, et les
+   plafonds dataient d'avant 2026. */
+var FORMES = (function(){
+  var t = (window.__CADENCE__ && window.__CADENCE__.formes()) || {};
+  return Object.keys(t).map(function(k){
+    return {id:k, nom:t[k].nom, court:t[k].court, desc:t[k].note, genre:t[k].genre};
+  });
+})();
+var ACTIVITES = (function(){
+  var t = (window.__CADENCE__ && window.__CADENCE__.activites()) || {};
+  return Object.keys(t).map(function(k){
+    var a = t[k];
+    return {id:k, nom:a.nom, court:a.court, desc:a.note,
+            cot:a.cotis, vfl:a.liber, seuil:a.plaf, seuilTva:a.tva};
+  });
+})();
 var TAUX_TVA = 0.20;
 var MOIS = ["J","F","M","A","M","J","J","A","S","O","N","D"];
 
@@ -5684,8 +5889,18 @@ function roule(id,str){ var el=$(id); if(!el) return; if(!rouleaux[id]) rouleaux
 /* ---------- état ---------- */
 function activite(){
   for(var i=0;i<ACTIVITES.length;i++) if(ACTIVITES[i].id===etat.activite) return ACTIVITES[i];
-  return ACTIVITES[2];
+  return ACTIVITES[1];
 }
+function C2(){ return window.__CADENCE__ || {tauxEI:function(){return 0;}}; }
+function genre(){ return (window.__CADENCE__ && window.__CADENCE__.monGenre()) || "micro"; }
+function forme(){
+  var id = window.__CADENCE__ ? window.__CADENCE__.maForme() : "micro";
+  for(var i=0;i<FORMES.length;i++) if(FORMES[i].id===id) return FORMES[i];
+  return FORMES[0];
+}
+var estSociete = function(){ return genre() === "is"; };
+var estEI      = function(){ return genre() === "ei"; };
+var surCA      = function(){ return genre() === "micro"; };
 function etatNeuf(){
   var d=new Date(), an=d.getFullYear();
   var il=function(j){ var x=new Date(d); x.setDate(x.getDate()-j); return iso(x); };
@@ -5707,7 +5922,12 @@ function bilan(){
   var tva = etat.tva ? encaisse-encaisse/(1+TAUX_TVA) : 0;
   var ca=encaisse-tva;
   var taux=(a.cot+(etat.vfl?a.vfl:0))/100;
-  var urssaf=ca*taux;
+  /* une PME ne paie pas de cotisations sur son chiffre d'affaires : ce
+     qu'elle doit, c'est l'impôt sur les sociétés, sur son bénéfice. */
+  var C = window.__CADENCE__;
+  var urssaf = estSociete() ? (C ? C.impotSociete(ca) : 0)
+             : estEI()     ? (C ? C.cotisEI(ca) : 0)
+             : ca*taux;
 
   var mois=iso(new Date()).slice(0,7);
   var encMois=cette.filter(function(r){ return String(r.date).slice(0,7)===mois; })
@@ -5763,50 +5983,46 @@ function rendreArgent(){
   roule("v-tva",eur.format(b.tva));
   roule("v-urssaf",eur.format(b.urssaf));
   $("l-tva").hidden=!etat.tva;
-  $("lbl-urssaf").textContent = etat.vfl ? "retraite, maladie, et ton impôt" : "retraite, maladie";
+  $("lbl-urssaf").textContent = estSociete() ? "sur votre bénéfice"
+    : estEI() ? "environ "+String(C2().tauxEI()).replace(".",",")+" % de votre bénéfice"
+    : (etat.vfl ? "retraite, maladie, et votre impôt" : "retraite, maladie");
+  $("nom-urssaf").textContent = estSociete() ? "Impôt sur les sociétés" : "Cotisations";
 
   roule("t-garde",eur.format(b.garde));
   var fin=finDuMoisProchain();
-  $("t-quand").innerHTML = b.encMois>0
-    ? "Ce mois-ci tu as encaissé <b>"+nb(eur.format(b.encMois))+"</b>. À déclarer avant le <b>"+nb(jour(iso(fin)))+"</b> : environ <b>"+nb(eur.format(b.urssafMois))+"</b>."
-    : "Rien encaissé ce mois-ci. <b>Déclare quand même "+nb("0 €")+"</b> avant le "+nb(jour(iso(fin)))+".";
+  /* Une carte, une idée. L'encadré dit ce qu'il faut garder sur l'année ;
+     l'échéance dit ce qu'il faut déclarer, et dans combien de jours. Les
+     deux vivaient dans le même bloc, avec deux chiffres qui n'étaient pas
+     le même — personne ne peut lire ça. */
+  $("t-sur").textContent = estSociete() || estEI()
+    ? "sur votre bénéfice de l'année"
+    : "sur tout ce que vous avez encaissé cette année";
 
-  var maxi=Math.max.apply(null,b.parMois.concat([1])), mAct=new Date().getMonth();
-  $("mois").innerHTML=b.parMois.map(function(v,i){
-    return '<div class="m'+(i===mAct?" actif":"")+'" title="'+esc(MOIS[i]+" : "+eur.format(v))+'">'+
-           '<i style="height:'+Math.max(3,Math.round(v/maxi*52))+'px"></i><span>'+MOIS[i]+'</span></div>';
-  }).join("");
+  var jrs = Math.max(0, Math.ceil((fin - new Date()) / 864e5));
+  $("e-nb").textContent = estSociete() ? "—" : String(jrs);
+  $("e-unite").textContent = jrs > 1 ? "jours" : "jour";
+  $("e-quoi").textContent = estSociete() ? "Votre impôt sur les sociétés"
+    : "Votre déclaration URSSAF";
+  $("t-quand").innerHTML = estSociete()
+    ? "Après la clôture de votre exercice, pas tous les mois."
+    : estEI()
+    ? "Le " + nb(jour(iso(fin))) + ". Elle porte sur votre bénéfice de l'année."
+    : (b.encMois>0
+      ? "Le <b>" + nb(jour(iso(fin))) + "</b>, environ <b>" + nb(eur.format(b.urssafMois)) + "</b>."
+      : "Le <b>" + nb(jour(iso(fin))) + "</b>. Même à " + nb("0 €") + ", elle est obligatoire.");
 
-  var a=b.act, seuil, quoi, txt;
-  if(!etat.tva && b.ca<a.seuilTva){
-    seuil=a.seuilTva; quoi="Avant de devoir facturer la TVA";
-    txt="Encore "+nb(eur.format(seuil-b.ca))+" avant de devoir ajouter la TVA sur tes factures.";
-  } else {
-    seuil=a.seuil; quoi="Avant de sortir de la micro-entreprise";
-    txt="Encore "+nb(eur.format(Math.max(0,seuil-b.ca)))+" avant de changer de régime.";
-  }
-  var part=seuil>0?Math.min(1,b.ca/seuil):0;
-  /* il n'en veut pas : la jauge de plafond disparaît de l'écran */
-  $("jauge").hidden=true;
-  $("j-quoi").textContent=quoi;
-  $("j-chiffre").textContent=eur.format(b.ca)+" / "+eur.format(seuil);
-  $("j-barre").style.width=(part*100).toFixed(1)+"%";
-  $("j-reste").innerHTML = part>=1 ? "Seuil dépassé — renseigne-toi vite." : txt;
-  $("jauge").classList.toggle("chaud",part>=0.8);
+  var a=b.act;
 
-  var conc=$("concentration");
-  if(b.topPart>0.30 && b.encaisse>0){
-    conc.hidden=false;
-    $("conc-pc").textContent=Math.round(b.topPart*100)+" %";
-    $("conc-txt").innerHTML="<b>"+nb(eur.format(b.topBrut))+"</b> vient d'un seul client. Au-dessus de "+nb("30 %")+", s'il part ou ne paie pas, tu tombes avec lui.";
-  } else conc.hidden=true;
+  /* Une phrase, pas un paragraphe. Ce qu'il y avait ici se lisait en
+     quatre lignes et disait trois choses à la fois. */
+  $("note-bas").innerHTML = estSociete()
+    ? "Estimation, sur votre bénéfice."
+    : estEI() ? "Estimation : vos cotisations réelles dépendent de votre revenu."
+    : "L'appli ne déclare rien à votre place, même à 0 €.";
 
-  $("note-bas").innerHTML = (etat.vfl
-    ? "<b>Ton impôt est déjà compté</b> — le versement libératoire ajoute "+nb(String(a.vfl).replace(".",",")+" %")+" à tes cotisations. "
-    : "<b>L'impôt sur le revenu n'est pas là-dedans.</b> Les "+nb(String(a.cot).replace(".",",")+" %")+" couvrent tes cotisations seulement ; l'impôt dépend de ton foyer et arrive plus tard. ")
-    + "L'app ne déclare rien à ta place : la déclaration URSSAF reste à faire, <b>même à "+nb("0 €")+"</b>.";
-
-  $("sum-act").textContent = a.court + " · " + String(a.cot).replace(".",",") + " %";
+  $("sum-act").textContent = estSociete() ? forme().court + " · impôt sur les sociétés"
+    : estEI() ? "EI · environ " + String(C2().tauxEI()).replace(".",",") + " %"
+    : forme().court + " · " + a.court + " · " + String(a.cot).replace(".",",") + " %";
   sauver();
 }
 
@@ -5820,7 +6036,7 @@ function rendreFactures(){
   roule("d-total",eur.format(total));
   $("cadre-doit").classList.toggle("alerte",totalRetard>0);
   $("d-detail").innerHTML = cs.length===0
-    ? "Personne. Tout le monde t'a payé."
+    ? "Personne. Tout le monde vous a payé."
     : (totalRetard>0
         ? "<b>"+nb(eur.format(totalRetard))+"</b> sont déjà en retard, sur "+nb(retard.length)+" facture"+(retard.length>1?"s":"")+"."
         : "Rien en retard pour l'instant.");
@@ -5829,7 +6045,7 @@ function rendreFactures(){
   if(retard.length>0){ p.hidden=false; p.textContent=retard.length; } else p.hidden=true;
 
   $("liste-creances").innerHTML = cs.length===0
-    ? '<div class="vide">Quand tu envoies une facture, elle apparaît ici jusqu\'à ce qu\'on te paie.</div>'
+    ? '<div class="vide">Quand vous envoyez une facture, elle apparaît ici jusqu\'à ce qu\'on vous paie.</div>'
     : cs.map(function(c){
         return '<div class="creance'+(c.retard>0?" retard":"")+'">'+
           '<div class="haut"><span class="qui"><b>'+esc(c.client||"Sans nom")+
@@ -5855,10 +6071,10 @@ function rendreObjectif(){
 
   $("sum-tjm").textContent = eur.format(tjm)+" / jour";
   $("o-table").innerHTML =
-    "<tr><td>Ce que tu veux dans la poche</td><td>"+eur.format(num(o.net)*12)+" / an</td></tr>"+
-    "<tr><td>Tes frais</td><td>"+eur.format(num(o.frais))+" / an</td></tr>"+
-    "<tr><td>Tes cotisations à "+nb((b.taux*100).toFixed(1).replace(".",",")+" %")+"</td><td>"+eur.format(caNec-besoin)+" / an</td></tr>"+
-    "<tr><td><b>Ce que tu dois facturer</b></td><td><b>"+eur.format(caNec)+" / an</b></td></tr>";
+    "<tr><td>Ce que vous voulez dans la poche</td><td>"+eur.format(num(o.net)*12)+" / an</td></tr>"+
+    "<tr><td>Vos frais</td><td>"+eur.format(num(o.frais))+" / an</td></tr>"+
+    "<tr><td>Vos cotisations à "+nb((b.taux*100).toFixed(1).replace(".",",")+" %")+"</td><td>"+eur.format(caNec-besoin)+" / an</td></tr>"+
+    "<tr><td><b>Ce que vous devez facturer</b></td><td><b>"+eur.format(caNec)+" / an</b></td></tr>";
 
   var part = caNec>0?Math.min(1,b.ca/caNec):0;
   $("o-chiffre").textContent=eur.format(b.ca)+" / "+eur.format(caNec);
@@ -5897,14 +6113,14 @@ function rendreBrouillon(){
   roule("t-ttc",eur2.format(ht+tva));
   $("t-detail").innerHTML = etat.tva
     ? nb(eur2.format(ht))+" hors taxes, plus "+nb(eur2.format(tva))+" de TVA."
-    : "Pas de TVA — tu es en franchise en base.";
+    : "Pas de TVA — vous êtes en franchise en base.";
 
   var vide=function(v,s){ return (v&&String(v).trim())?esc(v):'<span style="color:var(--ink-faint)">'+s+'</span>'; };
   $("apercu").innerHTML =
     '<div class="tete"><div><h3>Facture '+vide(f.num,"n° —")+'</h3>'+
     '<div class="meta">Émise le '+nb(jour(f.date))+' · à payer avant le '+nb(jour(f.ech))+'</div></div>'+
-    '<div class="qui2"><strong>'+vide(f.eNom,"Ton nom")+'</strong>'+(f.eAdr?esc(f.eAdr)+"\n":"")+(f.eSiret?"SIRET "+nb(f.eSiret):"")+'</div>'+
-    '<div class="qui2"><strong>Facturé à</strong>'+vide(f.cNom,"Ton client")+"\n"+esc(f.cAdr||"")+'</div></div>'+
+    '<div class="qui2"><strong>'+vide(f.eNom,"Votre nom")+'</strong>'+(f.eAdr?esc(f.eAdr)+"\n":"")+(f.eSiret?"SIRET "+nb(f.eSiret):"")+'</div>'+
+    '<div class="qui2"><strong>Facturé à</strong>'+vide(f.cNom,"Votre client")+"\n"+esc(f.cAdr||"")+'</div></div>'+
     '<div class="tbl-scroll"><table><thead><tr><th>Désignation</th><th class="r">Total HT</th></tr></thead>'+
     '<tbody><tr><td>'+vide(f.desc,"—")+'</td><td class="r">'+eur2.format(ht)+'</td></tr></tbody></table></div>'+
     '<div class="fin"><div><span>Total HT</span><span>'+eur2.format(ht)+'</span></div>'+
@@ -5918,14 +6134,29 @@ function rendreBrouillon(){
   sauver();
 }
 
+function boutonChoix(id, attr, actif, titre, sous){
+  return '<button type="button" '+attr+'="'+id+'" aria-pressed="'+actif+'">'+
+    '<span class="mark"><svg width="13" height="13" viewBox="0 0 14 14" aria-hidden="true">'+
+    '<path d="M2.5 7.5 L5.5 10.5 L11.5 3.5" fill="none" stroke="currentColor" stroke-width="2.4" '+
+    'stroke-linecap="round" stroke-linejoin="round" style="color:var(--surface)"></path></svg></span>'+
+    '<span class="txt"><b>'+esc(titre)+'</b><small>'+esc(sous)+'</small></span></button>';
+}
 function rendreReglages(){
-  $("choix-activite").innerHTML=ACTIVITES.map(function(a){
-    return '<button type="button" data-a="'+a.id+'" aria-pressed="'+(a.id===etat.activite)+'">'+
-      '<span class="mark"><svg width="13" height="13" viewBox="0 0 14 14" aria-hidden="true">'+
-      '<path d="M2.5 7.5 L5.5 10.5 L11.5 3.5" fill="none" stroke="currentColor" stroke-width="2.4" '+
-      'stroke-linecap="round" stroke-linejoin="round" style="color:var(--surface)"></path></svg></span>'+
-      '<span class="txt"><b>'+esc(a.nom)+'</b><small>'+esc(a.desc)+' · '+nb(String(a.cot).replace(".",",")+" %")+' de cotisations</small></span></button>';
+  /* la forme d'abord ; l'activité seulement si c'est une micro, parce
+     qu'elle seule en dépend. Même question, mêmes mots que « Calculs ». */
+  var f = forme();
+  var html = FORMES.map(function(x){
+    return boutonChoix(x.id, "data-f", x.id===f.id, x.nom, x.desc);
   }).join("");
+  if(surCA()){
+    html += '<p class="note" style="margin:14px 0 6px">Ce que vous faites</p>'
+      + ACTIVITES.map(function(a){
+          return boutonChoix(a.id, "data-a", a.id===etat.activite, a.nom,
+            a.desc+' · '+String(a.cot).replace(".",",")+' % de cotisations');
+        }).join("");
+  }
+  $("choix-activite").innerHTML = html;
+  $("r-vfl").closest("label").hidden = !surCA();
   $("r-vfl").checked=!!etat.vfl; $("r-tva").checked=!!etat.tva;
 }
 
@@ -5936,6 +6167,11 @@ function synchroniser(){
   if(!C) return;
   etat.rentrees = C.rentrees();
   etat.creances = C.creances();
+  /* l'activité et le versement libératoire sont à toi, pas à cet écran :
+     on les relit chez Comptabilité au lieu d'en garder une copie */
+  etat.activite = C.monActivite();
+  etat.forme = C.maForme();
+  etat.vfl = C.monVfl();
 }
 function toutRendre(){ rendreReglages(); rendreLivre(); rendreFactures(); rendreBrouillon(); rendreObjectif(); rendreArgent(); }
 window.__MAJ_ARGENT__ = function(){ synchroniser(); toutRendre(); };
@@ -6045,11 +6281,24 @@ $("envoyer-facture").addEventListener("click",function(){
   $(p[0]).addEventListener("input",function(e){ etat.objectif[p[1]]=num(e.target.value); rendreObjectif(); });
 });
 $("choix-activite").addEventListener("click",function(e){
-  var b=e.target.closest("[data-a]"); if(!b) return;
-  etat.activite=b.getAttribute("data-a");
+  var b=e.target.closest("[data-a],[data-f]"); if(!b) return;
+  if(b.hasAttribute("data-f")){
+    etat.forme=b.getAttribute("data-f");
+    if(window.__CADENCE__) window.__CADENCE__.choisirForme(etat.forme);
+  }else{
+    etat.activite=b.getAttribute("data-a");
+    if(window.__CADENCE__) window.__CADENCE__.choisirActivite(etat.activite);
+  }
   rendreReglages(); rendreArgent(); rendreObjectif();
 });
-$("r-vfl").addEventListener("change",function(e){ etat.vfl=e.target.checked; rendreArgent(); rendreObjectif(); });
+$("gros-fact").addEventListener("click",function(){
+  if(window.__CADENCE__) window.__CADENCE__.nouvelleFacture();
+});
+$("r-vfl").addEventListener("change",function(e){
+  etat.vfl=e.target.checked;
+  if(window.__CADENCE__) window.__CADENCE__.choisirVfl(etat.vfl);
+  rendreArgent(); rendreObjectif();
+});
 $("r-tva").addEventListener("change",function(e){ etat.tva=e.target.checked; rendreArgent(); rendreBrouillon(); rendreObjectif(); });
 
 /* ---------- démarrage ---------- */

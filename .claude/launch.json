@@ -4,6 +4,8 @@
     { "name": "cadence", "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "4174", "--bind", "127.0.0.1"], "port": 4174 },
     { "name": "cadence-agenda", "runtimeExecutable": "python3",
-      "runtimeArgs": ["-m", "http.server", "4176", "--bind", "127.0.0.1"], "port": 4176 }
+      "runtimeArgs": ["-m", "http.server", "4176", "--bind", "127.0.0.1"], "port": 4176 },
+    { "name": "cadence-compta", "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "4181", "--bind", "127.0.0.1"], "port": 4181 }
   ]
 }
