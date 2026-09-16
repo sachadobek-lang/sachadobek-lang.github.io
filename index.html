@@ -770,17 +770,17 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .card-head .lbl{font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3)}
 #majournee .ghost{font-size:12.5px; font-weight:500; color:var(--ink-3)}
 #majournee .ghost:hover{color:var(--ink)}
-#majournee .board{margin-bottom:16px}
+#majournee .board{margin-top:16px}
 #majournee .board .card-head{border-bottom:1px solid var(--line-soft)}
 #majournee .board-grid{
   display:grid; grid-template-columns:repeat(auto-fill, minmax(158px,1fr)); gap:11px;
-  padding:15px 20px 17px; max-height:232px; overflow-y:auto;
+  padding:13px 20px 15px; max-height:196px; overflow-y:auto;
   background-color:var(--surface-2);
   background-image:radial-gradient(var(--dot) 1px, transparent 1px);
   background-size:20px 20px; background-position:10px 10px;
 }
 #majournee .note{
-  position:relative; min-height:92px; border-radius:14px; padding:15px 13px 13px;
+  position:relative; min-height:76px; border-radius:14px; padding:13px 13px 11px;
   background:var(--surface); border:1px solid var(--line-soft); box-shadow:var(--shadow-1);
   display:flex; flex-direction:column; gap:9px; overflow:hidden;
   transition:transform .16s ease, box-shadow .16s ease;
@@ -1555,14 +1555,6 @@ summary.carte-tete:hover h2{color:var(--v1)}
     </nav>
   </header>
 
-  <section class="card board" aria-labelledby="notesLbl">
-    <div class="card-head">
-      <span class="lbl" id="notesLbl">Tableau</span>
-      <button class="ghost" id="clearDone" hidden>Effacer les notes faites</button>
-    </div>
-    <div class="board-grid" id="notesGrid"></div>
-  </section>
-
   <div class="quick" id="quickBar">
     <span class="qplus">
       <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5.5v13M5.5 12h13"/></svg>
@@ -1598,6 +1590,14 @@ summary.carte-tete:hover h2{color:var(--v1)}
       <span>Quelques exemples, pour situer.</span>
       <button class="ghost" id="clearDemo">Les retirer</button>
     </div>
+  </section>
+
+  <section class="card board" aria-labelledby="notesLbl">
+    <div class="card-head">
+      <span class="lbl" id="notesLbl">Tableau</span>
+      <button class="ghost" id="clearDone" hidden>Effacer les notes faites</button>
+    </div>
+    <div class="board-grid" id="notesGrid"></div>
   </section>
 </div>
 
