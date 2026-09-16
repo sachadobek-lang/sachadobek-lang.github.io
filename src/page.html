@@ -11,6 +11,7 @@
 
   /* la signature : un seul dégradé vert → bleu, partout */
   --v1:#0B7D6E; --v2:#17539F;
+  --v-txt:#0A6A5D;   /* le vert quand il sert de texte : assez sombre pour être lu */
   --deg:linear-gradient(135deg,#0B7D6E 0%,#17539F 100%);
   --deg-fonce:linear-gradient(140deg,#075C52 0%,#0F3C78 100%);
   --deg-pale:linear-gradient(135deg,#E2F2EF 0%,#E4ECFA 100%);
@@ -43,6 +44,7 @@
     --ground:#080E16; --surface:#131C28; --surface-2:#1A2431; --surface-3:#101924;
     --line:#233040; --line-fort:#334152;
     --ink:#ECF2F9; --ink-2:#A2AFC2; --ink-3:#73819A;
+    --v-txt:#2FBDA8;
     --deg:linear-gradient(135deg,#17A794 0%,#3B82E0 100%);
     --deg-fonce:linear-gradient(140deg,#0A6B5F 0%,#144B92 100%);
     --deg-pale:linear-gradient(135deg,#0F2A27 0%,#12233C 100%);
@@ -399,7 +401,7 @@ summary.groupe:hover{background:var(--line)}
 .carte-tete + .mois-sep{margin-top:6px}
 
 /* ═══ la relance ═══ */
-.action-client button.doux{background:var(--surface-3);color:var(--v1)}
+.action-client button.doux{background:var(--surface-3);color:var(--v-txt)}
 .action-client button.doux:hover{filter:none;background:var(--surface-2)}
 .relance{padding:4px 22px 22px;display:flex;flex-direction:column;gap:12px}
 .relance .aide{margin:0}
@@ -479,14 +481,80 @@ button.tuile:active{transform:scale(.985)}
 .tuile.vert{background:var(--tuile-vert)}
 .tuile.vert .val{color:var(--ok)}
 
+/* ═══ qui rappeler aujourd'hui ═══
+   Un seul nom à l'écran. Tout le reste est du calme autour. */
+.pile-tete{display:flex;align-items:center;gap:10px;padding:2px 6px 14px}
+.pile-tete span:first-child{font-size:14px;font-weight:700;color:var(--ink-3)}
+.pile-tete .pts{display:flex;align-items:center;gap:5px;margin-left:auto}
+.pile-tete .pt{width:7px;height:7px;border-radius:999px;background:var(--line-fort)}
+.pile-tete .pt.ici{background:var(--v1)}
+.pile-carte{display:flex;flex-direction:column;align-items:flex-start;padding:28px 26px 30px}
+.pile-carte .etat-btn{cursor:default}
+.pile-carte h2{font-family:var(--num);font-weight:600;font-size:32px;letter-spacing:-.025em;line-height:1.14;
+  margin-top:18px;overflow-wrap:anywhere;cursor:pointer;border-radius:10px;transition:color .18s}
+.pile-carte h2:hover,.pile-carte h2:focus-visible{color:var(--v1)}
+.pile-carte .pourquoi{font-size:16.5px;color:var(--ink-2);margin-top:9px;text-wrap:pretty}
+.pile-carte .pourquoi b{font-weight:800;color:var(--ink)}
+.pile-carte .som{font-family:var(--num);font-weight:600;font-size:34px;letter-spacing:-.03em;
+  font-variant-numeric:tabular-nums;line-height:1.1;margin-top:24px}
+.pile-carte .sous{font-size:14px;color:var(--ink-3);margin-top:2px}
+.pile-go{display:block;width:100%;border:0;border-radius:999px;padding:19px 22px;margin-top:22px;
+  background:var(--deg);color:#fff;font:inherit;font-size:17.5px;font-weight:800;box-shadow:var(--o2);
+  cursor:pointer;animation-delay:.05s;transition:filter .18s,transform .12s}
+.pile-go:hover{filter:brightness(1.07)}
+.pile-go:active{transform:scale(.98)}
+.pile-autre{display:flex;justify-content:center;gap:30px;margin-top:17px;animation-delay:.1s}
+.pile-autre button{border:0;background:none;color:var(--ink-3);font:inherit;font-size:15px;font-weight:700;
+  padding:8px 10px;border-radius:999px;cursor:pointer;transition:color .18s}
+.pile-autre button:hover{color:var(--v-txt)}
+.pile-pied{display:flex;justify-content:center;margin-top:34px}
+.pile-pied button{display:flex;align-items:center;gap:9px;border:0;border-radius:999px;padding:13px 21px;
+  background:var(--surface-3);color:var(--v-txt);font:inherit;font-size:15px;font-weight:700;cursor:pointer;
+  transition:background .18s}
+.pile-pied button:hover{background:var(--surface-2)}
+.vide-jour{display:flex;flex-direction:column;align-items:center;text-align:center;padding:52px 26px 46px}
+.vide-jour .rond{display:flex;align-items:center;justify-content:center;width:92px;height:92px;border-radius:999px;
+  background:var(--deg-pale);color:var(--v-txt)}
+.vide-jour .rond svg{width:38px;height:38px}
+.vide-jour h2{font-family:var(--num);font-weight:600;font-size:26px;letter-spacing:-.02em;margin-top:26px}
+.vide-jour p{font-size:16.5px;color:var(--ink-2);margin-top:8px;max-width:280px;text-wrap:pretty}
+.vide-jour button{display:flex;align-items:center;gap:9px;border:0;border-radius:999px;padding:14px 22px;margin-top:32px;
+  background:var(--surface-3);color:var(--v-txt);font:inherit;font-size:15px;font-weight:700;cursor:pointer;
+  transition:background .18s}
+.vide-jour button:hover{background:var(--surface-2)}
+
 /* ═══ fiche d'un client ═══ */
 .retour{display:flex;align-items:center;gap:9px;border:0;background:none;color:var(--ink-2);
   font-size:15px;font-weight:700;padding:6px 4px;border-radius:10px;transition:color .18s}
 .retour svg{width:19px;height:19px;stroke-width:2.4;fill:none}
 .retour:hover{color:var(--v1)}
-.tete-client{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;padding:20px 22px 4px}
-.tete-client h2{font-family:var(--num);font-weight:600;font-size:24px;letter-spacing:-.02em;flex:1;min-width:0;overflow-wrap:anywhere}
-.tete-client p{width:100%;font-size:15px;color:var(--ink-2);margin-top:-2px}
+.tete-client{display:flex;align-items:flex-start;gap:12px;padding:20px 22px 4px}
+.tete-corps{flex:1;min-width:0;display:block;border-radius:12px;cursor:pointer}
+.tete-client h2{font-family:var(--num);font-weight:600;font-size:24px;letter-spacing:-.02em;overflow-wrap:anywhere;transition:color .18s}
+.tete-corps:hover h2,.tete-corps:focus-visible h2{color:var(--v1)}
+.tete-client p{font-size:15px;color:var(--ink-2);margin-top:-2px;overflow-wrap:anywhere}
+.tete-client p.joint{font-size:14px;color:var(--ink-3);margin-top:2px}
+
+/* Appeler · Écrire · M'y conduire : petits, gris, près du nom — ce sont
+   des chemins vers le client, pas des décisions sur son argent. */
+.joindre{display:flex;flex-wrap:wrap;gap:8px;padding:12px 22px 0}
+.joindre a,.joindre button{display:inline-flex;align-items:center;gap:7px;border:0;border-radius:999px;
+  padding:9px 15px;background:var(--surface-3);color:var(--v-txt);font:inherit;font-size:14px;font-weight:700;
+  text-decoration:none;cursor:pointer;transition:background .18s,transform .18s var(--ressort)}
+.joindre a:hover,.joindre button:hover{background:var(--surface-2)}
+.joindre a:active,.joindre button:active{transform:scale(.96)}
+.joindre svg{width:16px;height:16px;stroke-width:2.1;fill:none;flex:none}
+.joindre .vide{background:none;color:var(--ink-3);padding-left:2px}
+.joindre .vide:hover{background:none;color:var(--v-txt)}
+.joindre-nu{display:inline-flex;gap:2px;margin-left:-4px}
+.joindre-nu a{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;
+  border-radius:999px;color:var(--ink-3);transition:color .18s,background .18s}
+.joindre-nu a:hover{color:var(--v-txt);background:var(--surface-3)}
+.joindre-nu svg{width:16px;height:16px;stroke-width:2.1;fill:none}
+
+/* au doigt, la cible doit faire 44 px : on ne rate pas un appel */
+@media (pointer:coarse){.joindre a,.joindre button{padding:13px 17px}
+  .joindre-nu a{width:38px;height:38px}}
 .paye{padding:16px 22px 22px}
 .paye .gros{font-family:var(--num);font-weight:600;font-size:38px;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.1;color:var(--ok)}
 .paye .lab{font-size:14px;font-weight:600;color:var(--ink-3)}
@@ -892,6 +960,53 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .ev.wk .when{font-size:10.5px; margin-top:1px}
 #majournee .ev.wk.short .when,#majournee .ev.wk.tiny .when{display:none}
 #majournee .scroller{max-height:min(58dvh,600px); overflow-y:auto; overflow-x:hidden; padding:18px 20px 20px 0}
+/* ═══ le ruban ═══
+   La journée comme un chemin qu'on descend, et non comme un tableau.
+   Elle commence au premier rendez-vous : plus de cases vides de 6 h à 8 h.
+   Les cartes sont exactement les blocs de la grille (.ev), simplement
+   posées les unes sous les autres — rien de nouveau à apprendre. */
+#majournee .ruban{position:relative; padding:4px 4px 8px 0}
+#majournee .rb-fil{
+  position:absolute; left:63px; top:14px; bottom:14px; width:2px;
+  background:var(--line); border-radius:2px;
+}
+#majournee .rb-ligne{position:relative; display:flex; align-items:flex-start; gap:0}
+#majournee .rb-h{
+  flex:0 0 56px; text-align:right; padding-top:11px; padding-right:8px;
+  font-size:12px; color:var(--ink-3); font-variant-numeric:tabular-nums;
+}
+#majournee .rb-pt{
+  position:absolute; left:58px; top:15px; width:12px; height:12px; border-radius:50%;
+  background:var(--surface); border:2.5px solid var(--line); z-index:1;
+}
+#majournee .rb-ligne.ici .rb-pt{background:var(--c); border-color:transparent}
+#majournee .rb-ligne .ev{
+  position:relative; flex:1 1 auto; min-width:0; margin:4px 0 4px 20px;
+  height:auto; width:auto; min-height:0; inset:auto;
+}
+#majournee .rb-ligne .ev:hover{transform:none; box-shadow:var(--shadow-1)}
+#majournee .rb-ligne.ici .ev{box-shadow:var(--shadow-1)}
+#majournee .ruban .route{
+  position:relative; inset:auto; margin:2px 0 2px 76px; width:auto; height:30px;
+}
+#majournee .ruban .gap{
+  position:relative; inset:auto; margin:2px 0 2px 76px; width:auto; height:30px;
+  display:flex; align-items:center;
+}
+#majournee .rb-ici{
+  position:relative; display:flex; align-items:center; gap:8px;
+  margin:5px 0 5px 58px; color:var(--v-txt, var(--c-vert));
+}
+#majournee .rb-ici b{width:8px; height:8px; border-radius:50%; background:currentColor; flex:0 0 auto}
+#majournee .rb-ici span{
+  font-size:10.5px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; flex:0 0 auto;
+}
+#majournee .rb-ici i{flex:1 1 auto; height:1.5px; background:currentColor; opacity:.45; border-radius:2px}
+#majournee .rb-vide{padding:26px 10px 30px 76px; color:var(--ink-3); font-size:14px}
+#majournee .rb-vide strong{
+  display:block; font-family:var(--display); font-weight:600; font-size:15.5px;
+  color:var(--ink); margin-bottom:3px;
+}
 #majournee .scroller.z-tout{max-height:min(70dvh,740px)}
 #majournee .grid{display:grid; grid-template-columns:70px 1fr; position:relative}
 #majournee .hours{position:relative; height:calc(var(--hour) * 17)}
@@ -1604,10 +1719,11 @@ summary.carte-tete:hover h2{color:var(--v1)}
     </div>
     <div class="wkhead" id="wkhead" hidden></div>
     <div class="scroller" id="scroller">
-      <div class="grid">
+      <div class="grid" id="grille">
         <div class="hours" id="hours"></div>
         <div class="track" id="track"></div>
       </div>
+      <div class="ruban" id="ruban" hidden></div>
     </div>
     <div class="demo-note" id="demoNote" hidden>
       <span>Quelques exemples, pour situer.</span>
@@ -1724,6 +1840,7 @@ const calcStatut = () => (state.moi && ACTIVITES[state.moi.regime]) ? state.moi.
 const calcLib    = () => !!(state.moi && state.moi.liberatoire);
 const calcParts  = () => Number(state.moi && state.moi.parts) || 1;
 let clientOuvert = null;
+let ecranClients = "pile";   /* « pile » : qui rappeler · « carnet » : l'annuaire */
 let pliOuvert = false;
 let vueAgenda = "jour";        /* jour · semaine · liste */
 let jourVu = null;             /* null = aujourd'hui */
@@ -1775,14 +1892,24 @@ const DEMO_LIGNES = [
   ["010", "Mairie de Montreuil",  3094,  20, 0, "Signalétique du parc"],
   ["011", "Garage Delaunay",      2000,  40, 0, "Établi supplémentaire"]
 ];
+/* Les coordonnées montrent les quatre cas que Cadence sait reconnaître :
+   tout, le seul numéro, le numéro et l'adresse, le numéro derrière un nom.
+   Deux fiches restent nues, pour qu'on voie aussi l'invite à en ajouter.
+   Les numéros sont ceux que l'Arcep réserve à la fiction (06 39 98 · 01 99 00) :
+   personne ne décrochera jamais. */
 const DEMO_CLIENTS = [
-  ["Boulangerie Mercier", "Agencement des deux boutiques", "actif"],
-  ["Atelier Ferrand",     "Tabourets, deux séries",        "actif"],
-  ["Mairie de Montreuil", "Médiathèque et signalétique",   "actif"],
-  ["Garage Delaunay",     "Établis et rangements",         "actif"],
-  ["Hôtel Beauséjour",    "Têtes de lit, trente chambres", "termine"],
-  ["Épicerie Tahar",      "Étagères et comptoir",          "termine"],
-  ["Camille Roux",        "Bibliothèque sur mesure",       "termine"]
+  ["Boulangerie Mercier", "Agencement des deux boutiques", "actif",
+   "01 99 00 12 34 · contact@boulangerie-mercier.fr · 8 place du Marché, 69001 Lyon"],
+  ["Atelier Ferrand",     "Tabourets, deux séries",        "actif",
+   "06 39 98 21 07"],
+  ["Mairie de Montreuil", "Médiathèque et signalétique",   "actif",
+   "01 99 00 45 80 · 1 place Jean-Jaurès, 93100 Montreuil"],
+  ["Garage Delaunay",     "Établis et rangements",         "actif",
+   "M. Delaunay 06 39 98 44 12"],
+  ["Hôtel Beauséjour",    "Têtes de lit, trente chambres", "termine",
+   "06 39 98 33 21 · reception@hotel-beausejour.fr"],
+  ["Épicerie Tahar",      "Étagères et comptoir",          "termine", ""],
+  ["Camille Roux",        "Bibliothèque sur mesure",       "termine", ""]
 ];
 function fichesExemple(){
   const an = new Date().getFullYear(), factures = {}, clients = {};
@@ -1792,7 +1919,8 @@ function fichesExemple(){
       statut: l[4] ? "payee" : "envoyee", exemple: true};
   });
   DEMO_CLIENTS.forEach((c, i) => {
-    clients["ex-c" + i] = {nom: c[0], projet: c[1], statut: c[2], exemple: true};
+    clients["ex-c" + i] = {nom: c[0], projet: c[1], statut: c[2], contact: c[3] || "",
+      adresse: joindre(c[3]).adresse, exemple: true};
   });
   return {factures: factures, clients: clients};
 }
@@ -1843,6 +1971,16 @@ function charger(){
        ne s'accordaient pas entre elles : le total encaissé ne correspondait
        à aucun client. On les remplace par le jeu cohérent. Rien de ce qui
        a été saisi à la main n'est touché. */
+    /* les fiches écrites avant que l'adresse ne se déduise toute seule */
+    Object.keys(state.clients).forEach(k => {
+      const c = state.clients[k];
+      if(c && c.contact && !c.adresse){
+        const a = joindre(c.contact).adresse;
+        if(a) c.adresse = a;
+      }
+      /* sans date d'inscription, un prospect attendrait pour toujours */
+      if(c && !c.cree) c.cree = auj();
+    });
     const fx = liste("factures"), cx = liste("clients");
     if((fx.length || cx.length) && fx.every(o => o.exemple) && cx.every(o => o.exemple)){
       const ex = fichesExemple();
@@ -2255,7 +2393,90 @@ function fiche(c){
     + '<div class="fiche-pied"><span class="chiffres">' + eur(fx) + "<small>facturé"
     + (nb ? " · " + nb + " note" + (nb > 1 ? "s" : "") : "") + "</small></span>"
     + '<button class="etat-btn ' + e[1] + '" data-etat="' + h(c.id) + '" title="Appuyez pour changer">' + e[0] + "</button>"
+    + joindreMenu(c)
     + '<button class="sup" data-sup="clients" data-id="' + h(c.id) + '"><span class="mot">Supprimer</span></button></div></article>';
+}
+
+/* ═══ comment joindre ce client ═══
+   Une seule question au moment de la fiche : « Comment le joindre ? ».
+   Sacha tape ce qu'il a — un numéro, un mail, une adresse, les trois —
+   et c'est nous qui reconnaissons. Deux champs de plus à remplir, c'est
+   deux champs qu'il ne remplit pas. */
+const VOIE = /\b(rue|avenue|av|bd|boulevard|chemin|route|rte|place|impasse|imp|all[ée]e|quai|cours|square|lotissement|lieu-dit|zone|za|zi|zac|r[ée]sidence|villa|passage|faubourg)\b/i;
+
+function joindre(texte){
+  const r = {tel: "", mail: "", adresse: "", reste: ""};
+  let t = String(texte || "").trim();
+  if(!t) return r;
+
+  const m = /[^\s,;·<>()]+@[^\s,;·<>()]+\.[a-zA-Z]{2,}/.exec(t);
+  if(m){ r.mail = m[0]; t = t.replace(m[0], " · "); }
+
+  /* un numéro, c'est dix chiffres qui commencent par zéro, ou un indicatif
+     international. On vérifie après coup pour ne pas prendre un code postal
+     collé à un numéro de rue pour un téléphone. */
+  const cands = t.match(/\+?\d[\d\s.\-]{7,}\d/g) || [];
+  for(let i = 0; i < cands.length; i++){
+    const c = cands[i].trim(), n = c.replace(/[^\d+]/g, "");
+    if(/^0\d{9}$/.test(n) || /^\+\d{8,14}$/.test(n)){
+      r.tel = n; t = t.replace(c, " · "); break;
+    }
+  }
+
+  const a = t.replace(/·/g, " ").replace(/\s{2,}/g, " ").trim().replace(/^[,;\-\s]+|[,;\-\s]+$/g, "");
+  /* une adresse porte un numéro ou un mot de voie ; sinon c'est un nom de
+     personne, et on n'envoie personne au GPS chez « Jean Dupont ». */
+  if(a.length > 4 && (/\d/.test(a) || VOIE.test(a))) r.adresse = a;
+  else r.reste = a;
+  return r;
+}
+
+/* le GPS de la maison : Plans chez Apple, Google ailleurs */
+function lienCarte(adr){
+  const pomme = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent || "");
+  return (pomme ? "https://maps.apple.com/?q=" : "https://www.google.com/maps/search/?api=1&query=")
+    + encodeURIComponent(adr);
+}
+
+const ICO_JOINDRE = {
+  tel: '<path d="M6.6 3.6h3l1.4 3.8-2 1.5a12 12 0 0 0 6.1 6.1l1.5-2 3.8 1.4v3a2 2 0 0 1-2.2 2C11.5 18.7 5.3 12.5 4.6 5.8a2 2 0 0 1 2-2.2Z"/>',
+  mail: '<rect x="3.2" y="5.6" width="17.6" height="12.8" rx="2.6"/><path d="m4.2 7.2 6.6 4.9a2 2 0 0 0 2.4 0l6.6-4.9"/>',
+  carte: '<path d="M12 20.8s6.3-5.5 6.3-10.1a6.3 6.3 0 1 0-12.6 0c0 4.6 6.3 10.1 6.3 10.1Z"/><circle cx="12" cy="10.4" r="2.3"/>',
+  plus: '<path d="M12 6v12M6 12h12"/>'
+};
+function boutonJoindre(href, ico, mot, ext, nu){
+  return '<a href="' + h(href) + '"' + (ext ? ' target="_blank" rel="noopener noreferrer"' : "")
+    + (nu ? ' title="' + h(mot) + '" aria-label="' + h(mot) + '"' : "") + '>'
+    + '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">'
+    + ICO_JOINDRE[ico] + "</svg>" + (nu ? "" : mot) + "</a>";
+}
+
+/* Appeler · Écrire · M'y conduire — jamais plus de trois, souvent un seul.
+   Le SMS n'apparaît que sur un appareil qui sait en envoyer. */
+function liensJoindre(c, nu){
+  const j = joindre(c.contact);
+  let liens = "";
+  if(j.tel) liens += boutonJoindre("tel:" + j.tel, "tel", "Appeler", false, nu);
+  if(j.mail) liens += boutonJoindre("mailto:" + j.mail, "mail", "Écrire", false, nu);
+  else if(j.tel && window.matchMedia("(pointer:coarse)").matches)
+    liens += boutonJoindre("sms:" + j.tel, "mail", "Écrire", false, nu);
+  if(j.adresse) liens += boutonJoindre(lienCarte(j.adresse), "carte", "M'y conduire", true, nu);
+  return liens;
+}
+function rangeeJoindre(c){
+  let liens = liensJoindre(c, false);
+  if(!liens) liens = '<button class="vide" data-fiche="' + h(c.id) + '">'
+    + '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">'
+    + ICO_JOINDRE.plus + "</svg>Ajouter son numéro</button>";
+  return '<div class="joindre">' + liens + "</div>";
+}
+
+/* Dans le carnet, les mêmes chemins mais muets : l'icône seule, en gris,
+   au bout du pied de la vignette. On les voit quand on les cherche, et
+   on ne les voit pas quand on parcourt la liste. */
+function joindreMenu(c){
+  const liens = liensJoindre(c, true);
+  return liens ? '<span class="joindre-nu">' + liens + "</span>" : "";
 }
 
 function ficheClient(id){
@@ -2269,16 +2490,20 @@ function ficheClient(id){
   const attente = siennes.filter(f => statut(f) !== "payee").reduce((t, f) => t + (Number(f.montant) || 0), 0);
   const notes = (c.notes || []).slice().sort((x, y) => String(y.d).localeCompare(String(x.d)));
   const rdv = rdvDuClient(c.nom);
+  const reste = joindre(c.contact).reste;
 
   return '<button class="retour" data-retour="1">'
     + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>'
     + "Vos clients</button>"
 
-    + '<section class="carte anim"><div class="tete-client"><h2>' + h(c.nom) + "</h2>"
-    + '<button class="etat-btn ' + e[1] + '" data-etat="' + h(c.id) + '" title="Appuyez pour changer">' + e[0] + "</button>"
+    + '<section class="carte anim"><div class="tete-client">'
+    + '<span class="tete-corps" data-modif="client" data-id="' + h(c.id) + '" role="button" tabindex="0"'
+    + ' title="Appuyez pour modifier"><h2>' + h(c.nom) + "</h2>"
     + (c.projet ? "<p>" + h(c.projet) + "</p>" : "")
-    + (c.contact ? '<p style="color:var(--ink-3);font-size:14px">' + h(c.contact) + "</p>" : "")
-    + "</div>"
+    + (reste ? '<p class="joint">' + h(reste) + "</p>" : "")
+    + "</span>"
+    + '<button class="etat-btn ' + e[1] + '" data-etat="' + h(c.id) + '" title="Appuyez pour changer">' + e[0] + "</button>"
+    + "</div>" + rangeeJoindre(c)
     + '<div class="paye"><p class="lab">Ce client vous a payé</p>'
     + '<p class="gros" data-compte="paye-' + h(c.id) + '" data-val="' + paye + '">' + eur(paye) + "</p>"
     + (attente ? '<p class="reste">Il reste <b>' + eur(attente) + "</b> à encaisser.</p>"
@@ -2332,6 +2557,155 @@ function separateur(titre, appoint){
     + '<span class="mois-som">' + appoint + "</span></div>";
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   QUI RAPPELER MAINTENANT
+
+   Un carnet ne décide rien à votre place : on l'ouvre, on parcourt, on
+   referme, et on n'a rien fait. Sept prospects sur dix ne reçoivent
+   jamais de suivi — pas parce qu'ils ont refusé, parce que personne n'a
+   rappelé. L'onglet pose donc une seule question, et propose un seul nom.
+
+   Quatre règles, toutes déduites des factures. Aucune donnée nouvelle à
+   saisir, aucune deuxième liste : c'est toujours l'argent qui parle.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* « Plus tard » et « Rien à faire » s'écrivent sur le client, sous une
+   clé qui décrit la raison. Si une AUTRE facture tombe en retard plus
+   tard, la clé change et la personne remonte : écarter une raison n'est
+   pas écarter quelqu'un pour toujours. */
+function repousse(c, cle){
+  const r = c && c.repousse && c.repousse[cle];
+  return r ? String(r) > auj() : false;
+}
+function repousser(id, cle, jusqu){
+  const c = state.clients[id];
+  if(!c) return;
+  const r = Object.assign({}, c.repousse || {});
+  r[cle] = jusqu;
+  ecrire("clients", id, Object.assign({}, c, {repousse: r}));
+}
+
+/* la dernière facture d'un client, et son plus vieil impayé */
+function sesFactures(nom, fact){
+  return fact.filter(x => x.client === nom && x.statut !== "brouillon");
+}
+
+function aRappeler(){
+  const fact = liste("factures");
+  const file = [];
+
+  liste("clients").forEach(c => {
+    const f = sesFactures(c.nom, fact);
+    const duSom = f.filter(x => statut(x) !== "payee").reduce((t, x) => t + (Number(x.montant) || 0), 0);
+    const retard = f.filter(x => statut(x) === "retard")
+                    .sort((a, b) => String(a.echeance).localeCompare(String(b.echeance)))[0];
+
+    /* 1 · l'argent en retard passe avant tout le reste */
+    if(retard){
+      const j = -jours(retard.echeance);
+      file.push({id: c.id, nom: c.nom, rang: 1, genre: "relance",
+        cle: "retard:" + retard.id,
+        etiq: ["Pas payé", "feu"],
+        phrase: (retard.objet ? h(retard.objet) : "La facture " + h(retard.ref || ""))
+          + " devait être réglé" + (retard.objet ? "" : "e") + " <b>il y a " + j + " jour" + (j > 1 ? "s" : "") + "</b>.",
+        somme: duSom, sous: h(retard.ref || "facture en retard"),
+        action: "Écrire la relance"});
+      return;
+    }
+
+    /* 2 · le devis qui dort. Cinq jours est le délai où la signature est
+       la plus probable ; passé dix, elle tombe de moitié. */
+    if(c.statut === "prospect" && !f.length){
+      const j = jours(c.cree || auj()) * -1;
+      if(j >= 5){
+        file.push({id: c.id, nom: c.nom, rang: 2, genre: "devis",
+          cle: "devis:" + (c.cree || auj()),
+          etiq: ["Devis en attente", "att"],
+          phrase: "Vous l'avez inscrit <b>il y a " + j + " jours</b> et il n'a toujours rien signé.",
+          somme: null, sous: h(c.projet || "à rappeler"),
+          action: "Appeler " + h(prenom(c.nom))});
+        return;
+      }
+    }
+
+    /* 3 · le client content. C'est dans les jours qui suivent qu'on
+       obtient un avis ; trois semaines plus tard il ne répond plus.
+       Cadence ne garde pas la date d'encaissement : la date d'émission
+       de la dernière facture en tient lieu. */
+    if(f.length && !duSom){
+      const der = f.map(x => String(x.emise)).sort().reverse()[0];
+      const j = -jours(der);
+      if(j >= 3 && j <= 45){
+        file.push({id: c.id, nom: c.nom, rang: 3, genre: "avis",
+          cle: "avis:" + der,
+          etiq: ["Content", "ok"],
+          phrase: "Tout est livré et tout est réglé <b>depuis " + j + " jours</b>. C'est maintenant qu'on demande.",
+          somme: f.reduce((t, x) => t + (Number(x.montant) || 0), 0), sous: "vous a payé sans broncher",
+          action: "Lui demander un avis"});
+        return;
+      }
+      /* 4 · celui qu'on a oublié. Il est déjà convaincu, il a déjà payé,
+         et le recontacter coûte un message. */
+      if(j >= 300){
+        file.push({id: c.id, nom: c.nom, rang: 4, genre: "nouvelles",
+          cle: "nouvelles:" + der.slice(0, 7),
+          etiq: ["Sans nouvelles", "att"],
+          phrase: "Son chantier est fini <b>depuis " + Math.round(j / 30) + " mois</b>. Il ne vous a pas oublié, mais il ne pensera pas à vous tout seul.",
+          somme: f.reduce((t, x) => t + (Number(x.montant) || 0), 0), sous: "ce qu'il vous a déjà confié",
+          action: "Prendre de ses nouvelles"});
+      }
+    }
+  });
+
+  return file.filter(p => !repousse(state.clients[p.id], p.cle))
+             .sort((a, b) => a.rang - b.rang || String(a.nom).localeCompare(String(b.nom), "fr"));
+}
+
+/* « Appeler Camille » se lit mieux que « Appeler Camille Roux », et
+   « Appeler Boulangerie » ne veut rien dire : on ne raccourcit que les
+   noms de personne, ceux de deux mots dont le premier n'est pas un métier. */
+const MAISON = /^(atelier|boulangerie|garage|h[ôo]tel|mairie|[ée]picerie|brasserie|restaurant|caf[ée]|soci[ée]t[ée]|entreprise|cabinet|sarl|sas|eurl|scop|ets|maison|ferme|domaine|clinique|pharmacie|librairie|salon|studio|agence|r[ée]sidence)\b/i;
+function prenom(nom){
+  const n = String(nom || "").trim();
+  if(MAISON.test(n)) return n;
+  const m = n.split(/\s+/);
+  return m.length === 2 ? m[0] : n;
+}
+
+function pileClients(){
+  const file = aRappeler();
+  if(!file.length) return personneARappeler();
+  const p = file[0];
+
+  const points = file.slice(0, 5).map((x, i) =>
+    '<span class="pt' + (i === 0 ? " ici" : "") + '"></span>').join("");
+
+  return '<div class="pile-tete"><span>' + file.length + " personne" + (file.length > 1 ? "s" : "")
+    + ' à rappeler</span><span class="pts">' + points + "</span></div>"
+
+    + '<section class="carte anim pile-carte"><span class="etat-btn ' + p.etiq[1] + '">' + p.etiq[0] + "</span>"
+    + '<h2 data-client="' + h(p.id) + '" role="button" tabindex="0" title="Voir sa fiche">' + h(p.nom) + "</h2>"
+    + '<p class="pourquoi">' + p.phrase + "</p>"
+    + (p.somme ? '<p class="som">' + eur(p.somme) + "</p>" : "")
+    + '<p class="sous">' + p.sous + "</p></section>"
+
+    + '<button class="pile-go anim" data-mot="' + h(p.genre) + '" data-nom="' + h(p.nom) + '">' + p.action + "</button>"
+    + '<div class="pile-autre anim"><button data-plus-tard="' + h(p.id) + '" data-cle="' + h(p.cle) + '">Plus tard</button>'
+    + '<button data-jamais="' + h(p.id) + '" data-cle="' + h(p.cle) + '">Rien à faire</button></div>'
+    + '<div class="pile-pied"><button data-carnet="1">Voir tous vos clients</button></div>' + demo();
+}
+
+function personneARappeler(){
+  const n = liste("clients").length;
+  return '<section class="carte anim vide-jour">'
+    + '<span class="rond"><svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2.2" '
+    + 'stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></span>'
+    + "<h2>Personne à rappeler</h2>"
+    + "<p>" + (n ? "Tout le monde a eu de vos nouvelles. Retournez à l'atelier."
+                 : "Ajoutez votre premier client, ou facturez quelqu'un : il s'inscrira tout seul.") + "</p>"
+    + '<button data-carnet="1">Voir tous vos clients</button></section>' + demo();
+}
+
 function carnetClients(){
   const cl = liste("clients");
   const fact = liste("factures");
@@ -2359,7 +2733,10 @@ function carnetClients(){
       + '<div class="fiches">' + attente.sort(parNom).map(fiche).join("") + "</div>";
   }
 
-  return '<section class="carte anim"><div class="carte-tete"><h2>Vos clients</h2>'
+  return '<button class="retour" data-retour-pile="1">'
+    + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>'
+    + "Aujourd'hui</button>"
+    + '<section class="carte anim"><div class="carte-tete"><h2>Vos clients</h2>'
     + '<span class="appoint">' + actifs.length + " chantier" + (actifs.length > 1 ? "s" : "") + " en cours</span></div>"
     + (cl.length ? corps
        : '<p class="vide"><b>Aucun client</b>Commencez par celui que vous avez eu au téléphone aujourd\'hui.</p>')
@@ -2396,9 +2773,12 @@ function rangeeFacture(f, chezLui){
     + '<button class="sup" data-sup="factures" data-id="' + h(f.id) + '"><span class="mot">Supprimer</span></button></div>';
 }
 function vueArgent(){
-  /* l'onglet de la barre : le carnet de clients */
+  /* l'onglet de la barre : une personne à la fois. Le carnet existe
+     toujours, mais il n'est plus la porte d'entrée — on l'ouvre quand on
+     cherche quelqu'un, pas pour décider quoi faire aujourd'hui. */
   if(clientOuvert) return ficheClient(clientOuvert);
-  return carnetClients();
+  if(ecranClients === "carnet") return carnetClients();
+  return pileClients();
 }
 
 function ecranFactures(){
@@ -2741,12 +3121,72 @@ function texteRelance(nom){
       + (moi ? " — " + moi : "")};
 }
 
+/* L'avis et les nouvelles s'écrivent comme la relance : un texte prêt,
+   relu, qui part sous le nom de Sacha. Rien ne s'envoie tout seul. */
+function texteAvis(nom){
+  const moi = (state.moi && state.moi.nom) || "";
+  return {objet: "Merci" + (moi ? " — " + moi : ""),
+    corps: "Bonjour,\n\nLe chantier est terminé et tout est réglé : merci de votre confiance, "
+      + "c'était un plaisir de travailler pour vous.\n\n"
+      + "Si vous avez été satisfait du travail, un avis en ligne m'aiderait beaucoup — "
+      + "c'est souvent la première chose que regardent les gens avant de m'appeler. "
+      + "Quelques mots suffisent.\n\n"
+      + "[collez ici le lien vers votre fiche]\n\n"
+      + "Merci d'avance, et à bientôt j'espère.\n\n" + (moi || "[votre nom]")};
+}
+function texteNouvelles(nom){
+  const moi = (state.moi && state.moi.nom) || "";
+  return {objet: "Des nouvelles" + (moi ? " — " + moi : ""),
+    corps: "Bonjour,\n\nCela fait un moment que nous n'avons pas eu l'occasion de travailler ensemble. "
+      + "Je passais vous demander si tout tient bien, et si quelque chose aurait besoin d'être repris "
+      + "ou complété.\n\n"
+      + "N'hésitez pas à me dire, je reste disponible.\n\n"
+      + "Bien cordialement,\n" + (moi || "[votre nom]")};
+}
+function texteDevis(nom){
+  const moi = (state.moi && state.moi.nom) || "";
+  return {objet: "Notre échange" + (moi ? " — " + moi : ""),
+    corps: "Bonjour,\n\nJe reviens vers vous au sujet du chantier dont nous avons parlé. "
+      + "Avez-vous eu le temps d'y réfléchir ?\n\n"
+      + "Si un point vous retient — le délai, le montant, le détail des travaux — dites-le moi, "
+      + "on en discute volontiers.\n\n"
+      + "Bien cordialement,\n" + (moi || "[votre nom]")};
+}
+
+const MOTS = {
+  relance:   {titre: "Relancer ", aide: null},
+  avis:      {titre: "Demander un avis à ", aide: "Il est content et il vient de payer : c'est le seul moment où l'on obtient un avis. Relisez-le, il part sous votre nom."},
+  nouvelles: {titre: "Prendre des nouvelles de ", aide: "Il vous connaît déjà et il a déjà payé. Un message suffit. Relisez-le, il part sous votre nom."},
+  devis:     {titre: "Rappeler ", aide: "Il n'a pas dit non, personne ne l'a rappelé. Relisez-le, il part sous votre nom."}
+};
+
+function ouvrirMot(nom, genre){
+  if(genre === "relance") return ouvrirRelance(nom);
+  const r = genre === "avis" ? texteAvis(nom) : genre === "nouvelles" ? texteNouvelles(nom) : texteDevis(nom);
+  const m = MOTS[genre] || MOTS.devis;
+  const cl = liste("clients").find(x => x.nom === nom);
+  const mail = cl ? joindre(cl.contact).mail : "";
+  const f = $("#feuille");
+  if(f.hidden) dernierFocus = document.activeElement;
+  f.innerHTML = '<div class="poignee"></div>'
+    + '<div class="feuille-tete"><h2 id="feuille-titre">' + m.titre + h(nom) + "</h2>"
+    + '<button class="fermer" id="x" aria-label="Fermer">×</button></div>'
+    + '<div class="relance"><p class="aide">' + m.aide + "</p>"
+    + '<textarea id="relance-txt" rows="13" aria-label="Le message">' + h(r.corps) + "</textarea>"
+    + '<div class="relance-actions">'
+    + '<button data-copier-relance="1">Copier le message</button>'
+    + '<button class="doux" data-mail-relance="' + h(mail) + '" data-objet="' + h(r.objet) + '">Ouvrir dans mon mail</button>'
+    + "</div></div>";
+  clearTimeout(minuteurFeuille);
+  f.hidden = false; $("#voile").hidden = false;
+  requestAnimationFrame(() => { f.classList.add("on"); $("#voile").classList.add("on"); });
+}
+
 function ouvrirRelance(nom){
   const r = texteRelance(nom);
   if(!r) return;
   const cl = liste("clients").find(x => x.nom === nom);
-  const mail = cl && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(cl.contact || "").trim())
-    ? String(cl.contact).trim() : "";
+  const mail = cl ? joindre(cl.contact).mail : "";
   const f = $("#feuille");
   if(f.hidden) dernierFocus = document.activeElement;
   f.innerHTML = '<div class="poignee"></div>'
@@ -3268,8 +3708,9 @@ const CHAMPS = {
   client: () => ({titre: "Nouveau client", html:
     '<div class="champ"><label for="f1">Son nom</label><input id="f1" name="nom" required maxlength="80" placeholder="Brasserie du Quai" autocomplete="off"></div>'
     + '<div class="champ"><label for="f2">Ce que vous faites pour lui</label><input id="f2" name="projet" maxlength="120" placeholder="Comptoir et banquettes en chêne" autocomplete="off"></div>'
+    + '<div class="champ"><label for="f4">Comment le joindre ?</label><input id="f4" name="contact" maxlength="160" placeholder="06 12 34 56 78" autocomplete="off"></div>'
+    + '<p class="aide" style="margin:-5px 0 2px">Son numéro, son mail, son adresse — ce que vous avez suffit.</p>'
     + '<details class="detail"><summary>Plus de détails</summary>'
-    + '<div class="champ"><label for="f4">Contact</label><input id="f4" name="contact" maxlength="60" placeholder="facultatif" autocomplete="off"></div>'
     + '<div class="champ"><label>Où en êtes-vous ?</label><div class="choix">'
     + '<label><input type="radio" name="statut" value="actif" checked><span>En cours</span></label>'
     + '<label><input type="radio" name="statut" value="prospect"><span>Prospect</span></label>'
@@ -3495,6 +3936,7 @@ $("#nav").addEventListener("click", e => {
   if(!b.dataset.vue) return;
   vue = b.dataset.vue;
   clientOuvert = null;
+  ecranClients = "pile";
   const tous = document.querySelectorAll("#nav button[data-vue]");
   for(let i = 0; i < tous.length; i++) tous[i].removeAttribute("aria-current");
   b.setAttribute("aria-current", "page");
@@ -3520,6 +3962,7 @@ function armer(b){
 }
 
 $("#vue").addEventListener("click", e => {
+  if(e.target.closest("a")) return;   /* appeler, ce n'est pas ouvrir la fiche */
   const b = e.target.closest("button");
   if(!b){
     const bloc = e.target.closest("[data-bloc]");
@@ -3539,7 +3982,21 @@ $("#vue").addEventListener("click", e => {
     return;
   }
   if(b.dataset.retour){ clientOuvert = null; filtreA = "clients"; animer = true; memoire.clear(); rendre(); window.scrollTo({top: 0}); return; }
+  if(b.dataset.carnet){ ecranClients = "carnet"; clientOuvert = null; animer = true; memoire.clear(); rendre(); window.scrollTo({top: 0}); return; }
+  if(b.dataset.retourPile){ ecranClients = "pile"; clientOuvert = null; animer = true; memoire.clear(); rendre(); window.scrollTo({top: 0}); return; }
+  if(b.dataset.mot){ ouvrirMot(b.dataset.nom, b.dataset.mot); return; }
+  if(b.dataset.plusTard){
+    repousser(b.dataset.plusTard, b.dataset.cle, dans(1));
+    bulle("On en reparle demain");
+    animer = true; memoire.clear(); rendre(); return;
+  }
+  if(b.dataset.jamais){
+    repousser(b.dataset.jamais, b.dataset.cle, dans(36500));
+    bulle("Rayé de la liste");
+    animer = true; memoire.clear(); rendre(); return;
+  }
   if(b.dataset.ajoutNote){ noter(b.dataset.ajoutNote); return; }
+  if(b.dataset.fiche){ modifier("client", b.dataset.fiche); return; }
   if(b.dataset.relance){ ouvrirRelance(b.dataset.relance); return; }
   if(b.dataset.facturer){
     const cl = liste("clients").find(x => x.nom === b.dataset.facturer);
@@ -3752,6 +4209,11 @@ $("#feuille").addEventListener("submit", e => {
   }else if(typeActif === "client"){
     ecrire("clients", id, Object.assign(garder, {nom: String(d.nom).trim(),
       projet: String(d.projet || "").trim(), contact: String(d.contact || "").trim(),
+      /* l'Agenda lit cette clé pour proposer « Y aller » sur un rendez-vous.
+         Elle se déduit de « Comment le joindre ? » : pas un champ de plus
+         à remplir, la même adresse que celle du bouton « M'y conduire ». */
+      adresse: joindre(d.contact).adresse,
+      cree: garder.cree || auj(),
       statut: d.statut || "actif"}));
     bulle(mot || "Client ajouté");
   }else if(typeActif === "facture"){
@@ -4432,9 +4894,117 @@ function makeBlock(ev, opts){
   return b;
 }
 
+/* ═══ le ruban ═══
+   Une seule carte par rendez-vous, dans l'ordre, avec entre elles ce qui
+   se passe vraiment : la route, ou du temps libre. Le zoom n'a plus de
+   sens ici — il disparaît, et la vue du jour retombe à deux réglages. */
+function carteRuban(ev){
+  var cat = CAT[ev.cat] || CAT.autre;
+  var b = document.createElement('button');
+  b.className = 'ev' + (ev.demo ? ' demo' : '');
+  b.style.setProperty('--c', 'var(--c-' + cat.c + ')');
+  b.innerHTML = icon(cat.k, 15) + '<span class="txt"></span>'
+    + (ev.rep && ev.rep !== 'none' ? '<span class="rep">' + svg(I_REPEAT, 12, 1.8) + '</span>' : '');
+  var txt = b.querySelector('.txt');
+  var nm = document.createElement('span'); nm.className = 'name'; nm.textContent = ev.title || cat.l;
+  var wh = document.createElement('span'); wh.className = 'when';
+  wh.textContent = hhmm(ev.start) + '–' + hhmm(Math.min(ev.start + ev.dur, DAY_END))
+    + ' · ' + durLabel(ev.dur);
+  txt.appendChild(nm); txt.appendChild(wh);
+  b.addEventListener('click', function(){ openSheet(ev); });
+  return b;
+}
+
+function traitIci(){
+  var d = document.createElement('div');
+  d.className = 'rb-ici';
+  d.innerHTML = '<b></b><span>vous êtes ici</span><i></i>';
+  return d;
+}
+
+function renderRuban(){
+  var hote = $('ruban');
+  hote.innerHTML = '';
+  var list = eventsOf(state.date).slice().sort(function(a,b){ return a.start - b.start; });
+
+  if (!list.length){
+    var v = document.createElement('div');
+    v.className = 'rb-vide';
+    v.innerHTML = '<strong>Journée libre</strong>Écrivez une phrase au-dessus, ou touchez un créneau.';
+    hote.appendChild(v);
+    return;
+  }
+
+  hote.appendChild(Object.assign(document.createElement('div'), {className: 'rb-fil'}));
+
+  var nowMin = -999, nn = new Date();
+  if (state.date === today){
+    nowMin = nn.getHours()*60 + nn.getMinutes();
+    if (nowMin < DAY_START || nowMin > DAY_END) nowMin = -999;
+  }
+
+  var paires = {};
+  pairesRoute(list).forEach(function(p){ paires[p.b.id] = p; });
+
+  var fin = null, traceIci = false;
+  list.forEach(function(ev){
+    /* Entre deux rendez-vous, une seule chose se dit. La route l'emporte
+       quand elle est connue ; sinon c'est le temps libre qui est utile, et
+       la question du trajet ne se pose que là où l'intervalle est serré. */
+    var p = paires[ev.id];
+    var m = p ? routeConnue(p.a.title, p.b.title) : null;
+    var libre = (fin !== null) ? ev.start - fin : 0;
+    if (p && m > 0){
+      hote.appendChild(makeRoute(p));
+    } else if (libre >= 30){
+      hote.appendChild(creneauRuban(fin, libre));
+    } else if (p && m === null){
+      hote.appendChild(makeRoute(p));
+    }
+
+    if (!traceIci && nowMin > 0 && nowMin < ev.start){
+      hote.appendChild(traitIci()); traceIci = true;
+    }
+
+    var enCours = nowMin >= ev.start && nowMin < ev.start + ev.dur;
+    var ligne = document.createElement('div');
+    ligne.className = 'rb-ligne' + (enCours ? ' ici' : '');
+    var cat = CAT[ev.cat] || CAT.autre;
+    ligne.style.setProperty('--c', 'var(--c-' + cat.c + ')');
+    var h = document.createElement('span');
+    h.className = 'rb-h'; h.textContent = hhmm(ev.start);
+    ligne.appendChild(h);
+    ligne.appendChild(Object.assign(document.createElement('span'), {className: 'rb-pt'}));
+    ligne.appendChild(carteRuban(ev));
+    hote.appendChild(ligne);
+
+    if (!traceIci && enCours){ hote.appendChild(traitIci()); traceIci = true; }
+    if (fin === null || ev.start + ev.dur > fin) fin = ev.start + ev.dur;
+  });
+}
+
+function creneauRuban(debut, dur){
+  var b = document.createElement('button');
+  b.className = 'gap';
+  b.innerHTML = '<span>' + svg(I_PLUS, 13, 2) + durLabel(dur) + ' libre</span>';
+  b.setAttribute('aria-label', 'Placer une activité dans ce créneau libre de ' + durLabel(dur));
+  b.addEventListener('click', function(){ openSheet(null, {start: debut, dur: Math.min(60, dur)}); });
+  return b;
+}
+
 function renderTrack(){
   var track = $('track'), hours = $('hours'), head = $('wkhead');
   var week = state.view === 'semaine';
+
+  $('grille').hidden = !week;
+  $('ruban').hidden = week;
+  $('zoom').hidden = !week;
+  if (!week){
+    head.hidden = true;
+    renderRuban();
+    $('demoNote').hidden = !demoActive();
+    return;
+  }
   track.innerHTML = ''; hours.innerHTML = ''; head.innerHTML = '';
   head.hidden = !week;
 
@@ -5094,6 +5664,11 @@ $('zoom').addEventListener('click', function(e){
 });
 
 function scrollToNow(){
+  if (state.view !== 'semaine'){
+    var sc0 = $('scroller'), ici = $('ruban').querySelector('.rb-ici');
+    sc0.scrollTop = ici ? Math.max(0, ici.offsetTop - sc0.clientHeight/2.6) : 0;
+    return;
+  }
   if (state.zoom === 'tout') { $('scroller').scrollTop = 0; return; }
   var sc = $('scroller'), tr = $('track'), n = new Date();
   var demo = demoActive() && state.date === today;
