@@ -1292,7 +1292,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste [hidden]{display:none!important}
 #ilreste{
   margin:0;background:var(--paper);color:var(--ink);
-  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,sans-serif;
+  font-family:var(--ui);
   font-size:17px;line-height:1.45;-webkit-font-smoothing:antialiased;
 }
 #ilreste :focus-visible{outline:3px solid var(--focus);outline-offset:3px;border-radius:6px}
@@ -1302,8 +1302,8 @@ summary.carte-tete:hover h2{color:var(--v1)}
   padding-block:22px 80px;padding-left:18px;padding-right:18px;
   display:flex;flex-direction:column;gap:18px;
 }
-#ilreste h1{font-family:Spectral,Georgia,serif;font-weight:700;font-size:clamp(25px,6.6vw,32px);line-height:1.1;margin:0;letter-spacing:-.015em}
-#ilreste .chiffre{font-family:"IBM Plex Mono",ui-monospace,monospace;font-variant-numeric:tabular-nums;font-size:.97em}
+#ilreste h1{font-family:var(--num);font-weight:700;font-size:clamp(25px,6.6vw,32px);line-height:1.1;margin:0;letter-spacing:-.015em}
+#ilreste .chiffre{font-family:var(--num);font-variant-numeric:tabular-nums;font-size:.97em}
 /* la barre d'onglets de Comptabilité suffit : deux barres l'une dans
    l'autre, avec les mêmes mots, personne ne s'y retrouve */
 #ilreste .tabs{display:none}
@@ -1317,7 +1317,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .tabs .pastille{
   display:inline-block;min-width:19px;height:19px;line-height:19px;padding:0 5px;margin-left:5px;
   border-radius:99px;background:var(--chaud);color:#fff;font-size:11.5px;font-weight:600;
-  font-family:"IBM Plex Mono",monospace;vertical-align:1px;
+  font-family:var(--num);vertical-align:1px;
 }
 #ilreste .tabs button[aria-selected=true] .pastille{background:var(--on-moi);color:var(--moi)}
 #ilreste .panel{display:flex;flex-direction:column;gap:18px}
@@ -1346,15 +1346,15 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .disc .seg{fill:none;transition:stroke-dasharray .5s cubic-bezier(.16,1,.3,1),stroke-dashoffset .5s cubic-bezier(.16,1,.3,1)}
 #ilreste .disc-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;padding:0 14%}
 #ilreste .disc-center .cap{font-size:13.5px;color:var(--ink-soft)}
-#ilreste .disc-center .big{font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:clamp(27px,9vw,40px);line-height:1.05;color:var(--moi);letter-spacing:-.025em}
-#ilreste .disc-center .pc{font-family:"IBM Plex Mono",monospace;font-size:14.5px;color:var(--ink-faint)}
+#ilreste .disc-center .big{font-family:var(--num);font-weight:600;font-size:clamp(27px,9vw,40px);line-height:1.05;color:var(--moi);letter-spacing:-.025em}
+#ilreste .disc-center .pc{font-family:var(--num);font-size:14.5px;color:var(--ink-faint)}
 #ilreste .legende{width:100%;display:flex;flex-direction:column;gap:2px}
 #ilreste .legende .l{display:flex;align-items:baseline;gap:10px;padding:7px 2px;border-bottom:1px solid var(--rule)}
 #ilreste .legende .l:last-child{border-bottom:0}
 #ilreste .legende .d{flex:none;width:12px;height:12px;border-radius:4px;align-self:center}
 #ilreste .legende .nom{flex:1;font-size:15.5px}
 #ilreste .legende .nom small{display:block;font-size:12.5px;color:var(--ink-faint)}
-#ilreste .legende .v{font-family:"IBM Plex Mono",monospace;font-size:17px;font-weight:600;white-space:nowrap}
+#ilreste .legende .v{font-family:var(--num);font-size:17px;font-weight:600;white-space:nowrap}
 #ilreste .legende .moi .d{background:var(--moi)}
 #ilreste .legende .moi .v{color:var(--moi)}
 #ilreste .legende .tva .d{background:var(--tva)}
@@ -1365,7 +1365,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .cadre.alerte{border-color:var(--chaud);background:var(--chaud-bg)}
 #ilreste .cadre .t{font-size:14.5px;color:var(--ink-soft)}
 #ilreste .cadre.alerte .t{color:var(--chaud)}
-#ilreste .cadre .v{font-family:"IBM Plex Mono",monospace;font-size:31px;font-weight:600;line-height:1.15}
+#ilreste .cadre .v{font-family:var(--num);font-size:31px;font-weight:600;line-height:1.15}
 #ilreste .cadre.alerte .v{color:var(--chaud)}
 #ilreste .cadre .s{font-size:13.5px;color:var(--ink-soft)}
 #ilreste .cadre .s b{color:var(--ink);font-weight:600}
@@ -1373,17 +1373,17 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .mois .m{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px;height:100%}
 #ilreste .mois .m i{display:block;width:100%;background:var(--moi-bg);border-radius:4px 4px 0 0;min-height:3px;transition:height .5s cubic-bezier(.16,1,.3,1)}
 #ilreste .mois .m.actif i{background:var(--moi)}
-#ilreste .mois .m span{font-size:10.5px;color:var(--ink-faint);font-family:"IBM Plex Mono",monospace}
+#ilreste .mois .m span{font-size:10.5px;color:var(--ink-faint);font-family:var(--num)}
 #ilreste .jauge{display:flex;flex-direction:column;gap:6px}
 #ilreste .jauge .haut{display:flex;align-items:baseline;gap:10px;font-size:14.5px;color:var(--ink-soft)}
-#ilreste .jauge .haut .n{margin-left:auto;font-family:"IBM Plex Mono",monospace;color:var(--ink);font-weight:500}
+#ilreste .jauge .haut .n{margin-left:auto;font-family:var(--num);color:var(--ink);font-weight:500}
 #ilreste .jauge .barre{height:12px;border-radius:99px;background:var(--sunken);overflow:hidden}
 #ilreste .jauge .barre i{display:block;height:100%;background:var(--moi);transition:width .5s cubic-bezier(.16,1,.3,1),background .3s}
 #ilreste .jauge.chaud .barre i{background:var(--chaud)}
 #ilreste .jauge .bas{font-size:13.5px;color:var(--ink-soft)}
 #ilreste .jauge.chaud .bas{color:var(--chaud);font-weight:500}
 #ilreste .card{background:var(--surface);border:1px solid var(--rule);border-radius:18px;padding:17px;display:flex;flex-direction:column;gap:11px}
-#ilreste .card > h2{font-family:Spectral,Georgia,serif;font-size:16.5px;font-weight:600;margin:0}
+#ilreste .card > h2{font-family:var(--num);font-size:16.5px;font-weight:600;margin:0}
 #ilreste .frow{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
 #ilreste .f{display:flex;flex-direction:column;gap:4px;min-width:0}
 #ilreste .f > span{font-size:12.5px;color:var(--ink-faint)}
@@ -1392,7 +1392,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   border:1px solid var(--rule);border-radius:12px;padding:11px 13px;min-height:48px;width:100%;
 }
 #ilreste .f textarea{min-height:72px;resize:vertical;line-height:1.4}
-#ilreste .f input[inputmode=decimal],#ilreste .f input[inputmode=numeric]{font-family:"IBM Plex Mono",monospace;text-align:right}
+#ilreste .f input[inputmode=decimal],#ilreste .f input[inputmode=numeric]{font-family:var(--num);text-align:right}
 #ilreste .f input::placeholder,#ilreste .f textarea::placeholder{color:var(--ink-faint)}
 #ilreste .btn{
   min-height:48px;padding:0 16px;border-radius:14px;font:inherit;font-size:15.5px;font-weight:500;
@@ -1409,11 +1409,11 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .liste{display:flex;flex-direction:column;border:1px solid var(--rule);border-radius:16px;overflow:hidden}
 #ilreste .ligne{display:flex;align-items:center;gap:11px;padding:13px 15px;border-bottom:1px solid var(--rule)}
 #ilreste .ligne:last-child{border-bottom:0}
-#ilreste .ligne .no{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-faint);flex:none;width:24px}
+#ilreste .ligne .no{font-family:var(--num);font-size:12px;color:var(--ink-faint);flex:none;width:24px}
 #ilreste .ligne .qui{flex:1;min-width:0}
 #ilreste .ligne .qui b{display:block;font-size:15.5px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #ilreste .ligne .qui small{display:block;font-size:12.5px;color:var(--ink-faint)}
-#ilreste .ligne .som{font-family:"IBM Plex Mono",monospace;font-size:16px;font-weight:600;white-space:nowrap}
+#ilreste .ligne .som{font-family:var(--num);font-size:16px;font-weight:600;white-space:nowrap}
 #ilreste .ligne .sup{flex:none;width:34px;height:34px;border-radius:10px;border:1px solid var(--rule);background:none;color:var(--ink-faint);cursor:pointer;font-size:14px}
 #ilreste .ligne .sup:hover{background:var(--chaud-bg);color:var(--chaud);border-color:var(--chaud)}
 #ilreste .ligne.exemple{background:var(--sunken)}
@@ -1425,7 +1425,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .creance .haut .qui{flex:1;min-width:0}
 #ilreste .creance .haut .qui b{display:block;font-size:16px;font-weight:600}
 #ilreste .creance .haut .qui small{display:block;font-size:12.5px;color:var(--ink-faint)}
-#ilreste .creance .haut .som{font-family:"IBM Plex Mono",monospace;font-size:19px;font-weight:600;white-space:nowrap}
+#ilreste .creance .haut .som{font-family:var(--num);font-size:19px;font-weight:600;white-space:nowrap}
 #ilreste .creance .quoi{font-size:13.5px;color:var(--ink-soft)}
 #ilreste .creance.retard .quoi{color:var(--chaud);font-weight:500}
 #ilreste .creance .bas{display:flex;gap:8px}
@@ -1444,7 +1444,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste details.repli[open] > summary::before{transform:rotate(90deg)}
 #ilreste details.repli > summary .titre{color:var(--ink-soft)}
 #ilreste details.repli > summary .rep{
-  margin-left:auto;font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--ink);
+  margin-left:auto;font-family:var(--num);font-weight:600;color:var(--ink);
   white-space:nowrap;font-size:15.5px;
 }
 #ilreste .repli-corps{padding:4px 17px 17px;display:flex;flex-direction:column;gap:13px;border-top:1px solid var(--rule)}
@@ -1462,11 +1462,11 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .bascule input{width:22px;height:22px;accent-color:var(--moi);flex:none}
 #ilreste table.det{width:100%;border-collapse:collapse;font-size:14.5px}
 #ilreste table.det td{padding:7px 0;border-bottom:1px solid var(--rule);color:var(--ink-soft)}
-#ilreste table.det td:last-child{text-align:right;font-family:"IBM Plex Mono",monospace;white-space:nowrap;color:var(--ink)}
+#ilreste table.det td:last-child{text-align:right;font-family:var(--num);white-space:nowrap;color:var(--ink)}
 #ilreste table.det tr:last-child td{border-bottom:0}
 #ilreste .apercu{background:var(--surface);border:1px solid var(--rule);border-radius:16px;padding:22px;font-size:14px;line-height:1.5}
 #ilreste .apercu .tete{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;margin-bottom:18px}
-#ilreste .apercu h3{font-family:Spectral,Georgia,serif;font-size:20px;margin:0 0 3px}
+#ilreste .apercu h3{font-family:var(--num);font-size:20px;margin:0 0 3px}
 #ilreste .apercu .meta{color:var(--ink-soft);font-size:12.5px}
 #ilreste .apercu .qui2{font-size:12.5px;white-space:pre-line;color:var(--ink-soft);min-width:160px}
 #ilreste .apercu .qui2 strong{color:var(--ink);font-size:13.5px;display:block;margin-bottom:2px}
@@ -1474,10 +1474,10 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .apercu th{text-align:left;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint);font-weight:500;padding:0 0 6px;border-bottom:1px solid var(--rule)}
 #ilreste .apercu th.r,#ilreste .apercu td.r{text-align:right}
 #ilreste .apercu td{padding:8px 0;border-bottom:1px solid var(--rule)}
-#ilreste .apercu td.r{font-family:"IBM Plex Mono",monospace;white-space:nowrap;padding-left:10px}
+#ilreste .apercu td.r{font-family:var(--num);white-space:nowrap;padding-left:10px}
 #ilreste .apercu .fin{display:flex;flex-direction:column;gap:5px;margin-left:auto;max-width:260px}
 #ilreste .apercu .fin div{display:flex;gap:16px}
-#ilreste .apercu .fin div span:last-child{margin-left:auto;font-family:"IBM Plex Mono",monospace}
+#ilreste .apercu .fin div span:last-child{margin-left:auto;font-family:var(--num)}
 #ilreste .apercu .fin .ttc{border-top:1px solid var(--rule);padding-top:7px;margin-top:3px;font-weight:600;font-size:16.5px}
 #ilreste .tbl-scroll{overflow-x:auto}
 #ilreste .mentions{font-size:12px;color:var(--ink-faint);line-height:1.5}
@@ -1495,17 +1495,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste{display:block;background:transparent!important;padding-bottom:104px}
 #ilreste .enveloppe,#ilreste .wrap,#ilreste main{min-height:0;max-width:none}
 
-/* ═══ mêmes polices et mêmes cartes que Calculs et Factures ═══ */
-#ilreste .chiffre,
-#ilreste .disc-center .big,
-#ilreste .disc-center .pc,
-#ilreste .legende .v,
-#ilreste .cadre .v,
-#ilreste .mois .m span,
-#ilreste .jauge .haut .n,
-#ilreste .det td,
-#ilreste .rs,#ilreste .rc > span{
-  font-family:var(--num)!important;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+/* ═══ mêmes cartes que Calculs et Factures ═══ */
 #ilreste .cadre,#ilreste .card,#ilreste .echeance{
   border:0;border-radius:var(--rl);background:var(--surface);box-shadow:var(--o1);padding:21px 22px}
 #ilreste .cadre.alerte{background:var(--chaud-bg);box-shadow:none}
