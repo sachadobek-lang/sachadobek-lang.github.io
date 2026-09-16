@@ -1363,7 +1363,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
           <span class="nom">La TVA<small>elle n'a jamais été à toi</small></span>
           <span class="v" id="v-tva">—</span></div>
         <div class="l urssaf"><span class="d"></span>
-          <span class="nom">Pour l'URSSAF<small id="lbl-urssaf">retraite, maladie</small></span>
+          <span class="nom"><span id="nom-urssaf">Pour l'URSSAF</span><small id="lbl-urssaf">retraite, maladie</small></span>
           <span class="v" id="v-urssaf">—</span></div>
       </div>
     </div>
@@ -1660,7 +1660,7 @@ const MOIS_LONG = ["janvier", "février", "mars", "avril", "mai", "juin", "juill
 
 const state = {
   taches: {}, clients: {}, factures: {}, depenses: {}, investissements: {},
-  moi: {nom: "", adresse: "", siret: "", email: "", tva: 0, regime: "services", liberatoire: false, objectif: 0, joursFactures: 200},
+  moi: {nom: "", adresse: "", siret: "", email: "", tva: 0, regime: "", liberatoire: false, parts: 1},
   rituel: {semaine: "", faits: []},
   serie: {n: 0, dernier: ""}
 };
@@ -1670,8 +1670,15 @@ let filtreF = "encaisser";
 let filtreB = "depenses";
 let filtreA = "factures";   /* Argent : factures ou clients */
 let filtreC = "calculs";    /* Comptabilité : calculs ou mon argent */
-let calcCA = 0, calcStatut = "services", calcLib = false, calcParts = 1;
+let calcCA = 0;
 let calcTouche = false;   /* vrai dès que le chiffre est saisi à la main */
+/* Votre activité, le versement libératoire et votre foyer ne sont pas des
+   réglages d'écran : ce sont des faits vous concernant. Ils vivent donc
+   dans state.moi, sont enregistrés, et tout le monde les relit là. On ne
+   pose plus trois fois la même question pour obtenir trois réponses. */
+const calcStatut = () => (state.moi && ACTIVITES[state.moi.regime]) ? state.moi.regime : "services";
+const calcLib    = () => !!(state.moi && state.moi.liberatoire);
+const calcParts  = () => Number(state.moi && state.moi.parts) || 1;
 let clientOuvert = null;
 let pliOuvert = false;
 let vueAgenda = "jour";        /* jour · semaine · liste */
@@ -1779,7 +1786,7 @@ function charger(){
   if(d && typeof d === "object"){
     COLS.forEach(c => { state[c] = d[c] && typeof d[c] === "object" ? d[c] : {}; });
     if(d.rituel) state.rituel = d.rituel;
-    if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0, regime: "services", liberatoire: false, objectif: 0, joursFactures: 200}, d.moi);
+    if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0, regime: "", liberatoire: false, parts: 1}, d.moi);
     if(d.serie) state.serie = d.serie;
     /* d'anciennes fiches d'exemple, écrites par une version précédente,
        ne s'accordaient pas entre elles : le total encaissé ne correspondait
@@ -2350,24 +2357,30 @@ function ecranFactures(){
                                   : tout.filter(f => statut(f) !== "payee");
   const libs = [["encaisser", "À encaisser"], ["payee", "Payées"]];
 
-  /* le grand chiffre est celui de l'année : c'est lui qui doit répondre
-     au total des clients. Le mois passe en dessous, en petit. */
+  /* La question de cet écran est « qui me doit de l'argent ? ». C'est
+     donc elle qui prend le grand chiffre. Ce qui a été facturé et ce qui
+     est déjà rentré sont le décor, pas la question : ils passent en
+     dessous, en petit. */
   const an = bilanAn();
-  let mois = '<section class="carte anim"><div class="mois" style="padding-top:22px">'
-    + '<p class="heros-lab">Vous avez facturé</p>'
-    + '<p class="heros-val" data-compte="ca" data-val="' + an.facture + '">' + eur(an.facture) + "</p>"
-    + '<p class="heros-sous">depuis janvier</p>';
-  mois += "</div></section>";
+  const combien = c.attente.length;
+  const tete = '<section class="carte anim"><div class="mois" style="padding-top:22px">'
+    + '<p class="heros-lab">On vous doit</p>'
+    + '<p class="heros-val" data-compte="dus" data-val="' + c.duAttente + '">' + eur(c.duAttente) + "</p>"
+    + '<p class="heros-sous">' + (combien === 0
+        ? "tout le monde vous a payé"
+        : (c.impayees.length
+            ? combien + " facture" + (combien > 1 ? "s" : "") + ", dont "
+              + c.impayees.length + " à relancer"
+            : combien + " facture" + (combien > 1 ? "s" : "") + " en attente"))
+    + "</p></div></section>";
 
-    return mois
+    return tete
     + '<div class="duo anim" style="animation-delay:.06s"><div class="tuile vert"><span class="lab">Déjà encaissé</span>'
     + '<span class="val" data-compte="encaisse" data-val="' + an.encaisse + '">' + eur(an.encaisse) + "</span>"
-    + '<span class="sous">déjà réglé par vos clients</span></div>'
-    + '<div class="tuile' + (c.impayees.length ? " chaud" : "") + '"><span class="lab">À encaisser</span>'
-    + '<span class="val" data-compte="impaye" data-val="' + c.duAttente + '">' + eur(c.duAttente) + "</span>"
-    + '<span class="sous">' + (c.impayees.length
-        ? "dont " + c.impayees.length + " à relancer"
-        : "chez vos clients") + "</span></div></div>"
+    + '<span class="sous">rentré depuis janvier</span></div>'
+    + '<div class="tuile"><span class="lab">Facturé</span>'
+    + '<span class="val" data-compte="ca" data-val="' + an.facture + '">' + eur(an.facture) + "</span>"
+    + '<span class="sous">depuis janvier</span></div></div>'
 
 
     + '<section class="carte anim" style="animation-delay:.06s"><div class="carte-tete"><h2>Vos factures</h2>'
@@ -2396,15 +2409,25 @@ function rangeeSortie(o, col){
     + '<span class="r-som">' + eur(o.montant) + "</span>"
     + '<button class="sup" data-sup="' + col + '" data-id="' + h(o.id) + '"><span class="mot">Supprimer</span></button></div>';
 }
-/* ═══ ce que l'État prendra — barème officiel 2026 ═══ */
-const BAREME = [{p: 11497, t: 0}, {p: 29315, t: 11}, {p: 83823, t: 30}, {p: 180294, t: 41}, {p: null, t: 45}];
-const DEC_SEUL = 889, DEC_COUPLE = 1470, DEC_TAUX = 45.25;
+/* ═══ ce que l'État prendra — chiffres officiels 2026 ═══
+   Barème indexé de 0,9 % par la loi de finances du 19 février 2026, qui
+   porte sur les revenus 2025. Décote et impôt sur les sociétés avec. */
+const BAREME = [{p: 11600, t: 0}, {p: 29579, t: 11}, {p: 84577, t: 30}, {p: 181917, t: 41}, {p: null, t: 45}];
+const DEC_SEUL = 897, DEC_COUPLE = 1483, DEC_TAUX = 45.25;
 const IS_REDUIT = 15, IS_SEUIL = 42500, IS_PLEIN = 25;
+
+/* ═══ UNE SEULE TABLE DE TAUX POUR TOUTE L'APPLICATION ═══
+   « Calculs », « Mon argent » et le carnet la lisent tous. Il y en avait
+   trois, et elles ne disaient pas la même chose : le libéral payait
+   24,6 % sur un écran et 25,6 % sur le suivant. Même faute que les deux
+   listes d'argent d'autrefois, au même prix. Une seule table, un seul
+   chiffre. Les taux sont ceux du 1er janvier 2026 (décret 2025-943 pour
+   le BNC) et les plafonds ceux de la période 2026-2028. */
 const ACTIVITES = {
-  vente:    {nom: "Je vends des choses", note: "commerce, artisanat de vente", abat: 71, cotis: 12.3, liber: 1.0, plaf: 188700, tva: 85000},
-  services: {nom: "Je rends des services", note: "travaux, prestations, artisanat", abat: 50, cotis: 21.2, liber: 1.7, plaf: 77700, tva: 37500},
-  liberal:  {nom: "Je suis en libéral", note: "conseil, santé, création", abat: 34, cotis: 24.6, liber: 2.2, plaf: 77700, tva: 37500},
-  societe:  {nom: "J'ai une PME", note: "SARL, SAS, EURL — impôt sur les sociétés", abat: 0, cotis: 0, liber: 0, plaf: 0, tva: 0}
+  vente:    {nom: "Je vends des choses", note: "commerce, artisanat de vente", court: "Vente", formel: "Vente de marchandises", abat: 71, cotis: 12.3, liber: 1.0, plaf: 203100, tva: 85000},
+  services: {nom: "Je rends des services", note: "travaux, prestations, artisanat", court: "Services", formel: "Prestations de services", abat: 50, cotis: 21.2, liber: 1.7, plaf: 83600, tva: 37500},
+  liberal:  {nom: "Je suis en libéral", note: "conseil, santé, création", court: "Libéral", formel: "Profession libérale", abat: 34, cotis: 25.6, liber: 2.2, plaf: 83600, tva: 37500},
+  societe:  {nom: "J'ai une PME", note: "SARL, SAS, EURL — impôt sur les sociétés", court: "PME", formel: "Société à l'impôt sur les sociétés", abat: 0, cotis: 0, liber: 0, plaf: 0, tva: 0}
 };
 
 const pct = v => String(v).replace(".", ",");
@@ -2425,15 +2448,22 @@ function impotBareme(revenu, parts){
 
 function partageImpot(){
   const ca = Number(calcCA) || 0;
-  const a = ACTIVITES[calcStatut] || ACTIVITES.services;
-  if(calcStatut === "societe"){
-    const is = ca <= IS_SEUIL ? ca * IS_REDUIT / 100
-      : IS_SEUIL * IS_REDUIT / 100 + (ca - IS_SEUIL) * IS_PLEIN / 100;
-    return {ca: ca, act: a, cotis: 0, impot: is, net: ca - is, societe: true};
+  const a = ACTIVITES[calcStatut()] || ACTIVITES.services;
+  if(calcStatut() === "societe"){
+    /* l'impôt sur les sociétés se calcule sur le bénéfice, pas sur le
+       chiffre d'affaires. Plutôt que de poser une question de plus, on
+       retire les dépenses déjà notées dans l'application : encore une
+       fois, l'argent n'a qu'une source. */
+    const charges = Math.min(ca, chargesAn());
+    const benef = Math.max(0, ca - charges);
+    const is = benef <= IS_SEUIL ? benef * IS_REDUIT / 100
+      : IS_SEUIL * IS_REDUIT / 100 + (benef - IS_SEUIL) * IS_PLEIN / 100;
+    return {ca: ca, act: a, cotis: 0, charges: charges, base: benef,
+      impot: is, net: ca - charges - is, societe: true};
   }
   const cotis = ca * a.cotis / 100;
   const base = ca * (100 - a.abat) / 100;
-  const impot = calcLib ? ca * a.liber / 100 : impotBareme(base, calcParts);
+  const impot = calcLib() ? ca * a.liber / 100 : impotBareme(base, calcParts());
   return {ca: ca, act: a, cotis: cotis, impot: impot, base: base, net: ca - cotis - impot, societe: false};
 }
 
@@ -2463,17 +2493,17 @@ function vueCalculs(){
         + '</span></div>' : "")
     + '<div class="statuts">' + Object.keys(ACTIVITES).map(cle => {
         const a = ACTIVITES[cle];
-        return '<button data-act="' + cle + '" aria-pressed="' + (calcStatut === cle) + '">'
+        return '<button data-act="' + cle + '" aria-pressed="' + (calcStatut() === cle) + '">'
           + '<span class="rond-s"></span><span><strong>' + a.nom + "</strong><small>" + a.note + "</small></span></button>";
       }).join("") + "</div>";
 
   if(!k.societe){
     out += '<div class="reglages-c">'
-      + '<label class="bascule"><input type="checkbox" id="c-lib"' + (calcLib ? " checked" : "") + ">"
+      + '<label class="bascule"><input type="checkbox" id="c-lib"' + (calcLib() ? " checked" : "") + ">"
       + "<span>Je paie l'impôt en même temps que mes cotisations <em>(versement libératoire)</em></span></label>"
-      + (calcLib ? "" : '<label class="ligne-c"><span>Mon foyer</span><select id="c-parts">'
+      + (calcLib() ? "" : '<label class="ligne-c"><span>Mon foyer</span><select id="c-parts">'
           + [[1, "Je vis seul"], [2, "En couple"], [2.5, "Couple, 1 enfant"], [3, "Couple, 2 enfants"]].map(o =>
-              '<option value="' + o[0] + '"' + (calcParts === o[0] ? " selected" : "") + ">" + o[1] + "</option>").join("")
+              '<option value="' + o[0] + '"' + (calcParts() === o[0] ? " selected" : "") + ">" + o[1] + "</option>").join("")
           + "</select></label>")
       + "</div>";
   }
@@ -2489,15 +2519,17 @@ function vueCalculs(){
     + '<span class="appoint">sur ' + eur(ca) + "</span></div>"
     + '<div class="schema" style="padding-top:2px"><div class="barre-part">'
     + '<i class="moi" style="width:' + pc(k.net).toFixed(1) + '%"></i>'
-    + (k.cotis ? '<i class="cotis" style="width:' + pc(k.cotis).toFixed(1) + '%"></i>' : "")
+    + (k.cotis || k.charges ? '<i class="cotis" style="width:' + pc(k.cotis || k.charges).toFixed(1) + '%"></i>' : "")
     + (k.impot ? '<i class="impot" style="width:' + pc(k.impot).toFixed(1) + '%"></i>' : "")
     + "</div>"
     + '<div class="legende">'
     + ligneLegende("moi", k.societe ? "Pour la société" : "Pour vous", k.societe ? "après impôt" : "une fois tout payé", k.net, part(k.net))
     + (k.cotis ? ligneLegende("cotis", "Cotisations sociales", "retraite, santé, chômage — " + pct(k.act.cotis) + " %", k.cotis, part(k.cotis)) : "")
+    + (k.charges ? ligneLegende("cotis", "Vos dépenses", "ce que vous avez noté cette année", k.charges, part(k.charges)) : "")
     + (k.impot ? ligneLegende("impot", k.societe ? "Impôt sur les sociétés" : "Impôt sur le revenu",
-        k.societe ? (ca <= IS_SEUIL ? "taux réduit de 15 %" : "15 % jusqu'à " + eur(IS_SEUIL) + ", puis 25 %")
-          : (calcLib ? "versement libératoire, " + pct(k.act.liber) + " %"
+        k.societe ? ((k.base <= IS_SEUIL ? "taux réduit de 15 %" : "15 % jusqu'à " + eur(IS_SEUIL) + ", puis 25 %")
+            + (k.charges ? ", sur " + eur(k.base) + " de bénéfice" : ""))
+          : (calcLib() ? "versement libératoire, " + pct(k.act.liber) + " %"
              : "barème, calculé sur " + eur(k.base) + " après abattement de " + pct(k.act.abat) + " %"),
         k.impot, part(k.impot)) : "")
     + "</div></div></section>";
@@ -2512,7 +2544,11 @@ function vueCalculs(){
         + m + "</span></span></div>").join("") + "</section>";
   }
 
-  out += '<p class="pied" style="padding-top:2px">Barème 2026. C\'est une estimation : votre impôt réel dépend aussi de vos autres revenus.</p>';
+  out += '<p class="pied" style="padding-top:2px">Chiffres 2026. C\'est une estimation : '
+    + (k.societe
+        ? "l'impôt porte sur votre bénéfice, calculé ici avec les seules dépenses que vous avez notées."
+        : "votre impôt réel dépend aussi de vos autres revenus.")
+    + "</p>";
   return out + demo();
 }
 
@@ -2621,57 +2657,24 @@ function ligneLegende(cls, titre, sous, montant, pourcent){
 }
 
 
-/* ═══ ce que la micro-entreprise garde vraiment ═══
-   Taux 2026 : cotisations sociales, versement libératoire de l'impôt,
-   et plafond de chiffre d'affaires au-delà duquel le régime tombe. */
-const REGIMES = {
-  vente:    {nom: "Vente de marchandises", cotis: 12.3, liber: 1.0, plafond: 188700, tva: 85000},
-  services: {nom: "Prestations de services", cotis: 21.2, liber: 1.7, plafond: 77700, tva: 37500},
-  liberal:  {nom: "Profession libérale", cotis: 24.6, liber: 2.2, plafond: 77700, tva: 37500}
-};
-function reglesMoi(){ return REGIMES[(state.moi && state.moi.regime) || "services"] || REGIMES.services; }
-
-function comptes(){
+/* ═══ ce dont le livre des recettes a besoin ═══
+   Il y avait ici une deuxième table de taux et une cinquantaine de lignes
+   de calculs (objectif mensuel, prix de journée, plus gros client) que
+   plus aucun écran n'affichait. Le livre demande trois choses, les voici. */
+function bilanLivre(){
   const an = String(new Date().getFullYear());
-  const cetteAnnee = o => String(o.date || o.emise || "").slice(0, 4) === an;
-  const somme = arr => arr.reduce((t, o) => t + (Number(o.montant) || 0), 0);
-  const fact = liste("factures");
-  const r = reglesMoi();
-  const encaisse = somme(fact.filter(f => statut(f) === "payee" && cetteAnnee(f)));
-  const facture = somme(fact.filter(f => f.statut !== "brouillon" && cetteAnnee(f)));
-  const depenses = somme(liste("depenses").filter(cetteAnnee));
-  const invest = somme(liste("investissements").filter(cetteAnnee));
-  const cotis = Math.round(encaisse * r.cotis) / 100;
-  const impot = (state.moi && state.moi.liberatoire) ? Math.round(encaisse * r.liber) / 100 : 0;
-  /* combien faut-il encaisser pour se verser ce qu'on vise ? */
-  const vise = (Number(state.moi && state.moi.objectif) || 0) * 12;
-  const jours = Math.max(1, Number(state.moi && state.moi.joursFactures) || 200);
-  const taux = (r.cotis + ((state.moi && state.moi.liberatoire) ? r.liber : 0)) / 100;
-  const besoin = vise + depenses + invest;
-  const caNecessaire = vise > 0 && taux < 1 ? besoin / (1 - taux) : 0;
-  const prixJour = caNecessaire > 0 ? caNecessaire / jours : 0;
-  const manque = Math.max(0, caNecessaire - encaisse);
+  return {an: an, regle: ACTIVITES[calcStatut()] || ACTIVITES.services,
+    encaisse: liste("factures")
+      .filter(f => statut(f) === "payee" && String(f.emise || "").slice(0, 4) === an)
+      .reduce((t, f) => t + (Number(f.montant) || 0), 0)};
+}
 
-  /* quelle part du chiffre vient du plus gros client ? */
-  const parClient = {};
-  fact.filter(f => statut(f) === "payee" && cetteAnnee(f))
-      .forEach(f => { parClient[f.client] = (parClient[f.client] || 0) + (Number(f.montant) || 0); });
-  const noms = Object.keys(parClient);
-  let gros = null;
-  noms.forEach(nm => { if(!gros || parClient[nm] > parClient[gros]) gros = nm; });
-
-  return {an: an, regle: r, encaisse: encaisse, facture: facture, depenses: depenses,
-    invest: invest, cotis: cotis, impot: impot, jours: jours,
-    reste: encaisse - cotis - impot - depenses - invest,
-    partPlafond: r.plafond ? Math.min(1, encaisse / r.plafond) : 0,
-    vise: vise, caNecessaire: caNecessaire, prixJour: prixJour, manque: manque,
-    joursRestants: prixJour > 0 ? Math.ceil(manque / prixJour) : 0,
-    partObjectif: caNecessaire > 0 ? Math.min(1, encaisse / caNecessaire) : 0,
-    grosClient: gros, grosPart: gros && encaisse > 0 ? parClient[gros] / encaisse : 0,
-    nbClients: noms.length,
-    ceMois: fact.filter(f => statut(f) === "payee" && String(f.emise || "").slice(0, 7) === auj().slice(0, 7))
-                .reduce((t, f) => t + (Number(f.montant) || 0), 0),
-    partTva: r.tva ? Math.min(1, encaisse / r.tva) : 0};
+/* ═══ ce que vous avez déjà noté comme dépenses cette année ═══ */
+function chargesAn(){
+  const an = String(new Date().getFullYear());
+  const cette = o => String(o.date || "").slice(0, 4) === an;
+  const somme = a => a.reduce((t, o) => t + (Number(o.montant) || 0), 0);
+  return somme(liste("depenses").filter(cette)) + somme(liste("investissements").filter(cette));
 }
 
 /* ═══ la facture en PDF ═══ */
@@ -2773,7 +2776,7 @@ function pdfFacture(f){
    date, client, désignation, référence et montant, dans l'ordre chronologique. */
 async function livreRecettes(){
   if(!window.jspdf || !window.jspdf.jsPDF){ bulle("PDF indisponible ici"); return; }
-  const k = comptes();
+  const k = bilanLivre();
   const moi = state.moi || {};
   const lignes = liste("factures")
     .filter(f => statut(f) === "payee" && String(f.emise || "").slice(0, 4) === k.an)
@@ -2830,7 +2833,7 @@ async function livreRecettes(){
   y += 11;
   doc.setFont("helvetica", "normal").setFontSize(9).setTextColor(110, 122, 140);
   doc.text("Édité le " + dateTxt(auj()) + " · " + lignes.length + " recette"
-    + (lignes.length > 1 ? "s" : "") + " · " + k.regle.nom, G, y);
+    + (lignes.length > 1 ? "s" : "") + " · " + k.regle.formel, G, y);
 
   const nom = "livre-des-recettes-" + k.an + ".pdf";
   if(window.claude && window.claude.use){
@@ -2938,7 +2941,7 @@ function importerTout(){
         return;
       }
       COLS.forEach(c => { state[c] = d[c] && typeof d[c] === "object" ? d[c] : {}; });
-      if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0, regime: "services", liberatoire: false, objectif: 0, joursFactures: 200}, d.moi);
+      if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0, regime: "", liberatoire: false, parts: 1}, d.moi);
       if(d.rituel) state.rituel = d.rituel;
       if(d.serie) state.serie = d.serie;
       clientOuvert = null;
@@ -2992,6 +2995,19 @@ function badge(sel, n){ const e = $(sel); e.hidden = n === 0; e.textContent = n;
    côté apparaît de l'autre. */
 const anIci = () => String(new Date().getFullYear());
 window.__CADENCE__ = {
+  /* « Mon argent » lisait sa propre table de taux et gardait son propre
+     choix d'activité dans son coin. Deux mémoires pour un seul fait, et
+     elles avaient déjà divergé. Elle lit désormais celle-ci. */
+  activites: () => ACTIVITES,
+  monActivite: () => calcStatut(),
+  monVfl: () => calcLib(),
+  choisirActivite: id => { if(ACTIVITES[id]){ state.moi.regime = id; sauver(); memoire.clear(); } },
+  choisirVfl: v => { state.moi.liberatoire = !!v; sauver(); memoire.clear(); },
+  impotSociete: ca => {
+    const b = Math.max(0, (Number(ca) || 0) - chargesAn());
+    return b <= IS_SEUIL ? b * IS_REDUIT / 100
+      : IS_SEUIL * IS_REDUIT / 100 + (b - IS_SEUIL) * IS_PLEIN / 100;
+  },
   rentrees: () => liste("factures").filter(f => statut(f) === "payee").map(f => ({
     id: f.id, date: f.emise || auj(), client: f.client || "", ref: f.ref || "",
     montant: Number(f.montant) || 0, mode: f.mode || "Virement", exemple: !!f.demo})),
@@ -3141,18 +3157,6 @@ const CHAMPS = {
     + '<option value="20"' + (Number(state.moi.tva) === 20 ? " selected" : "") + '>20 %</option>'
     + '<option value="10"' + (Number(state.moi.tva) === 10 ? " selected" : "") + '>10 %</option>'
     + "</select></div></div>"
-    + '<div class="champ"><label for="f8">Votre activité</label><select id="f8" name="regime">'
-    + Object.keys(REGIMES).map(k => '<option value="' + k + '"' + (state.moi.regime === k ? " selected" : "")
-        + ">" + REGIMES[k].nom + " — " + REGIMES[k].cotis + " % de cotisations</option>").join("")
-    + "</select></div>"
-    + '<label class="bascule"><input type="checkbox" name="liberatoire"' + (state.moi.liberatoire ? " checked" : "") + ">"
-    + "<span>Je paie l'impôt en même temps que mes cotisations <em>(versement libératoire)</em></span></label>"
-    + '<div class="paire" style="margin-top:14px"><div class="champ"><label for="f10">Je veux me verser par mois</label>'
-    + '<input id="f10" name="objectif" type="number" min="0" step="any" inputmode="decimal" placeholder="2 500" value="'
-    + (Number(state.moi.objectif) || "") + '"></div>'
-    + '<div class="champ"><label for="f11">Jours facturés par an</label>'
-    + '<input id="f11" name="joursFactures" type="number" min="1" max="365" inputmode="numeric" value="'
-    + (Number(state.moi.joursFactures) || 200) + '"></div></div>'
     + "</details>"}),
 
   facture: () => ({titre: "Nouvelle facture", html:
@@ -3436,7 +3440,7 @@ $("#vue").addEventListener("click", e => {
   if(b.dataset.ft){ filtreT = b.dataset.ft; rendre(); return; }
   if(b.dataset.fa){ filtreA = b.dataset.fa; clientOuvert = null; memoire.clear(); rendre(); return; }
   if(b.dataset.fc){ filtreC = b.dataset.fc; memoire.clear(); rendre(); return; }
-  if(b.dataset.act){ calcStatut = b.dataset.act; memoire.clear(); rendre(); return; }
+  if(b.dataset.act){ state.moi.regime = b.dataset.act; sauver(); memoire.clear(); rendre(); return; }
   if(b.dataset.ff){ filtreF = b.dataset.ff; rendre(); return; }
   if(b.dataset.fb){ filtreB = b.dataset.fb; rendre(); return; }
   if(b.dataset.paye){
@@ -3516,8 +3520,8 @@ $("#vue").addEventListener("input", e => {
 
 $("#vue").addEventListener("change", e => {
   const t = e.target;
-  if(t.id === "c-lib"){ calcLib = t.checked; memoire.clear(); rendre(); return; }
-  if(t.id === "c-parts"){ calcParts = Number(t.value) || 1; memoire.clear(); rendre(); return; }
+  if(t.id === "c-lib"){ state.moi.liberatoire = t.checked; sauver(); memoire.clear(); rendre(); return; }
+  if(t.id === "c-parts"){ state.moi.parts = Number(t.value) || 1; sauver(); memoire.clear(); rendre(); return; }
   if(t.dataset.relance){
     const f = state.factures[t.dataset.relance];
     if(!f) return;
@@ -3626,10 +3630,11 @@ $("#feuille").addEventListener("submit", e => {
     if(etaitModif) bulle("Modifié"); else telechargerFacture(id);
     return;
   }else if(typeActif === "moi"){
-    state.moi = {nom: String(d.nom).trim(), adresse: String(d.adresse || "").trim(),
+    state.moi = Object.assign({}, state.moi, {nom: String(d.nom).trim(), adresse: String(d.adresse || "").trim(),
       siret: String(d.siret || "").trim(), email: String(d.email || "").trim(), tva: Number(d.tva) || 0,
-      regime: d.regime || "services", liberatoire: !!d.liberatoire,
-      objectif: Number(d.objectif) || 0, joursFactures: Number(d.joursFactures) || 200};
+      /* activité, versement libératoire et foyer se règlent dans
+         « Calculs » : on ne les écrase pas depuis ce formulaire. */
+      regime: state.moi.regime, liberatoire: state.moi.liberatoire, parts: state.moi.parts});
     sauver(); rendre();
     bulle("C'est enregistré");
     enModif = null;
@@ -3651,7 +3656,10 @@ window.addEventListener("resize", () => {
 });
 
 charger();
-if(liste("factures").some(f => f.exemple)) calcStatut = "vente";
+/* l'atelier de menuiserie vend des choses : c'est le bon point de départ
+   pour les fiches d'exemple. Mais seulement tant que personne n'a
+   répondu — sinon on écraserait son choix à chaque ouverture. */
+if(!state.moi.regime && liste("factures").some(f => f.exemple)) state.moi.regime = "vente";
 rendre();
 
 </script>
@@ -4845,11 +4853,18 @@ setInterval(function(){
 (function(){
 "use strict";
 
-var ACTIVITES = [
-  {id:"vente",   nom:"Je vends des choses",   court:"Vente",   desc:"marchandises, nourriture, hébergement", cot:12.3, vfl:1.0, seuil:188700, seuilTva:85000},
-  {id:"service", nom:"Je rends des services", court:"Services",desc:"artisanat, travaux, prestations",       cot:21.2, vfl:1.7, seuil:77700,  seuilTva:37500},
-  {id:"liberal", nom:"Je suis en libéral",    court:"Libéral", desc:"conseil, design, code, formation",      cot:25.6, vfl:2.2, seuil:77700,  seuilTva:37500}
-];
+/* La table des taux appartient à Comptabilité : on la lit, on ne la
+   recopie pas. La copie qui était ici avait déjà dérivé — le libéral
+   payait 25,6 % sur cet écran et 24,6 % sur celui d'à côté, et les
+   plafonds dataient d'avant 2026. */
+var ACTIVITES = (function(){
+  var t = (window.__CADENCE__ && window.__CADENCE__.activites()) || {};
+  return Object.keys(t).map(function(k){
+    var a = t[k];
+    return {id:k, nom:a.nom, court:a.court, desc:a.note,
+            cot:a.cotis, vfl:a.liber, seuil:a.plaf, seuilTva:a.tva};
+  });
+})();
 var TAUX_TVA = 0.20;
 var MOIS = ["J","F","M","A","M","J","J","A","S","O","N","D"];
 
@@ -4905,8 +4920,9 @@ function roule(id,str){ var el=$(id); if(!el) return; if(!rouleaux[id]) rouleaux
 /* ---------- état ---------- */
 function activite(){
   for(var i=0;i<ACTIVITES.length;i++) if(ACTIVITES[i].id===etat.activite) return ACTIVITES[i];
-  return ACTIVITES[2];
+  return ACTIVITES[1];
 }
+var estPME = function(){ return activite().id === "societe"; };
 function etatNeuf(){
   var d=new Date(), an=d.getFullYear();
   var il=function(j){ var x=new Date(d); x.setDate(x.getDate()-j); return iso(x); };
@@ -4928,7 +4944,11 @@ function bilan(){
   var tva = etat.tva ? encaisse-encaisse/(1+TAUX_TVA) : 0;
   var ca=encaisse-tva;
   var taux=(a.cot+(etat.vfl?a.vfl:0))/100;
-  var urssaf=ca*taux;
+  /* une PME ne paie pas de cotisations sur son chiffre d'affaires : ce
+     qu'elle doit, c'est l'impôt sur les sociétés, sur son bénéfice. */
+  var urssaf = a.id==="societe"
+    ? (window.__CADENCE__ ? window.__CADENCE__.impotSociete(ca) : 0)
+    : ca*taux;
 
   var mois=iso(new Date()).slice(0,7);
   var encMois=cette.filter(function(r){ return String(r.date).slice(0,7)===mois; })
@@ -4984,13 +5004,17 @@ function rendreArgent(){
   roule("v-tva",eur.format(b.tva));
   roule("v-urssaf",eur.format(b.urssaf));
   $("l-tva").hidden=!etat.tva;
-  $("lbl-urssaf").textContent = etat.vfl ? "retraite, maladie, et ton impôt" : "retraite, maladie";
+  $("lbl-urssaf").textContent = estPME() ? "sur ton bénéfice"
+    : (etat.vfl ? "retraite, maladie, et ton impôt" : "retraite, maladie");
+  $("nom-urssaf").textContent = estPME() ? "Impôt sur les sociétés" : "Cotisations";
 
   roule("t-garde",eur.format(b.garde));
   var fin=finDuMoisProchain();
-  $("t-quand").innerHTML = b.encMois>0
-    ? "Ce mois-ci tu as encaissé <b>"+nb(eur.format(b.encMois))+"</b>. À déclarer avant le <b>"+nb(jour(iso(fin)))+"</b> : environ <b>"+nb(eur.format(b.urssafMois))+"</b>."
-    : "Rien encaissé ce mois-ci. <b>Déclare quand même "+nb("0 €")+"</b> avant le "+nb(jour(iso(fin)))+".";
+  $("t-quand").innerHTML = estPME()
+    ? "L'impôt sur les sociétés se règle après la clôture de ton exercice, pas tous les mois."
+    : (b.encMois>0
+      ? "Ce mois-ci tu as encaissé <b>"+nb(eur.format(b.encMois))+"</b>. À déclarer avant le <b>"+nb(jour(iso(fin)))+"</b> : environ <b>"+nb(eur.format(b.urssafMois))+"</b>."
+      : "Rien encaissé ce mois-ci. <b>Déclare quand même "+nb("0 €")+"</b> avant le "+nb(jour(iso(fin)))+".");
 
   var maxi=Math.max.apply(null,b.parMois.concat([1])), mAct=new Date().getMonth();
   $("mois").innerHTML=b.parMois.map(function(v,i){
@@ -5022,12 +5046,17 @@ function rendreArgent(){
     $("conc-txt").innerHTML="<b>"+nb(eur.format(b.topBrut))+"</b> vient d'un seul client. Au-dessus de "+nb("30 %")+", s'il part ou ne paie pas, tu tombes avec lui.";
   } else conc.hidden=true;
 
-  $("note-bas").innerHTML = (etat.vfl
+  $("note-bas").innerHTML = estPME()
+    ? "<b>C'est une estimation.</b> L'impôt est calculé sur ton bénéfice, "
+      + "c'est-à-dire ce que tu encaisses moins les dépenses que tu as notées ici. "
+      + "Les salaires et leurs cotisations n'y sont pas."
+    : ((etat.vfl
     ? "<b>Ton impôt est déjà compté</b> — le versement libératoire ajoute "+nb(String(a.vfl).replace(".",",")+" %")+" à tes cotisations. "
     : "<b>L'impôt sur le revenu n'est pas là-dedans.</b> Les "+nb(String(a.cot).replace(".",",")+" %")+" couvrent tes cotisations seulement ; l'impôt dépend de ton foyer et arrive plus tard. ")
-    + "L'app ne déclare rien à ta place : la déclaration URSSAF reste à faire, <b>même à "+nb("0 €")+"</b>.";
+    + "L'app ne déclare rien à ta place : la déclaration URSSAF reste à faire, <b>même à "+nb("0 €")+"</b>.");
 
-  $("sum-act").textContent = a.court + " · " + String(a.cot).replace(".",",") + " %";
+  $("sum-act").textContent = estPME() ? "PME · impôt sur les sociétés"
+    : a.court + " · " + String(a.cot).replace(".",",") + " %";
   sauver();
 }
 
@@ -5145,7 +5174,8 @@ function rendreReglages(){
       '<span class="mark"><svg width="13" height="13" viewBox="0 0 14 14" aria-hidden="true">'+
       '<path d="M2.5 7.5 L5.5 10.5 L11.5 3.5" fill="none" stroke="currentColor" stroke-width="2.4" '+
       'stroke-linecap="round" stroke-linejoin="round" style="color:var(--surface)"></path></svg></span>'+
-      '<span class="txt"><b>'+esc(a.nom)+'</b><small>'+esc(a.desc)+' · '+nb(String(a.cot).replace(".",",")+" %")+' de cotisations</small></span></button>';
+      '<span class="txt"><b>'+esc(a.nom)+'</b><small>'+esc(a.desc)+
+      (a.id==="societe" ? '' : ' · '+nb(String(a.cot).replace(".",",")+" %")+' de cotisations')+'</small></span></button>';
   }).join("");
   $("r-vfl").checked=!!etat.vfl; $("r-tva").checked=!!etat.tva;
 }
@@ -5157,6 +5187,10 @@ function synchroniser(){
   if(!C) return;
   etat.rentrees = C.rentrees();
   etat.creances = C.creances();
+  /* l'activité et le versement libératoire sont à toi, pas à cet écran :
+     on les relit chez Comptabilité au lieu d'en garder une copie */
+  etat.activite = C.monActivite();
+  etat.vfl = C.monVfl();
 }
 function toutRendre(){ rendreReglages(); rendreLivre(); rendreFactures(); rendreBrouillon(); rendreObjectif(); rendreArgent(); }
 window.__MAJ_ARGENT__ = function(){ synchroniser(); toutRendre(); };
@@ -5268,9 +5302,14 @@ $("envoyer-facture").addEventListener("click",function(){
 $("choix-activite").addEventListener("click",function(e){
   var b=e.target.closest("[data-a]"); if(!b) return;
   etat.activite=b.getAttribute("data-a");
+  if(window.__CADENCE__) window.__CADENCE__.choisirActivite(etat.activite);
   rendreReglages(); rendreArgent(); rendreObjectif();
 });
-$("r-vfl").addEventListener("change",function(e){ etat.vfl=e.target.checked; rendreArgent(); rendreObjectif(); });
+$("r-vfl").addEventListener("change",function(e){
+  etat.vfl=e.target.checked;
+  if(window.__CADENCE__) window.__CADENCE__.choisirVfl(etat.vfl);
+  rendreArgent(); rendreObjectif();
+});
 $("r-tva").addEventListener("change",function(e){ etat.tva=e.target.checked; rendreArgent(); rendreBrouillon(); rendreObjectif(); });
 
 /* ---------- démarrage ---------- */
