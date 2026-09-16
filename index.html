@@ -386,6 +386,8 @@ summary.groupe:hover{background:var(--line)}
 .ajout-ligne:hover{color:var(--v1)}
 .ajout-ligne:hover .rond{border-color:var(--v1);border-style:solid}
 
+.heros-sous{margin:6px 0 0;font-size:14.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+
 /* ═══ le séparateur de mois dans le carnet ═══
    il a demandé une vraie ligne, quelque chose qui se voit */
 .mois-sep{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
@@ -2348,35 +2350,25 @@ function ecranFactures(){
                                   : tout.filter(f => statut(f) !== "payee");
   const libs = [["encaisser", "À encaisser"], ["payee", "Payées"]];
 
-  const d0 = new Date();
-  const delta = c.caAvant > 0 ? Math.round((c.caIci - c.caAvant) / c.caAvant * 100) : null;
-
+  /* le grand chiffre est celui de l'année : c'est lui qui doit répondre
+     au total des clients. Le mois passe en dessous, en petit. */
+  const an = bilanAn();
   let mois = '<section class="carte anim"><div class="mois" style="padding-top:22px">'
-    + '<p class="heros-lab">Vous avez facturé en ' + MOIS_LONG[d0.getMonth()] + "</p>"
-    + '<p class="heros-val" data-compte="ca" data-val="' + c.caIci + '">' + eur(c.caIci) + "</p>";
-  if(delta !== null){
-    const fleche = delta >= 0 ? '<path d="M12 19V5"/><path d="m5.5 11.5 6.5-6.5 6.5 6.5"/>' : '<path d="M12 5v14"/><path d="m5.5 12.5 6.5 6.5 6.5-6.5"/>';
-    mois += '<span class="heros-delta ' + (delta >= 0 ? "haut" : "bas") + '">'
-      + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">' + fleche + "</svg>"
-      + (delta >= 0 ? "+" : "") + delta + " % par rapport à " + MOIS_LONG[(d0.getMonth() + 11) % 12] + "</span>";
-  }
+    + '<p class="heros-lab">Vous avez facturé</p>'
+    + '<p class="heros-val" data-compte="ca" data-val="' + an.facture + '">' + eur(an.facture) + "</p>"
+    + '<p class="heros-sous">depuis janvier</p>';
   mois += "</div></section>";
 
     return mois
     + '<div class="duo anim" style="animation-delay:.06s"><div class="tuile vert"><span class="lab">Déjà encaissé</span>'
-    + '<span class="val" data-compte="encaisse" data-val="' + c.encaisse + '">' + eur(c.encaisse) + "</span>"
-    + '<span class="sous">factures réglées ce mois</span></div>'
+    + '<span class="val" data-compte="encaisse" data-val="' + an.encaisse + '">' + eur(an.encaisse) + "</span>"
+    + '<span class="sous">déjà réglé par vos clients</span></div>'
     + '<div class="tuile' + (c.impayees.length ? " chaud" : "") + '"><span class="lab">À encaisser</span>'
     + '<span class="val" data-compte="impaye" data-val="' + c.duAttente + '">' + eur(c.duAttente) + "</span>"
     + '<span class="sous">' + (c.impayees.length
         ? "dont " + c.impayees.length + " à relancer"
         : "chez vos clients") + "</span></div></div>"
 
-    /* le pont entre le mois et l'année : sans cette ligne, on compare
-       20 500 € du mois aux totaux annuels des clients et on croit à une
-       erreur */
-    + '<p class="pied" style="margin:-4px 2px 0">Depuis janvier : <b>' + eur(bilanAn().facture)
-      + "</b> facturés, dont <b>" + eur(bilanAn().encaisse) + "</b> encaissés.</p>"
 
     + '<section class="carte anim" style="animation-delay:.06s"><div class="carte-tete"><h2>Vos factures</h2>'
     + '<span class="appoint">' + vis.length + " ligne" + (vis.length > 1 ? "s" : "") + "</span></div>"
@@ -5015,6 +5007,8 @@ function rendreArgent(){
     txt="Encore "+nb(eur.format(Math.max(0,seuil-b.ca)))+" avant de changer de régime.";
   }
   var part=seuil>0?Math.min(1,b.ca/seuil):0;
+  /* il n'en veut pas : la jauge de plafond disparaît de l'écran */
+  $("jauge").hidden=true;
   $("j-quoi").textContent=quoi;
   $("j-chiffre").textContent=eur.format(b.ca)+" / "+eur.format(seuil);
   $("j-barre").style.width=(part*100).toFixed(1)+"%";
