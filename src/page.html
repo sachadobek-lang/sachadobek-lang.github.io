@@ -1238,7 +1238,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   --ink:var(--cad-ink); --ink-soft:var(--cad-ink-2); --ink-faint:var(--cad-ink-3); --rule:var(--cad-line);
   --moi:var(--cad-v1); --moi-bg:var(--cad-deg-pale); --on-moi:#FFFFFF;
   --tva:#17539F; --tva-bg:var(--cad-attente-doux);
-  --urssaf:var(--cad-ink); --urssaf-bg:var(--cad-surface-2);
+  --urssaf:var(--cad-tard); --urssaf-bg:var(--cad-tard-doux);
   --chaud:var(--cad-tard); --chaud-bg:var(--cad-tard-doux);
   --focus:var(--cad-v1);
   color-scheme:light;
@@ -1248,7 +1248,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
     --ink:var(--cad-ink); --ink-soft:var(--cad-ink-2); --ink-faint:var(--cad-ink-3); --rule:var(--cad-line);
     --moi:var(--cad-v1); --moi-bg:var(--cad-deg-pale); --on-moi:#FFFFFF;
     --tva:#17539F; --tva-bg:var(--cad-attente-doux);
-    --urssaf:var(--cad-ink); --urssaf-bg:var(--cad-surface-2);
+    --urssaf:var(--cad-tard); --urssaf-bg:var(--cad-tard-doux);
     --chaud:var(--cad-tard); --chaud-bg:var(--cad-tard-doux);
     --focus:var(--cad-v1);
     color-scheme:dark;
@@ -1259,7 +1259,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   --ink:var(--cad-ink); --ink-soft:var(--cad-ink-2); --ink-faint:var(--cad-ink-3); --rule:var(--cad-line);
   --moi:var(--cad-v1); --moi-bg:var(--cad-deg-pale); --on-moi:#FFFFFF;
   --tva:#17539F; --tva-bg:var(--cad-attente-doux);
-  --urssaf:var(--cad-ink); --urssaf-bg:var(--cad-surface-2);
+  --urssaf:var(--cad-tard); --urssaf-bg:var(--cad-tard-doux);
   --chaud:var(--cad-tard); --chaud-bg:var(--cad-tard-doux);
   --focus:var(--cad-v1);
   color-scheme:dark;
@@ -1471,6 +1471,49 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste{display:block;background:transparent!important;padding-bottom:104px}
 #ilreste .enveloppe,#ilreste .wrap,#ilreste main{min-height:0;max-width:none}
 
+/* ═══ mêmes polices et mêmes cartes que Calculs et Factures ═══ */
+#ilreste .chiffre,
+#ilreste .disc-center .big,
+#ilreste .disc-center .pc,
+#ilreste .legende .v,
+#ilreste .cadre .v,
+#ilreste .mois .m span,
+#ilreste .jauge .haut .n,
+#ilreste .det td,
+#ilreste .rs,#ilreste .rc > span{
+  font-family:var(--num)!important;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+#ilreste .cadre,#ilreste .card,#ilreste .echeance{
+  border:0;border-radius:var(--rl);background:var(--surface);box-shadow:var(--o1);padding:21px 22px}
+#ilreste .cadre.alerte{background:var(--chaud-bg);box-shadow:none}
+#ilreste .cadre .v{font-size:38px;letter-spacing:-.03em;line-height:1.1}
+#ilreste .gros{border-radius:var(--rm);font-family:var(--num);font-size:17.5px;font-weight:600}
+#ilreste .repli{border:0;border-radius:var(--rm);background:var(--surface);box-shadow:var(--o1)}
+#ilreste details.repli > summary{padding:16px 19px;font-size:15.5px}
+#ilreste details.repli > summary .titre{flex:none;font-weight:700;color:var(--ink)}
+#ilreste details.repli > summary .rep{font-family:var(--num);font-size:14.5px;color:var(--ink-soft);
+  white-space:normal;text-align:right;letter-spacing:0}
+#ilreste .repli-corps{border-top:1px solid var(--rule);padding:6px 19px 19px}
+/* la mention du bas est une phrase, pas un tableau : elle ne se coupe plus */
+#ilreste .note .chiffre{white-space:nowrap}
+#ilreste .note{border-top:0;color:var(--ink-faint);text-align:center;padding-top:4px}
+
+/* ═══ la prochaine échéance, sur sa propre carte ═══
+   Elle était collée sous « gardez ça de côté », si bien que l'encadré
+   portait deux chiffres différents — ce qu'il faut garder sur l'année, et
+   ce qu'il faut déclarer ce mois-ci. Personne ne peut lire ça. */
+#ilreste .echeance{display:flex;gap:14px;align-items:center}
+#ilreste .echeance .compte{flex:none;width:56px;height:56px;border-radius:18px;
+  background:var(--moi-bg);display:flex;flex-direction:column;align-items:center;
+  justify-content:center;line-height:1}
+#ilreste .echeance .compte b{font-family:var(--num);font-weight:600;font-size:21px;color:var(--moi)}
+#ilreste .echeance .compte span{font-size:9.5px;font-weight:700;color:var(--moi);
+  text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+#ilreste .echeance .txt{min-width:0}
+#ilreste .echeance .txt > b{display:block;font-size:15.5px;font-weight:700}
+#ilreste .echeance .txt > span b{font-weight:700;color:var(--ink)}
+#ilreste .echeance .txt > span{display:block;font-size:13.5px;color:var(--ink-soft);margin-top:1px}
+
+
 
 </style>
 
@@ -1501,7 +1544,12 @@ summary.carte-tete:hover h2{color:var(--v1)}
     <div class="cadre">
       <span class="t">Gardez ça de côté. Ce n'est pas à vous.</span>
       <span class="v" id="t-garde">—</span>
-      <span class="s" id="t-quand">—</span>
+      <span class="s" id="t-sur">—</span>
+    </div>
+
+    <div class="echeance">
+      <span class="compte"><b id="e-nb">—</b><span id="e-unite">jours</span></span>
+      <span class="txt"><b id="e-quoi">—</b><span id="t-quand">—</span></span>
     </div>
 
     <div class="deux-gros">
@@ -5894,13 +5942,26 @@ function rendreArgent(){
 
   roule("t-garde",eur.format(b.garde));
   var fin=finDuMoisProchain();
+  /* Une carte, une idée. L'encadré dit ce qu'il faut garder sur l'année ;
+     l'échéance dit ce qu'il faut déclarer, et dans combien de jours. Les
+     deux vivaient dans le même bloc, avec deux chiffres qui n'étaient pas
+     le même — personne ne peut lire ça. */
+  $("t-sur").textContent = estSociete() || estEI()
+    ? "sur votre bénéfice de l'année"
+    : "sur tout ce que vous avez encaissé cette année";
+
+  var jrs = Math.max(0, Math.ceil((fin - new Date()) / 864e5));
+  $("e-nb").textContent = estSociete() ? "—" : String(jrs);
+  $("e-unite").textContent = jrs > 1 ? "jours" : "jour";
+  $("e-quoi").textContent = estSociete() ? "Votre impôt sur les sociétés"
+    : "Votre déclaration URSSAF";
   $("t-quand").innerHTML = estSociete()
-    ? "L'impôt sur les sociétés se règle après la clôture de votre exercice, pas tous les mois."
+    ? "Après la clôture de votre exercice, pas tous les mois."
     : estEI()
-    ? "Vos cotisations sont appelées par l'Urssaf sur votre bénéfice de l'année, pas sur ce que vous encaissez au mois."
+    ? "Le " + nb(jour(iso(fin))) + ". Elle porte sur votre bénéfice de l'année."
     : (b.encMois>0
-      ? "Ce mois-ci vous avez encaissé <b>"+nb(eur.format(b.encMois))+"</b>. À déclarer avant le <b>"+nb(jour(iso(fin)))+"</b> : environ <b>"+nb(eur.format(b.urssafMois))+"</b>."
-      : "Rien encaissé ce mois-ci. <b>Déclare quand même "+nb("0 €")+"</b> avant le "+nb(jour(iso(fin)))+".");
+      ? "Le <b>" + nb(jour(iso(fin))) + "</b>, environ <b>" + nb(eur.format(b.urssafMois)) + "</b>."
+      : "Le <b>" + nb(jour(iso(fin))) + "</b>. Même à " + nb("0 €") + ", elle est obligatoire.");
 
   var a=b.act;
 
@@ -5909,7 +5970,7 @@ function rendreArgent(){
   $("note-bas").innerHTML = estSociete()
     ? "Estimation, sur votre bénéfice."
     : estEI() ? "Estimation : vos cotisations réelles dépendent de votre revenu."
-    : "L'appli ne déclare rien à votre place. <b>Même à " + nb("0 €") + "</b>.";
+    : "L'appli ne déclare rien à votre place, même à 0 €.";
 
   $("sum-act").textContent = estSociete() ? forme().court + " · impôt sur les sociétés"
     : estEI() ? "EI · environ " + String(C2().tauxEI()).replace(".",",") + " %"
