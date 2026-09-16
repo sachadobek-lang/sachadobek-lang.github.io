@@ -1796,7 +1796,8 @@ function fichesExemple(){
       statut: l[4] ? "payee" : "envoyee", exemple: true};
   });
   DEMO_CLIENTS.forEach((c, i) => {
-    clients["ex-c" + i] = {nom: c[0], projet: c[1], statut: c[2], contact: c[3] || "", exemple: true};
+    clients["ex-c" + i] = {nom: c[0], projet: c[1], statut: c[2], contact: c[3] || "",
+      adresse: joindre(c[3]).adresse, exemple: true};
   });
   return {factures: factures, clients: clients};
 }
@@ -1840,6 +1841,14 @@ function charger(){
        ne s'accordaient pas entre elles : le total encaissé ne correspondait
        à aucun client. On les remplace par le jeu cohérent. Rien de ce qui
        a été saisi à la main n'est touché. */
+    /* les fiches écrites avant que l'adresse ne se déduise toute seule */
+    Object.keys(state.clients).forEach(k => {
+      const c = state.clients[k];
+      if(c && c.contact && !c.adresse){
+        const a = joindre(c.contact).adresse;
+        if(a) c.adresse = a;
+      }
+    });
     const fx = liste("factures"), cx = liste("clients");
     if((fx.length || cx.length) && fx.every(o => o.exemple) && cx.every(o => o.exemple)){
       const ex = fichesExemple();
@@ -3757,6 +3766,10 @@ $("#feuille").addEventListener("submit", e => {
   }else if(typeActif === "client"){
     ecrire("clients", id, Object.assign(garder, {nom: String(d.nom).trim(),
       projet: String(d.projet || "").trim(), contact: String(d.contact || "").trim(),
+      /* l'Agenda lit cette clé pour proposer « Y aller » sur un rendez-vous.
+         Elle se déduit de « Comment le joindre ? » : pas un champ de plus
+         à remplir, la même adresse que celle du bouton « M'y conduire ». */
+      adresse: joindre(d.contact).adresse,
       statut: d.statut || "actif"}));
     bulle(mot || "Client ajouté");
   }else if(typeActif === "facture"){
