@@ -386,6 +386,14 @@ summary.groupe:hover{background:var(--line)}
 .ajout-ligne:hover{color:var(--v1)}
 .ajout-ligne:hover .rond{border-color:var(--v1);border-style:solid}
 
+/* ═══ le séparateur de mois dans le carnet ═══
+   il a demandé une vraie ligne, quelque chose qui se voit */
+.mois-sep{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
+  margin:20px 24px 12px;padding-bottom:9px;border-bottom:1.5px solid var(--line)}
+.mois-sep .mois-nom{font-weight:700;font-size:17.5px;letter-spacing:-.01em}
+.mois-sep .mois-som{font-size:13.5px;color:var(--ink-3);font-variant-numeric:tabular-nums;white-space:nowrap}
+.carte-tete + .mois-sep{margin-top:6px}
+
 /* ═══ la relance ═══ */
 .action-client button.doux{background:var(--surface-3);color:var(--v1)}
 .action-client button.doux:hover{filter:none;background:var(--surface-2)}
@@ -1040,6 +1048,9 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .chip:hover{border-color:var(--ink-3); color:var(--ink)}
 #majournee .chip[aria-pressed="true"]{background:var(--ink); border-color:var(--ink); color:var(--bg); font-weight:600}
 #majournee .recap{padding:16px 24px 0; margin:0; font-size:13px; color:var(--ink-3); text-align:center; font-variant-numeric:tabular-nums}
+#majournee .sheet-foot .signe{border:0;border-radius:999px;padding:12px 18px;margin-left:auto;
+  background:var(--surface-3);color:var(--ink);font:inherit;font-size:15px;font-weight:650;cursor:pointer}
+#majournee .sheet-foot .signe:hover{filter:brightness(1.06)}
 #majournee .sheet-foot{padding:14px 24px calc(20px + env(safe-area-inset-bottom)); display:flex; gap:10px; align-items:center}
 #majournee .ok{
   flex:1; background:var(--ink); color:var(--bg);
@@ -1605,6 +1616,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
       <button class="iconbtn" id="dup" aria-label="Copier vers demain" title="Copier vers demain" hidden>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="8.5" width="11.5" height="11.5" rx="2.6"/><path d="M15.5 8.5v-2a2.5 2.5 0 0 0-2.5-2.5H6.5A2.5 2.5 0 0 0 4 6.5V13a2.5 2.5 0 0 0 2.5 2.5h2"/></svg>
       </button>
+      <button class="signe" id="signe" hidden>Il a signé</button>
       <button class="ok" id="save">Enregistrer</button>
     </div>
   </div>
@@ -2185,6 +2197,7 @@ function ficheClient(id){
   const paye = siennes.filter(f => statut(f) === "payee").reduce((t, f) => t + (Number(f.montant) || 0), 0);
   const attente = siennes.filter(f => statut(f) !== "payee").reduce((t, f) => t + (Number(f.montant) || 0), 0);
   const notes = (c.notes || []).slice().sort((x, y) => String(y.d).localeCompare(String(x.d)));
+  const rdv = rdvDuClient(c.nom);
 
   return '<button class="retour" data-retour="1">'
     + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>'
@@ -2204,6 +2217,16 @@ function ficheClient(id){
     + (attente ? '<button class="doux" data-relance="' + h(c.nom) + '">Relancer</button>' : "")
     + "</div></section>"
 
+    + (rdv.length ? '<section class="carte anim" style="animation-delay:.04s">'
+        + '<div class="carte-tete"><h2>Vos rendez-vous</h2><span class="appoint">' + rdv.length + "</span></div>"
+        + rdv.map(e => '<div class="r"><span class="pastille att">'
+            + '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">'
+            + '<rect x="3.2" y="5" width="17.6" height="15.8" rx="3.4"/><path d="M3.2 10h17.6M8.2 2.6v3.6M15.8 2.6v3.6"/></svg></span>'
+            + '<span class="r-corps"><span class="r-titre">' + h(e.title) + "</span>"
+            + '<span class="r-meta"><span>' + jour(e.date) + (e.start != null ? " à " + heureMin(e.start) : "")
+            + "</span></span></span></div>").join("")
+        + '<div style="height:10px"></div></section>' : "")
+
     + (siennes.length ? '<section class="carte anim" style="animation-delay:.05s">'
         + '<div class="carte-tete"><h2>Ses factures</h2><span class="appoint">' + siennes.length + "</span></div>"
         + siennes.map(f => rangeeFacture(f, true)).join("") + '<div style="height:10px"></div></section>' : "")
@@ -2221,14 +2244,53 @@ function ficheClient(id){
     + demo();
 }
 
+/* le mois où le client a signé : celui de sa première facture. Un
+   prospect sans facture n'a pas encore de mois, il attend à part. */
+function moisSigne(nom, fact){
+  const f = fact.filter(x => x.client === nom && x.statut !== "brouillon" && x.emise);
+  if(!f.length) return null;
+  return f.map(x => String(x.emise).slice(0, 7)).sort()[0];
+}
+function titreMois(ym){
+  const m = MOIS_LONG[Number(ym.slice(5, 7)) - 1] || "";
+  const nom = m.charAt(0).toUpperCase() + m.slice(1);
+  return ym.slice(0, 4) === String(new Date().getFullYear()) ? nom : nom + " " + ym.slice(0, 4);
+}
+function separateur(titre, appoint){
+  return '<div class="mois-sep"><span class="mois-nom">' + titre + "</span>"
+    + '<span class="mois-som">' + appoint + "</span></div>";
+}
+
 function carnetClients(){
-  const RANG = {actif: 0, prospect: 1, termine: 2};
-  const rg = c => RANG[c.statut] === undefined ? 3 : RANG[c.statut];
-  const cl = liste("clients").sort((x, y) => rg(x) - rg(y) || String(x.nom).localeCompare(String(y.nom), "fr"));
+  const cl = liste("clients");
+  const fact = liste("factures");
   const actifs = cl.filter(c => c.statut === "actif");
+  const totalDe = nom => fact.filter(x => x.client === nom && x.statut !== "brouillon")
+                             .reduce((t, x) => t + (Number(x.montant) || 0), 0);
+
+  const groupes = {}, attente = [];
+  cl.forEach(c => {
+    const m = moisSigne(c.nom, fact);
+    if(!m) attente.push(c);
+    else (groupes[m] = groupes[m] || []).push(c);
+  });
+  const parNom = (x, y) => String(x.nom).localeCompare(String(y.nom), "fr");
+
+  let corps = "";
+  Object.keys(groupes).sort().reverse().forEach(m => {
+    const g = groupes[m].sort(parNom);
+    const som = g.reduce((t, c) => t + totalDe(c.nom), 0);
+    corps += separateur(titreMois(m), g.length + " signé" + (g.length > 1 ? "s" : "") + " · " + eur(som))
+      + '<div class="fiches">' + g.map(fiche).join("") + "</div>";
+  });
+  if(attente.length){
+    corps += separateur("Pas encore signés", attente.length + " en approche")
+      + '<div class="fiches">' + attente.sort(parNom).map(fiche).join("") + "</div>";
+  }
+
   return '<section class="carte anim"><div class="carte-tete"><h2>Vos clients</h2>'
     + '<span class="appoint">' + actifs.length + " chantier" + (actifs.length > 1 ? "s" : "") + " en cours</span></div>"
-    + (cl.length ? '<div class="fiches">' + cl.map(fiche).join("") + "</div>"
+    + (cl.length ? corps
        : '<p class="vide"><b>Aucun client</b>Commencez par celui que vous avez eu au téléphone aujourd\'hui.</p>')
     + "</section>" + demo();
 }
@@ -2450,6 +2512,21 @@ function vueCalculs(){
   out += '<p class="pied" style="padding-top:2px">Barème 2026. C\'est une estimation : votre impôt réel dépend aussi de vos autres revenus.</p>';
   return out + demo();
 }
+
+/* ═══ les rendez-vous pris avec ce client ═══
+   L'agenda ne connaît pas les clients : il garde des activités avec un
+   titre. On rattache donc par le nom, accents et casse mis de côté. */
+const sansAccent = v => String(v || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+function rdvDuClient(nom){
+  const cle = sansAccent(nom).trim();
+  if(cle.length < 3) return [];
+  let evs = [];
+  try{ evs = JSON.parse(localStorage.getItem("ma-journee-v1") || "[]") || []; }catch(e){ return []; }
+  return evs.filter(e => e && e.title && !e.demo && sansAccent(e.title).indexOf(cle) !== -1)
+            .sort((a, b) => String(b.date).localeCompare(String(a.date)))
+            .slice(0, 6);
+}
+const heureMin = m => (m == null) ? "" : String(Math.floor(m / 60)).padStart(2, "0") + "h" + String(m % 60).padStart(2, "0");
 
 /* ═══ la relance qui s'écrit toute seule ═══
    Deux tons selon la situation : un rappel poli tant que l'échéance n'est
@@ -2928,7 +3005,22 @@ window.__CADENCE__ = {
     objet: (o && o.objet) || "", ref: (o && o.ref) || refSuivante(),
     emise: (o && o.date) || auj(), echeance: (o && o.date) || auj(),
     statut: "payee", mode: (o && o.mode) || "Virement"}),
-  retirerFacture: id => { if(state.factures[id]) retirer("factures", id); }
+  retirerFacture: id => { if(state.factures[id]) retirer("factures", id); },
+  /* depuis l'agenda : « il a signé ». On propose la fiche pré-remplie
+     plutôt que de créer dans le dos de l'utilisateur. */
+  clientDepuisRdv: o => {
+    const brut = String((o && o.title) || "").trim();
+    const nom = brut.replace(/^(rendez-?vous|rdv|r\.?-?v\.?|devis|visite|appel|point|réunion|reunion)\s*(avec|chez|pour)?\s*[:\-—]?\s*/i, "").trim() || brut;
+    vue = "argent"; clientOuvert = null; animer = true; memoire.clear();
+    const tous = document.querySelectorAll("#nav button[data-vue]");
+    for(let i = 0; i < tous.length; i++){
+      tous[i].removeAttribute("aria-current");
+      if(tous[i].dataset.vue === "argent") tous[i].setAttribute("aria-current", "page");
+    }
+    rendre();
+    window.scrollTo({top: 0});
+    ouvrir("client", {nom: nom, projet: ""});
+  }
 };
 
 function apres(){
@@ -4485,6 +4577,9 @@ function openSheet(ev, seed){
         : 'Le jour, l’heure et la durée se lisent dans la phrase.');
   $('del').hidden = isNew;
   $('dup').hidden = isNew;
+  /* on ne propose de transformer en client qu'un rendez-vous réel */
+  $('signe').hidden = isNew || !String(state.draft.title || '').trim()
+    || !(window.__CADENCE__ && window.__CADENCE__.clientDepuisRdv);
   disarmDelete();
   syncSheet();
   $('sheetWrap').hidden = false;
@@ -4615,6 +4710,12 @@ $('evName').addEventListener('keydown', function(e){
   if (e.key === 'Enter'){ e.preventDefault(); $('save').click(); }
 });
 
+$('signe').addEventListener('click', function(){
+  if (!window.__CADENCE__ || !window.__CADENCE__.clientDepuisRdv) return;
+  var t = state.draft.title, d = state.draft.date;
+  closeSheet();
+  window.__CADENCE__.clientDepuisRdv({title: t, date: d});
+});
 $('save').addEventListener('click', function(){
   var ev = commitDraft();
   dismissDemo();
