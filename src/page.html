@@ -416,6 +416,15 @@ summary.groupe:hover{background:var(--line)}
 .reponse-c .heros-val{margin:0;line-height:1.05}
 .reponse-c span{display:block;margin-top:4px;font-size:14.5px;color:var(--ink-2)}
 
+/* ═══ le geste principal de l'écran Factures ═══ */
+.faire-facture{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
+  border:0;border-radius:var(--rl);padding:19px 22px;background:var(--deg);color:#fff;
+  font-family:var(--num);font-weight:600;font-size:18.5px;letter-spacing:-.01em;
+  box-shadow:var(--o2);transition:transform .16s var(--ressort),filter .2s}
+.faire-facture svg{width:21px;height:21px;stroke-width:2.6;fill:none}
+.faire-facture:hover{filter:brightness(1.08)}
+.faire-facture:active{transform:scale(.982)}
+
 /* ═══ segments ═══ */
 .segments{display:flex;gap:5px;padding:7px;background:var(--surface-3);border-radius:999px;margin:16px 24px 12px}
 .segments-haut{margin:0 0 4px;background:var(--surface);box-shadow:var(--o1)}
@@ -450,7 +459,14 @@ summary.groupe:hover{background:var(--line)}
 
 /* ═══ tuiles cliquables ═══ */
 .duo{display:grid;grid-template-columns:1fr 1fr;gap:13px}
-@media(max-width:439px){ .duo{grid-template-columns:1fr} }
+/* elles s'empilaient sur téléphone et rallongeaient l'écran d'un plein
+   défilement pour deux nombres courts : elles restent côte à côte */
+@media(max-width:439px){
+  .duo{gap:9px}
+  .duo .tuile{padding:15px 14px}
+  .duo .tuile .val{font-size:22px;letter-spacing:-.03em}
+  .duo .tuile .lab,.duo .tuile .sous{font-size:12px}
+}
 .tuile{background:var(--tuile-neutre);border:0;border-radius:var(--rm);padding:19px 20px;box-shadow:var(--o1);display:flex;flex-direction:column;gap:4px;text-align:left;transition:transform .18s var(--doux),box-shadow .2s}
 button.tuile:hover{transform:translateY(-2px);box-shadow:var(--o3)}
 button.tuile:active{transform:scale(.985)}
@@ -1159,6 +1175,11 @@ summary.carte-tete:hover h2{color:var(--v1)}
   cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
   transition:transform .08s,background .15s;
 }
+#ilreste .deux-gros{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:420px){#ilreste .deux-gros{grid-template-columns:1fr}}
+#ilreste .deux-gros .gros{width:100%}
+#ilreste .gros.doux{background:var(--surface);color:var(--moi);border:2px solid var(--moi)}
+#ilreste .gros.doux:hover{background:var(--moi);color:var(--on-moi)}
 #ilreste .gros:hover{background:var(--ink);color:var(--paper)}
 #ilreste .gros:active{transform:scale(.985)}
 #ilreste .bloc-disque{display:flex;flex-direction:column;align-items:center;gap:14px}
@@ -1325,7 +1346,9 @@ summary.carte-tete:hover h2{color:var(--v1)}
   <div id="ilreste" hidden>
 <div class="page">
 
-  <h1 class="noprint">Il te reste combien&nbsp;?</h1>
+  <!-- l'onglet « Mon argent » nomme déjà l'écran : ce titre faisait une
+       troisième formulation à lire avant d'arriver au chiffre -->
+  <h1 class="noprint" hidden>Il te reste combien&nbsp;?</h1>
 
   <div class="tabs noprint" role="tablist" hidden>
     <button id="tab-argent"   role="tab" aria-selected="true">Mon argent</button>
@@ -1337,12 +1360,25 @@ summary.carte-tete:hover h2{color:var(--v1)}
   <!-- ============ MON ARGENT ============ -->
   <div class="panel noprint" id="p-argent" role="tabpanel">
 
-    <button class="gros" id="gros-1">＋ J'ai été payé</button>
+    <!-- La première chose qu'on doit voir, c'est ce qu'on ne doit pas
+         dépenser, et la date avant laquelle déclarer. C'est la peur n°1
+         de tous ceux qui vivent de leur métier, et l'oubli se paie
+         60,10 € même à zéro euro. Avant, c'était le troisième bloc. -->
+    <div class="cadre">
+      <span class="t">Gardez ça de côté. Ce n'est pas à vous.</span>
+      <span class="v" id="t-garde">—</span>
+      <span class="s" id="t-quand">—</span>
+    </div>
+
+    <div class="deux-gros">
+      <button class="gros" id="gros-1">＋ J'ai été payé</button>
+      <button class="gros doux" id="gros-fact">＋ Faire une facture</button>
+    </div>
 
     <div class="bloc-disque">
       <div class="disc">
         <svg viewBox="0 0 240 240" role="img" aria-labelledby="d-t">
-          <title id="d-t">Partage de tout ce que tu as encaissé cette année</title>
+          <title id="d-t">Partage de tout ce que vous avez encaissé cette année</title>
           <circle cx="120" cy="120" r="96" fill="none" stroke="var(--sunken)" stroke-width="32"></circle>
           <g transform="rotate(-90 120 120)">
             <circle class="seg" id="s-moi"    cx="120" cy="120" r="96" stroke="var(--moi)"    stroke-width="32"></circle>
@@ -1351,7 +1387,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
           </g>
         </svg>
         <div class="disc-center">
-          <span class="cap">à toi cette année</span>
+          <span class="cap">à vous cette année</span>
           <span class="big" id="c-moi">—</span>
           <span class="pc" id="c-pc">—</span>
         </div>
@@ -1359,10 +1395,10 @@ summary.carte-tete:hover h2{color:var(--v1)}
 
       <div class="legende">
         <div class="l moi"><span class="d"></span>
-          <span class="nom">À toi<small>tu peux le dépenser</small></span>
+          <span class="nom">À vous<small>vous pouvez le dépenser</small></span>
           <span class="v" id="v-moi">—</span></div>
         <div class="l tva" id="l-tva"><span class="d"></span>
-          <span class="nom">La TVA<small>elle n'a jamais été à toi</small></span>
+          <span class="nom">La TVA<small>elle n'a jamais été à vous</small></span>
           <span class="v" id="v-tva">—</span></div>
         <div class="l urssaf"><span class="d"></span>
           <span class="nom"><span id="nom-urssaf">Pour l'URSSAF</span><small id="lbl-urssaf">retraite, maladie</small></span>
@@ -1370,25 +1406,10 @@ summary.carte-tete:hover h2{color:var(--v1)}
       </div>
     </div>
 
-    <div class="cadre">
-      <span class="t">Ne dépense pas ça. Mets-le sur un autre compte.</span>
-      <span class="v" id="t-garde">—</span>
-      <span class="s" id="t-quand">—</span>
-    </div>
-
-    <div class="mois" id="mois"></div>
-
-    <div class="jauge" id="jauge">
-      <div class="haut"><span id="j-quoi">—</span><span class="n" id="j-chiffre">—</span></div>
-      <div class="barre"><i id="j-barre" style="width:0%"></i></div>
-      <div class="bas" id="j-reste">—</div>
-    </div>
-
-    <div class="cadre alerte" id="concentration" hidden>
-      <span class="t">Un seul client pèse trop lourd</span>
-      <span class="v" id="conc-pc">—</span>
-      <span class="s" id="conc-txt">—</span>
-    </div>
+    <!-- Retirés : les douze barres de mois, la jauge de plafond et
+         l'alerte « un client pèse trop lourd ». Aucune des trois ne
+         demandait de décision, et l'alerte peignait en ambre une chose
+         sur laquelle on ne peut rien le jour où on la lit. -->
 
     <details class="repli">
       <summary><span class="titre">Mon prix minimum</span><span class="rep" id="sum-tjm">—</span></summary>
@@ -1401,7 +1422,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
         <p class="note-inline">Un indépendant facture <b>120 à 180 jours par an</b>, jamais 200 : les congés et le travail non facturé mangent le reste.</p>
         <table class="det" id="o-table"></table>
         <div class="jauge" id="jauge-obj">
-          <div class="haut"><span>Où tu en es cette année</span><span class="n" id="o-chiffre">—</span></div>
+          <div class="haut"><span>Où vous en êtes cette année</span><span class="n" id="o-chiffre">—</span></div>
           <div class="barre"><i id="o-barre" style="width:0%"></i></div>
           <div class="bas" id="o-reste">—</div>
         </div>
@@ -1411,7 +1432,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
     <details class="repli">
       <summary><span class="titre">Mon activité</span><span class="rep" id="sum-act">—</span></summary>
       <div class="repli-corps">
-        <div class="choix" id="choix-activite" role="group" aria-label="Ton activité"></div>
+        <div class="choix" id="choix-activite" role="group" aria-label="Votre activité"></div>
         <label class="bascule"><input type="checkbox" id="r-vfl"> Je paie mon impôt avec mes cotisations</label>
         <label class="bascule"><input type="checkbox" id="r-tva"> Je facture la TVA</label>
         <div class="actions"><button class="btn" id="vider-exemples">Effacer les exemples</button></div>
@@ -1440,14 +1461,14 @@ summary.carte-tete:hover h2{color:var(--v1)}
         <div class="card noprint">
           <h2>Toi</h2>
           <div class="frow">
-            <label class="f"><span>Ton nom</span><input type="text" id="e-nom" placeholder="Studio Belleville"></label>
+            <label class="f"><span>Votre nom</span><input type="text" id="e-nom" placeholder="Studio Belleville"></label>
             <label class="f"><span>SIRET</span><input type="text" id="e-siret" placeholder="123 456 789 00012"></label>
           </div>
-          <label class="f"><span>Ton adresse</span><textarea id="e-adr" placeholder="12 rue des Cascades&#10;75020 Paris"></textarea></label>
+          <label class="f"><span>Votre adresse</span><textarea id="e-adr" placeholder="12 rue des Cascades&#10;75020 Paris"></textarea></label>
         </div>
 
         <div class="card noprint">
-          <h2>Ton client</h2>
+          <h2>Votre client</h2>
           <label class="f"><span>Son nom</span><input type="text" id="c-nom" placeholder="Boulangerie Mercier"></label>
           <label class="f"><span>Son adresse</span><textarea id="c-adr" placeholder="4 place du Marché&#10;75011 Paris"></textarea></label>
         </div>
@@ -1459,7 +1480,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
             <label class="f"><span>Date</span><input type="date" id="f-date"></label>
             <label class="f"><span>À payer avant le</span><input type="date" id="f-ech"></label>
           </div>
-          <label class="f"><span>Ce que tu as fait</span><input type="text" id="f-desc" placeholder="Création du logo"></label>
+          <label class="f"><span>Ce que vous avez fait</span><input type="text" id="f-desc" placeholder="Création du logo"></label>
           <label class="f"><span>Combien</span><input type="text" inputmode="decimal" id="f-montant" placeholder="1200"></label>
         </div>
 
@@ -1671,7 +1692,7 @@ let filtreT = "afaire";
 let filtreF = "encaisser";
 let filtreB = "depenses";
 let filtreA = "factures";   /* Argent : factures ou clients */
-let filtreC = "calculs";    /* Comptabilité : calculs ou mon argent */
+let filtreC = "argent";     /* Comptabilité : mon argent, factures, calculs */
 let calcCA = 0;
 let calcTouche = false;   /* vrai dès que le chiffre est saisi à la main */
 /* Votre activité, le versement libératoire et votre foyer ne sont pas des
@@ -2385,7 +2406,10 @@ function ecranFactures(){
             : combien + " facture" + (combien > 1 ? "s" : "") + " en attente"))
     + "</p></div></section>";
 
-    return tete
+    return '<button class="faire-facture anim" data-neuf="facture">'
+    + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
+    + '<path d="M12 5.5v13M5.5 12h13"/></svg>Faire une facture</button>'
+    + tete
     + '<div class="duo anim" style="animation-delay:.06s"><div class="tuile vert"><span class="lab">Déjà encaissé</span>'
     + '<span class="val" data-compte="encaisse" data-val="' + an.encaisse + '">' + eur(an.encaisse) + "</span>"
     + '<span class="sous">rentré depuis janvier</span></div>'
@@ -2531,7 +2555,7 @@ function partageImpot(){
 
 function vueBudget(){
   const onglets = '<div class="segments segments-haut">'
-    + [["calculs", "Calculs"], ["factures", "Factures"], ["argent", "Mon argent"]].map(kv =>
+    + [["argent", "Mon argent"], ["factures", "Factures"], ["calculs", "Calculs"]].map(kv =>
         '<button data-fc="' + kv[0] + '" aria-pressed="' + (filtreC === kv[0]) + '">' + kv[1] + "</button>").join("")
     + "</div>";
   if(filtreC === "calculs")  return onglets + vueCalculs();
@@ -3088,6 +3112,9 @@ window.__CADENCE__ = {
   cotisEI: ca => Math.max(0, (Number(ca) || 0) - chargesAn()) * EI_COTIS / 100,
   tauxEI: () => EI_COTIS,
   monActivite: () => calcStatut(),
+  /* faire une facture depuis « Mon argent » : c'est le même formulaire
+     que partout ailleurs, il n'y en a qu'un */
+  nouvelleFacture: () => ouvrir("facture"),
   monVfl: () => calcLib(),
   choisirActivite: id => { if(ACTIVITES[id]){ state.moi.regime = id; sauver(); memoire.clear(); } },
   choisirVfl: v => { state.moi.liberatoire = !!v; sauver(); memoire.clear(); },
@@ -3503,6 +3530,7 @@ $("#vue").addEventListener("click", e => {
   if(b.dataset.pdf){ telechargerFacture(b.dataset.pdf); return; }
   if(b.dataset.recettes){ livreRecettes(); return; }
   if(b.dataset.moi){ ouvrir("moi"); return; }
+  if(b.dataset.neuf){ ouvrir(b.dataset.neuf); return; }
   if(b.dataset.note){
     if(!armer(b)) return;
     const cl = state.clients[b.dataset.note];
@@ -5110,63 +5138,29 @@ function rendreArgent(){
   roule("v-tva",eur.format(b.tva));
   roule("v-urssaf",eur.format(b.urssaf));
   $("l-tva").hidden=!etat.tva;
-  $("lbl-urssaf").textContent = estSociete() ? "sur ton bénéfice"
-    : estEI() ? "environ "+String(C2().tauxEI()).replace(".",",")+" % de ton bénéfice"
-    : (etat.vfl ? "retraite, maladie, et ton impôt" : "retraite, maladie");
+  $("lbl-urssaf").textContent = estSociete() ? "sur votre bénéfice"
+    : estEI() ? "environ "+String(C2().tauxEI()).replace(".",",")+" % de votre bénéfice"
+    : (etat.vfl ? "retraite, maladie, et votre impôt" : "retraite, maladie");
   $("nom-urssaf").textContent = estSociete() ? "Impôt sur les sociétés" : "Cotisations";
 
   roule("t-garde",eur.format(b.garde));
   var fin=finDuMoisProchain();
   $("t-quand").innerHTML = estSociete()
-    ? "L'impôt sur les sociétés se règle après la clôture de ton exercice, pas tous les mois."
+    ? "L'impôt sur les sociétés se règle après la clôture de votre exercice, pas tous les mois."
     : estEI()
-    ? "Tes cotisations sont appelées par l'Urssaf sur ton bénéfice de l'année, pas sur ce que tu encaisses au mois."
+    ? "Vos cotisations sont appelées par l'Urssaf sur votre bénéfice de l'année, pas sur ce que vous encaissez au mois."
     : (b.encMois>0
-      ? "Ce mois-ci tu as encaissé <b>"+nb(eur.format(b.encMois))+"</b>. À déclarer avant le <b>"+nb(jour(iso(fin)))+"</b> : environ <b>"+nb(eur.format(b.urssafMois))+"</b>."
+      ? "Ce mois-ci vous avez encaissé <b>"+nb(eur.format(b.encMois))+"</b>. À déclarer avant le <b>"+nb(jour(iso(fin)))+"</b> : environ <b>"+nb(eur.format(b.urssafMois))+"</b>."
       : "Rien encaissé ce mois-ci. <b>Déclare quand même "+nb("0 €")+"</b> avant le "+nb(jour(iso(fin)))+".");
 
-  var maxi=Math.max.apply(null,b.parMois.concat([1])), mAct=new Date().getMonth();
-  $("mois").innerHTML=b.parMois.map(function(v,i){
-    return '<div class="m'+(i===mAct?" actif":"")+'" title="'+esc(MOIS[i]+" : "+eur.format(v))+'">'+
-           '<i style="height:'+Math.max(3,Math.round(v/maxi*52))+'px"></i><span>'+MOIS[i]+'</span></div>';
-  }).join("");
+  var a=b.act;
 
-  var a=b.act, seuil, quoi, txt;
-  if(!etat.tva && b.ca<a.seuilTva){
-    seuil=a.seuilTva; quoi="Avant de devoir facturer la TVA";
-    txt="Encore "+nb(eur.format(seuil-b.ca))+" avant de devoir ajouter la TVA sur tes factures.";
-  } else {
-    seuil=a.seuil; quoi="Avant de sortir de la micro-entreprise";
-    txt="Encore "+nb(eur.format(Math.max(0,seuil-b.ca)))+" avant de changer de régime.";
-  }
-  var part=seuil>0?Math.min(1,b.ca/seuil):0;
-  /* il n'en veut pas : la jauge de plafond disparaît de l'écran */
-  $("jauge").hidden=true;
-  $("j-quoi").textContent=quoi;
-  $("j-chiffre").textContent=eur.format(b.ca)+" / "+eur.format(seuil);
-  $("j-barre").style.width=(part*100).toFixed(1)+"%";
-  $("j-reste").innerHTML = part>=1 ? "Seuil dépassé — renseigne-toi vite." : txt;
-  $("jauge").classList.toggle("chaud",part>=0.8);
-
-  var conc=$("concentration");
-  if(b.topPart>0.30 && b.encaisse>0){
-    conc.hidden=false;
-    $("conc-pc").textContent=Math.round(b.topPart*100)+" %";
-    $("conc-txt").innerHTML="<b>"+nb(eur.format(b.topBrut))+"</b> vient d'un seul client. Au-dessus de "+nb("30 %")+", s'il part ou ne paie pas, tu tombes avec lui.";
-  } else conc.hidden=true;
-
+  /* Une phrase, pas un paragraphe. Ce qu'il y avait ici se lisait en
+     quatre lignes et disait trois choses à la fois. */
   $("note-bas").innerHTML = estSociete()
-    ? "<b>C'est une estimation.</b> L'impôt est calculé sur ton bénéfice, "
-      + "c'est-à-dire ce que tu encaisses moins les dépenses que tu as notées ici. "
-      + "Les salaires et leurs cotisations n'y sont pas."
-    : estEI()
-    ? "<b>C'est une estimation.</b> Tes cotisations réelles dépendent de ton niveau de revenu ; "
-      + "on retient ici environ "+nb(String(C2().tauxEI()).replace(".",",")+" %")+" du bénéfice. "
-      + "L'impôt sur le revenu n'est pas là-dedans."
-    : ((etat.vfl
-    ? "<b>Ton impôt est déjà compté</b> — le versement libératoire ajoute "+nb(String(a.vfl).replace(".",",")+" %")+" à tes cotisations. "
-    : "<b>L'impôt sur le revenu n'est pas là-dedans.</b> Les "+nb(String(a.cot).replace(".",",")+" %")+" couvrent tes cotisations seulement ; l'impôt dépend de ton foyer et arrive plus tard. ")
-    + "L'app ne déclare rien à ta place : la déclaration URSSAF reste à faire, <b>même à "+nb("0 €")+"</b>.");
+    ? "Estimation, sur votre bénéfice."
+    : estEI() ? "Estimation : vos cotisations réelles dépendent de votre revenu."
+    : "L'appli ne déclare rien à votre place. <b>Même à " + nb("0 €") + "</b>.";
 
   $("sum-act").textContent = estSociete() ? forme().court + " · impôt sur les sociétés"
     : estEI() ? "EI · environ " + String(C2().tauxEI()).replace(".",",") + " %"
@@ -5184,7 +5178,7 @@ function rendreFactures(){
   roule("d-total",eur.format(total));
   $("cadre-doit").classList.toggle("alerte",totalRetard>0);
   $("d-detail").innerHTML = cs.length===0
-    ? "Personne. Tout le monde t'a payé."
+    ? "Personne. Tout le monde vous a payé."
     : (totalRetard>0
         ? "<b>"+nb(eur.format(totalRetard))+"</b> sont déjà en retard, sur "+nb(retard.length)+" facture"+(retard.length>1?"s":"")+"."
         : "Rien en retard pour l'instant.");
@@ -5193,7 +5187,7 @@ function rendreFactures(){
   if(retard.length>0){ p.hidden=false; p.textContent=retard.length; } else p.hidden=true;
 
   $("liste-creances").innerHTML = cs.length===0
-    ? '<div class="vide">Quand tu envoies une facture, elle apparaît ici jusqu\'à ce qu\'on te paie.</div>'
+    ? '<div class="vide">Quand vous envoyez une facture, elle apparaît ici jusqu\'à ce qu\'on vous paie.</div>'
     : cs.map(function(c){
         return '<div class="creance'+(c.retard>0?" retard":"")+'">'+
           '<div class="haut"><span class="qui"><b>'+esc(c.client||"Sans nom")+
@@ -5219,10 +5213,10 @@ function rendreObjectif(){
 
   $("sum-tjm").textContent = eur.format(tjm)+" / jour";
   $("o-table").innerHTML =
-    "<tr><td>Ce que tu veux dans la poche</td><td>"+eur.format(num(o.net)*12)+" / an</td></tr>"+
-    "<tr><td>Tes frais</td><td>"+eur.format(num(o.frais))+" / an</td></tr>"+
-    "<tr><td>Tes cotisations à "+nb((b.taux*100).toFixed(1).replace(".",",")+" %")+"</td><td>"+eur.format(caNec-besoin)+" / an</td></tr>"+
-    "<tr><td><b>Ce que tu dois facturer</b></td><td><b>"+eur.format(caNec)+" / an</b></td></tr>";
+    "<tr><td>Ce que vous voulez dans la poche</td><td>"+eur.format(num(o.net)*12)+" / an</td></tr>"+
+    "<tr><td>Vos frais</td><td>"+eur.format(num(o.frais))+" / an</td></tr>"+
+    "<tr><td>Vos cotisations à "+nb((b.taux*100).toFixed(1).replace(".",",")+" %")+"</td><td>"+eur.format(caNec-besoin)+" / an</td></tr>"+
+    "<tr><td><b>Ce que vous devez facturer</b></td><td><b>"+eur.format(caNec)+" / an</b></td></tr>";
 
   var part = caNec>0?Math.min(1,b.ca/caNec):0;
   $("o-chiffre").textContent=eur.format(b.ca)+" / "+eur.format(caNec);
@@ -5261,14 +5255,14 @@ function rendreBrouillon(){
   roule("t-ttc",eur2.format(ht+tva));
   $("t-detail").innerHTML = etat.tva
     ? nb(eur2.format(ht))+" hors taxes, plus "+nb(eur2.format(tva))+" de TVA."
-    : "Pas de TVA — tu es en franchise en base.";
+    : "Pas de TVA — vous êtes en franchise en base.";
 
   var vide=function(v,s){ return (v&&String(v).trim())?esc(v):'<span style="color:var(--ink-faint)">'+s+'</span>'; };
   $("apercu").innerHTML =
     '<div class="tete"><div><h3>Facture '+vide(f.num,"n° —")+'</h3>'+
     '<div class="meta">Émise le '+nb(jour(f.date))+' · à payer avant le '+nb(jour(f.ech))+'</div></div>'+
-    '<div class="qui2"><strong>'+vide(f.eNom,"Ton nom")+'</strong>'+(f.eAdr?esc(f.eAdr)+"\n":"")+(f.eSiret?"SIRET "+nb(f.eSiret):"")+'</div>'+
-    '<div class="qui2"><strong>Facturé à</strong>'+vide(f.cNom,"Ton client")+"\n"+esc(f.cAdr||"")+'</div></div>'+
+    '<div class="qui2"><strong>'+vide(f.eNom,"Votre nom")+'</strong>'+(f.eAdr?esc(f.eAdr)+"\n":"")+(f.eSiret?"SIRET "+nb(f.eSiret):"")+'</div>'+
+    '<div class="qui2"><strong>Facturé à</strong>'+vide(f.cNom,"Votre client")+"\n"+esc(f.cAdr||"")+'</div></div>'+
     '<div class="tbl-scroll"><table><thead><tr><th>Désignation</th><th class="r">Total HT</th></tr></thead>'+
     '<tbody><tr><td>'+vide(f.desc,"—")+'</td><td class="r">'+eur2.format(ht)+'</td></tr></tbody></table></div>'+
     '<div class="fin"><div><span>Total HT</span><span>'+eur2.format(ht)+'</span></div>'+
@@ -5297,7 +5291,7 @@ function rendreReglages(){
     return boutonChoix(x.id, "data-f", x.id===f.id, x.nom, x.desc);
   }).join("");
   if(surCA()){
-    html += '<p class="note" style="margin:14px 0 6px">Ce que tu fais</p>'
+    html += '<p class="note" style="margin:14px 0 6px">Ce que vous faites</p>'
       + ACTIVITES.map(function(a){
           return boutonChoix(a.id, "data-a", a.id===etat.activite, a.nom,
             a.desc+' · '+String(a.cot).replace(".",",")+' % de cotisations');
@@ -5438,6 +5432,9 @@ $("choix-activite").addEventListener("click",function(e){
     if(window.__CADENCE__) window.__CADENCE__.choisirActivite(etat.activite);
   }
   rendreReglages(); rendreArgent(); rendreObjectif();
+});
+$("gros-fact").addEventListener("click",function(){
+  if(window.__CADENCE__) window.__CADENCE__.nouvelleFacture();
 });
 $("r-vfl").addEventListener("change",function(e){
   etat.vfl=e.target.checked;
