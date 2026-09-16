@@ -480,11 +480,13 @@ button.tuile:active{transform:scale(.985)}
 .pile-carte .som{font-family:var(--num);font-weight:600;font-size:34px;letter-spacing:-.03em;
   font-variant-numeric:tabular-nums;line-height:1.1;margin-top:24px}
 .pile-carte .sous{font-size:14px;color:var(--ink-3);margin-top:2px}
-.pile-go{display:block;width:100%;border:0;border-radius:999px;padding:19px 22px;margin-top:22px;
-  background:var(--deg);color:#fff;font:inherit;font-size:17.5px;font-weight:800;box-shadow:var(--o2);
-  cursor:pointer;animation-delay:.05s;transition:filter .18s,transform .12s}
-.pile-go:hover{filter:brightness(1.07)}
-.pile-go:active{transform:scale(.98)}
+.pile-go{display:flex;align-items:center;gap:9px;width:max-content;margin:20px auto 0;
+  border:1px solid var(--line);border-radius:999px;padding:13px 24px;background:var(--surface);
+  color:var(--v-txt);font:inherit;font-size:15.5px;font-weight:700;text-decoration:none;box-shadow:var(--o1);
+  cursor:pointer;animation-delay:.05s;transition:background .18s,transform .12s}
+.pile-go:hover{background:var(--surface-2)}
+.pile-go:active{transform:scale(.97)}
+.pile-go svg{width:17px;height:17px;stroke-width:2.1;fill:none;flex:none}
 .pile-autre{display:flex;justify-content:center;gap:30px;margin-top:17px;animation-delay:.1s}
 .pile-autre button{border:0;background:none;color:var(--ink-3);font:inherit;font-size:15px;font-weight:700;
   padding:8px 10px;border-radius:999px;cursor:pointer;transition:color .18s}
@@ -1844,8 +1846,10 @@ function jourLong(iso){
    permet de les effacer d'un seul geste.
 
    Les montants sont choisis pour tomber juste :
-   197 303 € encaissés + 5 094 € à encaisser = 202 397 € facturés,
-   et les sept clients additionnés font exactement 202 397 €. */
+   218 653 € encaissés + 17 844 € à encaisser = 236 497 € facturés,
+   et les dix clients facturés additionnés font exactement 236 497 €.
+   Les exemples couvrent aussi les quatre raisons de rappeler quelqu'un :
+   un impayé, un prospect qui dort, un client content, un client oublié. */
 const DEMO_LIGNES = [
   /* réf · client · montant · émise il y a n jours · payée · objet */
   ["001", "Boulangerie Mercier", 21400, 246, 1, "Comptoir et vitrine"],
@@ -1858,7 +1862,13 @@ const DEMO_LIGNES = [
   ["008", "Atelier Ferrand",     20900,  28, 1, "Deuxième série de tabourets"],
   ["009", "Boulangerie Mercier", 23803,  14, 1, "Agencement de la seconde boutique"],
   ["010", "Mairie de Montreuil",  3094,  20, 0, "Signalétique du parc"],
-  ["011", "Garage Delaunay",      2000,  40, 0, "Établi supplémentaire"]
+  ["011", "Garage Delaunay",      2000,  40, 0, "Établi supplémentaire"],
+  /* celui qu'on a oublié : rien depuis presque un an */
+  ["012", "Cabinet Vasseur",      9600, 330, 1, "Banque d'accueil et cloisons"],
+  /* une facture en attente, mais l'échéance n'est pas passée */
+  ["013", "Comptoir Lemoine",    12750,  12, 0, "Bar et arrière-bar"],
+  ["014", "Pharmacie Aubert",     6900,  60, 1, "Meuble de comptoir"],
+  ["015", "Comptoir Lemoine",     4850,  40, 1, "Étude et plans"]
 ];
 /* Les coordonnées montrent les quatre cas que Cadence sait reconnaître :
    tout, le seul numéro, le numéro et l'adresse, le numéro derrière un nom.
@@ -1877,7 +1887,16 @@ const DEMO_CLIENTS = [
   ["Hôtel Beauséjour",    "Têtes de lit, trente chambres", "termine",
    "06 39 98 33 21 · reception@hotel-beausejour.fr"],
   ["Épicerie Tahar",      "Étagères et comptoir",          "termine", ""],
-  ["Camille Roux",        "Bibliothèque sur mesure",       "termine", ""]
+  ["Camille Roux",        "Bibliothèque sur mesure",       "termine", ""],
+  ["Cabinet Vasseur",     "Accueil et cloisons",           "termine",
+   "01 99 00 77 05 · 4 rue Sainte-Hélène, 69002 Lyon"],
+  ["Comptoir Lemoine",    "Bar et arrière-bar",            "actif",
+   "06 39 98 55 40 · contact@comptoir-lemoine.fr"],
+  ["Pharmacie Aubert",    "Meuble de comptoir",            "termine",
+   "01 99 00 61 18"],
+  /* le devis qui dort : aucune facture, inscrit il y a neuf jours */
+  ["Brasserie du Quai",   "Comptoir et banquettes",        "prospect",
+   "06 39 98 12 90 · 2 quai Rambaud, 69002 Lyon", 9]
 ];
 function fichesExemple(){
   const an = new Date().getFullYear(), factures = {}, clients = {};
@@ -1888,7 +1907,7 @@ function fichesExemple(){
   });
   DEMO_CLIENTS.forEach((c, i) => {
     clients["ex-c" + i] = {nom: c[0], projet: c[1], statut: c[2], contact: c[3] || "",
-      adresse: joindre(c[3]).adresse, exemple: true};
+      adresse: joindre(c[3]).adresse, cree: dans(-(c[4] || 0)), exemple: true};
   });
   return {factures: factures, clients: clients};
 }
@@ -2570,7 +2589,7 @@ function aRappeler(){
         phrase: (retard.objet ? h(retard.objet) : "La facture " + h(retard.ref || ""))
           + " devait être réglé" + (retard.objet ? "" : "e") + " <b>il y a " + j + " jour" + (j > 1 ? "s" : "") + "</b>.",
         somme: duSom, sous: h(retard.ref || "facture en retard"),
-        action: "Écrire la relance"});
+        geste: "ecrire"});
       return;
     }
 
@@ -2584,7 +2603,7 @@ function aRappeler(){
           etiq: ["Devis en attente", "att"],
           phrase: "Vous l'avez inscrit <b>il y a " + j + " jours</b> et il n'a toujours rien signé.",
           somme: null, sous: h(c.projet || "à rappeler"),
-          action: "Appeler " + h(prenom(c.nom))});
+          geste: "appeler"});
         return;
       }
     }
@@ -2602,7 +2621,7 @@ function aRappeler(){
           etiq: ["Content", "ok"],
           phrase: "Tout est livré et tout est réglé <b>depuis " + j + " jours</b>. C'est maintenant qu'on demande.",
           somme: f.reduce((t, x) => t + (Number(x.montant) || 0), 0), sous: "vous a payé sans broncher",
-          action: "Lui demander un avis"});
+          geste: "ecrire"});
         return;
       }
       /* 4 · celui qu'on a oublié. Il est déjà convaincu, il a déjà payé,
@@ -2613,7 +2632,7 @@ function aRappeler(){
           etiq: ["Sans nouvelles", "att"],
           phrase: "Son chantier est fini <b>depuis " + Math.round(j / 30) + " mois</b>. Il ne vous a pas oublié, mais il ne pensera pas à vous tout seul.",
           somme: f.reduce((t, x) => t + (Number(x.montant) || 0), 0), sous: "ce qu'il vous a déjà confié",
-          action: "Prendre de ses nouvelles"});
+          geste: "ecrire"});
       }
     }
   });
@@ -2650,10 +2669,26 @@ function pileClients(){
     + (p.somme ? '<p class="som">' + eur(p.somme) + "</p>" : "")
     + '<p class="sous">' + p.sous + "</p></section>"
 
-    + '<button class="pile-go anim" data-mot="' + h(p.genre) + '" data-nom="' + h(p.nom) + '">' + p.action + "</button>"
+    + geste(p)
     + '<div class="pile-autre anim"><button data-plus-tard="' + h(p.id) + '" data-cle="' + h(p.cle) + '">Plus tard</button>'
     + '<button data-jamais="' + h(p.id) + '" data-cle="' + h(p.cle) + '">Rien à faire</button></div>'
     + '<div class="pile-pied"><button data-carnet="1">Voir tous vos clients</button></div>' + demo();
+}
+
+/* Un seul geste, choisi pour vous : on appelle un prospect qui hésite,
+   on écrit à quelqu'un qui doit de l'argent — un impayé se prouve. Le
+   message qui s'ouvre derrière dépend de la même raison, vous n'avez
+   rien à choisir. */
+function geste(p){
+  const j = joindre((state.clients[p.id] || {}).contact);
+  if(p.geste === "appeler" && j.tel){
+    return '<a class="pile-go anim" href="' + h("tel:" + j.tel) + '">'
+      + '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">'
+      + ICO_JOINDRE.tel + "</svg>Appeler</a>";
+  }
+  return '<button class="pile-go anim" data-mot="' + h(p.genre) + '" data-nom="' + h(p.nom) + '">'
+    + '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">'
+    + ICO_JOINDRE.mail + "</svg>Écrire</button>";
 }
 
 function personneARappeler(){
