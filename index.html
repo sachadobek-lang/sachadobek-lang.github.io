@@ -902,6 +902,25 @@ summary.carte-tete:hover h2{color:var(--v1)}
 }
 #majournee .gap:hover{border-color:var(--line); background:color-mix(in oklab, var(--ink) 3%, transparent)}
 #majournee .gap:hover span{color:var(--ink); border-color:var(--line)}
+/* La bande de route : elle remplace le creneau libre quand deux rendez-vous
+   s'enchainent. Gris, jamais rouge — elle informe, elle n'alarme pas. */
+#majournee .route{
+  position:absolute; left:0; right:0; z-index:3;
+  display:flex; align-items:center; gap:9px; padding:0 11px;
+  border-radius:9px; background:var(--surface-2); border:1px solid var(--line-soft);
+  font-size:12.5px; color:var(--ink-3); overflow:hidden;
+}
+#majournee .route .rt-txt{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+#majournee .route .rt-juste{color:var(--ink-2)}
+#majournee .route .rt-q{color:var(--ink-2)}
+#majournee .route button{font-size:12.5px; color:var(--ink-3); padding:2px 9px; border-radius:7px;
+  border:1px solid var(--line-soft); background:var(--surface)}
+#majournee .route button:hover{color:var(--ink); border-color:var(--line)}
+#majournee .route .rt-go{margin-left:auto; flex:0 0 auto; display:flex; align-items:center; gap:5px;
+  color:var(--ink-2); font-weight:500; text-decoration:none; padding:2px 9px; border-radius:7px;
+  border:1px solid var(--line-soft); background:var(--surface)}
+#majournee .route .rt-go:hover{color:var(--ink); border-color:var(--line)}
+#majournee .route .rt-non{margin-left:auto; flex:0 0 auto}
 #majournee .ev{
   position:absolute; border-radius:12px; padding:9px 12px 9px 15px; min-height:0;
   text-align:left; overflow:hidden; color:var(--ink);
@@ -3686,6 +3705,9 @@ var I_X = '<path d="M6 6l12 12M18 6L6 18"/>';
 var I_TRASH = '<path d="M4.5 7h15M9.5 7V5.5A1.5 1.5 0 0 1 11 4h2a1.5 1.5 0 0 1 1.5 1.5V7"/>'
   + '<path d="M6.5 7l.8 11.6A1.5 1.5 0 0 0 8.8 20h6.4a1.5 1.5 0 0 0 1.5-1.4L17.5 7"/>';
 var I_CAL = '<rect x="3.6" y="5.4" width="16.8" height="15" rx="2.6"/><path d="M3.6 10h16.8M8.4 3.6v3.4M15.6 3.6v3.4"/>';
+var I_CAR = '<path d="M4.6 13.3 6.1 8.9a2.1 2.1 0 0 1 2-1.4h7.8a2.1 2.1 0 0 1 2 1.4l1.5 4.4"/>'
+  + '<rect x="3.2" y="13.1" width="17.6" height="4.6" rx="1.7"/>'
+  + '<path d="M6.6 17.7v1.4M17.4 17.7v1.4"/>';
 var I_REPEAT = '<path d="M4.5 10.5A5 5 0 0 1 9.5 6h9"/><path d="M15.5 3l3 3-3 3"/>'
   + '<path d="M19.5 13.5A5 5 0 0 1 14.5 18h-9"/><path d="M8.5 21l-3-3 3-3"/>';
 var I_PLUS = '<path d="M12 5.5v13M5.5 12h13"/>';
@@ -3759,6 +3781,61 @@ try {
   if (v0 === 'jour' || v0 === 'semaine') state.view = v0;
 } catch(e){}
 
+/* ═══ le temps de route ═══
+   L'agenda ne calcule rien et n'appelle personne : il retient ce que Sacha
+   lui a dit une fois — « entre ces deux-la, 25 min » — et s'en souvient
+   pour toujours. Waze, lui, donnera le temps reel au moment du depart. */
+var LS_ROUTES = 'ma-journee-routes-v1';
+var routes = {};
+function routesCharger(){
+  try { routes = JSON.parse(localStorage.getItem(LS_ROUTES) || '{}') || {}; }
+  catch(e){ routes = {}; }
+}
+function routesSauver(){ try { localStorage.setItem(LS_ROUTES, JSON.stringify(routes)); } catch(e){} }
+function cleTexte(t){
+  return String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+/* le trajet aller vaut le retour : une seule cle pour les deux sens */
+function routeCle(a, b){
+  var x = cleTexte(a), y = cleTexte(b);
+  return x < y ? x + '|' + y : y + '|' + x;
+}
+function routeConnue(a, b){
+  var v = routes[routeCle(a, b)];
+  return typeof v === 'number' ? v : null;
+}
+function routeApprendre(a, b, min){
+  routes[routeCle(a, b)] = min;
+  routesSauver();
+  renderTrack();
+}
+
+/* Les fiches clients vivent dans Cadence, pas ici. On les lit sans y toucher :
+   si la fiche porte une adresse, le rendez-vous sait ou envoyer Waze. */
+function clientsCadence(){
+  var d = null;
+  try { d = JSON.parse(localStorage.getItem('cadence.v2') || localStorage.getItem('cadence.v1') || 'null'); }
+  catch(e){ return []; }
+  if (!d || !d.clients) return [];
+  return Object.keys(d.clients).map(function(k){ return d.clients[k]; });
+}
+function adressePour(titre){
+  var t = cleTexte(titre), trouve = '';
+  clientsCadence().forEach(function(c){
+    if (!c || !c.nom || !c.adresse) return;
+    var n = cleTexte(c.nom);
+    if (n.length >= 3 && t.indexOf(n) !== -1 && n.length > cleTexte(trouve).length) trouve = c.nom;
+  });
+  if (!trouve) return '';
+  var fiche = null;
+  clientsCadence().forEach(function(c){ if (c && c.nom === trouve) fiche = c; });
+  return fiche ? String(fiche.adresse || '').replace(/\s+/g, ' ').trim() : '';
+}
+function lienWaze(adresse){
+  return 'https://waze.com/ul?q=' + encodeURIComponent(adresse) + '&navigate=yes';
+}
+
 function lsGet(k){ try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch(e){ return []; } }
 function lsSet(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
 
@@ -3768,6 +3845,7 @@ function refreshLocal(){
   state.events = all.filter(function(ev){ return (!ev.rep || ev.rep === 'none') && ev.date >= a && ev.date <= b; });
   state.repeats = all.filter(function(ev){ return ev.rep === 'day' || ev.rep === 'week'; });
   state.notes = lsGet(LS_TD);
+  routesCharger();
   render();
 }
 function putEvent(ev){
@@ -3885,6 +3963,86 @@ function freeSlots(date){
   if (FREE_TO - cursor >= MIN_GAP) slots.push({start:cursor, dur: FREE_TO - cursor});
   return slots.filter(function(g){ return g.dur >= MIN_GAP; });
 }
+/* Deux rendez-vous qui s'enchainent a moins d'une heure et demie : c'est la,
+   et seulement la, qu'un trajet peut faire rater quelque chose. */
+function pairesRoute(list){
+  var evs = list.slice().sort(function(a,b){ return a.start - b.start; });
+  var out = [], fin = null, prec = null;
+  evs.forEach(function(ev){
+    if (prec && ev.start >= fin && ev.start - fin <= 90){
+      out.push({start: fin, dur: ev.start - fin, a: prec, b: ev});
+    }
+    if (fin === null || ev.start + ev.dur > fin){ fin = ev.start + ev.dur; prec = ev; }
+  });
+  return out;
+}
+
+function boutonRoute(p, el){
+  /* Une seule question, trois reponses. Elle n'est jamais reposee. */
+  el.innerHTML = '<span class="rt-txt rt-q">Combien de route ?</span>';
+  [15, 30, 45].forEach(function(m){
+    var b = document.createElement('button');
+    b.textContent = m + ' min';
+    b.addEventListener('click', function(e){ e.stopPropagation(); routeApprendre(p.a.title, p.b.title, m); });
+    el.appendChild(b);
+  });
+  var non = document.createElement('button');
+  non.className = 'rt-non';
+  non.textContent = 'Aucune';
+  non.title = 'Pas de trajet entre ces deux-la';
+  non.addEventListener('click', function(e){ e.stopPropagation(); routeApprendre(p.a.title, p.b.title, 0); });
+  el.appendChild(non);
+}
+
+function makeRoute(p){
+  var min = routeConnue(p.a.title, p.b.title);
+  var el = document.createElement('div');
+  el.className = 'route';
+  var px = (p.dur/60) * HOUR_PX;
+  el.style.top = ((p.start - DAY_START)/SPAN*100) + '%';
+  el.style.height = Math.min(Math.max(px, 22), 34) + 'px';
+  el.appendChild(svgEl(I_CAR, 15, 1.7));
+
+  if (min === null){
+    var q = document.createElement('button');
+    q.className = 'rt-txt rt-q';
+    q.textContent = 'Combien de route ?';
+    q.addEventListener('click', function(){ boutonRoute(p, el); el.insertBefore(svgEl(I_CAR, 15, 1.7), el.firstChild); });
+    el.appendChild(q);
+  } else {
+    var t = document.createElement('span');
+    t.className = 'rt-txt';
+    t.textContent = durLabel(min) + ' de route';
+    if (p.dur < min){
+      t.className = 'rt-txt rt-juste';
+      /* Sur un telephone, la phrase longue se coupe avant l'essentiel :
+         on garde alors les trois mots qui comptent. */
+      t.textContent = window.innerWidth < 560
+        ? durLabel(min) + ' de route — c\u2019est juste'
+        : durLabel(min) + ' de route — il en reste ' + durLabel(p.dur) + '. C\u2019est juste.';
+    }
+    el.appendChild(t);
+    var adr = adressePour(p.b.title);
+    if (adr){
+      var go = document.createElement('a');
+      go.className = 'rt-go';
+      go.href = lienWaze(adr);
+      go.target = '_blank';
+      go.rel = 'noopener';
+      go.textContent = 'Y aller';
+      go.title = adr;
+      el.appendChild(go);
+    }
+  }
+  return el;
+}
+
+function svgEl(paths, size, sw){
+  var d = document.createElement('div');
+  d.innerHTML = svg(paths, size, sw);
+  return d.firstChild;
+}
+
 function nextFreeSlot(date){
   var floor = FREE_FROM;
   if (date === today){
@@ -4223,9 +4381,19 @@ function renderTrack(){
   } else {
     var list = layout(eventsOf(state.date));
     total = list.length;
+    /* Une bande de route prend la place du creneau libre : rien ne s'ajoute
+       a l'ecran, quelque chose y est remplace. */
+    var bandes = pairesRoute(list).filter(function(p){
+      var m = routeConnue(p.a.title, p.b.title);
+      if (m === 0) return false;
+      return m !== null || (p.dur/60) * HOUR_PX >= 22;
+    });
+    var occupe = {};
+    bandes.forEach(function(p){ occupe[p.start] = true; });
     if (list.length){
       freeSlots(state.date).forEach(function(g){
         var px = (g.dur/60) * HOUR_PX;
+        if (occupe[g.start]) return;
         if (px < 34) return;
         var b = document.createElement('button');
         b.className = 'gap';
@@ -4242,6 +4410,7 @@ function renderTrack(){
     list.forEach(function(ev){
       track.appendChild(makeBlock(ev, {band: {left:0, w:100}}));
     });
+    bandes.forEach(function(p){ track.appendChild(makeRoute(p)); });
   }
 
   if (!total){
