@@ -4307,6 +4307,19 @@ window.addEventListener("resize", () => {
   if(!c.hidden){ c.width = window.innerWidth; c.height = window.innerHeight; }
 });
 
+/* ═══ Cadence reste en clair ═══
+   Elle suivait le thème du système, et s'affichait donc en noir chez
+   ceux qui l'ont réglé ainsi. Sacha la veut blanche. Les trois feuilles
+   de style prévoient déjà ce cas — chacune protège ses couleurs claires
+   par :not([data-theme="light"]) — il suffit de poser la marque. */
+(function(){
+  document.documentElement.setAttribute("data-theme", "light");
+  ["majournee", "ilreste"].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.setAttribute("data-theme", "light");
+  });
+})();
+
 charger();
 /* l'atelier de menuiserie vend des choses : c'est le bon point de départ
    pour les fiches d'exemple. Mais seulement tant que personne n'a
