@@ -1666,7 +1666,54 @@ function jourLong(iso){
   if(j === dans(-1)) return "hier à " + heure;
   return "le " + d.getDate() + " " + MOIS[d.getMonth()] + " à " + heure;
 }
-const liste = c => Object.entries(state[c]).map(([id, o]) => Object.assign({id: id}, o));
+/* ───────── chiffres d'exemple ─────────
+   Une seule histoire pour tout l'écran : les factures, les clients, l'argent
+   encaissé et l'estimation d'impôt portent sur le même atelier, et les totaux
+   s'additionnent vraiment. Tout disparaît d'un coup à la première fiche. */
+const DEMO_LIGNES = [
+  /* réf · client · montant · émise il y a n jours · payée · objet */
+  ["001", "Boulangerie Mercier", 18400, 246, 1, "Comptoir et vitrine"],
+  ["002", "Atelier Ferrand",     22750, 219, 1, "Série de cent tabourets"],
+  ["003", "Camille Roux",         9600, 193, 1, "Bibliothèque sur mesure"],
+  ["004", "Mairie de Montreuil", 31200, 152, 1, "Mobilier de la médiathèque"],
+  ["005", "Garage Delaunay",     14300, 127, 1, "Établi et rangements"],
+  ["006", "Épicerie Tahar",      12850,  85, 1, "Étagères et comptoir"],
+  ["007", "Hôtel Beauséjour",    26500,  70, 1, "Têtes de lit, trente chambres"],
+  ["008", "Atelier Ferrand",     19900,  28, 1, "Deuxième série de tabourets"],
+  ["009", "Boulangerie Mercier", 20900,  14, 1, "Agencement de la seconde boutique"],
+  ["010", "Mairie de Montreuil", 14200,  20, 0, "Signalétique du parc"],
+  ["011", "Garage Delaunay",      9400,  40, 0, "Établi supplémentaire"]
+];
+const DEMO_CLIENTS = [
+  ["Boulangerie Mercier", "Agencement des deux boutiques", "actif"],
+  ["Atelier Ferrand",     "Tabourets, deux séries",        "actif"],
+  ["Mairie de Montreuil", "Médiathèque et signalétique",   "actif"],
+  ["Garage Delaunay",     "Établis et rangements",         "actif"],
+  ["Hôtel Beauséjour",    "Têtes de lit, trente chambres", "termine"],
+  ["Épicerie Tahar",      "Étagères et comptoir",          "termine"],
+  ["Camille Roux",        "Bibliothèque sur mesure",       "termine"]
+];
+function demoFactures(){
+  const an = new Date().getFullYear(), o = {};
+  DEMO_LIGNES.forEach(l => {
+    o["demo-f" + l[0]] = {client: l[1], montant: l[2], objet: l[5], ref: an + "-" + l[0],
+      emise: dans(-l[3]), echeance: dans(30 - l[3]),
+      statut: l[4] ? "payee" : "envoyee", demo: 1};
+  });
+  return o;
+}
+function demoClientsObj(){
+  const o = {};
+  DEMO_CLIENTS.forEach((c, i) => { o["demo-c" + i] = {nom: c[0], projet: c[1], statut: c[2], demo: 1}; });
+  return o;
+}
+const DEMO = {factures: demoFactures(), clients: demoClientsObj()};
+const DEMO_ENCAISSE = DEMO_LIGNES.filter(l => l[4]).reduce((t, l) => t + l[2], 0);
+const DEMO_TOTAL = DEMO_LIGNES.reduce((t, l) => t + l[2], 0);
+const enDemo = () => !Object.keys(state.factures).length && !Object.keys(state.clients).length;
+window.__DEMO__ = DEMO_LIGNES;
+
+const liste = c => Object.entries(enDemo() && DEMO[c] ? DEMO[c] : state[c]).map(([id, o]) => Object.assign({id: id}, o));
 const neuf = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 const reduit = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -2098,8 +2145,9 @@ function fiche(c){
 }
 
 function ficheClient(id){
-  if(!state.clients[id]) { clientOuvert = null; return carnetClients(); }
-  const c = Object.assign({id: id}, state.clients[id]);
+  const src = state.clients[id] || (enDemo() ? DEMO.clients[id] : null);
+  if(!src) { clientOuvert = null; return carnetClients(); }
+  const c = Object.assign({id: id}, src);
   const e = ETIQ_C[c.statut] || ETIQ_C.prospect;
   const siennes = liste("factures").filter(f => f.client === c.nom && f.statut !== "brouillon")
                                    .sort((x, y) => String(y.emise).localeCompare(String(x.emise)));
@@ -2222,7 +2270,7 @@ function ecranFactures(){
     + '<span class="appoint">' + vis.length + " ligne" + (vis.length > 1 ? "s" : "") + "</span></div>"
     + '<div class="segments">' + libs.map(kv =>
         '<button data-ff="' + kv[0] + '" aria-pressed="' + (filtreF === kv[0]) + '">' + kv[1] + "</button>").join("") + "</div>"
-    + (vis.length ? vis.map(rangeeFacture).join("")
+    + (vis.length ? vis.map(f => rangeeFacture(f)).join("")
        : '<p class="vide"><b>Aucune facture ici</b>Changez de filtre, ou appuyez sur + pour en créer une.</p>')
     + '<button class="ajout-ligne" data-moi="1"><span class="rond" style="border-style:solid">'
     + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;stroke-width:2.2;fill:none">'
@@ -2627,7 +2675,9 @@ async function telechargerFacture(id){
 function demo(){
   let n = 0;
   COLS.forEach(c => { n += liste(c).filter(o => o.exemple).length; });
-  return '<p class="pied"><i class="' + (stockOk ? "" : "ko") + '"></i>'
+  return (enDemo() ? '<p class="pied">Chiffres d\'exemple : un atelier qui a facturé '
+        + eur(DEMO_TOTAL) + " cette année. Ils disparaissent dès votre première fiche.</p>" : "")
+    + '<p class="pied"><i class="' + (stockOk ? "" : "ko") + '"></i>'
     + (stockOk ? "Tout est gardé dans ce navigateur, sur cet appareil."
                : "Ce navigateur bloque l'enregistrement : tout disparaîtra en fermant l'onglet.")
     + ' <button data-sauver="1">Enregistrer une copie</button>'
@@ -3326,6 +3376,7 @@ window.addEventListener("resize", () => {
 });
 
 charger();
+if(enDemo()){ calcCA = DEMO_ENCAISSE; calcStatut = "vente"; }
 rendre();
 
 </script>
@@ -4574,20 +4625,21 @@ function activite(){
 }
 function etatNeuf(){
   var d=new Date(), an=d.getFullYear();
+  var DEMO = window.__DEMO__ || [];
   var il=function(j){ var x=new Date(d); x.setDate(x.getDate()-j); return iso(x); };
   return {
-    activite:"liberal", vfl:false, tva:false, onglet:"argent",
-    rentrees:[
-      {id:uid(),date:il(46),client:"Boulangerie Mercier",ref:"2026-001",montant:1200,mode:"Virement",exemple:true},
-      {id:uid(),date:il(19),client:"Atelier Ferrand",    ref:"2026-002",montant:2500,mode:"Virement",exemple:true},
-      {id:uid(),date:il(4), client:"Camille Roux",       ref:"2026-003",montant:640, mode:"Chèque",  exemple:true}
-    ],
-    creances:[
-      {id:uid(),client:"Mairie de Montreuil",ref:"2026-004",montant:3000,desc:"Refonte du site",emission:il(52),echeance:il(22),exemple:true},
-      {id:uid(),client:"Atelier Ferrand",    ref:"2026-005",montant:1450,desc:"Affiches saison", emission:il(12),echeance:il(-18),exemple:true}
-    ],
-    objectif:{net:2200,frais:4800,jours:140},
-    facture:{eNom:"",eSiret:"",eAdr:"",cNom:"",cAdr:"",num:an+"-006",date:iso(d),ech:iso(new Date(d.getTime()+30*864e5)),desc:"",montant:0}
+    activite:"vente", vfl:false, tva:false, onglet:"argent",
+    /* les mêmes factures que Comptabilité : un seul jeu de chiffres pour
+       toute l'application, sinon les totaux ne se répondent pas */
+    rentrees: DEMO.filter(function(l){ return l[4]; }).map(function(l){
+      return {id:uid(),date:il(l[3]),client:l[1],ref:an+"-"+l[0],montant:l[2],mode:"Virement",exemple:true};
+    }),
+    creances: DEMO.filter(function(l){ return !l[4]; }).map(function(l){
+      return {id:uid(),client:l[1],ref:an+"-"+l[0],montant:l[2],desc:l[5],
+              emission:il(l[3]),echeance:il(l[3]-30),exemple:true};
+    }),
+    objectif:{net:9000,frais:36000,jours:220},
+    facture:{eNom:"",eSiret:"",eAdr:"",cNom:"",cAdr:"",num:an+"-012",date:iso(d),ech:iso(new Date(d.getTime()+30*864e5)),desc:"",montant:0}
   };
 }
 
@@ -4934,7 +4986,12 @@ $("r-tva").addEventListener("change",function(e){ etat.tva=e.target.checked; ren
 etat=etatNeuf();
 try{
   var s=JSON.parse(localStorage.getItem("itrc5")||"null");
-  if(s&&s.rentrees) etat=Object.assign(etatNeuf(),s);
+  /* rien que des exemples en mémoire : on garde le jeu neuf, qui est
+     cohérent avec les factures. Une seule ligne saisie à la main et on
+     respecte ce qui a été enregistré. */
+  var sien = s && ((s.rentrees||[]).some(function(r){ return !r.exemple; })
+                || (s.creances||[]).some(function(c){ return !c.exemple; }));
+  if(s&&s.rentrees&&sien) etat=Object.assign(etatNeuf(),s);
 }catch(e){}
 toutRendre();
 onglet(etat.onglet||"argent");
