@@ -11,6 +11,7 @@
 
   /* la signature : un seul dégradé vert → bleu, partout */
   --v1:#0B7D6E; --v2:#17539F;
+  --v-txt:#0A6A5D;   /* le vert quand il sert de texte : assez sombre pour être lu */
   --deg:linear-gradient(135deg,#0B7D6E 0%,#17539F 100%);
   --deg-fonce:linear-gradient(140deg,#075C52 0%,#0F3C78 100%);
   --deg-pale:linear-gradient(135deg,#E2F2EF 0%,#E4ECFA 100%);
@@ -43,6 +44,7 @@
     --ground:#080E16; --surface:#131C28; --surface-2:#1A2431; --surface-3:#101924;
     --line:#233040; --line-fort:#334152;
     --ink:#ECF2F9; --ink-2:#A2AFC2; --ink-3:#73819A;
+    --v-txt:#2FBDA8;
     --deg:linear-gradient(135deg,#17A794 0%,#3B82E0 100%);
     --deg-fonce:linear-gradient(140deg,#0A6B5F 0%,#144B92 100%);
     --deg-pale:linear-gradient(135deg,#0F2A27 0%,#12233C 100%);
@@ -397,7 +399,7 @@ summary.groupe:hover{background:var(--line)}
 .carte-tete + .mois-sep{margin-top:6px}
 
 /* ═══ la relance ═══ */
-.action-client button.doux{background:var(--surface-3);color:var(--v1)}
+.action-client button.doux{background:var(--surface-3);color:var(--v-txt)}
 .action-client button.doux:hover{filter:none;background:var(--surface-2)}
 .relance{padding:4px 22px 22px;display:flex;flex-direction:column;gap:12px}
 .relance .aide{margin:0}
@@ -466,9 +468,26 @@ button.tuile:active{transform:scale(.985)}
   font-size:15px;font-weight:700;padding:6px 4px;border-radius:10px;transition:color .18s}
 .retour svg{width:19px;height:19px;stroke-width:2.4;fill:none}
 .retour:hover{color:var(--v1)}
-.tete-client{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;padding:20px 22px 4px}
-.tete-client h2{font-family:var(--num);font-weight:600;font-size:24px;letter-spacing:-.02em;flex:1;min-width:0;overflow-wrap:anywhere}
-.tete-client p{width:100%;font-size:15px;color:var(--ink-2);margin-top:-2px}
+.tete-client{display:flex;align-items:flex-start;gap:12px;padding:20px 22px 4px}
+.tete-corps{flex:1;min-width:0;display:block;border-radius:12px;cursor:pointer}
+.tete-client h2{font-family:var(--num);font-weight:600;font-size:24px;letter-spacing:-.02em;overflow-wrap:anywhere;transition:color .18s}
+.tete-corps:hover h2,.tete-corps:focus-visible h2{color:var(--v1)}
+.tete-client p{font-size:15px;color:var(--ink-2);margin-top:-2px;overflow-wrap:anywhere}
+.tete-client p.joint{font-size:14px;color:var(--ink-3);margin-top:2px}
+
+/* Appeler · Écrire · M'y conduire : petits, gris, près du nom — ce sont
+   des chemins vers le client, pas des décisions sur son argent. */
+.joindre{display:flex;flex-wrap:wrap;gap:8px;padding:12px 22px 0}
+.joindre a,.joindre button{display:inline-flex;align-items:center;gap:7px;border:0;border-radius:999px;
+  padding:9px 15px;background:var(--surface-3);color:var(--v-txt);font:inherit;font-size:14px;font-weight:700;
+  text-decoration:none;cursor:pointer;transition:background .18s,transform .18s var(--ressort)}
+.joindre a:hover,.joindre button:hover{background:var(--surface-2)}
+.joindre a:active,.joindre button:active{transform:scale(.96)}
+.joindre svg{width:16px;height:16px;stroke-width:2.1;fill:none;flex:none}
+.joindre .vide{background:none;color:var(--ink-3);padding-left:2px}
+.joindre .vide:hover{background:none;color:var(--v-txt)}
+/* au doigt, la cible doit faire 44 px : on ne rate pas un appel */
+@media (pointer:coarse){.joindre a,.joindre button{padding:13px 17px}}
 .paye{padding:16px 22px 22px}
 .paye .gros{font-family:var(--num);font-weight:600;font-size:38px;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.1;color:var(--ok)}
 .paye .lab{font-size:14px;font-weight:600;color:var(--ink-3)}
@@ -2200,6 +2219,76 @@ function fiche(c){
     + '<button class="sup" data-sup="clients" data-id="' + h(c.id) + '"><span class="mot">Supprimer</span></button></div></article>';
 }
 
+/* ═══ comment joindre ce client ═══
+   Une seule question au moment de la fiche : « Comment le joindre ? ».
+   Sacha tape ce qu'il a — un numéro, un mail, une adresse, les trois —
+   et c'est nous qui reconnaissons. Deux champs de plus à remplir, c'est
+   deux champs qu'il ne remplit pas. */
+const VOIE = /\b(rue|avenue|av|bd|boulevard|chemin|route|rte|place|impasse|imp|all[ée]e|quai|cours|square|lotissement|lieu-dit|zone|za|zi|zac|r[ée]sidence|villa|passage|faubourg)\b/i;
+
+function joindre(texte){
+  const r = {tel: "", mail: "", adresse: "", reste: ""};
+  let t = String(texte || "").trim();
+  if(!t) return r;
+
+  const m = /[^\s,;·<>()]+@[^\s,;·<>()]+\.[a-zA-Z]{2,}/.exec(t);
+  if(m){ r.mail = m[0]; t = t.replace(m[0], " · "); }
+
+  /* un numéro, c'est dix chiffres qui commencent par zéro, ou un indicatif
+     international. On vérifie après coup pour ne pas prendre un code postal
+     collé à un numéro de rue pour un téléphone. */
+  const cands = t.match(/\+?\d[\d\s.\-]{7,}\d/g) || [];
+  for(let i = 0; i < cands.length; i++){
+    const c = cands[i].trim(), n = c.replace(/[^\d+]/g, "");
+    if(/^0\d{9}$/.test(n) || /^\+\d{8,14}$/.test(n)){
+      r.tel = n; t = t.replace(c, " · "); break;
+    }
+  }
+
+  const a = t.replace(/·/g, " ").replace(/\s{2,}/g, " ").trim().replace(/^[,;\-\s]+|[,;\-\s]+$/g, "");
+  /* une adresse porte un numéro ou un mot de voie ; sinon c'est un nom de
+     personne, et on n'envoie personne au GPS chez « Jean Dupont ». */
+  if(a.length > 4 && (/\d/.test(a) || VOIE.test(a))) r.adresse = a;
+  else r.reste = a;
+  return r;
+}
+
+/* le GPS de la maison : Plans chez Apple, Google ailleurs */
+function lienCarte(adr){
+  const pomme = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent || "");
+  return (pomme ? "https://maps.apple.com/?q=" : "https://www.google.com/maps/search/?api=1&query=")
+    + encodeURIComponent(adr);
+}
+
+const ICO_JOINDRE = {
+  tel: '<path d="M6.6 3.6h3l1.4 3.8-2 1.5a12 12 0 0 0 6.1 6.1l1.5-2 3.8 1.4v3a2 2 0 0 1-2.2 2C11.5 18.7 5.3 12.5 4.6 5.8a2 2 0 0 1 2-2.2Z"/>',
+  mail: '<rect x="3.2" y="5.6" width="17.6" height="12.8" rx="2.6"/><path d="m4.2 7.2 6.6 4.9a2 2 0 0 0 2.4 0l6.6-4.9"/>',
+  carte: '<path d="M12 20.8s6.3-5.5 6.3-10.1a6.3 6.3 0 1 0-12.6 0c0 4.6 6.3 10.1 6.3 10.1Z"/><circle cx="12" cy="10.4" r="2.3"/>',
+  plus: '<path d="M12 6v12M6 12h12"/>'
+};
+function boutonJoindre(href, ico, mot, ext){
+  return '<a href="' + h(href) + '"' + (ext ? ' target="_blank" rel="noopener noreferrer"' : "") + '>'
+    + '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">'
+    + ICO_JOINDRE[ico] + "</svg>" + mot + "</a>";
+}
+
+/* Appeler · Écrire · M'y conduire — jamais plus de trois, souvent un seul.
+   Le SMS n'apparaît que sur un appareil qui sait en envoyer. */
+function rangeeJoindre(c){
+  const j = joindre(c.contact);
+  let liens = "";
+  if(j.tel) liens += boutonJoindre("tel:" + j.tel, "tel", "Appeler");
+  if(j.mail) liens += boutonJoindre("mailto:" + j.mail, "mail", "Écrire");
+  else if(j.tel && window.matchMedia("(pointer:coarse)").matches)
+    liens += boutonJoindre("sms:" + j.tel, "mail", "Écrire");
+  if(j.adresse) liens += boutonJoindre(lienCarte(j.adresse), "carte", "M'y conduire", true);
+
+  if(!liens) liens = '<button class="vide" data-fiche="' + h(c.id) + '">'
+    + '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">'
+    + ICO_JOINDRE.plus + "</svg>Ajouter son numéro</button>";
+  return '<div class="joindre">' + liens + "</div>";
+}
+
 function ficheClient(id){
   const src = state.clients[id];
   if(!src) { clientOuvert = null; return carnetClients(); }
@@ -2211,16 +2300,20 @@ function ficheClient(id){
   const attente = siennes.filter(f => statut(f) !== "payee").reduce((t, f) => t + (Number(f.montant) || 0), 0);
   const notes = (c.notes || []).slice().sort((x, y) => String(y.d).localeCompare(String(x.d)));
   const rdv = rdvDuClient(c.nom);
+  const reste = joindre(c.contact).reste;
 
   return '<button class="retour" data-retour="1">'
     + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>'
     + "Vos clients</button>"
 
-    + '<section class="carte anim"><div class="tete-client"><h2>' + h(c.nom) + "</h2>"
-    + '<button class="etat-btn ' + e[1] + '" data-etat="' + h(c.id) + '" title="Appuyez pour changer">' + e[0] + "</button>"
+    + '<section class="carte anim"><div class="tete-client">'
+    + '<span class="tete-corps" data-modif="client" data-id="' + h(c.id) + '" role="button" tabindex="0"'
+    + ' title="Appuyez pour modifier"><h2>' + h(c.nom) + "</h2>"
     + (c.projet ? "<p>" + h(c.projet) + "</p>" : "")
-    + (c.contact ? '<p style="color:var(--ink-3);font-size:14px">' + h(c.contact) + "</p>" : "")
-    + "</div>"
+    + (reste ? '<p class="joint">' + h(reste) + "</p>" : "")
+    + "</span>"
+    + '<button class="etat-btn ' + e[1] + '" data-etat="' + h(c.id) + '" title="Appuyez pour changer">' + e[0] + "</button>"
+    + "</div>" + rangeeJoindre(c)
     + '<div class="paye"><p class="lab">Ce client vous a payé</p>'
     + '<p class="gros" data-compte="paye-' + h(c.id) + '" data-val="' + paye + '">' + eur(paye) + "</p>"
     + (attente ? '<p class="reste">Il reste <b>' + eur(attente) + "</b> à encaisser.</p>"
@@ -3118,8 +3211,9 @@ const CHAMPS = {
   client: () => ({titre: "Nouveau client", html:
     '<div class="champ"><label for="f1">Son nom</label><input id="f1" name="nom" required maxlength="80" placeholder="Brasserie du Quai" autocomplete="off"></div>'
     + '<div class="champ"><label for="f2">Ce que vous faites pour lui</label><input id="f2" name="projet" maxlength="120" placeholder="Comptoir et banquettes en chêne" autocomplete="off"></div>'
+    + '<div class="champ"><label for="f4">Comment le joindre ?</label><input id="f4" name="contact" maxlength="160" placeholder="06 12 34 56 78" autocomplete="off"></div>'
+    + '<p class="aide" style="margin:-5px 0 2px">Son numéro, son mail, son adresse — ce que vous avez suffit.</p>'
     + '<details class="detail"><summary>Plus de détails</summary>'
-    + '<div class="champ"><label for="f4">Contact</label><input id="f4" name="contact" maxlength="60" placeholder="facultatif" autocomplete="off"></div>'
     + '<div class="champ"><label>Où en êtes-vous ?</label><div class="choix">'
     + '<label><input type="radio" name="statut" value="actif" checked><span>En cours</span></label>'
     + '<label><input type="radio" name="statut" value="prospect"><span>Prospect</span></label>'
@@ -3402,6 +3496,7 @@ $("#vue").addEventListener("click", e => {
   }
   if(b.dataset.retour){ clientOuvert = null; filtreA = "clients"; animer = true; memoire.clear(); rendre(); window.scrollTo({top: 0}); return; }
   if(b.dataset.ajoutNote){ noter(b.dataset.ajoutNote); return; }
+  if(b.dataset.fiche){ modifier("client", b.dataset.fiche); return; }
   if(b.dataset.relance){ ouvrirRelance(b.dataset.relance); return; }
   if(b.dataset.facturer){
     const cl = liste("clients").find(x => x.nom === b.dataset.facturer);
