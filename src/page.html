@@ -828,7 +828,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee [hidden]{display:none!important}
 #majournee{
   margin:0; background:var(--bg); color:var(--ink);
-  font-family:var(--ui); font-size:15px; line-height:1.5;
+  font-family:var(--ui); font-size:16px; line-height:1.5;
   -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
 }
 #majournee button{font:inherit; color:inherit; background:none; border:none; cursor:pointer}
@@ -839,9 +839,10 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .top{padding-block:26px 18px; display:flex; flex-direction:column; gap:20px}
 #majournee .dateline{display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap}
 #majournee .dateline h1{
-  font-family:var(--display); font-weight:700;
-  font-size:clamp(25px,4.4vw,32px); line-height:1.08; margin:0;
-  letter-spacing:-.024em; text-wrap:balance;
+  /* Les mêmes valeurs que les grands titres des autres écrans : 26px, 600. */
+  font-family:var(--display); font-weight:600;
+  font-size:clamp(26px,5.6vw,34px); line-height:1.1; margin:0;
+  letter-spacing:-.025em; text-wrap:balance;
 }
 #majournee .dateline h1 .dim{display:block; font-family:var(--ui); font-weight:400; font-size:14px;
   letter-spacing:0; color:var(--ink-3); margin-top:3px}
@@ -1006,7 +1007,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .rb-ligne{position:relative; display:flex; align-items:flex-start; gap:0}
 #majournee .rb-h{
   flex:0 0 56px; text-align:right; padding-top:11px; padding-right:8px;
-  font-size:12px; color:var(--ink-3); font-variant-numeric:tabular-nums;
+  font-size:13px; color:var(--ink-3); font-variant-numeric:tabular-nums;
 }
 #majournee .rb-pt{
   position:absolute; left:58px; top:15px; width:12px; height:12px; border-radius:50%;
@@ -1103,10 +1104,10 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .ev .ico{flex:0 0 auto; color:var(--c); margin-top:1px}
 #majournee .ev .txt{min-width:0; flex:1}
 #majournee .ev .name{
-  display:block; font-family:var(--display); font-weight:600; font-size:14px;
+  display:block; font-family:var(--display); font-weight:600; font-size:15px;
   letter-spacing:-.008em; line-height:1.3; overflow-wrap:anywhere;
 }
-#majournee .ev .when{display:block; font-size:12px; color:var(--ink-2); font-variant-numeric:tabular-nums; margin-top:2px}
+#majournee .ev .when{display:block; font-size:13px; color:var(--ink-2); font-variant-numeric:tabular-nums; margin-top:2px}
 #majournee .ev .rep{position:absolute; top:9px; right:10px; color:var(--c); opacity:.75}
 #majournee .ev.short{padding:7px 11px 7px 14px; align-items:center; gap:8px}
 #majournee .ev.short .name{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
