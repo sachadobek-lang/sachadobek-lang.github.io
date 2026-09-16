@@ -1,6 +1,8 @@
 {
   "version": "0.0.1",
+  "_lisez_moi": "cadence-partage (4173) est L'ADRESSE COMMUNE : elle sert le index.html du dépôt principal, donc main, donc le travail fusionné de tous les agents. C'est celle que Sacha regarde et celle que chaque agent doit afficher dans sa conversation. Les ports personnels en dessous ne servent qu'à se vérifier soi-même avant de fusionner.",
   "configurations": [
+    { "name": "cadence-partage", "url": "http://localhost:4173", "port": 4173 },
     { "name": "cadence", "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "4174", "--bind", "127.0.0.1"], "port": 4174 },
     { "name": "cadence-agenda", "runtimeExecutable": "python3",
