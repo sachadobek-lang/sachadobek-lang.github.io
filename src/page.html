@@ -520,11 +520,18 @@ button.tuile:active{transform:scale(.985)}
 .pile-autre button{border:0;background:none;color:var(--ink-2);font:inherit;font-size:15px;font-weight:700;
   padding:8px 10px;border-radius:999px;cursor:pointer;transition:color .18s}
 .pile-autre button:hover{color:var(--v-txt)}
-.pile-pied{display:flex;justify-content:center;margin-top:34px}
-.pile-pied button{display:flex;align-items:center;gap:9px;border:0;border-radius:999px;padding:13px 21px;
-  background:var(--surface-3);color:var(--v-txt);font:inherit;font-size:15px;font-weight:700;cursor:pointer;
-  transition:background .18s}
-.pile-pied button:hover{background:var(--surface-2)}
+/* la ligne de rappel, en haut du carnet : elle dit combien de gens
+   attendent, elle ne prend pas la place de ce qu'on est venu voir */
+.bandeau{display:flex;align-items:center;gap:11px;width:100%;margin-bottom:14px;border:0;
+  border-radius:var(--rm);padding:14px 18px;background:var(--surface);box-shadow:var(--o1);
+  font:inherit;font-size:15.5px;font-weight:700;color:var(--ink);cursor:pointer;
+  transition:transform .2s var(--doux),box-shadow .2s}
+.bandeau:hover{transform:translateY(-1px);box-shadow:var(--o3)}
+.bandeau:active{transform:scale(.995)}
+.bandeau .pastille-n{display:grid;place-content:center;min-width:26px;height:26px;padding:0 8px;
+  border-radius:999px;background:var(--deg);color:#fff;font-family:var(--num);font-size:14px;font-weight:600}
+.bandeau .mot{flex:1;text-align:left}
+.bandeau svg{width:18px;height:18px;stroke-width:2.2;fill:none;color:var(--ink-3);flex:none}
 .vide-jour{display:flex;flex-direction:column;align-items:center;text-align:center;padding:52px 26px 46px}
 .vide-jour .rond{display:flex;align-items:center;justify-content:center;width:92px;height:92px;border-radius:999px;
   background:var(--deg-pale);color:var(--v-txt)}
@@ -1900,7 +1907,7 @@ const calcStatut = () => (state.moi && ACTIVITES[state.moi.regime]) ? state.moi.
 const calcLib    = () => !!(state.moi && state.moi.liberatoire);
 const calcParts  = () => Number(state.moi && state.moi.parts) || 1;
 let clientOuvert = null;
-let ecranClients = "pile";   /* « pile » : qui rappeler · « carnet » : l'annuaire */
+let ecranClients = "carnet"; /* « carnet » : tous les clients, ce qu'on voit d'abord · « pile » : qui rappeler */
 let pliOuvert = false;
 let vueAgenda = "jour";        /* jour · semaine · liste */
 let jourVu = null;             /* null = aujourd'hui */
@@ -2757,7 +2764,10 @@ function pileClients(){
   const points = file.slice(0, 5).map((x, i) =>
     '<span class="pt' + (i === 0 ? " ici" : "") + '"></span>').join("");
 
-  return '<div class="pile-tete"><span>' + file.length + " personne" + (file.length > 1 ? "s" : "")
+  return '<button class="retour" data-carnet="1">'
+    + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>'
+    + "Vos clients</button>"
+    + '<div class="pile-tete"><span>' + file.length + " personne" + (file.length > 1 ? "s" : "")
     + ' à rappeler</span><span class="pts">' + points + "</span></div>"
 
     + '<section class="carte anim pile-carte"><span class="etat-btn ' + p.etiq[1] + '">' + p.etiq[0] + "</span>"
@@ -2769,7 +2779,7 @@ function pileClients(){
     + geste(p)
     + '<div class="pile-autre anim"><button data-plus-tard="' + h(p.id) + '" data-cle="' + h(p.cle) + '">Plus tard</button>'
     + '<button data-jamais="' + h(p.id) + '" data-cle="' + h(p.cle) + '">Rien à faire</button></div>'
-    + '<div class="pile-pied"><button data-carnet="1">Voir tous vos clients</button></div>' + demo();
+    + demo();
 }
 
 /* Un seul geste, choisi pour vous : on appelle un prospect qui hésite,
@@ -2796,7 +2806,7 @@ function personneARappeler(){
     + "<h2>Personne à rappeler</h2>"
     + "<p>" + (n ? "Tout le monde a eu de vos nouvelles. Retournez à l'atelier."
                  : "Ajoutez votre premier client, ou facturez quelqu'un : il s'inscrira tout seul.") + "</p>"
-    + '<button data-carnet="1">Voir tous vos clients</button></section>' + demo();
+    + '<button data-carnet="1">Revenir à vos clients</button></section>' + demo();
 }
 
 function carnetClients(){
@@ -2826,9 +2836,16 @@ function carnetClients(){
       + '<div class="fiches">' + attente.sort(parNom).map(fiche).join("") + "</div>";
   }
 
-  return '<button class="retour" data-retour-pile="1">'
-    + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>'
-    + "Aujourd'hui</button>"
+  /* le rappel du jour ne s'impose plus : il attend sur une ligne, en haut
+     du carnet, et on y va quand on veut. Rien s'il n'y a personne. */
+  const file = aRappeler();
+  const rappel = file.length
+    ? '<button class="bandeau anim" data-pile="1"><span class="pastille-n">' + file.length + "</span>"
+      + "<span class=\"mot\">personne" + (file.length > 1 ? "s" : "") + " à rappeler</span>"
+      + '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="m9.5 5.5 6.5 6.5-6.5 6.5"/></svg></button>'
+    : "";
+
+  return rappel
     + '<section class="carte anim"><div class="carte-tete"><h2>Vos clients</h2>'
     + '<span class="appoint">' + actifs.length + " chantier" + (actifs.length > 1 ? "s" : "") + " en cours</span></div>"
     + (cl.length ? corps
@@ -2870,8 +2887,8 @@ function vueArgent(){
      toujours, mais il n'est plus la porte d'entrée — on l'ouvre quand on
      cherche quelqu'un, pas pour décider quoi faire aujourd'hui. */
   if(clientOuvert) return ficheClient(clientOuvert);
-  if(ecranClients === "carnet") return carnetClients();
-  return pileClients();
+  if(ecranClients === "pile") return pileClients();
+  return carnetClients();
 }
 
 function ecranFactures(){
@@ -4034,7 +4051,7 @@ $("#nav").addEventListener("click", e => {
   if(!b.dataset.vue) return;
   vue = b.dataset.vue;
   clientOuvert = null;
-  ecranClients = "pile";
+  ecranClients = "carnet";
   const tous = document.querySelectorAll("#nav button[data-vue]");
   for(let i = 0; i < tous.length; i++) tous[i].removeAttribute("aria-current");
   b.setAttribute("aria-current", "page");
@@ -4081,7 +4098,7 @@ $("#vue").addEventListener("click", e => {
   }
   if(b.dataset.retour){ clientOuvert = null; filtreA = "clients"; animer = true; memoire.clear(); rendre(); window.scrollTo({top: 0}); return; }
   if(b.dataset.carnet){ ecranClients = "carnet"; clientOuvert = null; animer = true; memoire.clear(); rendre(); window.scrollTo({top: 0}); return; }
-  if(b.dataset.retourPile){ ecranClients = "pile"; clientOuvert = null; animer = true; memoire.clear(); rendre(); window.scrollTo({top: 0}); return; }
+  if(b.dataset.pile){ ecranClients = "pile"; clientOuvert = null; animer = true; memoire.clear(); rendre(); window.scrollTo({top: 0}); return; }
   if(b.dataset.mot){ ouvrirMot(b.dataset.nom, b.dataset.mot); return; }
   if(b.dataset.plusTard){
     repousser(b.dataset.plusTard, b.dataset.cle, dans(1));
