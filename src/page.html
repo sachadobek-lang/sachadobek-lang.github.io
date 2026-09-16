@@ -1743,14 +1743,24 @@ const DEMO_LIGNES = [
   ["010", "Mairie de Montreuil",  3094,  20, 0, "Signalétique du parc"],
   ["011", "Garage Delaunay",      2000,  40, 0, "Établi supplémentaire"]
 ];
+/* Les coordonnées montrent les quatre cas que Cadence sait reconnaître :
+   tout, le seul numéro, le numéro et l'adresse, le numéro derrière un nom.
+   Deux fiches restent nues, pour qu'on voie aussi l'invite à en ajouter.
+   Les numéros sont ceux que l'Arcep réserve à la fiction (06 39 98 · 01 99 00) :
+   personne ne décrochera jamais. */
 const DEMO_CLIENTS = [
-  ["Boulangerie Mercier", "Agencement des deux boutiques", "actif"],
-  ["Atelier Ferrand",     "Tabourets, deux séries",        "actif"],
-  ["Mairie de Montreuil", "Médiathèque et signalétique",   "actif"],
-  ["Garage Delaunay",     "Établis et rangements",         "actif"],
-  ["Hôtel Beauséjour",    "Têtes de lit, trente chambres", "termine"],
-  ["Épicerie Tahar",      "Étagères et comptoir",          "termine"],
-  ["Camille Roux",        "Bibliothèque sur mesure",       "termine"]
+  ["Boulangerie Mercier", "Agencement des deux boutiques", "actif",
+   "01 99 00 12 34 · contact@boulangerie-mercier.fr · 8 place du Marché, 69001 Lyon"],
+  ["Atelier Ferrand",     "Tabourets, deux séries",        "actif",
+   "06 39 98 21 07"],
+  ["Mairie de Montreuil", "Médiathèque et signalétique",   "actif",
+   "01 99 00 45 80 · 1 place Jean-Jaurès, 93100 Montreuil"],
+  ["Garage Delaunay",     "Établis et rangements",         "actif",
+   "M. Delaunay 06 39 98 44 12"],
+  ["Hôtel Beauséjour",    "Têtes de lit, trente chambres", "termine",
+   "06 39 98 33 21 · reception@hotel-beausejour.fr"],
+  ["Épicerie Tahar",      "Étagères et comptoir",          "termine", ""],
+  ["Camille Roux",        "Bibliothèque sur mesure",       "termine", ""]
 ];
 function fichesExemple(){
   const an = new Date().getFullYear(), factures = {}, clients = {};
@@ -1760,7 +1770,7 @@ function fichesExemple(){
       statut: l[4] ? "payee" : "envoyee", exemple: true};
   });
   DEMO_CLIENTS.forEach((c, i) => {
-    clients["ex-c" + i] = {nom: c[0], projet: c[1], statut: c[2], exemple: true};
+    clients["ex-c" + i] = {nom: c[0], projet: c[1], statut: c[2], contact: c[3] || "", exemple: true};
   });
   return {factures: factures, clients: clients};
 }
