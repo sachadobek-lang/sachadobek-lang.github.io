@@ -2849,6 +2849,10 @@ function rangeeSortie(o, col){
 const BAREME = [{p: 11600, t: 0}, {p: 29579, t: 11}, {p: 84577, t: 30}, {p: 181917, t: 41}, {p: null, t: 45}];
 const DEC_SEUL = 897, DEC_COUPLE = 1483, DEC_TAUX = 45.25;
 const IS_REDUIT = 15, IS_SEUIL = 42500, IS_PLEIN = 25;
+/* l'abattement micro ne peut pas descendre sous 305 €, et ne peut pas
+   dépasser le chiffre d'affaires : sur les tout petits montants, le
+   pourcentage seul donnait un impôt trop élevé */
+const ABAT_MINI = 305;
 
 /* ═══ UNE SEULE TABLE DE TAUX POUR TOUTE L'APPLICATION ═══
    « Calculs », « Mon argent » et le carnet la lisent tous. Il y en avait
@@ -2946,7 +2950,8 @@ function partageImpot(){
 
   /* Micro-entreprise : tout se calcule sur le chiffre d'affaires. */
   const cotis = ca * a.cotis / 100;
-  const base = ca * (100 - a.abat) / 100;
+  const abattu = Math.min(ca, Math.max(ABAT_MINI, ca * a.abat / 100));
+  const base = Math.max(0, ca - abattu);
   const impot = calcLib() ? ca * a.liber / 100 : impotBareme(base, calcParts());
   return {ca: ca, forme: f, act: a, cotis: cotis, impot: impot, base: base,
     net: ca - cotis - impot, genre: genre, micro: true};
