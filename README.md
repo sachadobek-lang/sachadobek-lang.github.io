@@ -1,11 +1,12 @@
-# Simpli
+# Plenitu
 
 Une application pour piloter une très petite entreprise : sa journée, ses clients,
 son argent. Pas de compte à créer, pas de configuration, pas de serveur — un seul
 fichier HTML qui s'ouvre dans un navigateur.
 
-Elle s'appelait Cadence jusqu'au 17 septembre 2026. Les copies de sauvegarde
-enregistrées sous l'ancien nom se restaurent toujours.
+Elle s'est appelée Cadence, puis Simpli, avant de devenir Plenitu le
+17 septembre 2026. Les copies de sauvegarde enregistrées sous l'un ou l'autre
+de ces noms se restaurent toujours.
 
 ## Les trois onglets
 

@@ -3,13 +3,13 @@
      zéro et les marges réservées à la barre d'accueil de l'iPhone ne
      s'appliquent jamais. La page avait les marges, pas la permission. -->
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Simpli</title>
+<title>Plenitu</title>
 <!-- « Sur l'écran d'accueil » : plein écran, sans la barre de Safari -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Simpli">
-<meta name="application-name" content="Simpli">
+<meta name="apple-mobile-web-app-title" content="Plenitu">
+<meta name="application-name" content="Plenitu">
 <meta name="theme-color" content="#F5F7FB">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap">
@@ -785,7 +785,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 /* ══════════ MA JOURNÉE — greffée telle quelle, couleurs d'origine ══════════ */
 
 #majournee{
-  /* Les mêmes polices que le reste de Simpli. Ma Journée demandait Manrope
+  /* Les mêmes polices que le reste de Plenitu. Ma Journée demandait Manrope
      et Instrument Sans, que la page ne charge pas : elle retombait sur
      Helvetica, et l'Agenda ne ressemblait à aucun autre écran. */
   --display:var(--num);
@@ -1531,7 +1531,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   @page{margin:14mm}#ilreste{background:#fff;color:#111}#ilreste .page{max-width:none;padding:0;gap:0}#ilreste .noprint{display:none!important}#ilreste .apercu{border:0;border-radius:0;padding:0;font-size:12pt}#ilreste .apercu th{border-bottom:1px solid #999}#ilreste .apercu td{border-bottom:1px solid #ddd}#ilreste .mentions{color:#444;font-size:9pt;margin-top:18px}#ilreste .liste{border:0;border-radius:0}#ilreste .ligne{border-bottom:1px solid #ddd}#ilreste .ligne .sup{display:none}
 }
 
-/* ── pour vivre à l'intérieur de Simpli ── */
+/* ── pour vivre à l'intérieur de Plenitu ── */
 #ilreste{display:block;background:transparent!important;padding-bottom:104px}
 #ilreste .enveloppe,#ilreste .wrap,#ilreste main{min-height:0;max-width:none}
 
@@ -2002,7 +2002,7 @@ const DEMO_LIGNES = [
   ["014", "Pharmacie Aubert",     6900,  60, 1, "Meuble de comptoir"],
   ["015", "Comptoir Lemoine",     4850,  40, 1, "Étude et plans"]
 ];
-/* Les coordonnées montrent les quatre cas que Simpli sait reconnaître :
+/* Les coordonnées montrent les quatre cas que Plenitu sait reconnaître :
    tout, le seul numéro, le numéro et l'adresse, le numéro derrière un nom.
    Deux fiches restent nues, pour qu'on voie aussi l'invite à en ajouter.
    Les numéros sont ceux que l'Arcep réserve à la fiction (06 39 98 · 01 99 00) :
@@ -2749,7 +2749,7 @@ function aRappeler(){
 
     /* 3 · le client content. C'est dans les jours qui suivent qu'on
        obtient un avis ; trois semaines plus tard il ne répond plus.
-       Simpli ne garde pas la date d'encaissement : la date d'émission
+       Plenitu ne garde pas la date d'encaissement : la date d'émission
        de la dernière facture en tient lieu. */
     if(f.length && !duSom){
       const der = f.map(x => String(x.emise)).sort().reverse()[0];
@@ -3616,7 +3616,7 @@ function demo(){
 
 /* ═══ emporter ses données ailleurs ═══ */
 async function exporterTout(){
-  const paquet = {application: "Simpli", version: 1, date: new Date().toISOString()};
+  const paquet = {application: "Plenitu", version: 1, date: new Date().toISOString()};
   COLS.forEach(c => { paquet[c] = state[c]; });
   paquet.moi = state.moi;
   paquet.rituel = state.rituel;
@@ -3659,8 +3659,9 @@ function importerTout(){
       try{ d = JSON.parse(lecteur.result); }catch(e){}
       /* « Cadence » est l'ancien nom : les copies enregistrées avant le
          changement doivent continuer de se restaurer. */
-      if(!d || typeof d !== "object" || (d.application !== "Simpli" && d.application !== "Cadence")){
-        bulle("Ce fichier n'est pas une copie de Simpli");
+      const noms = ["Plenitu", "Simpli", "Cadence"];   /* Simpli et Cadence sont les anciens noms */
+      if(!d || typeof d !== "object" || noms.indexOf(d.application) === -1){
+        bulle("Ce fichier n'est pas une copie de Plenitu");
         return;
       }
       COLS.forEach(c => { state[c] = d[c] && typeof d[c] === "object" ? d[c] : {}; });
@@ -4432,7 +4433,7 @@ window.addEventListener("resize", () => {
   if(!c.hidden){ c.width = window.innerWidth; c.height = window.innerHeight; }
 });
 
-/* ═══ Simpli reste en clair ═══
+/* ═══ Plenitu reste en clair ═══
    Elle suivait le thème du système, et s'affichait donc en noir chez
    ceux qui l'ont réglé ainsi. Sacha la veut blanche. Les trois feuilles
    de style prévoient déjà ce cas — chacune protège ses couleurs claires
@@ -4458,7 +4459,7 @@ window.addEventListener("resize", () => {
     x.fillStyle = "#FFFFFF";
     x.font = "600 " + Math.round(t * 0.58) + "px Outfit, sans-serif";
     x.textAlign = "center"; x.textBaseline = "middle";
-    x.fillText("S", t / 2, t * 0.54);
+    x.fillText("P", t / 2, t * 0.54);
     const url = c.toDataURL("image/png");
     ["apple-touch-icon", "icon"].forEach(function(quoi){
       const l = document.createElement("link");
@@ -4613,9 +4614,9 @@ function routeApprendre(a, b, min){
   renderTrack();
 }
 
-/* Les fiches clients vivent dans Simpli, pas ici. On les lit sans y toucher :
+/* Les fiches clients vivent dans Plenitu, pas ici. On les lit sans y toucher :
    si la fiche porte une adresse, le rendez-vous sait ou envoyer Waze. */
-function clientsSimpli(){
+function clientsPlenitu(){
   var d = null;
   try { d = JSON.parse(localStorage.getItem('cadence.v2') || localStorage.getItem('cadence.v1') || 'null'); }
   catch(e){ return []; }
@@ -4624,14 +4625,14 @@ function clientsSimpli(){
 }
 function adressePour(titre){
   var t = cleTexte(titre), trouve = '';
-  clientsSimpli().forEach(function(c){
+  clientsPlenitu().forEach(function(c){
     if (!c || !c.nom || !c.adresse) return;
     var n = cleTexte(c.nom);
     if (n.length >= 3 && t.indexOf(n) !== -1 && n.length > cleTexte(trouve).length) trouve = c.nom;
   });
   if (!trouve) return '';
   var fiche = null;
-  clientsSimpli().forEach(function(c){ if (c && c.nom === trouve) fiche = c; });
+  clientsPlenitu().forEach(function(c){ if (c && c.nom === trouve) fiche = c; });
   return fiche ? String(fiche.adresse || '').replace(/\s+/g, ' ').trim() : '';
 }
 function lienWaze(adresse){
@@ -5906,7 +5907,7 @@ window.addEventListener('resize', function(){
 refreshLocal();
 requestAnimationFrame(function(){ applyZoom(); renderTrack(); scrollToNow(); });
 
-/* Simpli prévient quand on revient sur l'onglet */
+/* Plenitu prévient quand on revient sur l'onglet */
 window.majourneeReveil = function(){
   requestAnimationFrame(function(){ applyZoom(); renderTrack(); scrollToNow(); });
 };
