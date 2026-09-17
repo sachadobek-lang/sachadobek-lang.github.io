@@ -1163,7 +1163,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .quick:focus-within .qplus{color:var(--ink)}
 #majournee .quick input{
   flex:1; min-width:0; border:none; background:none; outline:none; color:var(--ink);
-  font-family:var(--display); font-weight:500; font-size:15.5px; letter-spacing:-.008em;
+  font-weight:600; font-size:15.5px;
   padding:12px 0;
   /* sans cela l'invite se coupe net au milieu d'un mot */
   text-overflow:ellipsis;
@@ -1184,6 +1184,9 @@ summary.carte-tete:hover h2{color:var(--v1)}
   display:grid; place-items:center; transition:color .14s ease, background-color .14s ease;
 }
 #majournee .qmore:hover{color:var(--ink); background:var(--surface-2)}
+/* c'est le seul geste d'ajout de l'écran : il doit se voir */
+#majournee .quick .qmore{color:var(--ink); background:var(--surface-2)}
+#majournee .quick:focus-within .qmore{background:var(--ink); color:var(--bg)}
 @media (max-width:560px){#majournee .quick{flex-wrap:wrap; padding-bottom:10px}#majournee .quick input{flex:1 1 60%}#majournee .qprev{margin-left:30px}
 }
 #majournee .sheet-wrap{position:fixed; inset:0; z-index:60; display:grid; place-items:end center}
@@ -1209,7 +1212,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .name-input{
   width:100%; padding:14px 16px; border-radius:13px;
   border:1px solid var(--line); background:var(--surface); color:var(--ink);
-  font-family:var(--display); font-weight:500; font-size:16px; letter-spacing:-.01em;
+  font-weight:600; font-size:16px;
 }
 #majournee .name-input::placeholder{color:var(--ink-3); font-weight:400}
 #majournee .name-input:focus{border-color:var(--ink); outline:none}
@@ -1232,7 +1235,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .time-input{
   width:100%; padding:13px 15px; border-radius:13px;
   border:1px solid var(--line); background:var(--surface); color:var(--ink);
-  font-family:var(--display); font-weight:600; font-size:17px; letter-spacing:-.01em;
+  font-weight:700; font-size:17px;
   font-variant-numeric:tabular-nums;
 }
 #majournee .time-input:focus{border-color:var(--ink); outline:none}
@@ -1240,7 +1243,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .chiprow.first{margin-top:0}
 #majournee .chip{
   border:1px solid var(--line); background:var(--surface); border-radius:11px;
-  padding:10px 4px; font-family:var(--display); font-weight:500; font-size:13.5px;
+  padding:10px 4px; font-weight:600; font-size:15px;
   font-variant-numeric:tabular-nums; text-align:center; color:var(--ink-2);
   transition:border-color .12s ease, background-color .12s ease, color .12s ease;
 }
@@ -1787,14 +1790,11 @@ summary.carte-tete:hover h2{color:var(--v1)}
   </header>
 
   <div class="quick" id="quickBar">
-    <span class="qplus">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5.5v13M5.5 12h13"/></svg>
-    </span>
     <input id="quick" type="text" maxlength="90" autocomplete="off"
-           placeholder="Déjeuner demain 13h — écrivez, puis Entrée">
+           placeholder="Déjeuner demain 13h">
     <span class="qprev" id="qprev"></span>
-    <button class="qmore" id="qmore" aria-label="Ouvrir la fiche détaillée" title="Plus de réglages">
-      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M4 8h10M18 8h2M4 16h4M12 16h8"/><circle cx="16" cy="8" r="2"/><circle cx="10" cy="16" r="2"/></svg>
+    <button class="qmore" id="qmore" aria-label="Ajouter cette activité" title="Ajouter">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5.5v13M5.5 12h13"/></svg>
     </button>
   </div>
 
@@ -1881,7 +1881,6 @@ summary.carte-tete:hover h2{color:var(--v1)}
   <button data-vue="afaire" aria-current="page"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="5" width="17.6" height="15.8" rx="3.4"/><path d="M3.2 10h17.6M8.2 2.6v3.6M15.8 2.6v3.6"/></svg><span class="nom">Agenda</span><span class="compte" id="n-taches" hidden></span></button>
   <button data-vue="argent"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c0-3.4 2.8-5.6 6.2-5.6s6.2 2.2 6.2 5.6"/><path d="M16.2 5.2a3.4 3.4 0 0 1 0 6.4M18 14.8c2 .7 3.2 2.5 3.2 5.2"/></svg><span class="nom">Clients</span><span class="compte" id="n-argent" hidden></span></button>
   <button data-vue="budget"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 17.2 9 11.4l3.6 3.6 8-8"/><path d="M15.8 7h4.8v4.8"/></svg><span class="nom">Comptabilité</span></button>
-  <button class="plus" id="plus" aria-label="Ajouter"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round"><path d="M12 5.5v13M5.5 12h13"/></svg><span class="nom">Ajouter</span></button>
 </nav>
 
 <div class="voile" id="voile" hidden></div>
@@ -2872,6 +2871,9 @@ function carnetClients(){
     : "";
 
   return rappel
+    + '<button class="faire-facture anim" data-neuf="client">'
+    + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
+    + '<path d="M12 5.5v13M5.5 12h13"/></svg>Nouveau client</button>'
     + '<section class="carte anim"><div class="carte-tete"><h2>Vos clients</h2>'
     + '<span class="appoint">' + actifs.length + " chantier" + (actifs.length > 1 ? "s" : "") + " en cours</span></div>"
     + (cl.length ? corps
@@ -2958,7 +2960,7 @@ function ecranFactures(){
     + '<div class="segments">' + libs.map(kv =>
         '<button data-ff="' + kv[0] + '" aria-pressed="' + (filtreF === kv[0]) + '">' + kv[1] + "</button>").join("") + "</div>"
     + (vis.length ? vis.map(f => rangeeFacture(f)).join("")
-       : '<p class="vide"><b>Aucune facture ici</b>Changez de filtre, ou appuyez sur + pour en créer une.</p>')
+       : '<p class="vide"><b>Aucune facture ici</b>Changez de filtre, ou utilisez « Faire une facture » au-dessus.</p>')
     + '<button class="ajout-ligne" data-moi="1"><span class="rond" style="border-style:solid">'
     + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;stroke-width:2.2;fill:none">'
     + '<circle cx="12" cy="8.4" r="3.6"/><path d="M4.8 20c0-3.6 3.2-5.8 7.2-5.8s7.2 2.2 7.2 5.8"/></svg></span>'
@@ -4084,11 +4086,6 @@ $("#vue").addEventListener("pointercancel", lacher);
 $("#nav").addEventListener("click", e => {
   const b = e.target.closest("button");
   if(!b) return;
-  if(b.id === "plus"){
-    if(vue === "afaire" && window.__AGENDA_NOUVELLE__){ window.__AGENDA_NOUVELLE__(); return; }
-    ouvrir(typeDefaut());
-    return;
-  }
   if(!b.dataset.vue) return;
   vue = b.dataset.vue;
   clientOuvert = null;
@@ -5736,6 +5733,9 @@ $('quick').addEventListener('keydown', function(e){
   if (e.key === 'Escape'){ e.target.value = ''; quickPreview(); e.target.blur(); }
 });
 $('qmore').addEventListener('click', function(){
+  /* une phrase écrite : on l'ajoute tout de suite, comme la touche Entrée.
+     Champ vide : on ouvre la fiche pour choisir le jour et la durée. */
+  if ($('quick').value.trim()) { quickAdd(); return; }
   var text = $('quick').value.trim();
   var g = text ? parsePhrase(text, state.date) : {};
   var v = quickDefaults(g);
