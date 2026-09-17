@@ -3661,7 +3661,13 @@ const RENDU = {afaire: vueAfaire, argent: vueArgent, budget: vueBudget};
 /* ───────── rendu ───────── */
 function rendre(){
   const c = calculs();
-  badge("#n-taches", c.resteJour.length);
+  /* Le badge comptait les tâches en retard de state.taches. Depuis que
+     l'Agenda affiche Ma Journée, ces tâches ne s'affichent plus nulle
+     part : Sacha voyait une pastille qu'aucun geste ne pouvait faire
+     disparaître. Un compteur qu'on ne peut pas résoudre est pire que
+     pas de compteur. À rouvrir le jour où l'Agenda montrera de nouveau
+     quelque chose à faire. */
+  badge("#n-taches", 0);
   badge("#n-argent", 0);
   const surAgenda = vue === "afaire";
   const surCompta = vue === "budget";
