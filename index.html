@@ -3345,7 +3345,24 @@ const MOTS = {
   devis:     {titre: "Rappeler ", aide: "Il n'a pas dit non, personne ne l'a rappelé. Relisez-le, il part sous votre nom."}
 };
 
+/* Écrire un mot puis le copier ou l'envoyer, c'est l'avoir fait : la
+   personne se tait une semaine, sans qu'on ait à appuyer sur « Plus
+   tard ». Mais seulement au moment de copier ou d'ouvrir le mail —
+   ouvrir la feuille pour la relire n'est pas envoyer. */
+let motEnCours = null;
+function retenirMot(nom){
+  const p = aRappeler().find(x => x.nom === nom);
+  motEnCours = p ? {id: p.id, cle: p.cle} : null;
+}
+function motEnvoye(){
+  if(!motEnCours) return;
+  repousser(motEnCours.id, motEnCours.cle, dans(7));
+  motEnCours = null;
+  memoire.clear();
+}
+
 function ouvrirMot(nom, genre){
+  retenirMot(nom);
   if(genre === "relance") return ouvrirRelance(nom);
   const r = genre === "avis" ? texteAvis(nom) : genre === "nouvelles" ? texteNouvelles(nom) : texteDevis(nom);
   const m = MOTS[genre] || MOTS.devis;
@@ -3368,6 +3385,7 @@ function ouvrirMot(nom, genre){
 }
 
 function ouvrirRelance(nom){
+  retenirMot(nom);
   const r = texteRelance(nom);
   if(!r) return;
   const cl = liste("clients").find(x => x.nom === nom);
@@ -4376,6 +4394,7 @@ $("#feuille").addEventListener("click", e => {
       }
       b.textContent = "Copié";
       setTimeout(() => { if(b.isConnected) b.textContent = "Copier le message"; }, 1800);
+      motEnvoye();
     }
     return;
   }
@@ -4384,6 +4403,7 @@ $("#feuille").addEventListener("click", e => {
     window.location.href = "mailto:" + encodeURIComponent(b.dataset.mailRelance)
       + "?subject=" + encodeURIComponent(b.dataset.objet)
       + "&body=" + encodeURIComponent(z ? z.value : "");
+    motEnvoye();
     return;
   }
   const t = e.target.closest("[data-type]");
