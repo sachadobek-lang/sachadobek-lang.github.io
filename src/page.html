@@ -114,6 +114,24 @@
 *{box-sizing:border-box}
 /* l'agenda garde sa propre mise en page, mais le sol est commun */
 body.sur-agenda .page{max-width:none;padding:0}
+/* ═══ la lumière de chaque onglet ═══
+   Sacha, sur maquette : « crée un léger contraste entre les 3 pages ».
+   L'Agenda tire vers le froid, la Comptabilité vers l'ivoire, Clients
+   reste la référence neutre. L'écart est de deux ou trois pour cent :
+   côte à côte on ne le voit pas, en changeant d'onglet on le sent.
+   C'est le contraste le plus léger possible — rien ne s'ajoute à
+   l'écran, aucune option de plus, la règle des trois tient.
+   Chaque valeur appartient à l'agent de son onglet : à lui de la
+   régler ou de la retirer. */
+:root[data-onglet="afaire"]{--fond:linear-gradient(180deg,#F1F5FC 0%,#E6ECF6 100%)}
+:root[data-onglet="budget"]{--fond:linear-gradient(180deg,#F9F7F3 0%,#F0ECE5 100%)}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"])[data-onglet="afaire"]{--fond:linear-gradient(180deg,#0D1119 0%,#070A0F 100%)}
+  :root:not([data-theme="light"])[data-onglet="budget"]{--fond:linear-gradient(180deg,#12110E 0%,#0A0906 100%)}
+}
+:root[data-theme="dark"][data-onglet="afaire"]{--fond:linear-gradient(180deg,#0D1119 0%,#070A0F 100%)}
+:root[data-theme="dark"][data-onglet="budget"]{--fond:linear-gradient(180deg,#12110E 0%,#0A0906 100%)}
+
 body{margin:0;background:var(--fond) fixed;color:var(--ink);font-family:var(--ui);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
@@ -3696,6 +3714,8 @@ const RENDU = {afaire: vueAfaire, argent: vueArgent, budget: vueBudget};
 
 /* ───────── rendu ───────── */
 function rendre(){
+  /* la racine porte l'onglet : c'est elle qui choisit la lumière du fond */
+  document.documentElement.dataset.onglet = vue;
   const c = calculs();
   /* Le badge comptait les tâches en retard de state.taches. Depuis que
      l'Agenda affiche Ma Journée, ces tâches ne s'affichent plus nulle
