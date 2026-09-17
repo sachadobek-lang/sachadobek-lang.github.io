@@ -1,6 +1,6 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Cadence</title>
+<title>Simpli</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap">
 <style>
@@ -766,7 +766,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 /* ══════════ MA JOURNÉE — greffée telle quelle, couleurs d'origine ══════════ */
 
 #majournee{
-  /* Les mêmes polices que le reste de Cadence. Ma Journée demandait Manrope
+  /* Les mêmes polices que le reste de Simpli. Ma Journée demandait Manrope
      et Instrument Sans, que la page ne charge pas : elle retombait sur
      Helvetica, et l'Agenda ne ressemblait à aucun autre écran. */
   --display:var(--num);
@@ -1501,7 +1501,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   @page{margin:14mm}#ilreste{background:#fff;color:#111}#ilreste .page{max-width:none;padding:0;gap:0}#ilreste .noprint{display:none!important}#ilreste .apercu{border:0;border-radius:0;padding:0;font-size:12pt}#ilreste .apercu th{border-bottom:1px solid #999}#ilreste .apercu td{border-bottom:1px solid #ddd}#ilreste .mentions{color:#444;font-size:9pt;margin-top:18px}#ilreste .liste{border:0;border-radius:0}#ilreste .ligne{border-bottom:1px solid #ddd}#ilreste .ligne .sup{display:none}
 }
 
-/* ── pour vivre à l'intérieur de Cadence ── */
+/* ── pour vivre à l'intérieur de Simpli ── */
 #ilreste{display:block;background:transparent!important;padding-bottom:104px}
 #ilreste .enveloppe,#ilreste .wrap,#ilreste main{min-height:0;max-width:none}
 
@@ -1971,7 +1971,7 @@ const DEMO_LIGNES = [
   ["014", "Pharmacie Aubert",     6900,  60, 1, "Meuble de comptoir"],
   ["015", "Comptoir Lemoine",     4850,  40, 1, "Étude et plans"]
 ];
-/* Les coordonnées montrent les quatre cas que Cadence sait reconnaître :
+/* Les coordonnées montrent les quatre cas que Simpli sait reconnaître :
    tout, le seul numéro, le numéro et l'adresse, le numéro derrière un nom.
    Deux fiches restent nues, pour qu'on voie aussi l'invite à en ajouter.
    Les numéros sont ceux que l'Arcep réserve à la fiction (06 39 98 · 01 99 00) :
@@ -2718,7 +2718,7 @@ function aRappeler(){
 
     /* 3 · le client content. C'est dans les jours qui suivent qu'on
        obtient un avis ; trois semaines plus tard il ne répond plus.
-       Cadence ne garde pas la date d'encaissement : la date d'émission
+       Simpli ne garde pas la date d'encaissement : la date d'émission
        de la dernière facture en tient lieu. */
     if(f.length && !duSom){
       const der = f.map(x => String(x.emise)).sort().reverse()[0];
@@ -3582,7 +3582,7 @@ function demo(){
 
 /* ═══ emporter ses données ailleurs ═══ */
 async function exporterTout(){
-  const paquet = {application: "Cadence", version: 1, date: new Date().toISOString()};
+  const paquet = {application: "Simpli", version: 1, date: new Date().toISOString()};
   COLS.forEach(c => { paquet[c] = state[c]; });
   paquet.moi = state.moi;
   paquet.rituel = state.rituel;
@@ -3620,8 +3620,10 @@ function importerTout(){
     lecteur.onload = () => {
       let d = null;
       try{ d = JSON.parse(lecteur.result); }catch(e){}
-      if(!d || typeof d !== "object" || d.application !== "Cadence"){
-        bulle("Ce fichier n'est pas une copie de Cadence");
+      /* « Cadence » est l'ancien nom : les copies enregistrées avant le
+         changement doivent continuer de se restaurer. */
+      if(!d || typeof d !== "object" || (d.application !== "Simpli" && d.application !== "Cadence")){
+        bulle("Ce fichier n'est pas une copie de Simpli");
         return;
       }
       COLS.forEach(c => { state[c] = d[c] && typeof d[c] === "object" ? d[c] : {}; });
@@ -4373,7 +4375,7 @@ window.addEventListener("resize", () => {
   if(!c.hidden){ c.width = window.innerWidth; c.height = window.innerHeight; }
 });
 
-/* ═══ Cadence reste en clair ═══
+/* ═══ Simpli reste en clair ═══
    Elle suivait le thème du système, et s'affichait donc en noir chez
    ceux qui l'ont réglé ainsi. Sacha la veut blanche. Les trois feuilles
    de style prévoient déjà ce cas — chacune protège ses couleurs claires
@@ -4531,9 +4533,9 @@ function routeApprendre(a, b, min){
   renderTrack();
 }
 
-/* Les fiches clients vivent dans Cadence, pas ici. On les lit sans y toucher :
+/* Les fiches clients vivent dans Simpli, pas ici. On les lit sans y toucher :
    si la fiche porte une adresse, le rendez-vous sait ou envoyer Waze. */
-function clientsCadence(){
+function clientsSimpli(){
   var d = null;
   try { d = JSON.parse(localStorage.getItem('cadence.v2') || localStorage.getItem('cadence.v1') || 'null'); }
   catch(e){ return []; }
@@ -4542,14 +4544,14 @@ function clientsCadence(){
 }
 function adressePour(titre){
   var t = cleTexte(titre), trouve = '';
-  clientsCadence().forEach(function(c){
+  clientsSimpli().forEach(function(c){
     if (!c || !c.nom || !c.adresse) return;
     var n = cleTexte(c.nom);
     if (n.length >= 3 && t.indexOf(n) !== -1 && n.length > cleTexte(trouve).length) trouve = c.nom;
   });
   if (!trouve) return '';
   var fiche = null;
-  clientsCadence().forEach(function(c){ if (c && c.nom === trouve) fiche = c; });
+  clientsSimpli().forEach(function(c){ if (c && c.nom === trouve) fiche = c; });
   return fiche ? String(fiche.adresse || '').replace(/\s+/g, ' ').trim() : '';
 }
 function lienWaze(adresse){
@@ -5819,7 +5821,7 @@ window.addEventListener('resize', function(){
 refreshLocal();
 requestAnimationFrame(function(){ applyZoom(); renderTrack(); scrollToNow(); });
 
-/* Cadence prévient quand on revient sur l'onglet */
+/* Simpli prévient quand on revient sur l'onglet */
 window.majourneeReveil = function(){
   requestAnimationFrame(function(){ applyZoom(); renderTrack(); scrollToNow(); });
 };
