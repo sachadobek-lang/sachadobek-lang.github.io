@@ -2132,16 +2132,18 @@ function charger(){
       /* sans date d'inscription, un prospect attendrait pour toujours */
       if(c && !c.cree) c.cree = auj();
     });
+    /* d'anciennes fiches d'exemple, écrites quand l'application en
+       proposait : on les retire, puisqu'elle n'en propose plus. Rien de
+       ce qui a été saisi à la main n'est touché. */
     const fx = liste("factures"), cx = liste("clients");
-    if((fx.length || cx.length) && fx.every(o => o.exemple) && cx.every(o => o.exemple)){
-      const ex = fichesExemple();
-      state.factures = ex.factures; state.clients = ex.clients;
+    if(fx.some(o => o.exemple) || cx.some(o => o.exemple)){
+      COLS.forEach(c => liste(c).filter(o => o.exemple).forEach(o => { delete state[c][o.id]; }));
       sauver();
     }
   }else{
+    /* l'application s'ouvre vide : c'est la sienne, pas une démonstration.
+       fichesExemple() existe toujours si on veut les remontrer un jour. */
     COLS.forEach(c => { state[c] = JSON.parse(JSON.stringify(SEED[c] || {})); });
-    const ex = fichesExemple();
-    state.factures = ex.factures; state.clients = ex.clients;
   }
 }
 function ecrire(col, id, obj){
