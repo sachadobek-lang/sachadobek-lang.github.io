@@ -549,6 +549,19 @@ button.tuile:active{transform:scale(.985)}
 .pile-autre button{border:0;background:none;color:var(--ink-2);font:inherit;font-size:15px;font-weight:700;
   padding:8px 10px;border-radius:999px;cursor:pointer;transition:color .18s}
 .pile-autre button:hover{color:var(--v-txt)}
+/* On ouvre ce carnet pour voir ses clients, pas pour en créer un : le
+   bouton reste en haut, à portée, mais il ne crie plus plus fort que la
+   liste. Même poids que le geste du jour, sur demande de Sacha —
+   « plus petit, pas dans une case, en blanc ». */
+.neuf-client{display:flex;align-items:center;gap:9px;width:max-content;margin:0 auto 16px;
+  border:1px solid var(--line);border-radius:999px;padding:12px 22px;background:var(--surface);
+  color:var(--v-txt);font:inherit;font-size:15.5px;font-weight:700;box-shadow:var(--o1);
+  cursor:pointer;animation-delay:.04s;transition:background .18s,transform .12s}
+.neuf-client:hover{background:var(--surface-2)}
+.neuf-client:active{transform:scale(.97)}
+.neuf-client svg{width:17px;height:17px;stroke-width:2.3;fill:none;flex:none}
+@media (pointer:coarse){.neuf-client{padding:14px 24px}}
+
 /* la ligne de rappel, en haut du carnet : elle dit combien de gens
    attendent, elle ne prend pas la place de ce qu'on est venu voir */
 .bandeau{display:flex;align-items:center;gap:11px;width:100%;margin-bottom:14px;border:0;
@@ -2881,8 +2894,8 @@ function carnetClients(){
     : "";
 
   return rappel
-    + '<button class="faire-facture anim" data-neuf="client">'
-    + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
+    + '<button class="neuf-client anim" data-neuf="client">'
+    + '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">'
     + '<path d="M12 5.5v13M5.5 12h13"/></svg>Nouveau client</button>'
     + '<section class="carte anim"><div class="carte-tete"><h2>Vos clients</h2>'
     + '<span class="appoint">' + actifs.length + " chantier" + (actifs.length > 1 ? "s" : "") + " en cours</span></div>"
