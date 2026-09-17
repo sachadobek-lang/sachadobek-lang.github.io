@@ -4166,12 +4166,12 @@ $("#nav").addEventListener("click", e => {
 function armer(b){
   if(b.dataset.arme === "1") return true;
   const m = b.querySelector(".mot") || b;
-  b.dataset.arme = "1"; b.dataset.mot = m.textContent; m.textContent = "Confirmer ?";
+  b.dataset.arme = "1"; b.dataset.libelleArme = m.textContent; m.textContent = "Confirmer ?";
   setTimeout(() => {
     if(b.isConnected && b.dataset.arme === "1"){
       b.dataset.arme = "0";
       const m2 = b.querySelector(".mot") || b;
-      m2.textContent = b.dataset.mot;
+      m2.textContent = b.dataset.libelleArme;
     }
   }, 4000);
   return false;
