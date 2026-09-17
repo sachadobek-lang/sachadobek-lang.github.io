@@ -3756,7 +3756,11 @@ function rendre(){
   $("#majournee").hidden = !surAgenda;
   $("#ilreste").hidden = !greffeCompta;
   $("#vue").hidden = surAgenda;
-  $("#entete").hidden = greffe;
+  /* l'en-tête ne disparaît que sur l'Agenda, qui porte le sien.
+     Le masquer aussi sur Comptabilité › Mon argent faisait remonter la
+     barre des trois onglets de 84 pixels : on changeait de sous-onglet
+     et toute la page sautait. */
+  $("#entete").hidden = surAgenda;
   document.body.classList.toggle("sur-agenda", surAgenda);
   if(surAgenda){
     document.querySelector(".page").dataset.sec = vue;
