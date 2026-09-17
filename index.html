@@ -2102,13 +2102,45 @@ const ETIQ_C = {actif: ["En cours", "amb"], prospect: ["Prospect", "att"], termi
 /* ───────── mémoire du navigateur ───────── */
 function sauver(){
   try{
+    /* avant d'écraser, on garde l'état de la veille : une fois par jour,
+       pas à chaque frappe. Quelques dizaines de kilo-octets contre le
+       risque de tout perdre sur une écriture abîmée. */
+    const hier = localStorage.getItem("plenitu.veille.date");
+    if(hier !== auj()){
+      const actuel = localStorage.getItem("cadence.v2");
+      if(actuel && actuel.length > 2){
+        try{
+          localStorage.setItem("plenitu.veille", actuel);
+          localStorage.setItem("plenitu.veille.date", auj());
+        }catch(err){}
+      }
+    }
     localStorage.setItem("cadence.v2", JSON.stringify(state));
     stockOk = true;
   }catch(e){ stockOk = false; }
 }
+let donneesAbimees = null;   /* la clé où l'on a mis de côté ce qu'on n'a pas su lire */
+
 function charger(){
   let d = null;
-  try{ d = JSON.parse(localStorage.getItem("cadence.v2") || localStorage.getItem("cadence.v1") || "null"); }catch(e){}
+  const brut = localStorage.getItem("cadence.v2") || localStorage.getItem("cadence.v1") || null;
+  try{ d = JSON.parse(brut || "null"); }catch(e){
+    /* Illisible. Repartir à zéro en silence effacerait tout son travail au
+       prochain enregistrement : on met la copie de côté sous un nom daté,
+       et on le lui dit. Elle reste récupérable à la main, ou par
+       quelqu'un qui saura la lire. */
+    if(brut && brut.length > 2){
+      try{
+        donneesAbimees = "plenitu.secours." + new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-");
+        localStorage.setItem(donneesAbimees, brut);
+      }catch(err){ donneesAbimees = null; }
+    }
+    /* plutôt que de repartir de rien : la copie de la veille */
+    try{
+      const veille = localStorage.getItem("plenitu.veille");
+      if(veille) d = JSON.parse(veille);
+    }catch(err){ d = null; }
+  }
   if(d && typeof d === "object"){
     COLS.forEach(c => { state[c] = d[c] && typeof d[c] === "object" ? d[c] : {}; });
     if(d.rituel) state.rituel = d.rituel;
@@ -3680,7 +3712,7 @@ async function exporterTout(){
   /* le nom du fichier n'entre pas dans la vérification à la restauration
      — c'est le champ « application » qui fait foi — donc le changer ne
      rend illisible aucune copie déjà enregistrée. */
-  const nom = "simpli-" + auj() + ".json";
+  const nom = "plenitu-" + auj() + ".json";
 
   if(window.claude && window.claude.use){
     const dl = await window.claude.use("downloads").catch(() => null);
@@ -4509,6 +4541,23 @@ window.addEventListener("resize", () => {
   });
 })();
 
+/* ═══ demander au navigateur de garder les données ═══
+   Sans cette demande, Safari range Plenitu parmi les sites ordinaires :
+   son stockage peut être effacé après quelques jours sans visite. Ce qui
+   est acceptable pour un site qu'on lit ne l'est pas pour un carnet de
+   factures. La permission est accordée d'office aux pages installées sur
+   l'écran d'accueil, et souvent aux sites qu'on rouvre régulièrement.
+   Elle ne demande rien à l'utilisateur et ne coûte rien si elle échoue. */
+(function(){
+  try{
+    if(navigator.storage && navigator.storage.persist){
+      navigator.storage.persisted().then(function(dejaAcquis){
+        if(!dejaAcquis) navigator.storage.persist().catch(function(){});
+      }).catch(function(){});
+    }
+  }catch(e){}
+})();
+
 /* ═══ l'icône de l'écran d'accueil ═══
    On la dessine plutôt que de l'embarquer : un PNG de 180 px pèse cinq
    kilo-octets dans un fichier qui doit rester unique, et une icône
@@ -4533,6 +4582,11 @@ window.addEventListener("resize", () => {
 })();
 
 charger();
+if(donneesAbimees){
+  setTimeout(function(){
+    bulle("Vos fiches étaient illisibles. Une copie a été gardée de côté.");
+  }, 1200);
+}
 /* l'atelier de menuiserie vend des choses : c'est le bon point de départ
    pour les fiches d'exemple. Mais seulement tant que personne n'a
    répondu — sinon on écraserait son choix à chaque ouverture. */
