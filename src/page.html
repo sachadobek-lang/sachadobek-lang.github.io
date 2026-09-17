@@ -1186,7 +1186,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .qmore:hover{color:var(--ink); background:var(--surface-2)}
 @media (max-width:560px){#majournee .quick{flex-wrap:wrap; padding-bottom:10px}#majournee .quick input{flex:1 1 60%}#majournee .qprev{margin-left:30px}
 }
-#majournee .sheet-wrap{position:fixed; inset:0; z-index:40; display:grid; place-items:end center}
+#majournee .sheet-wrap{position:fixed; inset:0; z-index:60; display:grid; place-items:end center}
 #majournee .backdrop{position:absolute; inset:0; background:rgba(11,12,15,.45)}
 #majournee .sheet{
   position:relative; width:min(540px,100%); max-height:94dvh;
@@ -4068,7 +4068,11 @@ $("#vue").addEventListener("pointercancel", lacher);
 $("#nav").addEventListener("click", e => {
   const b = e.target.closest("button");
   if(!b) return;
-  if(b.id === "plus"){ ouvrir(typeDefaut()); return; }
+  if(b.id === "plus"){
+    if(vue === "afaire" && window.__AGENDA_NOUVELLE__){ window.__AGENDA_NOUVELLE__(); return; }
+    ouvrir(typeDefaut());
+    return;
+  }
   if(!b.dataset.vue) return;
   vue = b.dataset.vue;
   clientOuvert = null;
@@ -5619,6 +5623,8 @@ function openSheet(ev, seed){
   setTimeout(function(){ $('evName').focus({preventScroll:true}); }, 60);
 }
 function closeSheet(){ $('sheetWrap').hidden = true; document.body.style.overflow = ''; }
+/* le bouton + de la barre, quand Sacha est sur l'Agenda */
+window.__AGENDA_NOUVELLE__ = function(){ openSheet(); };
 function disarmDelete(){
   var t = $('del');
   t.classList.remove('armed'); t.dataset.armed = '';
