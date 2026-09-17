@@ -12,7 +12,7 @@ enregistrées sous l'ancien nom se restaurent toujours.
 | Onglet | Ce qu'on y fait |
 |---|---|
 | **Agenda** | La journée en ruban, les créneaux libres, le temps de route entre deux rendez-vous qui s'enchaînent, et le tableau des notes en dessous |
-| **Clients** | L'écran ne montre pas une liste : il pose une question et propose un nom — impayé, devis qui dort, client content, client oublié. Le carnet, rangé par mois de signature, est derrière |
+| **Clients** | Le carnet, rangé par mois de signature, et sur chaque fiche de quoi appeler, écrire ou s'y rendre. Au-dessus, une ligne dit combien de personnes attendent un appel — impayé, devis qui dort, client content, client oublié — et mène à l'écran qui les propose une à la fois |
 | **Comptabilité** | *Calculs* : ce qu'il vous restera une fois cotisations et impôt payés. *Factures* : les totaux de l'année, la liste, le PDF. *Mon argent* : ce qui est vraiment à vous |
 
 ## Principes de conception
