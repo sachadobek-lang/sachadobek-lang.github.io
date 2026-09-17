@@ -3102,7 +3102,7 @@ function vueCalculs(){
 
   let out = '<section class="carte anim"><div class="carte-tete"><h2>Combien vous restera-t-il ?</h2></div>'
     + '<div class="saisie-gros"><label for="c-ca">Ce que vous encaissez dans l\'année</label>'
-    + '<input id="c-ca" type="text" inputmode="decimal" autocomplete="off" spellcheck="false" placeholder="40 000" value="'
+    + '<input id="c-ca" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="40 000" value="'
     + (ca ? nf.format(ca) : "") + '"></div>'
     + (ca > 0 ? '<div class="reponse-c"><p class="heros-val" data-compte="calcnet" data-val="' + k.net + '">'
         + eur(k.net) + '</p><span>' + (k.societe ? "restera dans la société" : "il vous restera, une fois tout payé")
@@ -4218,8 +4218,14 @@ $("#vue").addEventListener("input", e => {
   /* on compte les chiffres situés avant le curseur : les séparateurs vont
      bouger, mais le nombre de chiffres à gauche, lui, ne bouge pas. C'est
      le seul repère qui survit au reformatage. */
-  const chiffresAvant = brut.slice(0, e.target.selectionStart || 0).replace(/\D/g, "").length;
-  calcCA = Number(brut.replace(/\D/g, "")) || 0;
+  /* Une virgule ou un point arrête le nombre. Les avaler multipliait le
+     montant par cent : 40 000,50 devenait 4 000 050 €, sans un mot. Les
+     centimes ne pèsent rien sur un chiffre d'affaires annuel ; se tromper
+     d'un facteur cent, si. */
+  const entier = brut.split(/[.,]/)[0].replace(/\D/g, "");
+  calcCA = Number(entier) || 0;
+  const chiffresAvant = Math.min(entier.length,
+    brut.slice(0, e.target.selectionStart || 0).replace(/\D/g, "").length);
   calcTouche = true;
   memoire.set("calcnet", partageImpot().net);   /* pas d'animation à chaque touche */
   animer = false;
