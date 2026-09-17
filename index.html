@@ -1355,11 +1355,16 @@ summary.carte-tete:hover h2{color:var(--v1)}
   cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
   transition:transform .08s,background .15s;
 }
+/* Les deux gestes restent côte à côte à toutes les largeurs : empilés et
+   pleins, ils mangeaient le premier écran à eux seuls. Ce sont des
+   raccourcis, pas la réponse — ils prennent la place de raccourcis, et
+   portent le blanc des cartes du reste de l'application. */
 #ilreste .deux-gros{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-@media(max-width:420px){#ilreste .deux-gros{grid-template-columns:1fr}}
-#ilreste .deux-gros .gros{width:100%}
-#ilreste .gros.doux{background:var(--surface);color:var(--moi);border:2px solid var(--moi)}
-#ilreste .gros.doux:hover{background:var(--moi);color:var(--on-moi)}
+#ilreste .deux-gros .gros{
+  width:100%;min-height:0;padding:15px 8px;
+  background:var(--surface);color:var(--ink);border:0;box-shadow:var(--o1);
+  font-size:15.5px;gap:7px}
+#ilreste .deux-gros .gros:hover{background:var(--sunken);color:var(--moi)}
 #ilreste .gros:hover{background:var(--ink);color:var(--paper)}
 #ilreste .gros:active{transform:scale(.985)}
 #ilreste .bloc-disque{display:flex;flex-direction:column;align-items:center;gap:14px}
@@ -1523,6 +1528,11 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .cadre.alerte{background:var(--chaud-bg);box-shadow:none}
 #ilreste .cadre .v{font-size:38px;letter-spacing:-.03em;line-height:1.1}
 #ilreste .gros{border-radius:var(--rm);font-family:var(--num);font-size:17.5px;font-weight:600}
+/* les deux libellés doivent tenir sur une ligne chacun, sinon l'un des
+   deux boutons paraît plus lourd que l'autre */
+#ilreste .deux-gros .gros{font-size:15px;white-space:nowrap;letter-spacing:-.01em}
+@media(max-width:400px){#ilreste .deux-gros{gap:8px}
+  #ilreste .deux-gros .gros{font-size:13.5px;padding:14px 4px;gap:5px}}
 #ilreste .repli{border:0;border-radius:var(--rm);background:var(--surface);box-shadow:var(--o1)}
 #ilreste details.repli > summary{padding:16px 19px;font-size:15.5px}
 #ilreste details.repli > summary .titre{flex:none;font-weight:700;color:var(--ink)}
