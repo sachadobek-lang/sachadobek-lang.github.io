@@ -3588,7 +3588,10 @@ async function exporterTout(){
   paquet.rituel = state.rituel;
   paquet.serie = state.serie;
   const texte = JSON.stringify(paquet, null, 1);
-  const nom = "cadence-" + auj() + ".json";
+  /* le nom du fichier n'entre pas dans la vérification à la restauration
+     — c'est le champ « application » qui fait foi — donc le changer ne
+     rend illisible aucune copie déjà enregistrée. */
+  const nom = "simpli-" + auj() + ".json";
 
   if(window.claude && window.claude.use){
     const dl = await window.claude.use("downloads").catch(() => null);
