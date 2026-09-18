@@ -44,9 +44,13 @@ une source de désaccord, pas une information.
 ## Les données
 
 Tout est enregistré dans le `localStorage` du navigateur, sur l'appareil du
-visiteur uniquement. Rien n'est envoyé nulle part, il n'y a pas de serveur. Au
-premier lancement, l'application écrit un jeu de fiches d'exemple — de vraies
-fiches, qu'on peut modifier et supprimer, et qu'un bouton efface d'un coup.
+visiteur uniquement. Rien n'est envoyé nulle part, il n'y a pas de serveur.
+**L'application s'ouvre vide** : c'est la sienne, pas une démonstration. Un
+contrôle refuse la publication si des fiches d'exemple réapparaissent.
+
+Cette promesse est désormais tenue par le navigateur lui-même : une politique
+de sécurité déclarée dans la page n'autorise aucune connexion sortante. Même
+si un script tiers était un jour compromis, il ne pourrait rien envoyer.
 
 Le dossier `supabase/` contient les migrations d'un socle de données en ligne :
 schéma, sécurité au niveau des lignes, back-office en lecture seule. **Il n'est
@@ -63,11 +67,46 @@ python3 src/build.py
 
 - `src/page.html` — le gabarit, avec le marqueur `__SEED__` à la place des données
 - `src/verif.py` — contrôle du script : chaînes fermées, blocs équilibrés,
-  fonctions appelées qui existent. `build.py` l'exécute et refuse d'écrire si
-  quelque chose cloche. Ce garde-fou existe parce que des guillemets mal appariés
-  ont blanchi la page plusieurs fois
+  fonctions appelées qui existent. Ce garde-fou existe parce que des guillemets
+  mal appariés ont blanchi la page plusieurs fois
+- `src/controles.py` — ce qu'on vérifie sur la page avant de publier : un seul
+  nom, l'application qui s'ouvre vide, la politique de sécurité, aucun script
+  tiers sans empreinte, aucun domaine non prévu. **Chaque contrôle correspond à
+  quelque chose qui a déjà cassé** — on n'en ajoute pas par principe
+- `src/tiers.py` — l'empreinte annoncée pour le script extérieur est-elle celle
+  du fichier réellement servi
+- `src/sw.js` — la copie locale qui permet d'ouvrir l'application sans réseau
 - `outils/serveur-partage.py` — l'adresse commune sur le port 4173, qui sert ce
   dépôt en interdisant toute mise en cache
+- `outils/hooks/pre-push` — le dernier verrou avant l'envoi
+
+**`build.py` écrit d'abord un brouillon, le contrôle, et ne remplace `index.html`
+qu'une fois les contrôles passés.** Il l'a longtemps fait dans l'autre sens : une
+erreur de syntaxe était déjà publiée quand le message « Publication annulée »
+s'affichait. L'ancienne page reste dans `index.precedent.html`, le temps d'un
+retour en arrière.
+
+## Ce qui protège la publication
+
+Quatre verrous, du plus proche au plus lointain :
+
+1. **`build.py`** ne remplace la page qu'une fois les contrôles passés.
+2. **`outils/hooks/pre-push`** refuse d'envoyer une page qui ne les passe pas.
+   Le commit local, lui, se fait toujours : le travail en cours n'est jamais
+   perdu, et la page en ligne reste la dernière qui fonctionnait.
+3. **`.github/workflows/verification.yml`** régénère la page et la compare à
+   celle qui est publiée. Modifier le gabarit sans relancer `build.py` est
+   l'oubli le plus coûteux du projet ; il ne passe plus.
+4. **`.github/workflows/veille.yml`**, chaque matin : l'adresse publique répond,
+   elle porte bien ses protections, et le script extérieur n'a pas changé.
+
+## S'ouvrir sans réseau
+
+`sw.js` garde une copie de la page. **Il ne la sert que si le réseau ne répond
+pas.** Une copie servie en priorité fige l'application à la version du jour où
+elle a été installée, et plus personne ne comprend pourquoi les corrections
+n'arrivent pas — c'est exactement ce qui a coûté une journée entière. Un contrôle
+refuse la publication si `sw.js` s'écarte de cette règle.
 
 ## Plusieurs agents sur le même projet
 

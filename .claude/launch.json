@@ -8,16 +8,6 @@
         "outils/serveur-partage.py"
       ],
       "port": 4173
-    },
-    {
-      "name": "plenitu-essai",
-      "runtimeExecutable": "python3",
-      "runtimeArgs": [
-        "-m",
-        "http.server",
-        "4199"
-      ],
-      "port": 4199
     }
   ]
 }
