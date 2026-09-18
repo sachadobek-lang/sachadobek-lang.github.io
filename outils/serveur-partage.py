@@ -24,8 +24,34 @@ RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Le faire avec ce script plutôt qu'avec « python3 -m http.server » n'est pas
 # un détail — celui-ci répond 304 et laisse le navigateur garder l'ancienne
 # page. On se relit alors sans voir ses propres corrections.
-import sys
-PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 4173
+#     python3 outils/serveur-partage.py libre
+# choisit un port libre et l'annonce — à préférer, car un port personnel fixe
+# écrit dans un conseil devient vite le port personnel de tout le monde.
+import hashlib, socket, sys
+
+def occupe(port):
+    """Quelqu'un écoute-t-il déjà ici ?"""
+    with socket.socket() as s:
+        s.settimeout(0.4)
+        return s.connect_ex(("127.0.0.1", port)) == 0
+
+def premier_libre(depart=4200):
+    for p in range(depart, depart + 60):
+        if not occupe(p):
+            return p
+    return 0   # que le système en choisisse un
+
+def empreinte_locale():
+    chemin = os.path.join(RACINE, "index.html")
+    if not os.path.exists(chemin):
+        return "(pas de index.html)"
+    return hashlib.sha256(open(chemin, "rb").read()).hexdigest()[:12]
+
+argument = sys.argv[1] if len(sys.argv) > 1 else None
+if argument in ("libre", "--libre"):
+    PORT = premier_libre()
+else:
+    PORT = int(argument) if argument else 4173
 
 class SansCache(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *a, **kw):
@@ -54,6 +80,37 @@ class Reutilisable(socketserver.TCPServer):
     allow_reuse_address = True
 
 if __name__ == "__main__":
+    # Refuser bruyamment plutôt que de laisser croire qu'on sert.
+    #
+    # Un agent a lancé ce script sur un port déjà pris par le worktree d'un
+    # autre. Le démarrage a échoué là où personne ne le lisait, curl a répondu
+    # 200 — depuis l'autre serveur — et il a passé trois mesures à conclure que
+    # son propre travail « n'existait pas ». Un outil qui échoue en silence
+    # pendant qu'une réponse arrive quand même est pire qu'un outil absent.
+    if PORT and occupe(PORT):
+        libre = premier_libre()
+        print("Le port %d est déjà pris par quelqu'un d'autre." % PORT, file=sys.stderr)
+        print("", file=sys.stderr)
+        if PORT == 4173:
+            print("  C'est l'adresse commune. Si ce n'est pas toi qui la sers,", file=sys.stderr)
+            print("  ne conclus rien de ce que tu y vois avant d'avoir comparé :", file=sys.stderr)
+            print("      python3 outils/surfaces.py", file=sys.stderr)
+        else:
+            print("  Tu regarderais la page de quelqu'un d'autre en croyant", file=sys.stderr)
+            print("  regarder la tienne. C'est exactement comme ça qu'on passe", file=sys.stderr)
+            print("  une heure à chercher un travail qui est pourtant bien là.", file=sys.stderr)
+        print("", file=sys.stderr)
+        print("  Port libre : %d   ·   ou « libre » pour ne plus y penser :" % libre, file=sys.stderr)
+        print("      python3 outils/serveur-partage.py libre", file=sys.stderr)
+        sys.exit(1)
+
     with Reutilisable(("127.0.0.1", PORT), SansCache) as httpd:
-        print("adresse commune sur http://localhost:%d — sert %s" % (PORT, RACINE))
+        port_reel = httpd.server_address[1]
+        role = "adresse commune" if port_reel == 4173 else "port de vérification"
+        print("%s sur http://localhost:%d" % (role, port_reel))
+        print("  sert    %s" % RACINE)
+        # L'empreinte au démarrage : elle se compare d'un coup d'œil avec
+        # celle des autres surfaces, sans avoir à choisir un algorithme.
+        print("  page    %s" % empreinte_locale())
+        sys.stdout.flush()
         httpd.serve_forever()
