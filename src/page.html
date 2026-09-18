@@ -1062,6 +1062,38 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .ev.wk .when{font-size:10.5px; margin-top:1px}
 #majournee .ev.wk.short .when,#majournee .ev.wk.tiny .when{display:none}
 #majournee .scroller{max-height:min(58dvh,600px); overflow-y:auto; overflow-x:hidden; padding:18px 20px 20px 0}
+/* ═══ le mois ═══
+   Sept colonnes, cinq ou six rangées, et rien d'autre : le numéro du jour, et
+   des points pour ce qu'il contient. On ne lit pas un mois, on le survole —
+   écrire les titres ici donnerait une page illisible et ne dirait pas plus. */
+#majournee .mois{display:flex; flex-direction:column; gap:2px; padding:4px 4px 10px 0}
+#majournee .mois-jours{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:2px; padding-bottom:6px}
+#majournee .mois-jours span{
+  text-align:center; font-size:11px; font-weight:600; letter-spacing:.1em;
+  text-transform:uppercase; color:var(--ink-3);
+}
+#majournee .mois-corps{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:2px}
+#majournee .m-case{
+  display:flex; flex-direction:column; align-items:center; gap:5px;
+  min-height:62px; padding:8px 2px 6px; border-radius:12px;
+  transition:background-color .14s ease;
+}
+#majournee .m-case:hover{background:var(--surface-2)}
+#majournee .m-case .n{
+  font-family:var(--display); font-weight:600; font-size:15px; line-height:1;
+  color:var(--ink); display:grid; place-items:center;
+  width:30px; height:30px; border-radius:999px; font-variant-numeric:tabular-nums;
+}
+#majournee .m-case.hors .n{color:var(--ink-3); opacity:.55}
+#majournee .m-case.today .n{background:var(--ink); color:var(--bg)}
+#majournee .m-case[aria-current="true"] .n{box-shadow:inset 0 0 0 2px var(--ink-3)}
+#majournee .m-pts{display:flex; flex-wrap:wrap; justify-content:center; gap:3px; max-width:100%}
+#majournee .m-pts i{width:5px; height:5px; border-radius:99px; background:var(--m); flex:0 0 auto}
+#majournee .m-plus{font-size:10.5px; color:var(--ink-3); line-height:1; font-variant-numeric:tabular-nums}
+@media (max-width:480px){
+  #majournee .m-case{min-height:56px; padding:7px 1px 5px}
+  #majournee .m-case .n{width:28px; height:28px; font-size:14px}
+}
 #majournee .grid{display:grid; grid-template-columns:70px 1fr; position:relative}
 #majournee .hours{position:relative; height:calc(var(--hour) * 24)}
 #majournee .hours .h{
@@ -1206,11 +1238,15 @@ summary.carte-tete:hover h2{color:var(--v1)}
    que 36 chacun : elles disparaissent, et la semaine se change en faisant
    glisser la bande des jours — le geste que fait déjà tout le monde. */
 @media (max-width:480px){
-  #majournee .wk-arrow{display:none}
+  /* Les flèches restent : les masquer avait rendu le changement de semaine
+     invisible pour qui ne devine pas le glissement. On gagne la place sur les
+     marges de l'écran plutôt que sur elles. */
+  #majournee .app{padding-inline:14px}
+  #majournee .wk-arrow{width:30px}
   #majournee .days{touch-action:pan-y}
   #majournee .day-pill{min-height:52px; justify-content:center}
-  #majournee .day-pill .num{width:min(44px,100%); aspect-ratio:1; height:auto}
-  #majournee .seg button{padding:12px 18px}
+  #majournee .day-pill .num{width:min(40px,100%); aspect-ratio:1; height:auto}
+  #majournee .seg button{padding:12px 14px; font-size:14.5px}
   #majournee .qmore{width:44px; height:44px}
 }
 @media (max-width:560px){#majournee .quick{flex-wrap:wrap; padding-bottom:10px}#majournee .quick input{flex:1 1 60%}#majournee .qprev{margin-left:30px}
@@ -1829,6 +1865,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
       <div class="seg" id="viewSeg" role="group" aria-label="Vue">
         <button data-v="jour">Jour</button>
         <button data-v="semaine">Semaine</button>
+        <button data-v="mois">Mois</button>
       </div>
     </div>
     <div class="wkhead" id="wkhead" hidden></div>
@@ -1837,6 +1874,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
         <div class="hours" id="hours"></div>
         <div class="track" id="track"></div>
       </div>
+      <div class="mois" id="moisGrille" hidden></div>
     </div>
     <div class="demo-note" id="demoNote" hidden>
       <span>Quelques exemples, pour situer.</span>
@@ -4723,7 +4761,7 @@ try {
     if (!isNaN(px) && px > 0) state.zoomPx = clamp(px, 12, 240);
   }
   var v0 = localStorage.getItem(LS_VIEW);
-  if (v0 === 'jour' || v0 === 'semaine') state.view = v0;
+  if (v0 === 'jour' || v0 === 'semaine' || v0 === 'mois') state.view = v0;
 } catch(e){}
 
 /* ═══ le temps de route ═══
@@ -4785,7 +4823,17 @@ function lsGet(k){ try { return JSON.parse(localStorage.getItem(k) || '[]'); } c
 function lsSet(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
 
 function refreshLocal(){
-  var a = iso(state.week), b = iso(addDays(state.week,6));
+  /* La semaine affichée suffit d'ordinaire. En vue Mois il faut la grille
+     entière, sinon les jours des autres semaines paraissent vides alors
+     qu'ils ne le sont pas. */
+  var a, b;
+  if (state.view === 'mois'){
+    var premier = moisDe(state.date);
+    a = iso(mondayOf(premier));
+    b = iso(addDays(mondayOf(new Date(premier.getFullYear(), premier.getMonth() + 1, 0)), 6));
+  } else {
+    a = iso(state.week); b = iso(addDays(state.week,6));
+  }
   var all = lsGet(LS_EV);
   state.events = all.filter(function(ev){ return (!ev.rep || ev.rep === 'none') && ev.date >= a && ev.date <= b; });
   state.repeats = all.filter(function(ev){ return ev.rep === 'day' || ev.rep === 'week'; });
@@ -5270,6 +5318,77 @@ function makeBlock(ev, opts){
   return b;
 }
 
+/* ═══ le mois ═══
+   Toucher un jour ouvre ce jour : c'est la façon la plus courte de changer de
+   semaine quand on ne sait pas encore laquelle on cherche. */
+function moisDe(isoJour){
+  var d = fromIso(isoJour);
+  return new Date(d.getFullYear(), d.getMonth(), 1);
+}
+function renderMois(){
+  var hote = $('moisGrille');
+  hote.innerHTML = '';
+  var premier = moisDe(state.date);
+  var debut = mondayOf(premier);
+  var dernier = new Date(premier.getFullYear(), premier.getMonth() + 1, 0);
+  var rangees = Math.ceil((daysBetween(iso(debut), iso(dernier)) + 1) / 7);
+
+  var entete = document.createElement('div');
+  entete.className = 'mois-jours';
+  DOW.forEach(function(j){
+    var e = document.createElement('span');
+    e.textContent = j;
+    entete.appendChild(e);
+  });
+  hote.appendChild(entete);
+
+  var corps = document.createElement('div');
+  corps.className = 'mois-corps';
+  for (var i = 0; i < rangees * 7; i++){
+    (function(i){
+      var d = addDays(debut, i), key = iso(d);
+      var evs = eventsOf(key);
+      var b = document.createElement('button');
+      b.className = 'm-case'
+        + (d.getMonth() !== premier.getMonth() ? ' hors' : '')
+        + (key === today ? ' today' : '');
+      if (key === state.date) b.setAttribute('aria-current', 'true');
+      b.setAttribute('aria-label', fmtLong(d) + ' — ' + (evs.length
+        ? evs.length + (evs.length > 1 ? ' activités' : ' activité') : 'rien de prévu'));
+
+      var n = document.createElement('span');
+      n.className = 'n';
+      n.textContent = d.getDate();
+      b.appendChild(n);
+
+      var pts = document.createElement('span');
+      pts.className = 'm-pts';
+      evs.slice(0, 4).forEach(function(ev){
+        var cat = CAT[ev.cat] || CAT.autre;
+        var p = document.createElement('i');
+        p.style.setProperty('--m', 'var(--c-' + cat.c + ')');
+        pts.appendChild(p);
+      });
+      b.appendChild(pts);
+      if (evs.length > 4){
+        var plus = document.createElement('span');
+        plus.className = 'm-plus';
+        plus.textContent = '+' + (evs.length - 4);
+        b.appendChild(plus);
+      }
+
+      b.addEventListener('click', function(){
+        state.date = key;
+        state.week = mondayOf(d);
+        if (db) subscribeWeek(); else refreshLocal();
+        setView('jour');
+      });
+      corps.appendChild(b);
+    })(i);
+  }
+  hote.appendChild(corps);
+}
+
 function renderTrack(){
   var track = $('track'), hours = $('hours'), head = $('wkhead');
   var week = state.view === 'semaine';
@@ -5278,7 +5397,10 @@ function renderTrack(){
      été essayée à la place de la grille du jour : elle montrait bien les
      rendez-vous, mais pas la journée — ni les trous, ni l'heure qu'il est
      par rapport au reste. « Tout » fait tenir la journée dans l'écran. */
-  $('grille').hidden = false;
+  var mois = state.view === 'mois';
+  $('grille').hidden = mois;
+  $('moisGrille').hidden = !mois;
+  if (mois){ head.hidden = true; renderMois(); return; }
   track.innerHTML = ''; hours.innerHTML = ''; head.innerHTML = '';
   head.hidden = !week;
 
@@ -5406,11 +5528,16 @@ function renderTrack(){
 }
 
 function setView(v){
+  var avant = state.view;
   state.view = v;
   try { localStorage.setItem(LS_VIEW, v); } catch(e){}
   document.querySelectorAll('#viewSeg button').forEach(function(b){
     b.setAttribute('aria-pressed', String(b.dataset.v === v));
   });
+  /* Entrer dans le mois ou en sortir change la fenêtre de chargement. */
+  if ((v === 'mois') !== (avant === 'mois')){
+    if (db) subscribeWeek(); else { refreshLocal(); scrollToNow(); return; }
+  }
   render();
   scrollToNow();
 }
@@ -6013,15 +6140,29 @@ $('todayBtn').addEventListener('click', function(){
     var dx = e.changedTouches[0].clientX - x0;
     var dy = e.changedTouches[0].clientY - y0;
     if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
-    shiftWeek(dx < 0 ? 7 : -7);
+    flecheBande(dx < 0 ? 1 : -1);
   }, {passive: true});
 })();
 
-$('prevWeek').addEventListener('click', function(){ shiftWeek(-7); });
-$('nextWeek').addEventListener('click', function(){ shiftWeek(7); });
+/* Les flèches encadrent la bande des sept jours : elles changent de semaine,
+   même en vue Jour. En vue Mois, cette bande devient celle du mois affiché. */
+function flecheBande(sens){
+  if (state.view === 'mois') reculer(sens); else shiftWeek(sens * 7);
+}
+$('prevWeek').addEventListener('click', function(){ flecheBande(-1); });
+$('nextWeek').addEventListener('click', function(){ flecheBande(1); });
 /* Les flèches suivent ce qu'on regarde : une semaine en vue Semaine,
    un jour en vue Jour. C'est ce que fait Outlook, et c'est ce qu'on attend. */
 function reculer(sens){
+  if (state.view === 'mois'){
+    var m = moisDe(state.date);
+    var cible = new Date(m.getFullYear(), m.getMonth() + sens, 1);
+    state.date = iso(cible);
+    state.week = mondayOf(cible);
+    if (db) subscribeWeek(); else refreshLocal();
+    render();
+    return;
+  }
   if (state.view === 'semaine'){ shiftWeek(sens * 7); return; }
   var d = addDays(fromIso(state.date), sens);
   state.date = iso(d);
@@ -6043,6 +6184,7 @@ $('viewSeg').addEventListener('click', function(e){
 });
 
 function scrollToNow(){
+  if (state.view === 'mois'){ $('scroller').scrollTop = 0; return; }
   var sc = $('scroller'), tr = $('track'), n = new Date();
   var demo = demoActive() && state.date === today;
   var m = demo ? 570 : (state.date === today ? (n.getHours()*60 + n.getMinutes()) : 540);
