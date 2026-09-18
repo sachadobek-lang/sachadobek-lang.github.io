@@ -1,26 +1,36 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
   <!-- Cura — « L'aire », traitement Encre.
-       Le contour est le squircle d'iOS : une courbe continue, sans rupture
-       entre la partie droite et l'arrondi. Un carré à coins arrondis ne
-       donne pas la même silhouette et se remarque à côté des autres icônes.
-       Le signe occupe 56 % du carré, centré : c'est la marge qu'Apple
-       laisse autour de ses glyphes. -->
+       Le signe occupe 44 % du carré : plus petit qu'une icône ordinaire,
+       comme les marques qui n'ont rien à prouver. Une lueur douce est posée
+       derrière lui, centrée un peu au-dessus du milieu — la lumière vient
+       du haut, jamais de côté. L'aire sous la courbe est plus transparente
+       qu'elle ne l'était : elle suggère la masse sans la peindre.
+       Le contour est le squircle d'iOS, une courbe continue sans rupture
+       entre la partie droite et l'arrondi. -->
   <defs>
     <linearGradient id="fond" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#20272F"/><stop offset="100%" stop-color="#05070A"/>
     </linearGradient>
+    <radialGradient id="lueur" cx="50%" cy="34%" r="64%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".17"/>
+      <stop offset="55%" stop-color="#FFFFFF" stop-opacity=".05"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
     <linearGradient id="aire" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".46"/>
-      <stop offset="100%" stop-color="#FFFFFF" stop-opacity=".06"/>
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".30"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity=".02"/>
     </linearGradient>
     <clipPath id="forme">
       <path d="M0 256 C0 52.2 52.2 0 256 0 C459.8 0 512 52.2 512 256
                C512 459.8 459.8 512 256 512 C52.2 512 0 459.8 0 256 Z"/>
     </clipPath>
   </defs>
-  <rect width="512" height="512" fill="url(#fond)" clip-path="url(#forme)"/>
+  <g clip-path="url(#forme)">
+    <rect width="512" height="512" fill="url(#fond)"/>
+    <rect width="512" height="512" fill="url(#lueur)"/>
+  </g>
   <path fill="url(#aire)"
-        d="M112.6 317.4 L204.8 235.5 L266.2 281.6 L399.4 153.6 L399.4 358.4 L112.6 358.4 Z"/>
-  <path fill="none" stroke="#FFFFFF" stroke-width="41" stroke-linecap="round" stroke-linejoin="round"
-        d="M112.6 317.4 L204.8 235.5 L266.2 281.6 L399.4 153.6"/>
+        d="M143.4 304.3 L215.8 239.9 L264.0 276.1 L368.6 175.6 L368.6 336.4 L143.4 336.4 Z"/>
+  <path fill="none" stroke="#FFFFFF" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"
+        d="M143.4 304.3 L215.8 239.9 L264.0 276.1 L368.6 175.6"/>
 </svg>
