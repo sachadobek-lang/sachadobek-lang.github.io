@@ -483,6 +483,27 @@ summary.groupe:hover{background:var(--line)}
 .faire-facture:hover{filter:brightness(1.08)}
 .faire-facture:active{transform:scale(.982)}
 
+/* ═══ la relance proposée ═══
+   Aucune couleur chaude : un client qui n'a pas encore payé n'est pas une
+   alarme, et on ne met pas d'ambre sur le nom de quelqu'un. */
+.rj{padding:22px 24px;display:flex;flex-direction:column;gap:3px}
+.rj-quoi{font-size:17px;line-height:1.45;color:var(--ink-2)}
+.rj-quoi b{color:var(--ink);font-weight:700}
+.rj-som{font-family:var(--num);font-weight:600;font-size:19px;
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.rj-gestes{display:grid;grid-template-columns:1fr auto;gap:10px;margin-top:16px}
+@media(max-width:400px){.rj-gestes{grid-template-columns:1fr;gap:8px}}
+.rj-oui,.rj-fait{border:0;border-radius:var(--rm);padding:15px 22px;font:inherit;
+  font-family:var(--num);font-weight:600;font-size:16px;cursor:pointer;white-space:nowrap;
+  transition:filter .2s,transform .12s,background .2s,color .2s}
+.rj-oui{background:var(--deg);color:#fff;box-shadow:var(--o1)}
+.rj-oui:hover{filter:brightness(1.1)}
+.rj-fait{background:var(--surface-3);color:var(--ink-2)}
+.rj-fait:hover{background:var(--line);color:var(--ink)}
+.rj-oui:active,.rj-fait:active{transform:scale(.975)}
+.rj-autres{font-size:13.5px;color:var(--ink-3);margin-top:14px;
+  padding-top:13px;border-top:1px solid var(--line)}
+
 /* ═══ la case à remplir sur la déclaration ═══ */
 .decl{padding:2px 24px 24px;display:flex;flex-direction:column;gap:3px}
 .decl-quoi{font-size:14.5px;color:var(--ink-2)}
@@ -3090,6 +3111,7 @@ function ecranFactures(){
     + "</span></div></div>"
 
 
+    + relanceDuJour()
     + '<section class="carte anim" style="animation-delay:.06s"><div class="carte-tete"><h2>Vos factures</h2>'
     + '<span class="appoint">' + vis.length + " ligne" + (vis.length > 1 ? "s" : "") + "</span></div>"
     + '<div class="segments">' + libs.map(kv =>
@@ -3103,6 +3125,34 @@ function ecranFactures(){
     + "</button></section>"
 
     + demo();
+}
+
+/* ═══ la relance qui se propose toute seule ═══
+   relancesAuto() existe depuis toujours et calcule juste. Ses trois points
+   d'appel étaient tous dans l'écran Agenda, remplacé depuis par
+   l'application greffée : la fonction n'était donc plus jamais appelée, et
+   personne ne s'en apercevait — une fonction qui ne tourne pas ne se
+   plaint pas. Elle revient ici, à côté de « on vous doit », parce qu'une
+   relance est un geste d'argent et non un geste d'agenda.
+   On n'en montre qu'une : celle qui attend depuis le plus longtemps. */
+function relanceDuJour(){
+  const dues = relancesAuto()
+    .sort((a, b) => String(a.echeance).localeCompare(String(b.echeance)));
+  if(!dues.length) return "";
+  const r = dues[0];
+  const retard = Math.max(0, -jours(r.echeance));
+  const autres = dues.length - 1;
+  return '<section class="carte anim" style="animation-delay:.04s"><div class="rj">'
+    + '<p class="rj-quoi"><b>' + h(r.client) + "</b> vous doit "
+    + '<b class="rj-som">' + eur(r.montant) + "</b>"
+    + (retard ? " depuis " + retard + " jour" + (retard > 1 ? "s" : "") : "") + ".</p>"
+    + '<div class="rj-gestes">'
+    + '<button class="rj-oui" data-relance="' + h(r.client) + '">Écrire la relance</button>'
+    + '<button class="rj-fait" data-relance-faite="' + h(r.id.slice(5)) + '">C\'est fait</button>'
+    + "</div>"
+    + (autres > 0 ? '<p class="rj-autres">' + autres + " autre" + (autres > 1 ? "s" : "")
+        + " attend" + (autres > 1 ? "ent" : "") + " aussi.</p>" : "")
+    + "</div></section>";
 }
 
 function rangeeSortie(o, col){
@@ -4455,6 +4505,15 @@ $("#vue").addEventListener("click", e => {
   }
   if(b.dataset.ajoutNote){ noter(b.dataset.ajoutNote); return; }
   if(b.dataset.fiche){ modifier("client", b.dataset.fiche); return; }
+  if(b.dataset.relanceFaite){
+    /* même marquage que la coche d'autrefois : la facture se tait une
+       semaine, puis remonte d'elle-même si elle n'est toujours pas payée */
+    const f = state.factures[b.dataset.relanceFaite];
+    if(f) ecrire("factures", b.dataset.relanceFaite,
+      Object.assign({}, f, {relance: new Date().toISOString()}));
+    bulle("On en reparle dans une semaine");
+    animer = true; memoire.clear(); rendre(); return;
+  }
   if(b.dataset.relance){ ouvrirRelance(b.dataset.relance); return; }
   if(b.dataset.facturer){
     const cl = liste("clients").find(x => x.nom === b.dataset.facturer);
