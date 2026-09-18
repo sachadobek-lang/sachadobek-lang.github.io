@@ -21,7 +21,7 @@ Les cases, telles qu'impots.gouv.fr les nomme :
 On déclare le chiffre d'affaires encaissé brut, sans rien déduire :
 l'abattement est appliqué par l'administration.
 
-Pourquoi ceci n'est pas dans l'application : Plenitu est un fichier unique
+Pourquoi ceci n'est pas dans l'application : Cura est un fichier unique
 qui s'interdit toute connexion sortante. Embarquer le formulaire
 multiplierait sa taille par cinq, et il faudrait le remplacer chaque
 printemps. Cet outil-ci se relance en une commande.

@@ -25,7 +25,7 @@ adresse = connu["adresse"]
 print("  adresse   %s" % adresse)
 
 try:
-    requete = urllib.request.Request(adresse, headers={"User-Agent": "Plenitu/veille"})
+    requete = urllib.request.Request(adresse, headers={"User-Agent": "Cura/veille"})
     with urllib.request.urlopen(requete, timeout=40) as r:
         octets = r.read()
 except Exception as e:
