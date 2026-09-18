@@ -85,6 +85,14 @@ python3 src/build.py
   dépôt en interdisant toute mise en cache
 - `outils/hooks/pre-push` — le dernier verrou avant l'envoi
 
+⚠️ **Avant de lancer `build.py` dans le dépôt principal, vérifier que
+`git status` est propre.** Ce dossier est celui que sert le 4173, et un agent
+peut y avoir du travail en cours non commité. Régénérer à ce moment-là ne
+l'écrase pas — c'est pire : on le compile dans `index.html` et on le publie
+sous son propre nom, sans l'avoir jamais lu. Rien n'est perdu, et pourtant du
+code que personne n'a relu se retrouve en ligne. C'est passé à un cheveu le
+18 septembre 2026.
+
 **`build.py` écrit d'abord un brouillon, le contrôle, et ne remplace `index.html`
 qu'une fois les contrôles passés.** Il l'a longtemps fait dans l'autre sens : une
 erreur de syntaxe était déjà publiée quand le message « Publication annulée »
