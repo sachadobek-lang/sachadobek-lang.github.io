@@ -24,12 +24,20 @@ if "__SEED__" not in gabarit:
 # illisible et impossible à relire pour les autres agents.
 # Il faudra les regénérer chaque printemps, quand les impôts publient la
 # nouvelle version — voir outils/remplir-2042.py.
-for marque, fichier in (("__FORMULAIRE__", "formulaire.b64"),
-                        ("__CASES2042__", "cases-2042.json")):
+# Les coordonnées des six cases : quelques centaines d'octets, injectés.
+for marque, fichier in (("__CASES2042__", "cases-2042.json"),):
     chemin = os.path.join(ICI, fichier)
-    contenu = io.open(chemin, encoding="utf-8").read().strip() if os.path.exists(chemin) else ""
+    contenu = io.open(chemin, encoding="utf-8").read().strip() if os.path.exists(chemin) else "{}"
     if marque in gabarit:
         gabarit = gabarit.replace(marque, contenu)
+
+# Le formulaire lui-même est posé à côté de la page, pas dedans. Embarqué,
+# il pesait 85 % du fichier et repartait avec chaque publication — huit
+# aujourd'hui — alors qu'il ne change qu'au printemps. À part, il n'est
+# téléchargé que par qui s'en sert, et une seule fois.
+forme = os.path.join(ICI, "formulaire.pdf")
+if os.path.exists(forme):
+    shutil.copyfile(forme, os.path.join(RACINE, "formulaire-2042.pdf"))
 
 sortie = os.path.join(RACINE, "index.html")
 brouillon = os.path.join(RACINE, ".index-brouillon.html")

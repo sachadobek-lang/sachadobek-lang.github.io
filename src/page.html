@@ -3838,7 +3838,20 @@ function pdfFacture(f){
    Les trois pages utiles sont embarquées dans la page : elles pèsent, mais
    Plenitu ne peut rien aller chercher en ligne, et c'est voulu.
    À regénérer chaque printemps : python3 outils/remplir-2042.py */
-const FORMULAIRE_2042 = "__FORMULAIRE__";
+/* Le formulaire est posé à côté de la page, pas dedans. Embarqué, il
+   pesait 85 % du fichier et repartait avec chaque publication — alors
+   qu'il ne change qu'une fois l'an et ne sert qu'à ceux qui déclarent.
+   connect-src 'self' autorise à le charger depuis notre propre site ;
+   ce qu'il interdit, c'est d'aller le chercher ailleurs. */
+const FORMULAIRE_2042 = "formulaire-2042.pdf";
+let formulaireEnMemoire = null;
+async function chargerFormulaire(){
+  if(formulaireEnMemoire) return formulaireEnMemoire;
+  const r = await fetch(FORMULAIRE_2042, {cache: "force-cache"});
+  if(!r.ok) throw new Error("formulaire absent");
+  formulaireEnMemoire = new Uint8Array(await r.arrayBuffer());
+  return formulaireEnMemoire;
+}
 const CASES_2042 = __CASES2042__;
 
 function chargerPdfLib(){
@@ -3857,20 +3870,21 @@ function chargerPdfLib(){
 async function formulaireRempli(){
   const k = partageImpot();
   if(k.genre !== "micro" || k.ca <= 0){ bulle("Rien à déclarer pour l'instant"); return; }
-  if(!FORMULAIRE_2042 || FORMULAIRE_2042.length < 100){ bulle("Formulaire indisponible"); return; }
   const code = calcLib() ? CASES_VFL[calcStatut()] : (CASES[calcStatut()] || CASES.services).case;
   const box = CASES_2042[code];
   if(!box){ bulle("Case inconnue"); return; }
 
   bulle("Je remplis le formulaire…");
-  let PDFLib;
+  let PDFLib, oct;
   try{ PDFLib = await chargerPdfLib(); }
   catch(e){ bulle("Impossible sans connexion, cette fois"); return; }
-
-  /* le base64 en octets, sans passer par le réseau */
-  const bin = atob(FORMULAIRE_2042);
-  const oct = new Uint8Array(bin.length);
-  for(let i = 0; i < bin.length; i++) oct[i] = bin.charCodeAt(i);
+  try{ oct = await chargerFormulaire(); }
+  catch(e){
+    /* ouvert directement depuis le disque, ou hors ligne au premier
+       usage : « Remplir ma feuille » marche toujours, elle */
+    bulle("Formulaire indisponible — essayez « Remplir ma feuille »");
+    return;
+  }
 
   const doc = await PDFLib.PDFDocument.load(oct);
   const police = await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
