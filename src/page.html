@@ -5126,11 +5126,13 @@ function applyZoom(){
   sc.classList.toggle('z-tout', state.zoom === 'tout');
   HOUR_PX = (state.zoom === 'tout') ? fitHour()
           : (state.zoom === 'libre' ? state.zoomPx : ZOOM_STEPS[state.zoom]);
-  document.documentElement.style.setProperty('--hour', HOUR_PX.toFixed(2) + 'px');
+  /* C'est #majournee qui déclare --hour, pas :root. Écrire la valeur sur
+     :root ne changeait donc rien : la règle du bloc l'emportait, et le
+     zoom n'avait aucun effet — ni les trois boutons, ni la molette. */
+  $('majournee').style.setProperty('--hour', HOUR_PX.toFixed(2) + 'px');
   document.querySelectorAll('#zoom button').forEach(function(b){
     b.setAttribute('aria-pressed', String(b.dataset.z === state.zoom));
   });
-  document.documentElement.style.setProperty('--hour', HOUR_PX.toFixed(2) + 'px');
 }
 function setZoom(z){
   var sc = $('scroller'), tr = $('track');
@@ -5146,7 +5148,6 @@ function setZoom(z){
 /* Zoomer en gardant sous le doigt l'heure qu'on regardait : c'est ce qui
    distingue un zoom d'un simple changement de taille. */
 function zoomVers(px, yEcran){
-  if (state.view !== 'semaine') return;
   var sc = $('scroller'), tr = $('track');
   var avant = tr.offsetHeight;
   if (!avant) return;
@@ -5360,15 +5361,13 @@ function renderTrack(){
   var track = $('track'), hours = $('hours'), head = $('wkhead');
   var week = state.view === 'semaine';
 
-  $('grille').hidden = !week;
-  $('ruban').hidden = week;
-  $('zoom').hidden = !week;
-  if (!week){
-    head.hidden = true;
-    renderRuban();
-    $('demoNote').hidden = !demoActive();
-    return;
-  }
+  /* Le ruban montrait les rendez-vous, pas la journée : on ne voyait ni les
+     trous, ni l'heure qu'il est par rapport au reste. Sacha veut voir sa
+     journée entière, comme dans Outlook. La grille revient donc en vue Jour,
+     avec son zoom — et « Tout » fait tenir la journée dans l'écran. */
+  $('grille').hidden = false;
+  $('ruban').hidden = true;
+  $('zoom').hidden = false;
   track.innerHTML = ''; hours.innerHTML = ''; head.innerHTML = '';
   head.hidden = !week;
 
@@ -5941,7 +5940,6 @@ document.addEventListener('keydown', function(e){
 
   sc.addEventListener('wheel', function(e){
     if (!(e.ctrlKey || e.metaKey)) return;
-    if (state.view !== 'semaine') return;
     e.preventDefault();
     zoomPas(e.deltaY < 0 ? 1.12 : 1/1.12, e.clientY);
   }, {passive: false});
@@ -5956,7 +5954,6 @@ document.addEventListener('keydown', function(e){
   }, {passive: true});
   sc.addEventListener('touchmove', function(e){
     if (e.touches.length !== 2 || !pince) return;
-    if (state.view !== 'semaine') return;
     e.preventDefault();
     var d = ecart(e.touches);
     var milieu = (e.touches[0].clientY + e.touches[1].clientY) / 2;
@@ -5976,7 +5973,6 @@ document.addEventListener('keydown', function(e){
   document.addEventListener('keydown', function(e){
     if (vue !== 'afaire' || occupe() || e.altKey) return;
     if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '=' || e.key === '-')){
-      if (state.view !== 'semaine') return;
       e.preventDefault();
       zoomPas(e.key === '-' ? 1/1.18 : 1.18, null);
       return;
@@ -6101,11 +6097,6 @@ $('zoom').addEventListener('click', function(e){
 });
 
 function scrollToNow(){
-  if (state.view !== 'semaine'){
-    var sc0 = $('scroller'), ici = $('ruban').querySelector('.rb-ici');
-    sc0.scrollTop = ici ? Math.max(0, ici.offsetTop - sc0.clientHeight/2.6) : 0;
-    return;
-  }
   if (state.zoom === 'tout') { $('scroller').scrollTop = 0; return; }
   var sc = $('scroller'), tr = $('track'), n = new Date();
   var demo = demoActive() && state.date === today;
