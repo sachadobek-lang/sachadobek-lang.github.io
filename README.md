@@ -1,11 +1,11 @@
-# Plenitu
+# Cura
 
 Une application pour piloter une très petite entreprise : sa journée, ses clients,
 son argent. Pas de compte à créer, pas de configuration, pas de serveur — un seul
 fichier HTML qui s'ouvre dans un navigateur.
 
-Elle s'est appelée Cadence, puis Simpli, avant de devenir Plenitu le
-17 septembre 2026. Les copies de sauvegarde enregistrées sous l'un ou l'autre
+Elle s'est appelée Cadence, puis Simpli le 17 septembre 2026, puis Plenitu, avant
+de devenir Cura le 18 septembre 2026. Les copies de sauvegarde enregistrées sous l'un ou l'autre
 de ces noms se restaurent toujours.
 
 ## Les trois onglets
@@ -121,7 +121,7 @@ quatre fois à Sacha en deux jours, chaque fois présentée comme neuve. **Avant
 lui proposer quelque chose, vérifier ici.**
 
 - **L'application s'ouvre vide.** Demandé deux fois, explicitement. Ne pas
-  proposer de bouton « voir un exemple » : la note « *le jour où* Plenitu
+  proposer de bouton « voir un exemple » : la note « *le jour où* Cura
   cherchera des utilisateurs » écrite dans le commit 338ab86 est une condition
   qui n'est pas remplie, et le `robots.txt` en `Disallow` retire ce qu'il restait
   de l'argument. `fichesExemple()` reste dans le code comme **jeu de

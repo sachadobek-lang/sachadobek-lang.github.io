@@ -1,3 +1,3 @@
-# Plenitu est un outil de travail, pas un site à lire.
+# Cura est un outil de travail, pas un site à lire.
 User-agent: *
 Disallow: /
