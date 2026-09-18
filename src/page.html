@@ -3876,9 +3876,11 @@ async function formulaireRempli(){
   const police = await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
   const page = doc.getPages()[box.p];
   /* l'espace fine insécable du format français n'existe pas dans
-     l'encodage du PDF : on la remplace par une espace ordinaire, sinon
-     pdf-lib refuse d'écrire. Même correctif que pour les factures. */
-  const texte = nf.format(Math.round(k.ca)).replace(/[\u202F\u00A0\u2009]/g, " ");
+     l'encodage du PDF : pdf-lib refuse d'écrire sans elle. sansFine est
+     la fonction commune, sortie par l'agent Calendrier — je m'y branche
+     plutôt que de garder ma propre liste de caractères, qui en oubliait
+     déjà deux. */
+  const texte = sansFine(nf.format(Math.round(k.ca)));
 
   /* la taille se réduit jusqu'à tenir dans le cadre, qui est étroit */
   const large = box.x1 - box.x0 - 6;
