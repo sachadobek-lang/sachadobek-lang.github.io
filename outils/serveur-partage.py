@@ -17,7 +17,15 @@ Ici chaque rechargement redemande le fichier, sans exception. Un F5 suffit
 import http.server, os, socketserver
 
 RACINE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PORT = 4173
+
+# Le 4173 est l'adresse commune : elle sert main, et elle seule.
+# Un port passé en argument sert à se vérifier soi-même avant de fusionner :
+#     python3 outils/serveur-partage.py 4199
+# Le faire avec ce script plutôt qu'avec « python3 -m http.server » n'est pas
+# un détail — celui-ci répond 304 et laisse le navigateur garder l'ancienne
+# page. On se relit alors sans voir ses propres corrections.
+import sys
+PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 4173
 
 class SansCache(http.server.SimpleHTTPRequestHandler):
     def __init__(self, *a, **kw):

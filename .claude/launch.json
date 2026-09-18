@@ -8,6 +8,16 @@
         "outils/serveur-partage.py"
       ],
       "port": 4173
+    },
+    {
+      "name": "plenitu-verif",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": [
+        "outils/serveur-partage.py",
+        "4199"
+      ],
+      "port": 4199,
+      "autoPort": false
     }
   ]
 }

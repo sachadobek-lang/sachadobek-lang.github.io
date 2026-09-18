@@ -1233,16 +1233,30 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .quick .qmore{color:var(--ink); background:var(--surface-2)}
 #majournee .quick:focus-within .qmore{background:var(--ink); color:var(--bg)}
 /* ═══ au doigt ═══
-   Une cible de moins de 44 px se rate. Sur un téléphone, les deux flèches de
-   semaine mangeaient 64 px de largeur pour sept jours qui n'en avaient plus
-   que 36 chacun : elles disparaissent, et la semaine se change en faisant
-   glisser la bande des jours — le geste que fait déjà tout le monde. */
+   Une cible de moins de 44 px se rate. Les flèches avaient d'abord été
+   masquées sur téléphone pour rendre la largeur aux jours — mais un geste
+   qu'on ne devine pas ne remplace pas un bouton qu'on voit, et changer de
+   semaine était devenu invisible. Elles sont revenues ; la place se prend
+   sur les marges de l'écran, et le glissement reste en plus. */
 @media (max-width:480px){
   /* Les flèches restent : les masquer avait rendu le changement de semaine
      invisible pour qui ne devine pas le glissement. On gagne la place sur les
      marges de l'écran plutôt que sur elles. */
   #majournee .app{padding-inline:14px}
-  #majournee .wk-arrow{width:30px}
+  /* Le bouton prend 44 px, mais va les chercher dans les 14 px de marge à
+     l'extérieur : la marge négative le pousse vers le bord de l'écran, le
+     rembourrage remet la flèche exactement là où elle était. Rien ne bouge à
+     l'écran, la zone qui reçoit le doigt passe de 30 à 44.
+     Elle ne s'étend que vers le bord : mordre vers l'intérieur ferait changer
+     de semaine en croyant toucher lundi. */
+  /* Le dessin garde ses 30 px : rien ne bouge à l'écran. C'est la zone qui
+     reçoit le doigt qui s'étend, dans les 14 px de marge à l'extérieur —
+     30 + 14 = 44. Elle ne va que vers le bord de l'écran : mordre vers
+     l'intérieur ferait changer de semaine en croyant toucher lundi. */
+  #majournee .wk-arrow{width:30px; position:relative}
+  #majournee .wk-arrow::after{content:""; position:absolute; top:0; bottom:0; width:44px}
+  #majournee #prevWeek::after{right:0}
+  #majournee #nextWeek::after{left:0}
   #majournee .days{touch-action:pan-y}
   #majournee .day-pill{min-height:52px; justify-content:center}
   #majournee .day-pill .num{width:min(40px,100%); aspect-ratio:1; height:auto}
