@@ -107,3 +107,12 @@ if __name__ == "__main__":
     sortie = os.path.join(ici, "..", "declaration-remplie.pdf")
     remplir(vierge, sortie, {code: montant})
     print("case %s remplie avec %s → %s" % (code, montant, os.path.normpath(sortie)))
+    # La veille de printemps compare l'empreinte du formulaire distant à
+    # celle relevée dans src/formulaire-officiel.json. Si l'on vient de
+    # retélécharger une nouvelle version, il faut l'y reporter — sans quoi
+    # la veille criera tous les matins pour un changement déjà traité.
+    import hashlib
+    emp = hashlib.sha256(open(vierge, "rb").read()).hexdigest()
+    print("empreinte du formulaire : %s\n"
+          "  si elle a changé, reportez-la dans src/formulaire-officiel.json,\n"
+          "  puis regénérez src/formulaire.pdf et src/cases-2042.json." % emp)
