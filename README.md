@@ -135,6 +135,21 @@ lui proposer quelque chose, vérifier ici.**
 - **Le thème clair est forcé.** La palette sombre existe mais reste
   inatteignable : c'est sa décision, prise en connaissance de cause.
 - **`supabase/` n'est branché à rien**, et ce n'est pas un oubli.
+- **Le bouton « Nouveau client » est volontairement plus léger que « Faire une
+  facture ».** Même geste, rang différent : dans Factures, facturer est l'action
+  principale de l'écran ; dans le carnet, l'action principale est de lire ses
+  clients. Sacha a demandé « affiche-moi directement tous les clients », et une
+  heure plus tôt « plus petit, pas dans une case, en blanc, que ce soit pas
+  énorme ». Deux boutons du même geste avec deux poids différents donnent envie
+  de les uniformiser : ne pas le faire.
+- **Le ruban de l'Agenda a été essayé puis retiré.** Il montrait les
+  rendez-vous, mais pas la journée : ni les trous, ni l'heure qu'il est par
+  rapport au reste. Un agenda qui ne montre que ce qui est pris ne sert pas à
+  décider.
+- **Les boutons de zoom ont été supprimés** au profit du geste seul, avec le
+  double-clic comme porte d'entrée pour qui ne pince pas. C'est ce retrait qui a
+  rendu possible l'ajout de la vue Mois : trois options par écran, un ajout pour
+  un retrait.
 
 **Une note conditionnelle dans un message de commit finit par être lue comme une
 tâche** : la condition est la première chose qui saute quand quelqu'un relaie la
