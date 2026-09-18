@@ -59,7 +59,12 @@ dans le même commit — jamais avant, jamais après.
 
 ## Développement
 
-Le fichier livré, `index.html`, est **généré** : ne le modifiez pas à la main.
+Les fichiers livrés, `index.html` et `sw.js`, sont **générés** : ne les modifiez
+pas à la main, et **ne les fusionnez jamais ligne à ligne**. `sw.js` porte
+l'empreinte de la page ; une fusion produit un fichier qui ne correspond à
+aucune version, donc un cache qui ne sera jamais mis au rebut. En cas de
+conflit sur l'un ou l'autre : prendre n'importe quelle version, puis
+régénérer.
 
 ```bash
 python3 src/build.py
@@ -107,6 +112,33 @@ pas.** Une copie servie en priorité fige l'application à la version du jour o�
 elle a été installée, et plus personne ne comprend pourquoi les corrections
 n'arrivent pas — c'est exactement ce qui a coûté une journée entière. Un contrôle
 refuse la publication si `sw.js` s'écarte de cette règle.
+
+## Ce qui a été tranché
+
+Une session qui démarre reçoit ce fichier, pas ce que les autres se sont dit.
+Sans cette liste, les mêmes questions reviennent — l'une d'elles est remontée
+quatre fois à Sacha en deux jours, chaque fois présentée comme neuve. **Avant de
+lui proposer quelque chose, vérifier ici.**
+
+- **L'application s'ouvre vide.** Demandé deux fois, explicitement. Ne pas
+  proposer de bouton « voir un exemple » : la note « *le jour où* Plenitu
+  cherchera des utilisateurs » écrite dans le commit 338ab86 est une condition
+  qui n'est pas remplie, et le `robots.txt` en `Disallow` retire ce qu'il restait
+  de l'argument. `fichesExemple()` reste dans le code comme **jeu de
+  vérification**, injecté en mémoire et jamais enregistré — pas comme une
+  fonctionnalité en attente.
+- **Le carnet des clients ne filtre pas sur l'année, la comptabilité si.** Ce
+  n'est pas une incohérence : « qui sont mes clients » et « combien ai-je gagné
+  cette année » sont deux questions différentes. C'est ce qui explique l'écart
+  de 9 600 € qui a occupé une heure. Tant que chaque chiffre est annoncé avec
+  son périmètre, il n'y a rien à corriger.
+- **Le thème clair est forcé.** La palette sombre existe mais reste
+  inatteignable : c'est sa décision, prise en connaissance de cause.
+- **`supabase/` n'est branché à rien**, et ce n'est pas un oubli.
+
+**Une note conditionnelle dans un message de commit finit par être lue comme une
+tâche** : la condition est la première chose qui saute quand quelqu'un relaie la
+phrase, et l'attribution la deuxième. Ne pas en écrire ; l'écrire ici à la place.
 
 ## Plusieurs agents sur le même projet
 
