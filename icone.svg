@@ -1,6 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Le P de Plenitu, tracé en formes plutôt qu'en texte : une icône qui
-       dépend d'une police ne s'affiche pas partout de la même façon. -->
+  <!-- « L'aire » : la courbe du relevé, avec ce qu'elle a accumulé en dessous.
+       Tracée en formes plutôt qu'en texte — une icône qui dépend d'une police
+       ne s'affiche pas partout de la même façon. Les coordonnées sont celles
+       du dessin d'origine (repère 0-100) multipliées par 5,12. -->
   <rect width="512" height="512" fill="#1B222D"/>
-  <path fill="#FFFFFF" d="M170 120h96a92 92 0 0 1 0 184h-52v88h-44V120zm44 44v96h52a48 48 0 0 0 0-96h-52z"/>
+  <path fill="#FFFFFF" fill-opacity=".34"
+        d="M71.7 368.6 L194.6 256 L286.7 317.4 L430.1 143.4 L430.1 430.1 L71.7 430.1 Z"/>
+  <path fill="none" stroke="#FFFFFF" stroke-width="59" stroke-linecap="round" stroke-linejoin="round"
+        d="M71.7 368.6 L194.6 256 L286.7 317.4 L430.1 143.4"/>
 </svg>

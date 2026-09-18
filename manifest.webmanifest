@@ -1,6 +1,6 @@
 {
-  "name": "Plenitu",
-  "short_name": "Plenitu",
+  "name": "Cura",
+  "short_name": "Cura",
   "description": "Agenda, clients et comptabilité, sur votre appareil.",
   "start_url": "./",
   "scope": "./",

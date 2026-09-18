@@ -1771,8 +1771,9 @@ summary.carte-tete:hover h2{color:var(--v1)}
 
 <div id="demarrage" aria-hidden="true">
   <span class="marque">
-    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M3.4 16.8 9 11.2l3.6 3.6 8-8"/><path d="M15.8 6.8h4.8v4.8"/>
+    <svg viewBox="0 0 100 100" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 72 L38 50 L56 62 L84 28 L84 84 L14 84 Z" fill="#fff" fill-opacity=".34" stroke="none"/>
+      <path d="M14 72 L38 50 L56 62 L84 28" fill="none" stroke-width="11.5"/>
     </svg>
   </span>
   <span class="nom">Cura</span>
@@ -5068,11 +5069,25 @@ window.addEventListener("resize", () => {
     const t = 180, c = document.createElement("canvas");
     c.width = c.height = t;
     const x = c.getContext("2d");
+    /* « L'aire » : la courbe du relevé et ce qu'elle a accumulé dessous.
+       Dessinée en traits plutôt qu'écrite en lettre — une icône qui dépend
+       d'une police ne s'affiche pas partout de la même façon. Les points
+       sont ceux du dessin d'origine, ramenés à la taille demandée. */
+    const u = t / 100;
+    const pts = [[14, 72], [38, 50], [56, 62], [84, 28]];
     x.fillStyle = "#1B222D"; x.fillRect(0, 0, t, t);
-    x.fillStyle = "#FFFFFF";
-    x.font = "600 " + Math.round(t * 0.58) + "px Outfit, sans-serif";
-    x.textAlign = "center"; x.textBaseline = "middle";
-    x.fillText("P", t / 2, t * 0.54);
+
+    x.beginPath();
+    x.moveTo(pts[0][0] * u, pts[0][1] * u);
+    pts.slice(1).forEach(p => x.lineTo(p[0] * u, p[1] * u));
+    x.lineTo(84 * u, 84 * u); x.lineTo(14 * u, 84 * u); x.closePath();
+    x.fillStyle = "rgba(255,255,255,.34)"; x.fill();
+
+    x.beginPath();
+    x.moveTo(pts[0][0] * u, pts[0][1] * u);
+    pts.slice(1).forEach(p => x.lineTo(p[0] * u, p[1] * u));
+    x.strokeStyle = "#FFFFFF"; x.lineWidth = 11.5 * u;
+    x.lineCap = "round"; x.lineJoin = "round"; x.stroke();
     const url = c.toDataURL("image/png");
     ["apple-touch-icon", "icon"].forEach(function(quoi){
       const l = document.createElement("link");
