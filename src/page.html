@@ -1741,7 +1741,43 @@ summary.carte-tete:hover h2{color:var(--v1)}
 
 
 
+/* ═══ l'écran de démarrage ═══
+   La page met un instant à se peindre : polices à charger, données à
+   relire, premier rendu. Sans rien, c'est un blanc — et un blanc, on ne
+   sait jamais s'il dure une demi-seconde ou s'il est cassé.
+   Tout est en dur ici : aucune police extérieure, aucune image, rien qui
+   puisse arriver en retard. Ce voile doit être le premier pixel affiché,
+   sinon il ne sert à rien. */
+#demarrage{position:fixed;inset:0;z-index:200;background:var(--ground);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
+  opacity:1;transition:opacity .34s var(--doux)}
+#demarrage.parti{opacity:0;pointer-events:none}
+#demarrage .marque{width:64px;height:64px;border-radius:21px;background:var(--deg);
+  display:grid;place-content:center;box-shadow:var(--o2);
+  animation:respire 2.4s var(--doux) infinite}
+#demarrage .marque svg{width:30px;height:30px;stroke:#fff;stroke-width:2.4;fill:none}
+#demarrage .nom{font-family:var(--num);font-weight:600;font-size:23px;
+  letter-spacing:-.02em;color:var(--ink)}
+#demarrage .trait{width:132px;height:3px;border-radius:99px;background:var(--line);overflow:hidden}
+#demarrage .trait i{display:block;height:100%;width:40%;border-radius:99px;background:var(--deg);
+  animation:glisse 1.15s var(--doux) infinite}
+@keyframes respire{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes glisse{0%{transform:translateX(-110%)}100%{transform:translateX(360%)}}
+@media (prefers-reduced-motion:reduce){
+  #demarrage .marque{animation:none}
+  #demarrage .trait i{animation:none;width:100%}
+}
 </style>
+
+<div id="demarrage" aria-hidden="true">
+  <span class="marque">
+    <svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3.4 16.8 9 11.2l3.6 3.6 8-8"/><path d="M15.8 6.8h4.8v4.8"/>
+    </svg>
+  </span>
+  <span class="nom">Cura</span>
+  <span class="trait"><i></i></span>
+</div>
 
 <div class="page">
   <header class="entete anim" id="entete"></header>
@@ -5063,6 +5099,30 @@ window.addEventListener("resize", () => {
   }catch(e){}
 })();
 
+/* Le voile s'efface au premier rendu réellement peint. Le repli à trois
+   secondes n'est pas décoratif : si quoi que ce soit échoue avant, mieux
+   vaut une page nue qu'un voile éternel. */
+(function(){
+  const voile = document.getElementById("demarrage");
+  if(!voile) return;
+  let parti = false;
+  const effacer = () => {
+    if(parti) return;
+    parti = true;
+    voile.classList.add("parti");
+    setTimeout(() => { if(voile.parentNode) voile.parentNode.removeChild(voile); }, 400);
+  };
+  /* Un plancher de durée. Sans lui, une page qui se peint en cinquante
+     millisecondes fait clignoter le voile, ce qui est pire que pas de
+     voile du tout : on croit à un défaut d'affichage. */
+  const depart = Date.now();
+  window.__finDuDemarrage__ = () => {
+    const reste = Math.max(0, 480 - (Date.now() - depart));
+    setTimeout(effacer, reste);
+  };
+  setTimeout(effacer, 3000);
+})();
+
 charger();
 if(donneesAbimees){
   setTimeout(function(){
@@ -5074,6 +5134,13 @@ if(donneesAbimees){
    répondu — sinon on écraserait son choix à chaque ouverture. */
 if(!state.moi.forme && liste("factures").some(f => f.exemple)){ state.moi.forme = "micro"; state.moi.regime = "vente"; }
 rendre();
+
+/* Deux images d'attente avant d'effacer : la première laisse le navigateur
+   calculer la mise en page, la seconde le laisse la peindre. Effacer plus
+   tôt découvrirait un écran encore vide. */
+requestAnimationFrame(() => requestAnimationFrame(() => {
+  if(window.__finDuDemarrage__) window.__finDuDemarrage__();
+}));
 
 </script>
 
