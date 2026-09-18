@@ -3065,6 +3065,12 @@ function rangeeSortie(o, col){
    porte sur les revenus 2025. Décote et impôt sur les sociétés avec. */
 const BAREME = [{p: 11600, t: 0}, {p: 29579, t: 11}, {p: 84577, t: 30}, {p: 181917, t: 41}, {p: null, t: 45}];
 const DEC_SEUL = 897, DEC_COUPLE = 1483, DEC_TAUX = 45.25;
+/* Le quotient familial est plafonné : un enfant ne peut pas faire baisser
+   l'impôt de plus de 1 807 € par demi-part (loi de finances du 19 février
+   2026). Sans ce plafond, l'application annonçait jusqu'à 3 282 € de trop
+   à une famille — et se tromper en promettant plus d'argent qu'il n'y en
+   aura est la pire des erreurs pour qui compte dessus. */
+const QF_PLAFOND = 1807;
 const IS_REDUIT = 15, IS_SEUIL = 42500, IS_PLEIN = 25;
 /* l'abattement micro ne peut pas descendre sous 305 €, et ne peut pas
    dépasser le chiffre d'affaires : sur les tout petits montants, le
@@ -3116,7 +3122,8 @@ const EI_COTIS = 45;
 
 const pct = v => String(v).replace(".", ",");
 
-function impotBareme(revenu, parts){
+/* l'impôt brut, avant décote et avant plafonnement */
+function bareme(revenu, parts){
   let q = revenu / parts, du = 0, bas = 0;
   for(let i = 0; i < BAREME.length; i++){
     const t = BAREME[i], haut = t.p === null ? Infinity : t.p;
@@ -3124,7 +3131,22 @@ function impotBareme(revenu, parts){
     bas = haut;
     if(q <= haut) break;
   }
-  du *= parts;
+  return du * parts;
+}
+
+function impotBareme(revenu, parts){
+  /* Le socle est d'une part si l'on vit seul, de deux si l'on est en
+     couple ; les demi-parts au-dessus sont celles des enfants, et c'est
+     leur avantage qui est plafonné. On compare donc l'impôt tel quel à
+     celui qu'on paierait sans les enfants. */
+  const socle = parts >= 2 ? 2 : 1;
+  const demies = Math.round((parts - socle) * 2);
+  let du = bareme(revenu, parts);
+  if(demies > 0){
+    const sansEnfants = bareme(revenu, socle);
+    if(sansEnfants - du > demies * QF_PLAFOND) du = sansEnfants - demies * QF_PLAFOND;
+  }
+  /* la décote vient après le plafonnement, jamais avant */
   const seuil = parts >= 2 ? DEC_COUPLE : DEC_SEUL;
   if(du > 0 && du < seuil / (DEC_TAUX / 100)) du = Math.max(0, du - Math.max(0, seuil - du * DEC_TAUX / 100));
   return Math.max(0, du);
