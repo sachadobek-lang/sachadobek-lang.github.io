@@ -14,17 +14,11 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
       - name: Comparer l'empreinte
-        run: |
-          adresse=$(grep -o 'https://cdnjs.cloudflare.com[^"]*' index.html | head -1)
-          annoncee=$(grep -o 'integrity="sha512-[^"]*"' index.html | head -1 | sed 's/integrity="sha512-//; s/"//')
-          curl -sS --retry 3 -o /tmp/tiers.js "$adresse"
-          reelle=$(openssl dgst -sha512 -binary /tmp/tiers.js | openssl base64 -A)
-          if [ "$annoncee" != "$reelle" ]; then
-            echo "::error::$adresse ne correspond plus à l'empreinte inscrite dans la page."
-            exit 1
-          fi
-          echo "Inchangé."
+        run: python3 src/tiers.py index.html
 
   page:
     name: La page publiée répond

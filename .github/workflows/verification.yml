@@ -47,23 +47,15 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
 
       # Si cdnjs servait un jour un autre fichier, le navigateur refuserait de
       # l'exécuter — et l'export PDF cesserait de fonctionner sans explication.
       # On préfère l'apprendre ici.
       - name: L'empreinte annoncée est celle du fichier servi
-        run: |
-          adresse=$(grep -o 'https://cdnjs.cloudflare.com[^"]*' index.html | head -1)
-          annoncee=$(grep -o 'integrity="sha512-[^"]*"' index.html | head -1 | sed 's/integrity="sha512-//; s/"//')
-          curl -sS --retry 3 -o /tmp/tiers.js "$adresse"
-          reelle=$(openssl dgst -sha512 -binary /tmp/tiers.js | openssl base64 -A)
-          echo "annoncée : $annoncee"
-          echo "servie   : $reelle"
-          if [ "$annoncee" != "$reelle" ]; then
-            echo "::error::Le fichier servi par le CDN ne correspond plus à l'empreinte de la page."
-            exit 1
-          fi
-          echo "Le script tiers n'a pas changé."
+        run: python3 src/tiers.py index.html
 
   verdict:
     name: Bon pour la publication
