@@ -121,3 +121,20 @@ isolée du dépôt. Les règles qui font que ça tient :
    personnels ne servent qu'à se vérifier soi-même avant de fusionner.
 4. **Un agent ne modifie pas les instructions d'un autre**, même quand il les a
    écrites. On se transmet l'état du code, pas des consignes.
+5. **Avant tout diagnostic, mesurer ce qu'on regarde vraiment.**
+
+```bash
+python3 outils/surfaces.py
+```
+
+Il compare les quatre surfaces — copie de travail, `main`, le 4173, la page
+publique — et dit laquelle diverge. La cause la plus fréquente d'un « ce n'est
+pas à jour » n'est pas le code : c'est qu'on ne regarde pas la surface qu'on
+vérifie. Le 4173 a déjà servi la copie isolée d'un agent pendant qu'un autre en
+tirait des conclusions sur `main`.
+
+**Le script existe pour une raison précise** : deux agents ont comparé le même
+fichier, l'un avec `shasum`, l'autre avec `shasum -a 256`, obtenu deux valeurs
+différentes et failli conclure qu'ils regardaient des pages différentes. Une
+règle qui dépend de l'outil que chacun choisit n'est pas une règle — d'où un
+seul script, un seul algorithme, pour tout le monde.
