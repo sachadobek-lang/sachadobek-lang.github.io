@@ -14,6 +14,21 @@
  * leur adresse — est servi depuis le cache en premier : c'est sans risque,
  * et ça évite d'attendre le réseau à chaque ouverture.
  */
+/* ⚠ Ce fichier ne peut pas être vérifié sur http://localhost.
+ *
+ * Le navigateur de contrôle refuse d'enregistrer un service worker sur une
+ * origine en http, y compris localhost. L'erreur est « An unknown error
+ * occurred when fetching the script », qui ne dit rien de sa cause : deux
+ * d'entre nous ont cru successivement à un en-tête « no-store », à du
+ * HTTP/1.0, puis aux accents du fichier. Éprouvé avec un script de
+ * quarante-huit octets en pur ASCII, sur un serveur neutre : il échoue
+ * aussi. Ce n'est ni le script, ni le serveur, ni les en-têtes.
+ *
+ * En ligne, sur https://, tout fonctionne — mise à jour comprise, constatée
+ * en voyant la boîte passer d'une version à la suivante après publication.
+ * Donc : ne pas rediagnostiquer ceci depuis un port local. Le seul endroit
+ * où l'observer est la page publique.
+ */
 const VERSION = "b54bfcd2a5a3";
 const BOITE = "cura-" + VERSION;
 const FIGE = "cura-fige";

@@ -155,6 +155,19 @@ lui proposer quelque chose, vérifier ici.**
 tâche** : la condition est la première chose qui saute quand quelqu'un relaie la
 phrase, et l'attribution la deuxième. Ne pas en écrire ; l'écrire ici à la place.
 
+## Ce qui ne se vérifie pas en local
+
+**Le fonctionnement hors-ligne ne s'observe que sur la page publique.** Le
+navigateur de contrôle refuse d'enregistrer un service worker sur une origine
+en `http://`, localhost compris, avec un message qui ne dit pas sa cause :
+« An unknown error occurred when fetching the script ». Deux agents ont cru
+successivement à un en-tête, à la version du protocole, puis aux accents du
+fichier — éprouvé avec un script de quarante-huit octets en pur ASCII sur un
+serveur neutre, il échoue aussi.
+
+Tout fonctionne en ligne, mise à jour comprise. **Ne pas rediagnostiquer ceci
+depuis un port local** : y observer une anomalie ne prouve rien.
+
 ## Plusieurs agents sur le même projet
 
 Trois agents travaillent en parallèle, chacun sur un onglet, chacun dans sa copie
