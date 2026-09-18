@@ -3374,7 +3374,7 @@ function vueCalculs(){
           : "dans la case <b>" + c.case + "</b> — " + c.quoi)
       + "</p>"
       + '<div class="decl-gestes">'
-      + '<button class="decl-copier" data-copier="' + ca + '">Copier le montant</button>'
+      + '<button class="decl-copier" data-feuille="1">Remplir ma feuille</button>'
       + '<a class="decl-ouvrir" href="' + URL_IMPOTS + '" target="_blank" rel="noopener noreferrer">'
       + "Ouvrir impots.gouv.fr</a></div>"
       + '<p class="decl-note">C\'est votre chiffre d\'affaires encaissé, sans rien retirer. '
@@ -3694,6 +3694,92 @@ function pdfFacture(f){
 
 /* Le livre des recettes : ce que la loi exige d'un micro-entrepreneur —
    date, client, désignation, référence et montant, dans l'ordre chronologique. */
+/* ═══ la feuille de déclaration, remplie ═══
+   Le formulaire officiel 2042-C-PRO n'est pas remplissable : c'est un PDF
+   plat d'un mégaoctet, sans un seul champ nommé. On ne peut donc pas
+   écrire dedans. On édite la feuille à sa place : la même case, le même
+   intitulé, le montant déjà inscrit. Il ne reste qu'à recopier une ligne,
+   sans rien calculer ni chercher. */
+async function feuilleDeclaration(){
+  if(!window.jspdf || !window.jspdf.jsPDF){ bulle("PDF indisponible ici"); return; }
+  const k = partageImpot();
+  if(k.genre !== "micro" || k.ca <= 0){ bulle("Rien à déclarer pour l'instant"); return; }
+  const moi = state.moi || {};
+  const an = new Date().getFullYear();
+  const c = CASES[calcStatut()] || CASES.services;
+
+  const doc = new window.jspdf.jsPDF({unit: "mm", format: "a4"});
+  const G = 18, D = 192;
+  let y = 24;
+
+  doc.setFont("helvetica", "bold").setFontSize(17).setTextColor(20, 32, 46);
+  doc.text("DÉCLARER MES REVENUS " + an, G, y); y += 7;
+  doc.setFont("helvetica", "normal").setFontSize(10).setTextColor(110, 122, 140);
+  /* la 2042-C-PRO se dépose au printemps suivant l'année qu'elle couvre :
+     le dire évite de chercher le formulaire de la mauvaise année */
+  doc.text("Formulaire 2042-C-PRO  ·  à déposer au printemps " + (an + 1), G, y); y += 5;
+  doc.text((moi.nom || "") + (moi.siret ? "  ·  SIRET " + moi.siret : ""), G, y); y += 13;
+
+  doc.setFont("helvetica", "bold").setFontSize(10).setTextColor(20, 32, 46);
+  doc.text("À RECOPIER TEL QUEL", G, y); y += 6;
+
+  doc.setFillColor(243, 247, 251).rect(G, y, D - G, 26, "F");
+  doc.setFont("helvetica", "bold").setFontSize(8.5).setTextColor(90, 102, 120);
+  doc.text("CASE", G + 5, y + 8);
+  doc.text("RUBRIQUE", G + 34, y + 8);
+  doc.text("MONTANT À INSCRIRE", D - 5, y + 8, {align: "right"});
+  doc.setFont("helvetica", "bold").setFontSize(19).setTextColor(20, 32, 46);
+  doc.text(calcLib() ? "VFL" : c.case, G + 5, y + 20);
+  doc.setFont("helvetica", "normal").setFontSize(9.5).setTextColor(60, 72, 90);
+  doc.text(calcLib() ? RUBRIQUE_VFL : c.quoi, G + 34, y + 18, {maxWidth: 92});
+  doc.setFont("helvetica", "bold").setFontSize(19).setTextColor(20, 32, 46);
+  doc.text(euroTxt(k.ca), D - 5, y + 20, {align: "right"});
+  y += 34;
+
+  doc.setFont("helvetica", "normal").setFontSize(9.5).setTextColor(110, 122, 140);
+  doc.text("C'est votre chiffre d'affaires encaissé, brut, sans rien en retirer. L'abattement de "
+    + pct(k.act.abat) + " % est appliqué par l'administration : ne le déduisez pas vous-même.",
+    G, y, {maxWidth: D - G}); y += 15;
+
+  doc.setFont("helvetica", "bold").setFontSize(10).setTextColor(20, 32, 46);
+  doc.text("CE QUE CELA DEVRAIT DONNER", G, y); y += 3;
+  doc.setDrawColor(223, 231, 240).line(G, y, D, y); y += 8;
+  const ligne = (t, v) => {
+    doc.setFont("helvetica", "normal").setFontSize(10).setTextColor(60, 72, 90);
+    doc.text(t, G, y);
+    doc.setFont("helvetica", "bold").setTextColor(20, 32, 46);
+    doc.text(euroTxt(v), D, y, {align: "right"});
+    y += 7;
+  };
+  ligne("Base imposable, après abattement de " + pct(k.act.abat) + " %", k.base);
+  ligne("Cotisations sociales, " + pct(k.act.cotis) + " % du chiffre d'affaires", k.cotis);
+  ligne(calcLib() ? "Impôt, versement libératoire" : "Impôt sur le revenu, barème " + an, k.impot);
+  y += 2;
+  doc.setDrawColor(223, 231, 240).line(G, y, D, y); y += 9;
+  doc.setFont("helvetica", "bold").setFontSize(12).setTextColor(20, 32, 46);
+  doc.text("Il devrait vous rester", G, y);
+  doc.text(euroTxt(k.net), D, y, {align: "right"});
+  y += 16;
+
+  doc.setFont("helvetica", "normal").setFontSize(8.5).setTextColor(140, 152, 170);
+  doc.text("Estimation calculée avec les chiffres 2026. Seule la case du haut est à recopier ; le reste "
+    + "est indicatif, et votre impôt réel dépend aussi de vos autres revenus.",
+    G, y, {maxWidth: D - G});
+
+  const nom = "declaration-" + an + ".pdf";
+  if(window.claude && window.claude.use){
+    const dl = await window.claude.use("downloads").catch(() => null);
+    if(!dl){ bulle("Téléchargement indisponible ici"); return; }
+    try{
+      await dl.save({filename: nom, data: doc.output("arraybuffer")});
+      bulle("Feuille éditée");
+    }catch(e){ bulle(e && e.code === "declined" ? "Annulé" : "Téléchargement impossible"); }
+    return;
+  }
+  doc.save(nom);
+  bulle("Feuille éditée");
+}
+
 async function livreRecettes(){
   if(!window.jspdf || !window.jspdf.jsPDF){ bulle("PDF indisponible ici"); return; }
   const k = bilanLivre();
@@ -4377,6 +4463,7 @@ $("#vue").addEventListener("click", e => {
   }
   if(b.dataset.pdf){ telechargerFacture(b.dataset.pdf); return; }
   if(b.dataset.recettes){ livreRecettes(); return; }
+  if(b.dataset.feuille){ feuilleDeclaration(); return; }
   if(b.dataset.copier){
     /* on écrit le nombre nu, sans espace ni euro : c'est ce que le
        formulaire attend, et un séparateur collé le ferait refuser */
