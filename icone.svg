@@ -1,36 +1,35 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Cura — « L'aire », traitement Encre.
-       Le signe occupe 44 % du carré : plus petit qu'une icône ordinaire,
-       comme les marques qui n'ont rien à prouver. Une lueur douce est posée
-       derrière lui, centrée un peu au-dessus du milieu — la lumière vient
-       du haut, jamais de côté. L'aire sous la courbe est plus transparente
-       qu'elle ne l'était : elle suggère la masse sans la peindre.
-       Le contour est le squircle d'iOS, une courbe continue sans rupture
-       entre la partie droite et l'arrondi. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Cura — réglage choisi par Sacha dans l'atelier :
+       L'aire · fond Encre · taille 49 · trait 2,8 · remplissage 33
+       lumière 0 · néon 10.
+
+       Pas de halo derrière : la lumière ne vient pas du fond mais du trait
+       lui-même, qui rayonne. Le trait est fin — 2,8 apparents — et c'est ce
+       contraste entre la finesse et la lueur qui fait tout le dessin.
+       Le contour est le squircle d'iOS, une courbe continue. -->
   <defs>
     <linearGradient id="fond" x1="0" y1="0" x2="0" y2="1">
       <stop offset="0%" stop-color="#20272F"/><stop offset="100%" stop-color="#05070A"/>
     </linearGradient>
-    <radialGradient id="lueur" cx="50%" cy="34%" r="64%">
-      <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".17"/>
-      <stop offset="55%" stop-color="#FFFFFF" stop-opacity=".05"/>
-      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
-    </radialGradient>
     <linearGradient id="aire" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".30"/>
-      <stop offset="100%" stop-color="#FFFFFF" stop-opacity=".02"/>
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".330"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity=".022"/>
     </linearGradient>
     <clipPath id="forme">
-      <path d="M0 256 C0 52.2 52.2 0 256 0 C459.8 0 512 52.2 512 256
-               C512 459.8 459.8 512 256 512 C52.2 512 0 459.8 0 256 Z"/>
+      <path d="M0 50 C0 10.2 10.2 0 50 0 C89.8 0 100 10.2 100 50
+               C100 89.8 89.8 100 50 100 C10.2 100 0 89.8 0 50 Z"/>
     </clipPath>
+    <filter id="neon" x="-60%" y="-60%" width="220%" height="220%">
+      <feGaussianBlur stdDeviation="10.0" result="flou"/>
+      <feMerge><feMergeNode in="flou"/><feMergeNode in="flou"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
   </defs>
   <g clip-path="url(#forme)">
-    <rect width="512" height="512" fill="url(#fond)"/>
-    <rect width="512" height="512" fill="url(#lueur)"/>
+    <rect width="100" height="100" fill="url(#fond)"/>
+    <g transform="translate(50 50) scale(0.875) translate(-50 -50)" filter="url(#neon)">
+      <path d="M22 62 L40 46 L52 55 L78 30 L78 70 L22 70 Z" fill="url(#aire)"/>
+      <path d="M22 62 L40 46 L52 55 L78 30" fill="none" stroke="#FFFFFF" stroke-width="3.20"
+            stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
   </g>
-  <path fill="url(#aire)"
-        d="M143.4 304.3 L215.8 239.9 L264.0 276.1 L368.6 175.6 L368.6 336.4 L143.4 336.4 Z"/>
-  <path fill="none" stroke="#FFFFFF" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"
-        d="M143.4 304.3 L215.8 239.9 L264.0 276.1 L368.6 175.6"/>
 </svg>
