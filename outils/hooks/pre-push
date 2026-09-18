@@ -1,0 +1,22 @@
+#!/bin/bash
+# Dernière barrière avant la publication.
+#
+# La sauvegarde automatique enregistre puis envoie sans regarder si la page
+# tient debout. Le commit local, lui, doit toujours passer : c'est la
+# sauvegarde du travail. Ce qui est refusé ici, c'est seulement l'envoi.
+# Rien n'est perdu ; la page en ligne reste la dernière qui fonctionnait.
+cd "$(git rev-parse --show-toplevel)" || exit 0
+[ -f index.html ] || exit 0
+
+if ! python3 src/verif.py index.html >/tmp/plenitu-verrou 2>&1 \
+|| ! python3 src/controles.py index.html >>/tmp/plenitu-verrou 2>&1; then
+  echo
+  echo "  Envoi interrompu : la page ne passe pas les contrôles."
+  sed 's/^/  /' /tmp/plenitu-verrou
+  echo
+  echo "  Le travail est enregistré en local, rien n'est perdu."
+  echo "  La page en ligne reste la dernière qui fonctionnait."
+  echo
+  exit 1
+fi
+exit 0

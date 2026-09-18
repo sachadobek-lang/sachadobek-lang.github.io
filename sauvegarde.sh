@@ -4,7 +4,12 @@
 export PATH="$HOME/.local/bin:$PATH"
 cd "$(dirname "$0")" || exit 1
 
-python3 src/build.py >/dev/null 2>&1
+# Si la régénération échoue, index.html reste celui qui fonctionnait —
+# build.py ne le remplace qu'une fois les contrôles passés. On le note,
+# et on enregistre quand même : le travail en cours ne se perd pas.
+if ! python3 src/build.py >/dev/null 2>&1; then
+  echo "$(date '+%F %T') page NON régénérée : les contrôles ont échoué" >> sauvegarde.log
+fi
 
 [ -z "$(git status --porcelain)" ] && exit 0
 
