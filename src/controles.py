@@ -58,6 +58,9 @@ if csp:
                "connect-src autorise un serveur extérieur : %s" % " ".join(dehors))
     exiger("object-src 'none'" in regles, "object-src n'est pas fermé")
     exiger("form-action 'none'" in regles, "form-action n'est pas fermé")
+    exiger("worker-src 'self'" in regles,
+           "worker-src manquant : le service worker sera refusé et l'application ne s'ouvrira pas sans réseau")
+    exiger("manifest-src 'self'" in regles, "manifest-src manquant : le manifeste sera refusé")
 
 # ── Un script qu'on ne fabrique pas doit être celui qu'on croit ──────
 for balise in re.findall(r"<script\b[^>]*\bsrc=[^>]*>", page):
@@ -76,6 +79,28 @@ charges = set(re.findall(r'(?:src|href)="https://([^/"]+)', page))
 inconnus = sorted(charges - autorises)
 exiger(not inconnus,
        "la page charge un domaine non prévu : %s" % " ".join(inconnus))
+
+# ── S'installer sur le téléphone, et s'ouvrir sans réseau ────────────
+exiger('rel="manifest"' in page, "le manifeste n'est pas déclaré : l'installation sera bancale")
+exiger('navigator.serviceWorker.register' in page,
+       "le service worker n'est pas enregistré : l'application ne s'ouvrira pas sans réseau")
+for fichier, role in (("manifest.webmanifest", "le manifeste"),
+                      ("icone.svg", "l'icône"),
+                      ("sw.js", "le service worker"),
+                      ("404.html", "la page d'adresse inconnue"),
+                      ("robots.txt", "le fichier robots")):
+    exiger(os.path.exists(os.path.join(RACINE, fichier)), "%s (%s) est absent" % (role, fichier))
+
+# ── Le service worker ne doit JAMAIS servir la page depuis le cache
+#    tant qu'il y a du réseau. C'est ce qui fige une application et fait
+#    croire que les corrections ne sont pas arrivées. Ça a déjà coûté
+#    une journée entière. ─────────────────────────────────────────────
+chemin_sw = os.path.join(RACINE, "sw.js")
+if os.path.exists(chemin_sw):
+    sw = io.open(chemin_sw, encoding="utf-8").read()
+    exiger("__VERSION__" not in sw, "sw.js n'a pas été versionné : le ménage des vieilles copies ne se fera pas")
+    exiger(re.search(r"e\.respondWith\(\s*fetch\(requete\)", sw),
+           "sw.js ne demande pas le réseau en premier : il figerait l'application sur une vieille version")
 
 # ── Une page trop lourde s'ouvre mal en 4G ───────────────────────────
 poids = len(page.encode("utf-8"))

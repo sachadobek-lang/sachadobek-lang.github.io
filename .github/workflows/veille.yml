@@ -37,4 +37,12 @@ jobs:
             echo "::error::La page en ligne n'a pas de politique de sécurité : elle est périmée."
             exit 1
           fi
-          echo "La page en ligne répond et porte bien ses protections."
+          for fichier in manifest.webmanifest sw.js icone.svg 404.html robots.txt; do
+            c=$(curl -sS -o /dev/null -w "%{http_code}" "https://sachadobek-lang.github.io/$fichier")
+            echo "$fichier : $c"
+            if [ "$c" != "200" ]; then
+              echo "::error::$fichier répond $c : l'ouverture sans réseau ne fonctionnera pas."
+              exit 1
+            fi
+          done
+          echo "La page en ligne répond, porte ses protections, et peut s'ouvrir sans réseau."

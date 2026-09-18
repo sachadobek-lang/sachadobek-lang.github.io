@@ -1,0 +1,3 @@
+# Plenitu est un outil de travail, pas un site à lire.
+User-agent: *
+Disallow: /

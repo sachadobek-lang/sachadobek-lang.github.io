@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Le P de Plenitu, tracé en formes plutôt qu'en texte : une icône qui
+       dépend d'une police ne s'affiche pas partout de la même façon. -->
+  <rect width="512" height="512" fill="#1B222D"/>
+  <path fill="#FFFFFF" d="M170 120h96a92 92 0 0 1 0 184h-52v88h-44V120zm44 44v96h52a48 48 0 0 0 0-96h-52z"/>
+</svg>

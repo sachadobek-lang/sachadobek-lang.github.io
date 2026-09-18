@@ -7,7 +7,7 @@ La page n'est remplacée qu'une fois les contrôles passés. L'ancienne version
 reste disponible dans index.precedent.html tant que la suivante n'a pas été
 écrite : si quelque chose casse, le retour en arrière est immédiat.
 """
-import io, json, os, shutil, subprocess, sys
+import hashlib, io, json, os, shutil, subprocess, sys
 
 ICI = os.path.dirname(os.path.abspath(__file__))
 RACINE = os.path.dirname(ICI)
@@ -42,6 +42,15 @@ for script, motif in (("verif.py", "le script contient une erreur de syntaxe"),
 if os.path.exists(sortie):
     shutil.copy2(sortie, os.path.join(RACINE, "index.precedent.html"))
 os.replace(brouillon, sortie)
+
+# Le service worker porte l'empreinte de la page : une page nouvelle, une
+# boîte nouvelle, et les copies de l'ancienne version sont mises au rebut.
+modele = os.path.join(ICI, "sw.js")
+if os.path.exists(modele):
+    empreinte = hashlib.sha256(io.open(sortie, encoding="utf-8").read().encode("utf-8")).hexdigest()[:12]
+    io.open(os.path.join(RACINE, "sw.js"), "w", encoding="utf-8").write(
+        io.open(modele, encoding="utf-8").read().replace("__VERSION__", empreinte))
+    print("sw.js écrit · version %s" % empreinte)
 
 total = sum(len(v) for v in exemple.values())
 print("index.html écrit · %d octets · %d fiches d'exemple" % (os.path.getsize(sortie), total))
