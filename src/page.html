@@ -1752,10 +1752,10 @@ summary.carte-tete:hover h2{color:var(--v1)}
   display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
   opacity:1;transition:opacity .34s var(--doux)}
 #demarrage.parti{opacity:0;pointer-events:none}
-#demarrage .marque{width:64px;height:64px;border-radius:21px;background:var(--deg);
+#demarrage .marque{width:64px;height:64px;border-radius:0;background:none;
   display:grid;place-content:center;box-shadow:var(--o2);
   animation:respire 2.4s var(--doux) infinite}
-#demarrage .marque svg{width:30px;height:30px;stroke:#fff;stroke-width:2.4;fill:none}
+#demarrage .marque svg{width:64px;height:64px}
 #demarrage .nom{font-family:var(--num);font-weight:600;font-size:23px;
   letter-spacing:-.02em;color:var(--ink)}
 #demarrage .trait{width:132px;height:3px;border-radius:99px;background:var(--line);overflow:hidden}
@@ -1771,9 +1771,24 @@ summary.carte-tete:hover h2{color:var(--v1)}
 
 <div id="demarrage" aria-hidden="true">
   <span class="marque">
-    <svg viewBox="0 0 100 100" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M14 72 L38 50 L56 62 L84 28 L84 84 L14 84 Z" fill="#fff" fill-opacity=".34" stroke="none"/>
-      <path d="M14 72 L38 50 L56 62 L84 28" fill="none" stroke-width="11.5"/>
+    <svg viewBox="0 0 100 100" aria-hidden="true">
+      <defs>
+        <linearGradient id="dem-fond" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#20272F"/><stop offset="100%" stop-color="#05070A"/>
+        </linearGradient>
+        <linearGradient id="dem-aire" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".46"/>
+          <stop offset="100%" stop-color="#FFFFFF" stop-opacity=".06"/>
+        </linearGradient>
+        <clipPath id="dem-forme">
+          <path d="M0 50 C0 10.2 10.2 0 50 0 C89.8 0 100 10.2 100 50
+                   C100 89.8 89.8 100 50 100 C10.2 100 0 89.8 0 50 Z"/>
+        </clipPath>
+      </defs>
+      <rect width="100" height="100" fill="url(#dem-fond)" clip-path="url(#dem-forme)"/>
+      <path d="M22 62 L40 46 L52 55 L78 30 L78 70 L22 70 Z" fill="url(#dem-aire)" stroke="none"/>
+      <path d="M22 62 L40 46 L52 55 L78 30" fill="none" stroke="#fff" stroke-width="8"
+            stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   </span>
   <span class="nom">Cura</span>
@@ -5069,25 +5084,38 @@ window.addEventListener("resize", () => {
     const t = 180, c = document.createElement("canvas");
     c.width = c.height = t;
     const x = c.getContext("2d");
-    /* « L'aire » : la courbe du relevé et ce qu'elle a accumulé dessous.
-       Dessinée en traits plutôt qu'écrite en lettre — une icône qui dépend
-       d'une police ne s'affiche pas partout de la même façon. Les points
-       sont ceux du dessin d'origine, ramenés à la taille demandée. */
+    /* Cura — « L'aire », traitement Encre. Le contour est le squircle
+       d'iOS : une courbe continue, sans rupture entre le droit et l'arrondi.
+       Un carré à coins arrondis ne donne pas la même silhouette et se
+       remarque à côté des autres icônes. Le signe occupe 56 % du carré,
+       centré : c'est la marge qu'Apple laisse autour de ses glyphes. */
     const u = t / 100;
-    const pts = [[14, 72], [38, 50], [56, 62], [84, 28]];
-    x.fillStyle = "#1B222D"; x.fillRect(0, 0, t, t);
+
+    /* Carré PLEIN, sans coins arrondis : iOS applique son propre masque à
+       l'icône de l'écran d'accueil. Lui livrer un squircle déjà découpé le
+       ferait rogner deux fois, et la transparence des coins vire au noir
+       sur certaines versions. Le squircle est dans icone.svg, qui sert au
+       navigateur et au manifeste — là où personne ne masque à notre place. */
+    const fond = x.createLinearGradient(0, 0, 0, t);
+    fond.addColorStop(0, "#20272F"); fond.addColorStop(1, "#05070A");
+    x.fillStyle = fond; x.fillRect(0, 0, t, t);
+
+    const pts = [[22, 62], [40, 46], [52, 55], [78, 30]];
+    const aire = x.createLinearGradient(0, 30 * u, 0, 70 * u);
+    aire.addColorStop(0, "rgba(255,255,255,.46)");
+    aire.addColorStop(1, "rgba(255,255,255,.06)");
+    x.beginPath();
+    x.moveTo(pts[0][0] * u, pts[0][1] * u);
+    pts.slice(1).forEach(p => x.lineTo(p[0] * u, p[1] * u));
+    x.lineTo(78 * u, 70 * u); x.lineTo(22 * u, 70 * u); x.closePath();
+    x.fillStyle = aire; x.fill();
 
     x.beginPath();
     x.moveTo(pts[0][0] * u, pts[0][1] * u);
     pts.slice(1).forEach(p => x.lineTo(p[0] * u, p[1] * u));
-    x.lineTo(84 * u, 84 * u); x.lineTo(14 * u, 84 * u); x.closePath();
-    x.fillStyle = "rgba(255,255,255,.34)"; x.fill();
-
-    x.beginPath();
-    x.moveTo(pts[0][0] * u, pts[0][1] * u);
-    pts.slice(1).forEach(p => x.lineTo(p[0] * u, p[1] * u));
-    x.strokeStyle = "#FFFFFF"; x.lineWidth = 11.5 * u;
+    x.strokeStyle = "#FFFFFF"; x.lineWidth = 8 * u;
     x.lineCap = "round"; x.lineJoin = "round"; x.stroke();
+
     const url = c.toDataURL("image/png");
     ["apple-touch-icon", "icon"].forEach(function(quoi){
       const l = document.createElement("link");
