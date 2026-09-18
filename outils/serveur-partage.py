@@ -54,13 +54,35 @@ else:
     PORT = int(argument) if argument else 4173
 
 class SansCache(http.server.SimpleHTTPRequestHandler):
+    # http.server répond en HTTP/1.0 par défaut et ferme la connexion après
+    # chaque réponse. HTTP/1.1 les garde ouvertes : une page de 370 Ko et ses
+    # quelques fichiers se chargent en une conversation au lieu de dix.
+    # Content-Length est déjà fourni par la classe mère, c'est tout ce qu'il
+    # fallait pour y passer.
+    protocol_version = "HTTP/1.1"
+
     def __init__(self, *a, **kw):
         super().__init__(*a, directory=RACINE, **kw)
 
     def end_headers(self):
-        self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
-        self.send_header("Pragma", "no-cache")
-        self.send_header("Expires", "0")
+        """Interdire le cache — sauf pour le service worker.
+
+        « no-store » dit au navigateur de ne rien conserver. Le service worker
+        a besoin de garder une copie du script pour la comparer à la suivante
+        et décider s'il y a une version à installer : lui interdire de stocker
+        peut l'empêcher de se mettre à jour, et un service worker qui ne se met
+        pas à jour fige l'application — le défaut même que tout ceci cherche à
+        éviter. En ligne, GitHub Pages n'envoie pas no-store ; le servir ainsi
+        ici ferait vérifier autre chose que ce qui sera publié.
+
+        Pour lui : revalidation à chaque fois, mais stockage autorisé.
+        """
+        if self.path.endswith("sw.js"):
+            self.send_header("Cache-Control", "no-cache, max-age=0, must-revalidate")
+        else:
+            self.send_header("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0")
+            self.send_header("Pragma", "no-cache")
+            self.send_header("Expires", "0")
         super().end_headers()
 
     def send_head(self):

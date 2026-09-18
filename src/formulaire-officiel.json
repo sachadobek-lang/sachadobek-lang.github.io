@@ -1,0 +1,7 @@
+{
+  "adresse": "https://www.impots.gouv.fr/sites/default/files/formulaires/2042/2026/2042_5474.pdf",
+  "empreinte": "293de292c87cf77251e659ac5611dac416104d6019e7a458078f7421707c993b",
+  "octets": 1020894,
+  "releve_le": "2026-09-18",
+  "note": "L'empreinte du formulaire tel que l'administration le publie. La veille la compare chaque matin : si elle change, le formulaire a été republié et il faut relancer outils/remplir-2042.py. Un formulaire périmé rempli avec les bons chiffres ne se voit pas."
+}

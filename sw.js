@@ -21,6 +21,13 @@ const FIGE = "plenitu-fige";
 const DEHORS = ["https://fonts.googleapis.com", "https://fonts.gstatic.com",
                 "https://cdnjs.cloudflare.com"];
 
+/* Nos propres fichiers qui ne changent pas au rythme de l'application.
+   Le formulaire des impôts pèse 700 kilo-octets et n'est republié qu'au
+   printemps : le ranger avec la page le ferait retélécharger à chaque
+   publication — soit plusieurs fois par jour — pour une déclaration qu'on
+   remplit une fois par an. */
+const FIGES_ICI = ["formulaire-2042.pdf"];
+
 self.addEventListener("install", e => {
   e.waitUntil(
     caches.open(BOITE)
@@ -45,16 +52,25 @@ self.addEventListener("fetch", e => {
   const requete = e.request;
   if (requete.method !== "GET") return;
 
-  /* Ce qui vient d'ailleurs et ne change jamais : le cache d'abord. */
-  if (DEHORS.some(d => requete.url.startsWith(d))) {
+  /* Ce qui ne change pas au rythme de la page : le cache d'abord, et une
+     revalidation menée en silence derrière. La copie part tout de suite —
+     personne n'attend le réseau pour un fichier qui n'a pas bougé — et la
+     version suivante est prête pour l'ouverture d'après. Une requête
+     conditionnelle ne coûte presque rien : le serveur répond « pas modifié ».
+     C'est ce qui permet de garder une copie sans jamais la figer. */
+  const figeDehors = DEHORS.some(d => requete.url.startsWith(d));
+  const figeIci = FIGES_ICI.some(f => requete.url.endsWith(f));
+  if (figeDehors || figeIci) {
     e.respondWith(
       caches.open(FIGE).then(boite =>
-        boite.match(requete).then(garde =>
-          garde || fetch(requete).then(reponse => {
+        boite.match(requete).then(garde => {
+          const frais = fetch(requete).then(reponse => {
             if (reponse.ok || reponse.type === "opaque") boite.put(requete, reponse.clone());
             return reponse;
-          })
-        )
+          }).catch(() => garde);
+          if (garde) { e.waitUntil(frais.catch(() => {})); return garde; }
+          return frais;
+        })
       )
     );
     return;

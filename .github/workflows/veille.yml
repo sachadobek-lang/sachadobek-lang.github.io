@@ -20,6 +20,22 @@ jobs:
       - name: Comparer l'empreinte
         run: python3 src/tiers.py index.html
 
+  formulaire:
+    name: Le formulaire des impôts n'a pas été republié
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      # Il est republié chaque printemps. L'application continuerait à remplir
+      # celui de l'an dernier, avec les bons chiffres et dans les bonnes cases,
+      # donc sans que rien ne le signale. On veut l'apprendre en mars, pas en
+      # avril chez le comptable.
+      - name: Comparer à l'empreinte relevée
+        run: python3 src/formulaire.py
+
   page:
     name: La page publiée répond
     runs-on: ubuntu-latest
