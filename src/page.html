@@ -1049,53 +1049,6 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .ev.wk .when{font-size:10.5px; margin-top:1px}
 #majournee .ev.wk.short .when,#majournee .ev.wk.tiny .when{display:none}
 #majournee .scroller{max-height:min(58dvh,600px); overflow-y:auto; overflow-x:hidden; padding:18px 20px 20px 0}
-/* ═══ le ruban ═══
-   La journée comme un chemin qu'on descend, et non comme un tableau.
-   Elle commence au premier rendez-vous : plus de cases vides de 6 h à 8 h.
-   Les cartes sont exactement les blocs de la grille (.ev), simplement
-   posées les unes sous les autres — rien de nouveau à apprendre. */
-#majournee .ruban{position:relative; padding:4px 4px 8px 0}
-#majournee .rb-fil{
-  position:absolute; left:63px; top:14px; bottom:14px; width:2px;
-  background:var(--line); border-radius:2px;
-}
-#majournee .rb-ligne{position:relative; display:flex; align-items:flex-start; gap:0}
-#majournee .rb-h{
-  flex:0 0 56px; text-align:right; padding-top:11px; padding-right:8px;
-  font-size:13px; color:var(--ink-3); font-variant-numeric:tabular-nums;
-}
-#majournee .rb-pt{
-  position:absolute; left:58px; top:15px; width:12px; height:12px; border-radius:50%;
-  background:var(--surface); border:2.5px solid var(--line); z-index:1;
-}
-#majournee .rb-ligne.ici .rb-pt{background:var(--c); border-color:transparent}
-#majournee .rb-ligne .ev{
-  position:relative; flex:1 1 auto; min-width:0; margin:4px 0 4px 20px;
-  height:auto; width:auto; min-height:0; inset:auto;
-}
-#majournee .rb-ligne .ev:hover{transform:none; box-shadow:var(--shadow-1)}
-#majournee .rb-ligne.ici .ev{box-shadow:var(--shadow-1)}
-#majournee .ruban .route{
-  position:relative; inset:auto; margin:2px 0 2px 76px; width:auto; height:30px;
-}
-#majournee .ruban .gap{
-  position:relative; inset:auto; margin:2px 0 2px 76px; width:auto; height:30px;
-  display:flex; align-items:center;
-}
-#majournee .rb-ici{
-  position:relative; display:flex; align-items:center; gap:8px;
-  margin:5px 0 5px 58px; color:var(--v-txt, var(--c-vert));
-}
-#majournee .rb-ici b{width:8px; height:8px; border-radius:50%; background:currentColor; flex:0 0 auto}
-#majournee .rb-ici span{
-  font-size:10.5px; font-weight:600; letter-spacing:.12em; text-transform:uppercase; flex:0 0 auto;
-}
-#majournee .rb-ici i{flex:1 1 auto; height:1.5px; background:currentColor; opacity:.45; border-radius:2px}
-#majournee .rb-vide{padding:26px 10px 30px 76px; color:var(--ink-3); font-size:14px}
-#majournee .rb-vide strong{
-  display:block; font-family:var(--display); font-weight:600; font-size:15.5px;
-  color:var(--ink); margin-bottom:3px;
-}
 #majournee .scroller.z-tout{max-height:min(70dvh,740px)}
 #majournee .grid{display:grid; grid-template-columns:70px 1fr; position:relative}
 #majournee .hours{position:relative; height:calc(var(--hour) * 17)}
@@ -1861,7 +1814,6 @@ summary.carte-tete:hover h2{color:var(--v1)}
         <div class="hours" id="hours"></div>
         <div class="track" id="track"></div>
       </div>
-      <div class="ruban" id="ruban" hidden></div>
     </div>
     <div class="demo-note" id="demoNote" hidden>
       <span>Quelques exemples, pour situer.</span>
@@ -5281,114 +5233,15 @@ function makeBlock(ev, opts){
   return b;
 }
 
-/* ═══ le ruban ═══
-   Une seule carte par rendez-vous, dans l'ordre, avec entre elles ce qui
-   se passe vraiment : la route, ou du temps libre. Le zoom n'a plus de
-   sens ici — il disparaît, et la vue du jour retombe à deux réglages. */
-function carteRuban(ev){
-  var cat = CAT[ev.cat] || CAT.autre;
-  var b = document.createElement('button');
-  b.className = 'ev' + (ev.demo ? ' demo' : '');
-  b.style.setProperty('--c', 'var(--c-' + cat.c + ')');
-  b.innerHTML = icon(cat.k, 15) + '<span class="txt"></span>'
-    + (ev.rep && ev.rep !== 'none' ? '<span class="rep">' + svg(I_REPEAT, 12, 1.8) + '</span>' : '');
-  var txt = b.querySelector('.txt');
-  var nm = document.createElement('span'); nm.className = 'name'; nm.textContent = ev.title || cat.l;
-  var wh = document.createElement('span'); wh.className = 'when';
-  wh.textContent = hhmm(ev.start) + '–' + hhmm(Math.min(ev.start + ev.dur, DAY_END))
-    + ' · ' + durLabel(ev.dur);
-  txt.appendChild(nm); txt.appendChild(wh);
-  b.addEventListener('click', function(){ openSheet(ev); });
-  return b;
-}
-
-function traitIci(){
-  var d = document.createElement('div');
-  d.className = 'rb-ici';
-  d.innerHTML = '<b></b><span>vous êtes ici</span><i></i>';
-  return d;
-}
-
-function renderRuban(){
-  var hote = $('ruban');
-  hote.innerHTML = '';
-  var list = eventsOf(state.date).slice().sort(function(a,b){ return a.start - b.start; });
-
-  if (!list.length){
-    var v = document.createElement('div');
-    v.className = 'rb-vide';
-    v.innerHTML = '<strong>Journée libre</strong>Écrivez une phrase au-dessus, ou touchez un créneau.';
-    hote.appendChild(v);
-    return;
-  }
-
-  hote.appendChild(Object.assign(document.createElement('div'), {className: 'rb-fil'}));
-
-  var nowMin = -999, nn = new Date();
-  if (state.date === today){
-    nowMin = nn.getHours()*60 + nn.getMinutes();
-    if (nowMin < DAY_START || nowMin > DAY_END) nowMin = -999;
-  }
-
-  var paires = {};
-  pairesRoute(list).forEach(function(p){ paires[p.b.id] = p; });
-
-  var fin = null, traceIci = false;
-  list.forEach(function(ev){
-    /* Entre deux rendez-vous, une seule chose se dit. La route l'emporte
-       quand elle est connue ; sinon c'est le temps libre qui est utile, et
-       la question du trajet ne se pose que là où l'intervalle est serré. */
-    var p = paires[ev.id];
-    var m = p ? routeConnue(p.a.title, p.b.title) : null;
-    var libre = (fin !== null) ? ev.start - fin : 0;
-    if (p && m > 0){
-      hote.appendChild(makeRoute(p));
-    } else if (libre >= 30){
-      hote.appendChild(creneauRuban(fin, libre));
-    } else if (p && m === null){
-      hote.appendChild(makeRoute(p));
-    }
-
-    if (!traceIci && nowMin > 0 && nowMin < ev.start){
-      hote.appendChild(traitIci()); traceIci = true;
-    }
-
-    var enCours = nowMin >= ev.start && nowMin < ev.start + ev.dur;
-    var ligne = document.createElement('div');
-    ligne.className = 'rb-ligne' + (enCours ? ' ici' : '');
-    var cat = CAT[ev.cat] || CAT.autre;
-    ligne.style.setProperty('--c', 'var(--c-' + cat.c + ')');
-    var h = document.createElement('span');
-    h.className = 'rb-h'; h.textContent = hhmm(ev.start);
-    ligne.appendChild(h);
-    ligne.appendChild(Object.assign(document.createElement('span'), {className: 'rb-pt'}));
-    ligne.appendChild(carteRuban(ev));
-    hote.appendChild(ligne);
-
-    if (!traceIci && enCours){ hote.appendChild(traitIci()); traceIci = true; }
-    if (fin === null || ev.start + ev.dur > fin) fin = ev.start + ev.dur;
-  });
-}
-
-function creneauRuban(debut, dur){
-  var b = document.createElement('button');
-  b.className = 'gap';
-  b.innerHTML = '<span>' + svg(I_PLUS, 13, 2) + durLabel(dur) + ' libre</span>';
-  b.setAttribute('aria-label', 'Placer une activité dans ce créneau libre de ' + durLabel(dur));
-  b.addEventListener('click', function(){ openSheet(null, {start: debut, dur: Math.min(60, dur)}); });
-  return b;
-}
-
 function renderTrack(){
   var track = $('track'), hours = $('hours'), head = $('wkhead');
   var week = state.view === 'semaine';
 
-  /* Le ruban montrait les rendez-vous, pas la journée : on ne voyait ni les
-     trous, ni l'heure qu'il est par rapport au reste. Sacha veut voir sa
-     journée entière, comme dans Outlook. La grille revient donc en vue Jour,
-     avec son zoom — et « Tout » fait tenir la journée dans l'écran. */
+  /* La grille sert les deux vues, avec son zoom. Une liste de rendez-vous a
+     été essayée à la place de la grille du jour : elle montrait bien les
+     rendez-vous, mais pas la journée — ni les trous, ni l'heure qu'il est
+     par rapport au reste. « Tout » fait tenir la journée dans l'écran. */
   $('grille').hidden = false;
-  $('ruban').hidden = true;
   $('zoom').hidden = false;
   track.innerHTML = ''; hours.innerHTML = ''; head.innerHTML = '';
   head.hidden = !week;
