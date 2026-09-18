@@ -1,4 +1,4 @@
-/* Plenitu hors-ligne — version 5dae842fc2e9
+/* Plenitu hors-ligne — version 08e0fec1d608
  *
  * Ce fichier existe pour une seule raison : que l'application s'ouvre dans
  * le métro, chez un client, partout où il n'y a pas de réseau.
@@ -14,7 +14,7 @@
  * leur adresse — est servi depuis le cache en premier : c'est sans risque,
  * et ça évite d'attendre le réseau à chaque ouverture.
  */
-const VERSION = "5dae842fc2e9";
+const VERSION = "08e0fec1d608";
 const BOITE = "plenitu-" + VERSION;
 const FIGE = "plenitu-fige";
 

@@ -483,6 +483,29 @@ summary.groupe:hover{background:var(--line)}
 .faire-facture:hover{filter:brightness(1.08)}
 .faire-facture:active{transform:scale(.982)}
 
+/* ═══ la case à remplir sur la déclaration ═══ */
+.decl{padding:2px 24px 24px;display:flex;flex-direction:column;gap:3px}
+.decl-quoi{font-size:14.5px;color:var(--ink-2)}
+.decl-somme{font-family:var(--num);font-weight:600;font-size:clamp(32px,8vw,42px);
+  letter-spacing:-.03em;line-height:1.1;font-variant-numeric:tabular-nums}
+.decl-ou{font-size:15.5px;color:var(--ink-2);margin-top:2px}
+.decl-ou b{font-family:var(--num);font-weight:600;font-size:18px;color:var(--ink);
+  letter-spacing:.01em}
+.decl-gestes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+@media(max-width:400px){.decl-gestes{gap:8px}}
+.decl-copier,.decl-ouvrir{display:flex;align-items:center;justify-content:center;
+  border:0;border-radius:var(--rm);padding:15px 8px;font:inherit;font-family:var(--num);
+  font-weight:600;font-size:15px;white-space:nowrap;cursor:pointer;text-decoration:none;
+  transition:filter .2s,transform .12s,background .2s,color .2s}
+.decl-copier{background:var(--surface-3);color:var(--ink-2)}
+.decl-copier:hover{background:var(--line);color:var(--ink)}
+.decl-copier[data-fait="1"]{background:var(--ok-doux);color:var(--ok)}
+.decl-ouvrir{background:var(--deg);color:#fff;box-shadow:var(--o1)}
+.decl-ouvrir:hover{filter:brightness(1.1)}
+.decl-copier:active,.decl-ouvrir:active{transform:scale(.975)}
+.decl-note{font-size:13.5px;color:var(--ink-3);line-height:1.5;margin-top:16px;
+  padding-top:14px;border-top:1px solid var(--line)}
+
 /* ═══ segments ═══ */
 .segments{display:flex;gap:5px;padding:7px;background:var(--surface-3);border-radius:999px;margin:16px 24px 12px}
 /* piste creusée, comme la barre de filtres : sur une piste blanche, la
@@ -3153,6 +3176,18 @@ const FORMES = {
    « environ ». */
 const EI_COTIS = 45;
 
+/* ═══ où reporter son chiffre d'affaires sur la 2042-C-PRO ═══
+   Les cases du cas courant sont celles que donne impots.gouv.fr. Pour le
+   versement libératoire, le site nomme la rubrique sans citer de numéro :
+   on reprend donc son intitulé exact plutôt que d'inventer un code. */
+const CASES = {
+  vente:    {case: "5KO", quoi: "Vente de marchandises"},
+  services: {case: "5KP", quoi: "Prestations de services commerciales"},
+  liberal:  {case: "5HQ", quoi: "Prestations de services libérales"}
+};
+const RUBRIQUE_VFL = "Micro-entrepreneur ayant opté pour le versement libératoire";
+const URL_IMPOTS = "https://www.impots.gouv.fr/particulier/questions/comment-declarer-les-revenus-provenant-de-mon-activite-dauto-entrepreneur";
+
 const pct = v => String(v).replace(".", ",");
 
 /* l'impôt brut, avant décote et avant plafonnement */
@@ -3321,6 +3356,31 @@ function vueCalculs(){
     out += '<section class="carte anim" style="animation-delay:.1s">'
       + murs.map(m => '<div class="r"><span class="pastille feu">!</span><span class="r-corps"><span class="r-titre" style="font-weight:600">'
         + m + "</span></span></div>").join("") + "</section>";
+  }
+
+  /* Ce qu'on reporte aux impôts, c'est le chiffre d'affaires encaissé,
+     brut, sans rien déduire : l'abattement est appliqué par
+     l'administration. C'est l'erreur la plus fréquente — on déclare la
+     base après abattement et on paie deux fois moins que dû. */
+  if(k.genre === "micro" && ca > 0){
+    const c = CASES[calcStatut()] || CASES.services;
+    out += '<section class="carte anim declarer" style="animation-delay:.12s">'
+      + '<div class="carte-tete"><h2>Déclarer aux impôts</h2></div>'
+      + '<div class="decl">'
+      + '<p class="decl-quoi">Reportez ce montant, tel quel :</p>'
+      + '<p class="decl-somme">' + eur(ca) + "</p>"
+      + '<p class="decl-ou">' + (calcLib()
+          ? "dans la rubrique <b>" + RUBRIQUE_VFL + "</b>"
+          : "dans la case <b>" + c.case + "</b> — " + c.quoi)
+      + "</p>"
+      + '<div class="decl-gestes">'
+      + '<button class="decl-copier" data-copier="' + ca + '">Copier le montant</button>'
+      + '<a class="decl-ouvrir" href="' + URL_IMPOTS + '" target="_blank" rel="noopener noreferrer">'
+      + "Ouvrir impots.gouv.fr</a></div>"
+      + '<p class="decl-note">C\'est votre chiffre d\'affaires encaissé, sans rien retirer. '
+      + "L'abattement de " + pct(k.act.abat) + " % est appliqué par l'administration&nbsp;: "
+      + "ne le déduisez pas vous-même.</p>"
+      + "</div></section>";
   }
 
   out += '<p class="pied" style="padding-top:2px">Chiffres 2026. C\'est une estimation : '
@@ -4317,6 +4377,28 @@ $("#vue").addEventListener("click", e => {
   }
   if(b.dataset.pdf){ telechargerFacture(b.dataset.pdf); return; }
   if(b.dataset.recettes){ livreRecettes(); return; }
+  if(b.dataset.copier){
+    /* on écrit le nombre nu, sans espace ni euro : c'est ce que le
+       formulaire attend, et un séparateur collé le ferait refuser */
+    const sec = String(b.dataset.copier);
+    const fini = () => { b.dataset.fait = "1"; b.textContent = "Montant copié"; };
+    /* la voie moderne échoue silencieusement quand la page n'a pas le
+       focus ou que l'autorisation manque : on retombe alors sur l'ancienne
+       plutôt que d'annoncer un échec à quelqu'un qui n'y peut rien */
+    const secours = () => {
+      const z = document.createElement("textarea");
+      z.value = sec; z.style.position = "fixed"; z.style.opacity = "0";
+      document.body.appendChild(z); z.focus(); z.select();
+      let ok = false;
+      try{ ok = document.execCommand("copy"); }catch(e){}
+      document.body.removeChild(z);
+      if(ok) fini(); else bulle("Copie impossible ici");
+    };
+    if(navigator.clipboard && navigator.clipboard.writeText){
+      navigator.clipboard.writeText(sec).then(fini, secours);
+    }else secours();
+    return;
+  }
   if(b.dataset.moi){ ouvrir("moi"); return; }
   if(b.dataset.neuf){ ouvrir(b.dataset.neuf); return; }
   if(b.dataset.note){
