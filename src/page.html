@@ -1096,7 +1096,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .route .rt-go:hover{color:var(--ink); border-color:var(--line)}
 #majournee .route .rt-non{margin-left:auto; flex:0 0 auto}
 #majournee .ev{
-  position:absolute; border-radius:12px; padding:9px 12px 9px 15px; min-height:0;
+  position:absolute; z-index:2; border-radius:12px; padding:9px 12px 9px 15px; min-height:0;
   text-align:left; overflow:hidden; color:var(--ink);
   background:color-mix(in oklab, var(--c) 13%, var(--surface));
   border:1px solid color-mix(in oklab, var(--c) 32%, var(--surface));
@@ -1139,7 +1139,10 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .ev:hover .ev-rz::after{opacity:.5}
 #majournee .ev.tiny .ev-rz{display:none}
 @media (hover:none){#majournee .ev-rz{display:none} }
-#majournee .now{position:absolute; left:-5px; right:0; height:1.5px; background:var(--accent); pointer-events:none; z-index:3}
+/* Le trait de l'heure barrait le nom du rendez-vous en cours et le rendait
+   illisible. Il passe derrière : on le voit dépasser de chaque côté, et
+   c'est suffisant pour situer l'heure. */
+#majournee .now{position:absolute; left:-5px; right:0; height:1.5px; background:var(--accent); pointer-events:none; z-index:1}
 #majournee .now::before{content:""; position:absolute; left:0; top:-3.5px; width:8px; height:8px; border-radius:99px; background:var(--accent)}
 #majournee .empty{position:absolute; inset:0; display:grid; place-content:center; gap:7px; text-align:center; pointer-events:none; padding:16px}
 #majournee .empty strong{font-family:var(--display); font-weight:600; font-size:17px; color:var(--ink-2); letter-spacing:-.012em}
@@ -1184,6 +1187,19 @@ summary.carte-tete:hover h2{color:var(--v1)}
 /* c'est le seul geste d'ajout de l'écran : il doit se voir */
 #majournee .quick .qmore{color:var(--ink); background:var(--surface-2)}
 #majournee .quick:focus-within .qmore{background:var(--ink); color:var(--bg)}
+/* ═══ au doigt ═══
+   Une cible de moins de 44 px se rate. Sur un téléphone, les deux flèches de
+   semaine mangeaient 64 px de largeur pour sept jours qui n'en avaient plus
+   que 36 chacun : elles disparaissent, et la semaine se change en faisant
+   glisser la bande des jours — le geste que fait déjà tout le monde. */
+@media (max-width:480px){
+  #majournee .wk-arrow{display:none}
+  #majournee .days{touch-action:pan-y}
+  #majournee .day-pill{min-height:52px; justify-content:center}
+  #majournee .day-pill .num{width:min(44px,100%); aspect-ratio:1; height:auto}
+  #majournee .seg button{padding:12px 18px}
+  #majournee .qmore{width:44px; height:44px}
+}
 @media (max-width:560px){#majournee .quick{flex-wrap:wrap; padding-bottom:10px}#majournee .quick input{flex:1 1 60%}#majournee .qprev{margin-left:30px}
 }
 #majournee .sheet-wrap{position:fixed; inset:0; z-index:60; display:grid; place-items:end center}
@@ -5195,7 +5211,10 @@ function makeBlock(ev, opts){
   b.style.setProperty('--c', 'var(--c-' + cat.c + ')');
   b.style.top = ((start - DAY_START)/SPAN*100) + '%';
   b.style.height = ((end - start)/SPAN*100) + '%';
-  b.style.minHeight = Math.max(15, Math.min(34, HOUR_PX * 0.34)).toFixed(0) + 'px';
+  /* Sous 26 px un nom n'est plus lisible : le bloc garde cette hauteur même
+     quand la durée réelle en demanderait moins. Mieux vaut un quart d'heure
+     qui paraît un peu long qu'un rendez-vous qu'on ne peut pas lire. */
+  b.style.minHeight = Math.max(26, Math.min(34, HOUR_PX * 0.34)).toFixed(0) + 'px';
   var band = opts.band, w = band.w / (ev._cols || 1);
   b.style.left = 'calc(' + (band.left + w * (ev._col || 0)) + '% + 2px)';
   b.style.width = 'calc(' + w + '% - 4px)';
@@ -5941,6 +5960,27 @@ $('todayBtn').addEventListener('click', function(){
   if (db) subscribeWeek(); else refreshLocal();
   render(); scrollToNow();
 });
+/* Sur téléphone les flèches disparaissent : on fait glisser la bande des
+   jours, comme dans tous les agendas de poche. Le seuil de 50 px évite de
+   changer de semaine en effleurant, et on laisse passer le défilement
+   vertical de la page. */
+(function(){
+  var x0 = 0, y0 = 0, suit = false;
+  var bande = $('days');
+  bande.addEventListener('touchstart', function(e){
+    if (e.touches.length !== 1) { suit = false; return; }
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; suit = true;
+  }, {passive: true});
+  bande.addEventListener('touchend', function(e){
+    if (!suit || e.changedTouches.length !== 1) return;
+    suit = false;
+    var dx = e.changedTouches[0].clientX - x0;
+    var dy = e.changedTouches[0].clientY - y0;
+    if (Math.abs(dx) < 50 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
+    shiftWeek(dx < 0 ? 7 : -7);
+  }, {passive: true});
+})();
+
 $('prevWeek').addEventListener('click', function(){ shiftWeek(-7); });
 $('nextWeek').addEventListener('click', function(){ shiftWeek(7); });
 /* Les flèches suivent ce qu'on regarde : une semaine en vue Semaine,
