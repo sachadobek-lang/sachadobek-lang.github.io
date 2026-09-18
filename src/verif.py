@@ -60,6 +60,37 @@ if erreurs:
     print("SYNTAXE INCORRECTE"); [print("  " + e) for e in erreurs[:8]]; sys.exit(1)
 print(f"syntaxe correcte · {len(js)} caractères de script")
 
+# ── Le jugement d'un vrai analyseur ──────────────────────────────────
+# Les contrôles ci-dessus voient les chaînes ouvertes et les blocs
+# déséquilibrés, mais pas les redéclarations : deux « const u » dans le
+# même bloc passent ici et tuent le script entier au chargement. Page
+# blanche, aucun avertissement, et build.py qui publie sans broncher.
+# C'est arrivé le 18 septembre 2026 ; seule la console du navigateur l'a
+# dit. node lit le script comme le fera le navigateur et refuse ce que
+# nos expressions régulières ne peuvent pas voir.
+# Absent de la machine, on continue sans : un contrôle qu'on ne peut pas
+# faire ne doit pas empêcher de publier.
+import os as _os, subprocess as _sp, tempfile as _tf
+_noeud = _sp.run(["node", "--version"], capture_output=True).returncode == 0
+if _noeud:
+    for _i, _bloc in enumerate(blocs):
+        _f = _tf.NamedTemporaryFile("w", suffix=".js", delete=False, encoding="utf-8")
+        _f.write(_bloc); _f.close()
+        _r = _sp.run(["node", "--check", _f.name], capture_output=True, text=True)
+        _os.unlink(_f.name)
+        if _r.returncode:
+            print("SYNTAXE INCORRECTE — refusée par node")
+            # macOS résout /var en /private/var : le chemin rendu par node
+            # n'est pas celui qu'on a écrit. On efface tout ce qui ressemble
+            # à un chemin temporaire plutôt que de comparer des noms.
+            import re as _rex
+            for _l in _r.stderr.strip().splitlines()[:8]:
+                print("  " + _rex.sub(r'\S*/[\w]+\.js', "bloc %d" % (_i + 1), _l))
+            sys.exit(1)
+    print("relu par node · %d bloc(s)" % len(blocs))
+else:
+    print("node absent : le contrôle des redéclarations est sauté")
+
 # ── Toute fonction appelée doit exister ──────────────────────────────
 import re
 declarees = set(re.findall(r'(?:async\s+)?function\s+([A-Za-zÀ-ÿ_$][\w$]*)\s*\(', js))
