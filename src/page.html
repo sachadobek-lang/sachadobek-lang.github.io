@@ -1307,7 +1307,19 @@ summary.carte-tete:hover h2{color:var(--v1)}
   #majournee .seg button{padding:12px 14px; font-size:14.5px}
   #majournee .qmore{width:44px; height:44px}
 }
-@media (max-width:560px){#majournee .quick{flex-wrap:wrap; padding-bottom:10px}#majournee .quick input{flex:1 1 60%}#majournee .qprev{margin-left:30px}
+/* Le retrait de 30 px alignait l'aperçu sous le texte du champ, du temps où
+   un seul bouton l'accompagnait. La loupe en a ajouté un second : les deux ne
+   tenaient plus, et le « + » tombait seul sur une troisième ligne, détaché de
+   ce qu'il valide. L'aperçu revient au bord, l'écart se resserre, et il peut
+   céder de la largeur plutôt que de pousser un bouton à la ligne. */
+@media (max-width:560px){#majournee .quick{flex-wrap:wrap; padding-bottom:10px; gap:8px}#majournee .quick input{flex:1 1 60%}
+  /* L'aperçu cède la largeur plutôt que de pousser un bouton à la ligne. */
+  #majournee .qprev{min-width:0; flex:1 1 auto; overflow:hidden; white-space:nowrap}
+  /* Et le badge « Entrée » disparaît : c'est un raccourci de clavier annoncé
+     sur un écran qui n'en a pas, pendant que le bouton qui fait la même chose
+     est juste à côté. Il coûtait 50 px, et ces 50 px faisaient tomber le « + »
+     sur une ligne à lui. */
+  #majournee .qprev kbd{display:none}
 }
 #majournee .sheet-wrap{position:fixed; inset:0; z-index:60; display:grid; place-items:end center}
 #majournee .backdrop{position:absolute; inset:0; background:rgba(11,12,15,.45)}
