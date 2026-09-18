@@ -3299,6 +3299,8 @@ const CASES = {
   liberal:  {case: "5HQ", quoi: "Prestations de services libérales"}
 };
 const RUBRIQUE_VFL = "Micro-entrepreneur ayant opté pour le versement libératoire";
+/* les mêmes activités, mais dans la rubrique du versement libératoire */
+const CASES_VFL = {vente: "5TA", services: "5TB", liberal: "5TE"};
 const URL_IMPOTS = "https://www.impots.gouv.fr/particulier/questions/comment-declarer-les-revenus-provenant-de-mon-activite-dauto-entrepreneur";
 
 const pct = v => String(v).replace(".", ",");
@@ -3487,7 +3489,7 @@ function vueCalculs(){
           : "dans la case <b>" + c.case + "</b> — " + c.quoi)
       + "</p>"
       + '<div class="decl-gestes">'
-      + '<button class="decl-copier" data-feuille="1">Remplir ma feuille</button>'
+      + '<button class="decl-copier" data-formulaire="1">Remplir le formulaire</button>'
       + '<a class="decl-ouvrir" href="' + URL_IMPOTS + '" target="_blank" rel="noopener noreferrer">'
       + "Ouvrir impots.gouv.fr</a></div>"
       + '<p class="decl-note">C\'est votre chiffre d\'affaires encaissé, sans rien retirer. '
@@ -3813,6 +3815,84 @@ function pdfFacture(f){
    écrire dedans. On édite la feuille à sa place : la même case, le même
    intitulé, le montant déjà inscrit. Il ne reste qu'à recopier une ligne,
    sans rien calculer ni chercher. */
+/* ═══ le vrai formulaire des impôts, rempli ═══
+   La 2042-C-PRO n'a aucun champ : c'est un PDF plat. On écrit donc dessus,
+   dans le cadre imprimé à droite du code de la case — coordonnées relevées
+   une fois pour toutes sur le document officiel.
+   Les trois pages utiles sont embarquées dans la page : elles pèsent, mais
+   Plenitu ne peut rien aller chercher en ligne, et c'est voulu.
+   À regénérer chaque printemps : python3 outils/remplir-2042.py */
+const FORMULAIRE_2042 = "__FORMULAIRE__";
+const CASES_2042 = __CASES2042__;
+
+function chargerPdfLib(){
+  if(window.PDFLib) return Promise.resolve(window.PDFLib);
+  if(window.__pdflib__) return window.__pdflib__;
+  window.__pdflib__ = new Promise((ok, non) => {
+    const sc = document.createElement("script");
+    sc.src = "https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js";
+    sc.onload = () => window.PDFLib ? ok(window.PDFLib) : non(new Error("pdf-lib absent"));
+    sc.onerror = () => non(new Error("pdf-lib injoignable"));
+    document.head.appendChild(sc);
+  });
+  return window.__pdflib__;
+}
+
+async function formulaireRempli(){
+  const k = partageImpot();
+  if(k.genre !== "micro" || k.ca <= 0){ bulle("Rien à déclarer pour l'instant"); return; }
+  if(!FORMULAIRE_2042 || FORMULAIRE_2042.length < 100){ bulle("Formulaire indisponible"); return; }
+  const code = calcLib() ? CASES_VFL[calcStatut()] : (CASES[calcStatut()] || CASES.services).case;
+  const box = CASES_2042[code];
+  if(!box){ bulle("Case inconnue"); return; }
+
+  bulle("Je remplis le formulaire…");
+  let PDFLib;
+  try{ PDFLib = await chargerPdfLib(); }
+  catch(e){ bulle("Impossible sans connexion, cette fois"); return; }
+
+  /* le base64 en octets, sans passer par le réseau */
+  const bin = atob(FORMULAIRE_2042);
+  const oct = new Uint8Array(bin.length);
+  for(let i = 0; i < bin.length; i++) oct[i] = bin.charCodeAt(i);
+
+  const doc = await PDFLib.PDFDocument.load(oct);
+  const police = await doc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+  const page = doc.getPages()[box.p];
+  /* l'espace fine insécable du format français n'existe pas dans
+     l'encodage du PDF : on la remplace par une espace ordinaire, sinon
+     pdf-lib refuse d'écrire. Même correctif que pour les factures. */
+  const texte = nf.format(Math.round(k.ca)).replace(/[\u202F\u00A0\u2009]/g, " ");
+
+  /* la taille se réduit jusqu'à tenir dans le cadre, qui est étroit */
+  const large = box.x1 - box.x0 - 6;
+  let taille = 10;
+  while(taille > 5 && police.widthOfTextAtSize(texte, taille) > large) taille -= 0.25;
+
+  page.drawText(texte, {
+    x: box.x1 - 3 - police.widthOfTextAtSize(texte, taille),
+    y: box.y + (box.h - taille) / 2 + 1.5,
+    size: taille, font: police,
+    color: PDFLib.rgb(0.04, 0.09, 0.42)
+  });
+
+  const octets = await doc.save();
+  const nom = "2042-C-PRO-rempli.pdf";
+  if(window.claude && window.claude.use){
+    const dl = await window.claude.use("downloads").catch(() => null);
+    if(!dl){ bulle("Téléchargement indisponible ici"); return; }
+    try{ await dl.save({filename: nom, data: octets.buffer}); bulle("Formulaire rempli"); }
+    catch(e){ bulle(e && e.code === "declined" ? "Annulé" : "Téléchargement impossible"); }
+    return;
+  }
+  const url = URL.createObjectURL(new Blob([octets], {type: "application/pdf"}));
+  const a = document.createElement("a");
+  a.href = url; a.download = nom; document.body.appendChild(a); a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  bulle("Formulaire rempli");
+}
+
 async function feuilleDeclaration(){
   if(!window.jspdf || !window.jspdf.jsPDF){ bulle("PDF indisponible ici"); return; }
   const k = partageImpot();
@@ -4585,6 +4665,7 @@ $("#vue").addEventListener("click", e => {
   }
   if(b.dataset.pdf){ telechargerFacture(b.dataset.pdf); return; }
   if(b.dataset.recettes){ livreRecettes(); return; }
+  if(b.dataset.formulaire){ formulaireRempli(); return; }
   if(b.dataset.feuille){ feuilleDeclaration(); return; }
   if(b.dataset.copier){
     /* on écrit le nombre nu, sans espace ni euro : c'est ce que le
