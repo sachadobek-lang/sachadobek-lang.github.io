@@ -3,6 +3,14 @@
      zéro et les marges réservées à la barre d'accueil de l'iPhone ne
      s'appliquent jamais. La page avait les marges, pas la permission. -->
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<!-- color-scheme : sans cette ligne, le mode sombre automatique de Safari et de
+     Chrome repeint les contrôles natifs en blanc sur blanc. -->
+<meta name="color-scheme" content="light dark">
+<!-- Ce que la page a le droit de faire. connect-src n'autorise que ce qui reste
+     dans l'appareil : aucune ligne de comptabilité ne peut partir vers un serveur,
+     même si un script tiers était un jour compromis. Les deux 'unsafe-inline'
+     sont nécessaires : tout le style et tout le script sont dans la page. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
 <title>Plenitu</title>
 <!-- « Sur l'écran d'accueil » : plein écran, sans la barre de Safari -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -1904,7 +1912,13 @@ summary.carte-tete:hover h2{color:var(--v1)}
   </linearGradient>
 </defs></svg>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.1/jspdf.umd.min.js"></script>
+<!-- jsPDF, chargé depuis un serveur qui n'est pas le nôtre. L'empreinte ci-dessous
+     est celle publiée par cdnjs : si le fichier servi diffère d'un seul octet, le
+     navigateur refuse de l'exécuter. Sans elle, un CDN compromis lirait tout le
+     contenu de l'application. À recalculer si la version change. -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/3.0.1/jspdf.umd.min.js"
+        integrity="sha512-ad3j5/L4h648YM/KObaUfjCsZRBP9sAOmpjaT2BDx6u9aBrKFp7SbeHykruy83rxfmG42+5QqeL/ngcojglbJw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script>
 "use strict";
 const SEED = __SEED__;

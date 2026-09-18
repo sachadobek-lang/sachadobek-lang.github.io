@@ -1,6 +1,9 @@
 """Contrôle de syntaxe du script avant publication : chaînes fermées, blocs équilibrés."""
 import io, sys
-src = io.open('index.html', encoding='utf-8').read()
+# Le fichier à contrôler peut être passé en argument : build.py vérifie un
+# brouillon avant de le mettre à la place de index.html, jamais après.
+cible = sys.argv[1] if len(sys.argv) > 1 else 'index.html'
+src = io.open(cible, encoding='utf-8').read()
 import re as _re
 blocs = _re.findall(r'<script(?![^>]*\bsrc=)[^>]*>(.*?)</script>', src, _re.S)
 js = "\n;\n".join(blocs)
