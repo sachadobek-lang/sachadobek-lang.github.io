@@ -1,14 +1,20 @@
 #!/usr/bin/env python3
-"""Les quatre surfaces regardent-elles la même page ?
+"""Les surfaces regardent-elles la même page ?
 
     python3 outils/surfaces.py
 
 La cause la plus fréquente d'un « ce n'est pas à jour » n'est pas le code :
-c'est qu'on ne regarde pas la surface qu'on vérifie. Ce script compare les
-quatre, avec le même algorithme pour toutes — ce détail compte : deux agents
+c'est qu'on ne regarde pas la surface qu'on vérifie. Ce script les compare
+toutes, avec le même algorithme pour chacune — ce détail compte : deux agents
 ont comparé le même fichier avec sha1 et sha256, obtenu deux valeurs
 différentes, et failli conclure qu'ils regardaient des pages différentes.
 Une règle qui dépend de l'outil que chacun choisit n'est pas une règle.
+
+La référence est **main local**, pas le dépôt distant. Du travail fusionné et
+pas encore publié est un état normal, pas une anomalie : la première version
+de ce script prenait origin pour référence et annonçait une divergence à
+chaque fusion en attente, en envoyant chercher un problème qui n'existait pas.
+Un outil qui affirme une chose fausse coûte plus cher qu'un outil absent.
 """
 import hashlib, os, subprocess, sys, urllib.request
 
@@ -19,58 +25,72 @@ ADRESSE_PUBLIQUE = "https://sachadobek-lang.github.io/"
 def empreinte(octets):
     return hashlib.sha256(octets).hexdigest()[:12]
 
-def lire_fichier(chemin):
+def fichier(chemin):
     return open(chemin, "rb").read()
 
-def lire_git(ref):
+def git(ref):
     r = subprocess.run(["git", "show", ref], cwd=RACINE, capture_output=True)
     if r.returncode:
         raise RuntimeError("référence absente")
     return r.stdout
 
-def lire_web(adresse, secondes=6):
+def web(adresse, secondes=6):
     with urllib.request.urlopen(adresse, timeout=secondes) as r:
         return r.read()
 
-surfaces = [
-    ("ma copie de travail", lambda: lire_fichier(os.path.join(RACINE, "index.html"))),
-    ("main (origin)",       lambda: lire_git("origin/main:index.html")),
-    ("l'adresse commune",   lambda: lire_web(ADRESSE_COMMUNE)),
-    ("la page publique",    lambda: lire_web(ADRESSE_PUBLIQUE)),
+SURFACES = [
+    ("ma copie de travail", lambda: fichier(os.path.join(RACINE, "index.html"))),
+    ("main (local)",        lambda: git("main:index.html")),
+    ("main (origin)",       lambda: git("origin/main:index.html")),
+    ("l'adresse commune",   lambda: web(ADRESSE_COMMUNE)),
+    ("la page publique",    lambda: web(ADRESSE_PUBLIQUE)),
 ]
 
-resultats, absentes = [], []
-for nom, lire in surfaces:
+vu = {}
+for nom, lire in SURFACES:
     try:
-        resultats.append((nom, empreinte(lire())))
+        vu[nom] = empreinte(lire())
+        print("  %-22s %s" % (nom, vu[nom]))
     except Exception as e:
-        absentes.append((nom, str(e).split("\n")[0][:48]))
+        print("  %-22s — %s" % (nom, str(e).split("\n")[0][:46]))
 
-for nom, e in resultats:
-    print("  %-22s %s" % (nom, e))
-for nom, motif in absentes:
-    print("  %-22s — %s" % (nom, motif))
+reference = vu.get("main (local)") or vu.get("ma copie de travail")
+graves, normaux = [], []
 
-valeurs = {e for _, e in resultats}
+if "ma copie de travail" in vu and vu["ma copie de travail"] != reference:
+    graves.append("ta copie de travail s'écarte de main local.\n"
+                  "    Fusionner, ou régénérer : python3 src/build.py")
+
+# Le 4173 sert le dépôt principal : il doit donc refléter la copie de travail,
+# pas main local. Les comparer à main local accusait un serveur qui servait
+# pourtant exactement la bonne chose.
+servie = vu.get("ma copie de travail", reference)
+if "l'adresse commune" in vu and vu["l'adresse commune"] != servie:
+    graves.append("le 4173 ne sert pas ta version : quelqu'un l'a pris avec sa\n"
+                  "    propre copie. Ne conclus rien de ce que tu y vois ; vérifie-toi\n"
+                  "    sur un port à toi : python3 outils/serveur-partage.py libre")
+
+if "main (origin)" in vu and vu["main (origin)"] != reference:
+    normaux.append("du travail est fusionné mais pas encore publié.\n"
+                   "    C'est normal avant « git push origin main ».")
+elif "la page publique" in vu and vu["la page publique"] != vu.get("main (origin)"):
+    normaux.append("la page publique est en retard sur ce qui est poussé.\n"
+                   "    GitHub Pages met quelques minutes, puis garde 10 minutes en cache.")
+
 print()
-if len(valeurs) <= 1 and len(resultats) > 1:
-    print("Les %d surfaces joignables montrent la même page." % len(resultats))
-    sys.exit(0)
-if len(resultats) < 2:
-    print("Pas assez de surfaces joignables pour comparer.")
+if not graves and not normaux:
+    print("Toutes les surfaces joignables montrent la même page.")
     sys.exit(0)
 
-print("CES SURFACES NE MONTRENT PAS LA MÊME PAGE.")
-reference = dict(resultats).get("main (origin)")
-for nom, e in resultats:
-    if reference and e != reference:
-        if nom == "ma copie de travail":
-            print("  · ta copie diffère de main : fusionner, ou « python3 src/build.py »")
-        elif nom == "l'adresse commune":
-            print("  · le 4173 ne sert pas main : quelqu'un l'a pris avec sa propre copie.")
-            print("    Ne conclus rien de ce que tu y vois ; vérifie-toi sur ton port :")
-            print("    python3 outils/serveur-partage.py 4199")
-        elif nom == "la page publique":
-            print("  · la page en ligne est en retard : republier, ou attendre")
-            print("    les 10 minutes de cache de GitHub Pages")
-sys.exit(1)
+if graves:
+    print("CES SURFACES NE MONTRENT PAS LA MÊME PAGE.")
+    for g in graves:
+        print("  · " + g)
+if normaux:
+    if graves:
+        print()
+    print("Et ceci, qui n'est pas une anomalie :")
+    for n in normaux:
+        print("  · " + n)
+
+sys.exit(1 if graves else 0)
