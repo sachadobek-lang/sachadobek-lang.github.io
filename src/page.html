@@ -1324,6 +1324,51 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .sheet-head h2{font-family:var(--display); font-weight:700; font-size:20px; letter-spacing:-.018em; margin:0}
 #majournee .close{width:34px; height:34px; border-radius:10px; color:var(--ink-3); display:grid; place-items:center}
 #majournee .close:hover{background:var(--surface-2); color:var(--ink)}
+/* ═══ ce qu'on a trouvé ═══
+   Une liste sobre sous la barre : ce qu'on cherche, quand c'est, et rien
+   d'autre. Toucher une ligne ouvre ce jour-là. */
+#majournee .trouve{
+  margin:-6px 0 16px; background:var(--surface); border:1px solid var(--line-soft);
+  border-radius:16px; box-shadow:var(--shadow-1); overflow:hidden;
+}
+#majournee .trouve button{
+  display:flex; align-items:center; gap:12px; width:100%; text-align:left;
+  padding:13px 16px; border-bottom:1px solid var(--line-soft);
+}
+#majournee .trouve button:last-child{border-bottom:0}
+#majournee .trouve button:hover{background:var(--surface-2)}
+#majournee .trouve .t-pt{width:8px; height:8px; border-radius:99px; background:var(--m); flex:0 0 auto}
+#majournee .trouve .t-quoi{
+  flex:1; min-width:0; font-family:var(--display); font-weight:600; font-size:15px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+#majournee .trouve .t-quand{
+  font-size:13px; color:var(--ink-3); flex:0 0 auto; font-variant-numeric:tabular-nums;
+}
+#majournee .trouve .t-rien{padding:16px; font-size:14.5px; color:var(--ink-3)}
+/* ═══ plus de détails ═══
+   Le lieu et la note sont des champs d'Outlook qu'on remplit rarement : les
+   montrer d'emblée ferait six questions sur un écran qui doit en poser trois.
+   Repliés, ils ne coûtent rien à celui qui n'en a pas besoin. */
+#majournee .plus-detail{border-top:1px solid var(--line-soft); padding-top:14px}
+#majournee .plus-detail > summary{
+  cursor:pointer; list-style:none; display:flex; align-items:center; gap:10px;
+  font-size:14.5px; font-weight:600; color:var(--ink-2); padding:8px 0;
+}
+#majournee .plus-detail > summary::-webkit-details-marker{display:none}
+#majournee .plus-detail > summary::before{
+  content:"+"; font-family:var(--display); font-weight:600; font-size:17px;
+  width:26px; height:26px; border-radius:50%; background:var(--surface-2);
+  display:grid; place-items:center; line-height:1; flex:0 0 auto;
+}
+#majournee .plus-detail[open] > summary::before{content:"\2212"}
+#majournee .note-input{
+  width:100%; background:var(--surface-2); border:1px solid var(--line);
+  border-radius:12px; padding:12px 14px; font:inherit; font-size:15px;
+  color:var(--ink); resize:vertical; min-height:74px;
+}
+#majournee .note-input:focus{outline:0; border-color:var(--ink-3); background:var(--surface)}
+#majournee .note-input::placeholder{color:var(--ink-3)}
 #majournee .sheet-body{overflow-y:auto; padding:0 24px 6px; display:flex; flex-direction:column; gap:24px}
 #majournee .field > h3{
   font-family:var(--ui); font-size:11px; font-weight:600;
@@ -1913,10 +1958,14 @@ summary.carte-tete:hover h2{color:var(--v1)}
     <input id="quick" type="text" maxlength="90" autocomplete="off"
            placeholder="Déjeuner demain 13h">
     <span class="qprev" id="qprev"></span>
+    <button class="qmore" id="qcherche" aria-label="Chercher un rendez-vous" title="Chercher">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="6.4"/><path d="M15.8 15.8 20 20"/></svg>
+    </button>
     <button class="qmore" id="qmore" aria-label="Ajouter cette activité" title="Ajouter">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5.5v13M5.5 12h13"/></svg>
     </button>
   </div>
+  <div class="trouve" id="trouve" hidden></div>
 
   <section class="card dayview">
     <div class="card-head">
@@ -1978,6 +2027,20 @@ summary.carte-tete:hover h2{color:var(--v1)}
         <h3>Répéter</h3>
         <div class="chiprow first" id="repPick"></div>
       </div>
+      <details class="plus-detail">
+        <summary>Plus de détails</summary>
+        <div class="field">
+          <h3>Où ?</h3>
+          <input class="name-input" id="evLieu" type="text" maxlength="120" autocomplete="off"
+                 placeholder="12 rue des Lilas, Meudon">
+          <p class="hint">Une adresse ici, et le bouton « Y aller » ouvre l’itinéraire.</p>
+        </div>
+        <div class="field">
+          <h3>Note</h3>
+          <textarea class="note-input" id="evNote" rows="3" maxlength="600"
+                    placeholder="Prendre les mesures de la fenêtre du fond."></textarea>
+        </div>
+      </details>
     </div>
     <p class="recap" id="recap"></p>
     <div class="sheet-foot">
@@ -4950,7 +5013,9 @@ var CATS = [
 var CAT = {}; CATS.forEach(function(c){ CAT[c.k] = c; });
 var DAY_START = 0, DAY_END = 1440, SPAN = DAY_END - DAY_START, HOURS = SPAN/60;
 var DOW = ['lun','mar','mer','jeu','ven','sam','dim'];
+var enRecherche = false;
 var DURATIONS = [15,30,45,60,90,120,180,240];
+var JOURNEE = 600, JOURNEE_DEBUT = 480;   /* 08:00 → 18:00 */
 var HUES = ['indigo','vert','ambre','rose','teal','violet','rouge','ardoise'];
 var REPEATS = [{k:'none', l:'Une fois'}, {k:'day', l:'Chaque jour'}, {k:'week', l:'Chaque semaine'}];
 var FREE_FROM = 480, FREE_TO = 1230;   /* fenêtre où l’on cherche des créneaux : 08:00 → 20:30 */
@@ -5261,7 +5326,9 @@ function makeRoute(p){
         : durLabel(min) + ' de route — il en reste ' + durLabel(p.dur) + '. C\u2019est juste.';
     }
     el.appendChild(t);
-    var adr = adressePour(p.b.title);
+    /* Un lieu écrit sur le rendez-vous l'emporte sur l'adresse du client :
+       c'est le plus précis des deux, et le seul que Sacha ait choisi. */
+    var adr = (p.b.lieu && p.b.lieu.trim()) || adressePour(p.b.title);
     if (adr){
       var go = document.createElement('a');
       go.className = 'rt-go';
@@ -6009,6 +6076,8 @@ function buildPickers(){
       syncSheet(true);
     }
   });
+  $('evLieu').addEventListener('input', function(e){ state.draft.lieu = e.target.value; });
+  $('evNote').addEventListener('input', function(e){ state.draft.note = e.target.value; });
   var dp = $('durPick');
   DURATIONS.forEach(function(m){
     var b = document.createElement('button');
@@ -6016,6 +6085,15 @@ function buildPickers(){
     b.addEventListener('click', function(){ state.draft.dur = m; syncSheet(); });
     dp.appendChild(b);
   });
+  /* « La journée » d'Outlook. Pour un artisan ce n'est pas minuit à minuit :
+     c'est huit heures du matin à six heures du soir. La pastille pose donc
+     l'heure de début en même temps que la durée. */
+  var bj = document.createElement('button');
+  bj.className = 'chip'; bj.dataset.d = JOURNEE; bj.textContent = 'La journée';
+  bj.addEventListener('click', function(){
+    state.draft.dur = JOURNEE; state.draft.start = JOURNEE_DEBUT; syncSheet();
+  });
+  dp.appendChild(bj);
   var rp = $('repPick');
   REPEATS.forEach(function(r){
     var b = document.createElement('button');
@@ -6030,6 +6108,11 @@ function syncSheet(skipTime){
   document.querySelectorAll('#cats .cat').forEach(function(b){
     b.setAttribute('aria-pressed', String(b.dataset.k === d.cat)); });
   if (!skipTime) $('timePick').value = hhmm(d.start);
+  if ($('evLieu').value !== (d.lieu || '')) $('evLieu').value = d.lieu || '';
+  if ($('evNote').value !== (d.note || '')) $('evNote').value = d.note || '';
+  /* Le repli s'ouvre tout seul quand il y a quelque chose dedans : sinon on
+     modifie une fiche sans voir ce qu'elle contient déjà. */
+  document.querySelector('.plus-detail').open = !!(d.lieu || d.note);
   document.querySelectorAll('#durPick .chip').forEach(function(b){
     b.setAttribute('aria-pressed', String(Number(b.dataset.d) === d.dur)); });
   document.querySelectorAll('#repPick .chip').forEach(function(b){
@@ -6059,7 +6142,8 @@ function openSheet(ev, seed){
     src = src || ev;
     state.editing = id;
     state.draft = {id: id, date: src.date, cat: src.cat, title: src.title,
-                   start: src.start, dur: src.dur, rep: src.rep || 'none', catLock:true};
+                   start: src.start, dur: src.dur, rep: src.rep || 'none',
+                   lieu: src.lieu || '', note: src.note || '', catLock:true};
   } else if (ev && ev.demo){
     state.draft = {id: uid(), date: ev.date, cat: ev.cat, title: ev.title,
                    start: ev.start, dur: ev.dur, rep:'none', catLock:true};
@@ -6108,8 +6192,13 @@ function disarmDelete(){
 
 function commitDraft(){
   var d = state.draft, cat = CAT[d.cat] || CAT.autre;
-  return { id:d.id, date:d.date, cat:d.cat, title:(d.title || cat.l),
-           start: clamp(d.start, DAY_START, DAY_END - 15), dur: d.dur, rep: d.rep || 'none' };
+  var ev = { id:d.id, date:d.date, cat:d.cat, title:(d.title || cat.l),
+             start: clamp(d.start, DAY_START, DAY_END - 15), dur: d.dur, rep: d.rep || 'none' };
+  /* Deux champs facultatifs : on ne les écrit que s'ils sont remplis, pour que
+     les fiches d'avant restent identiques à elles-mêmes. */
+  if (d.lieu && d.lieu.trim()) ev.lieu = d.lieu.trim();
+  if (d.note && d.note.trim()) ev.note = d.note.trim();
+  return ev;
 }
 function localApply(ev, removeId){
   var wasRep = state.repeats.some(function(x){ return x.id === ev.id; });
@@ -6146,6 +6235,10 @@ function quickDefaults(g){
 }
 function quickPreview(){
   var bar = $('quickBar'), inp = $('quick'), prev = $('qprev');
+  /* Pendant une recherche, la barre ne prépare rien : afficher « aujourd'hui,
+     17:45, 1 h » pendant qu'on cherche ferait croire qu'on est en train de
+     créer quelque chose. */
+  if (enRecherche){ bar.classList.remove('has'); prev.innerHTML = ''; return null; }
   var text = inp.value.trim();
   if (!text){ bar.classList.remove('has'); prev.innerHTML = ''; return null; }
   var g = parsePhrase(text, state.date);
@@ -6189,6 +6282,86 @@ function scrollTo_(min){
 }
 
 $('quick').addEventListener('input', quickPreview);
+/* ═══ chercher un rendez-vous ═══
+   La recherche d'Outlook, dans la barre qui sert déjà à écrire. On cherche
+   dans le titre, le lieu et la note, sur tout ce qui est enregistré et non
+   sur la seule semaine affichée — sinon on ne trouve que ce qu'on voyait
+   déjà. Les répétitions ne sont pas datées : on les montre sans jour. */
+function chercher(mot){
+  var q = cleTexte(mot);
+  var boite = $('trouve');
+  boite.innerHTML = '';
+  if (q.length < 2){ boite.hidden = true; return; }
+
+  var tout = lsGet(LS_EV).filter(function(ev){
+    if (!ev) return false;
+    return cleTexte((ev.title || '') + ' ' + (ev.lieu || '') + ' ' + (ev.note || '')).indexOf(q) !== -1;
+  });
+  tout.sort(function(a, b){
+    return String(a.date || '').localeCompare(String(b.date || '')) || (a.start - b.start);
+  });
+
+  boite.hidden = false;
+  if (!tout.length){
+    var rien = document.createElement('p');
+    rien.className = 't-rien';
+    rien.textContent = 'Rien trouvé.';
+    boite.appendChild(rien);
+    return;
+  }
+
+  tout.slice(0, 8).forEach(function(ev){
+    var cat = CAT[ev.cat] || CAT.autre;
+    var b = document.createElement('button');
+    var pt = document.createElement('span');
+    pt.className = 't-pt';
+    pt.style.setProperty('--m', 'var(--c-' + cat.c + ')');
+    b.appendChild(pt);
+    var q1 = document.createElement('span');
+    q1.className = 't-quoi';
+    q1.textContent = ev.title || cat.l;
+    b.appendChild(q1);
+    var q2 = document.createElement('span');
+    q2.className = 't-quand';
+    q2.textContent = (ev.rep && ev.rep !== 'none')
+      ? (ev.rep === 'day' ? 'chaque jour' : 'chaque semaine') + ' · ' + hhmm(ev.start)
+      : fmtShort(fromIso(ev.date)) + ' · ' + hhmm(ev.start);
+    b.appendChild(q2);
+    b.addEventListener('click', function(){
+      fermerRecherche();
+      if (ev.date){
+        state.date = ev.date;
+        state.week = mondayOf(fromIso(ev.date));
+        if (db) subscribeWeek(); else refreshLocal();
+      }
+      setView('jour');
+      scrollTo_(ev.start);
+    });
+    boite.appendChild(b);
+  });
+}
+function fermerRecherche(){
+  $('trouve').hidden = true;
+  $('trouve').innerHTML = '';
+  $('quickBar').classList.remove('en-recherche');
+  $('quick').value = '';
+  $('quick').placeholder = 'Déjeuner demain 13h';
+  enRecherche = false;
+  quickPreview();
+}
+$('qcherche').addEventListener('click', function(){
+  if (enRecherche){ fermerRecherche(); return; }
+  enRecherche = true;
+  $('quickBar').classList.add('en-recherche');
+  $('quick').value = '';
+  $('quick').placeholder = 'Chercher un rendez-vous';
+  $('qprev').textContent = '';
+  $('quick').focus();
+});
+$('quick').addEventListener('input', function(e){
+  if (enRecherche) chercher(e.target.value);
+});
+
 $('quick').addEventListener('keydown', function(e){
   if (e.key === 'Enter'){ e.preventDefault(); quickAdd(); }
   if (e.key === 'Escape'){ e.target.value = ''; quickPreview(); e.target.blur(); }
