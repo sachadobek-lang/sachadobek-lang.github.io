@@ -1049,9 +1049,8 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .ev.wk .when{font-size:10.5px; margin-top:1px}
 #majournee .ev.wk.short .when,#majournee .ev.wk.tiny .when{display:none}
 #majournee .scroller{max-height:min(58dvh,600px); overflow-y:auto; overflow-x:hidden; padding:18px 20px 20px 0}
-#majournee .scroller.z-tout{max-height:min(70dvh,740px)}
 #majournee .grid{display:grid; grid-template-columns:70px 1fr; position:relative}
-#majournee .hours{position:relative; height:calc(var(--hour) * 17)}
+#majournee .hours{position:relative; height:calc(var(--hour) * 24)}
 #majournee .hours .h{
   position:absolute; right:14px; transform:translateY(-50%);
   font-size:11.5px; font-weight:500; color:var(--ink-3); font-variant-numeric:tabular-nums;
@@ -1061,7 +1060,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   font-size:11px; font-weight:600; color:#fff; background:var(--accent);
   border-radius:6px; padding:2px 6px; font-variant-numeric:tabular-nums; z-index:4;
 }
-#majournee .track{position:relative; height:calc(var(--hour) * 17)}
+#majournee .track{position:relative; height:calc(var(--hour) * 24)}
 #majournee .track .rule{position:absolute; left:0; right:0; height:1px; background:var(--line-soft)}
 #majournee .hitbox{position:absolute; inset:0; width:100%; cursor:copy}
 #majournee .gap{
@@ -1801,11 +1800,6 @@ summary.carte-tete:hover h2{color:var(--v1)}
       <div class="seg" id="viewSeg" role="group" aria-label="Vue">
         <button data-v="jour">Jour</button>
         <button data-v="semaine">Semaine</button>
-      </div>
-      <div class="seg" id="zoom" role="group" aria-label="Taille d’affichage">
-        <button data-z="tout">Tout</button>
-        <button data-z="normal">Normal</button>
-        <button data-z="detail">Détail</button>
       </div>
     </div>
     <div class="wkhead" id="wkhead" hidden></div>
@@ -4622,7 +4616,7 @@ var CATS = [
   {k:'autre',     l:'Autre',    c:'ardoise'}
 ];
 var CAT = {}; CATS.forEach(function(c){ CAT[c.k] = c; });
-var DAY_START = 360, DAY_END = 1380, SPAN = DAY_END - DAY_START, HOURS = SPAN/60;
+var DAY_START = 0, DAY_END = 1440, SPAN = DAY_END - DAY_START, HOURS = SPAN/60;
 var DOW = ['lun','mar','mer','jeu','ven','sam','dim'];
 var DURATIONS = [15,30,45,60,90,120,180,240];
 var HUES = ['indigo','vert','ambre','rose','teal','violet','rouge','ardoise'];
@@ -4656,7 +4650,7 @@ var today = iso(new Date());
 var state = {
   date: today, week: mondayOf(new Date()),
   events: [], repeats: [], notes: [], demoOff:false,
-  zoom:'normal', zoomPx:86, view:'jour', editing:null, draft:null
+  zoomPx:76, view:'jour', editing:null, draft:null
 };
 var HOUR_PX = 86;
 
@@ -4666,15 +4660,16 @@ var LS_EV = 'ma-journee-v1', LS_TD = 'ma-journee-todos-v1',
 var db = null, unsubEv = null, unsubRep = null, unsubTd = null;
 try {
   state.demoOff = localStorage.getItem(LS_DEMO) === '1';
+  /* Le zoom n'est plus qu'un nombre de pixels par heure. Les réglages
+     enregistrés par les versions précédentes — des mots, ou « libre:72 » —
+     sont relus pour que personne ne retrouve son agenda à une autre taille. */
   var z0 = localStorage.getItem(LS_ZOOM);
-  if (z0 && z0.indexOf('libre:') === 0){
-    state.zoomPx = clamp(parseFloat(z0.slice(6)) || 86, 34, 240);
-    z0 = 'libre';
+  if (z0){
+    if (z0.indexOf('libre:') === 0) z0 = z0.slice(6);
+    var px = {tout: 34, normal: 86, detail: 156}[z0];
+    if (px == null) px = parseFloat(z0);
+    if (!isNaN(px) && px > 0) state.zoomPx = clamp(px, 12, 240);
   }
-  if (z0 !== null && z0 !== '' && !isNaN(Number(z0))){
-    var zn = Number(z0); z0 = zn <= 5 ? 'tout' : (zn >= 55 ? 'detail' : 'normal');
-  }
-  if (z0 === 'tout' || z0 === 'normal' || z0 === 'detail' || z0 === 'libre') state.zoom = z0;
   var v0 = localStorage.getItem(LS_VIEW);
   if (v0 === 'jour' || v0 === 'semaine') state.view = v0;
 } catch(e){}
@@ -5086,39 +5081,27 @@ function layout(list){
 }
 
 /* ---------- taille d’affichage ---------- */
-var ZOOM_STEPS = {normal:86, detail:156};
 function fitHour(){
   var sc = $('scroller');
   return Math.max(14, (sc.clientHeight - 46) / HOURS);
 }
-/* Les trois boutons restent la porte d'entrée visible. Le zoom continu
-   vient par-dessus, comme dans Outlook : Ctrl+molette, pincement, + et −.
-   Rien de neuf à l'écran, tout se découvre encore au doigt. */
-var ZOOM_MIN = 34, ZOOM_MAX = 240;
-function applyZoom(){
+/* ═══ le zoom ═══
+   Plus aucun bouton : on pince, ou Ctrl+molette, comme dans l'agenda d'Apple
+   et dans BusyCal. Le plancher n'est pas une valeur choisie mais celle qui
+   fait tenir minuit à minuit dans l'écran — dézoomer à fond montre la nuit,
+   et il n'y a rien en dessous. Un double-clic fait l'aller-retour entre la
+   journée entière et une heure confortable, pour qui ne connaît pas le geste. */
+var ZOOM_MAX = 240;
+function zoomPlancher(){
   var sc = $('scroller');
-  sc.classList.toggle('z-tout', state.zoom === 'tout');
-  HOUR_PX = (state.zoom === 'tout') ? fitHour()
-          : (state.zoom === 'libre' ? state.zoomPx : ZOOM_STEPS[state.zoom]);
+  return Math.max(12, (sc.clientHeight - 10) / HOURS);
+}
+function applyZoom(){
+  HOUR_PX = clamp(state.zoomPx, zoomPlancher(), ZOOM_MAX);
   /* C'est #majournee qui déclare --hour, pas :root. Écrire la valeur sur
-     :root ne changeait donc rien : la règle du bloc l'emportait, et le
-     zoom n'avait aucun effet — ni les trois boutons, ni la molette. */
+     :root ne changeait rien : la règle du bloc l'emportait. */
   $('majournee').style.setProperty('--hour', HOUR_PX.toFixed(2) + 'px');
-  document.querySelectorAll('#zoom button').forEach(function(b){
-    b.setAttribute('aria-pressed', String(b.dataset.z === state.zoom));
-  });
 }
-function setZoom(z){
-  var sc = $('scroller'), tr = $('track');
-  var before = tr.offsetHeight;
-  var anchor = before ? (sc.scrollTop + sc.clientHeight / 2) / before : 0;
-  state.zoom = z;
-  try { localStorage.setItem(LS_ZOOM, z); } catch(e){}
-  applyZoom(); renderTrack();
-  if (z === 'tout') sc.scrollTop = 0;
-  else sc.scrollTop = Math.max(0, anchor * tr.offsetHeight - sc.clientHeight / 2);
-}
-
 /* Zoomer en gardant sous le doigt l'heure qu'on regardait : c'est ce qui
    distingue un zoom d'un simple changement de taille. */
 function zoomVers(px, yEcran){
@@ -5128,9 +5111,8 @@ function zoomVers(px, yEcran){
   var r = sc.getBoundingClientRect();
   var y = (yEcran == null) ? sc.clientHeight / 2 : (yEcran - r.top);
   var part = (sc.scrollTop + y) / avant;
-  state.zoom = 'libre';
-  state.zoomPx = clamp(px, ZOOM_MIN, ZOOM_MAX);
-  try { localStorage.setItem(LS_ZOOM, 'libre:' + state.zoomPx.toFixed(1)); } catch(e){}
+  state.zoomPx = clamp(px, zoomPlancher(), ZOOM_MAX);
+  try { localStorage.setItem(LS_ZOOM, state.zoomPx.toFixed(1)); } catch(e){}
   applyZoom(); renderTrack();
   sc.scrollTop = Math.max(0, part * tr.offsetHeight - y);
 }
@@ -5242,7 +5224,6 @@ function renderTrack(){
      rendez-vous, mais pas la journée — ni les trous, ni l'heure qu'il est
      par rapport au reste. « Tout » fait tenir la journée dans l'écran. */
   $('grille').hidden = false;
-  $('zoom').hidden = false;
   track.innerHTML = ''; hours.innerHTML = ''; head.innerHTML = '';
   head.hidden = !week;
 
@@ -5254,7 +5235,7 @@ function renderTrack(){
   }
   var collide = sparse ? 58 : 24;
 
-  for (var h = 6; h <= 23; h++){
+  for (var h = 0; h <= 23; h++){
     if (sparse && h % 2 === 1) continue;
     var pct = ((h*60 - DAY_START) / SPAN) * 100;
     if (Math.abs(h*60 - nowMin) >= collide){
@@ -5778,7 +5759,6 @@ function quickAdd(){
   scrollTo_(ev.start);
 }
 function scrollTo_(min){
-  if (state.zoom === 'tout') return;
   var sc = $('scroller'), tr = $('track');
   var y = ((clamp(min, DAY_START, DAY_END) - DAY_START)/SPAN) * tr.offsetHeight;
   sc.scrollTop = Math.max(0, y - sc.clientHeight/2.6);
@@ -5836,6 +5816,26 @@ document.addEventListener('keydown', function(e){
     pince = d;
   }, {passive: false});
   sc.addEventListener('touchend', function(){ pince = 0; }, {passive: true});
+
+  /* Pour qui ne connaît pas le pincement : deux clics font l'aller-retour
+     entre la journée entière et une heure confortable. C'est le seul geste
+     à découvrir, et il ne coûte aucun bouton. */
+  function basculer(y){
+    var plancher = zoomPlancher();
+    zoomVers(HOUR_PX <= plancher + 2 ? 76 : plancher, y);
+  }
+  sc.addEventListener('dblclick', function(e){
+    if (e.target.closest('.ev, .gap, .route, .hitbox')) return;
+    basculer(e.clientY);
+  });
+  var dernierTap = 0;
+  sc.addEventListener('touchend', function(e){
+    if (e.touches.length || e.changedTouches.length !== 1) return;
+    if (e.target.closest('.ev, .gap, .route')) { dernierTap = 0; return; }
+    var t = Date.now();
+    if (t - dernierTap < 320){ basculer(e.changedTouches[0].clientY); dernierTap = 0; }
+    else dernierTap = t;
+  }, {passive: true});
 
   /* On ne vole jamais une touche à quelqu'un qui écrit. */
   function occupe(){
@@ -5966,13 +5966,7 @@ $('viewSeg').addEventListener('click', function(e){
   if (b) setView(b.dataset.v);
 });
 
-$('zoom').addEventListener('click', function(e){
-  var b = e.target.closest('button[data-z]');
-  if (b) setZoom(b.dataset.z);
-});
-
 function scrollToNow(){
-  if (state.zoom === 'tout') { $('scroller').scrollTop = 0; return; }
   var sc = $('scroller'), tr = $('track'), n = new Date();
   var demo = demoActive() && state.date === today;
   var m = demo ? 570 : (state.date === today ? (n.getHours()*60 + n.getMinutes()) : 540);
@@ -5983,7 +5977,8 @@ function scrollToNow(){
 var rsz;
 window.addEventListener('resize', function(){
   clearTimeout(rsz);
-  rsz = setTimeout(function(){ if (state.zoom === 'tout'){ applyZoom(); renderTrack(); } }, 150);
+  /* Le plancher du zoom dépend de la hauteur visible : il se recalcule. */
+  rsz = setTimeout(function(){ applyZoom(); renderTrack(); }, 150);
 });
 
 /* ---------- démarrage ---------- */
