@@ -11,13 +11,13 @@
      même si un script tiers était un jour compromis. Les deux 'unsafe-inline'
      sont nécessaires : tout le style et tout le script sont dans la page. -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'self'; manifest-src 'self'">
-<title>Plenitu</title>
+<title>Cura</title>
 <!-- « Sur l'écran d'accueil » : plein écran, sans la barre de Safari -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Plenitu">
-<meta name="application-name" content="Plenitu">
+<meta name="apple-mobile-web-app-title" content="Cura">
+<meta name="application-name" content="Cura">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.svg" type="image/svg+xml">
 <meta name="theme-color" content="#F5F7FB">
@@ -877,7 +877,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 /* ══════════ MA JOURNÉE — greffée telle quelle, couleurs d'origine ══════════ */
 
 #majournee{
-  /* Les mêmes polices que le reste de Plenitu. Ma Journée demandait Manrope
+  /* Les mêmes polices que le reste de Cura. Ma Journée demandait Manrope
      et Instrument Sans, que la page ne charge pas : elle retombait sur
      Helvetica, et l'Agenda ne ressemblait à aucun autre écran. */
   --display:var(--num);
@@ -1698,7 +1698,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   @page{margin:14mm}#ilreste{background:#fff;color:#111}#ilreste .page{max-width:none;padding:0;gap:0}#ilreste .noprint{display:none!important}#ilreste .apercu{border:0;border-radius:0;padding:0;font-size:12pt}#ilreste .apercu th{border-bottom:1px solid #999}#ilreste .apercu td{border-bottom:1px solid #ddd}#ilreste .mentions{color:#444;font-size:9pt;margin-top:18px}#ilreste .liste{border:0;border-radius:0}#ilreste .ligne{border-bottom:1px solid #ddd}#ilreste .ligne .sup{display:none}
 }
 
-/* ── pour vivre à l'intérieur de Plenitu ── */
+/* ── pour vivre à l'intérieur de Cura ── */
 #ilreste{display:block;background:transparent!important;padding-bottom:104px}
 #ilreste .enveloppe,#ilreste .wrap,#ilreste main{min-height:0;max-width:none}
 
@@ -2195,7 +2195,7 @@ const DEMO_LIGNES = [
   ["014", "Pharmacie Aubert",     6900,  60, 1, "Meuble de comptoir"],
   ["015", "Comptoir Lemoine",     4850,  40, 1, "Étude et plans"]
 ];
-/* Les coordonnées montrent les quatre cas que Plenitu sait reconnaître :
+/* Les coordonnées montrent les quatre cas que Cura sait reconnaître :
    tout, le seul numéro, le numéro et l'adresse, le numéro derrière un nom.
    Deux fiches restent nues, pour qu'on voie aussi l'invite à en ajouter.
    Les numéros sont ceux que l'Arcep réserve à la fiction (06 39 98 · 01 99 00) :
@@ -2263,6 +2263,9 @@ function sauver(){
     /* avant d'écraser, on garde l'état de la veille : une fois par jour,
        pas à chaque frappe. Quelques dizaines de kilo-octets contre le
        risque de tout perdre sur une écriture abîmée. */
+    /* Les clés de stockage gardent l'ancien nom : les renommer perdrait la
+       sauvegarde de la veille, celle-là même qui sert quand tout va mal.
+       Un nom de produit change, une clé de stockage jamais. */
     const hier = localStorage.getItem("plenitu.veille.date");
     if(hier !== auj()){
       const actuel = localStorage.getItem("cadence.v2");
@@ -2976,7 +2979,7 @@ function aRappeler(){
 
     /* 3 · le client content. C'est dans les jours qui suivent qu'on
        obtient un avis ; trois semaines plus tard il ne répond plus.
-       Plenitu ne garde pas la date d'encaissement : la date d'émission
+       Cura ne garde pas la date d'encaissement : la date d'émission
        de la dernière facture en tient lieu. */
     if(f.length && !duSom){
       const der = f.map(x => String(x.emise)).sort().reverse()[0];
@@ -3836,7 +3839,7 @@ function pdfFacture(f){
    dans le cadre imprimé à droite du code de la case — coordonnées relevées
    une fois pour toutes sur le document officiel.
    Les trois pages utiles sont embarquées dans la page : elles pèsent, mais
-   Plenitu ne peut rien aller chercher en ligne, et c'est voulu.
+   Cura ne peut rien aller chercher en ligne, et c'est voulu.
    À regénérer chaque printemps : python3 outils/remplir-2042.py */
 /* Le formulaire est posé à côté de la page, pas dedans. Embarqué, il
    pesait 85 % du fichier et repartait avec chaque publication — alors
@@ -4129,7 +4132,7 @@ function demo(){
 
 /* ═══ emporter ses données ailleurs ═══ */
 async function exporterTout(){
-  const paquet = {application: "Plenitu", version: 1, date: new Date().toISOString()};
+  const paquet = {application: "Cura", version: 1, date: new Date().toISOString()};
   COLS.forEach(c => { paquet[c] = state[c]; });
   paquet.moi = state.moi;
   paquet.rituel = state.rituel;
@@ -4138,7 +4141,7 @@ async function exporterTout(){
   /* le nom du fichier n'entre pas dans la vérification à la restauration
      — c'est le champ « application » qui fait foi — donc le changer ne
      rend illisible aucune copie déjà enregistrée. */
-  const nom = "plenitu-" + auj() + ".json";
+  const nom = "cura-" + auj() + ".json";
 
   if(window.claude && window.claude.use){
     const dl = await window.claude.use("downloads").catch(() => null);
@@ -4172,9 +4175,12 @@ function importerTout(){
       try{ d = JSON.parse(lecteur.result); }catch(e){}
       /* « Cadence » est l'ancien nom : les copies enregistrées avant le
          changement doivent continuer de se restaurer. */
-      const noms = ["Plenitu", "Simpli", "Cadence"];   /* Simpli et Cadence sont les anciens noms */
+      const noms = ["Cura", "Plenitu", "Simpli", "Cadence"];   /* les trois derniers sont les anciens noms */
+      /* Cette liste ne se raccourcit jamais : une copie enregistrée sous un
+         ancien nom doit continuer de se restaurer, sinon le renommage détruit
+         les sauvegardes de la veille. */
       if(!d || typeof d !== "object" || noms.indexOf(d.application) === -1){
-        bulle("Ce fichier n'est pas une copie de Plenitu");
+        bulle("Ce fichier n'est pas une copie de Cura");
         return;
       }
       COLS.forEach(c => { state[c] = d[c] && typeof d[c] === "object" ? d[c] : {}; });
@@ -4987,7 +4993,7 @@ window.addEventListener("resize", () => {
   if(!c.hidden){ c.width = window.innerWidth; c.height = window.innerHeight; }
 });
 
-/* ═══ Plenitu reste en clair ═══
+/* ═══ Cura reste en clair ═══
    Elle suivait le thème du système, et s'affichait donc en noir chez
    ceux qui l'ont réglé ainsi. Sacha la veut blanche. Les trois feuilles
    de style prévoient déjà ce cas — chacune protège ses couleurs claires
@@ -5001,7 +5007,7 @@ window.addEventListener("resize", () => {
 })();
 
 /* ═══ demander au navigateur de garder les données ═══
-   Sans cette demande, Safari range Plenitu parmi les sites ordinaires :
+   Sans cette demande, Safari range Cura parmi les sites ordinaires :
    son stockage peut être effacé après quelques jours sans visite. Ce qui
    est acceptable pour un site qu'on lit ne l'est pas pour un carnet de
    factures. La permission est accordée d'office aux pages installées sur
@@ -5040,7 +5046,7 @@ window.addEventListener("resize", () => {
   }catch(e){}
 })();
 
-/* ═══ pouvoir ouvrir Plenitu sans réseau ═══
+/* ═══ pouvoir ouvrir Cura sans réseau ═══
    Le service worker garde une copie de la page. Il ne la sert QUE si le
    réseau ne répond pas : tant qu'il y a du réseau, c'est toujours la
    dernière version qui s'affiche. Une copie servie en priorité fige
@@ -5214,9 +5220,9 @@ function routeApprendre(a, b, min){
   renderTrack();
 }
 
-/* Les fiches clients vivent dans Plenitu, pas ici. On les lit sans y toucher :
+/* Les fiches clients vivent dans Cura, pas ici. On les lit sans y toucher :
    si la fiche porte une adresse, le rendez-vous sait ou envoyer Waze. */
-function clientsPlenitu(){
+function clientsCura(){
   var d = null;
   try { d = JSON.parse(localStorage.getItem('cadence.v2') || localStorage.getItem('cadence.v1') || 'null'); }
   catch(e){ return []; }
@@ -5225,14 +5231,14 @@ function clientsPlenitu(){
 }
 function adressePour(titre){
   var t = cleTexte(titre), trouve = '';
-  clientsPlenitu().forEach(function(c){
+  clientsCura().forEach(function(c){
     if (!c || !c.nom || !c.adresse) return;
     var n = cleTexte(c.nom);
     if (n.length >= 3 && t.indexOf(n) !== -1 && n.length > cleTexte(trouve).length) trouve = c.nom;
   });
   if (!trouve) return '';
   var fiche = null;
-  clientsPlenitu().forEach(function(c){ if (c && c.nom === trouve) fiche = c; });
+  clientsCura().forEach(function(c){ if (c && c.nom === trouve) fiche = c; });
   return fiche ? String(fiche.adresse || '').replace(/\s+/g, ' ').trim() : '';
 }
 function lienWaze(adresse){
@@ -5330,7 +5336,7 @@ function demoNotes(){
   ];
 }
 function demoActive(){
-  /* Plenitu s'ouvre vide, l'Agenda aussi : plus d'activités de
+  /* Cura s'ouvre vide, l'Agenda aussi : plus d'activités de
      démonstration au premier lancement. Les trois lignes d'exemple
      existent toujours plus bas, il suffit de rendre « true » à cette
      fonction le jour où l'on voudra les remontrer. */
@@ -6741,7 +6747,7 @@ window.addEventListener('resize', function(){
 refreshLocal();
 requestAnimationFrame(function(){ applyZoom(); renderTrack(); scrollToNow(); });
 
-/* Plenitu prévient quand on revient sur l'onglet */
+/* Cura prévient quand on revient sur l'onglet */
 window.majourneeReveil = function(){
   requestAnimationFrame(function(){ applyZoom(); renderTrack(); scrollToNow(); });
 };

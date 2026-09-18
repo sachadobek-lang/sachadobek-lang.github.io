@@ -1,4 +1,4 @@
-/* Plenitu hors-ligne — version __VERSION__
+/* Cura hors-ligne — version __VERSION__
  *
  * Ce fichier existe pour une seule raison : que l'application s'ouvre dans
  * le métro, chez un client, partout où il n'y a pas de réseau.
@@ -15,8 +15,8 @@
  * et ça évite d'attendre le réseau à chaque ouverture.
  */
 const VERSION = "__VERSION__";
-const BOITE = "plenitu-" + VERSION;
-const FIGE = "plenitu-fige";
+const BOITE = "cura-" + VERSION;
+const FIGE = "cura-fige";
 
 const DEHORS = ["https://fonts.googleapis.com", "https://fonts.gstatic.com",
                 "https://cdnjs.cloudflare.com"];
@@ -42,7 +42,7 @@ self.addEventListener("activate", e => {
   e.waitUntil(
     caches.keys()
       .then(noms => Promise.all(
-        noms.filter(n => n.startsWith("plenitu-") && n !== BOITE && n !== FIGE)
+        noms.filter(n => (n.startsWith("cura-") || n.startsWith("plenitu-")) && n !== BOITE && n !== FIGE)
             .map(n => caches.delete(n))))
       .then(() => self.clients.claim())
   );

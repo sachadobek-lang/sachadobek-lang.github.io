@@ -33,8 +33,8 @@ for motif, ou in ((r"<title>([^<]*)</title>", "le titre de l'onglet"),
                   (r'name="apple-mobile-web-app-title"\s+content="([^"]*)"', "le nom sur l'écran d'accueil"),
                   (r'name="application-name"\s+content="([^"]*)"', "le nom de l'application")):
     trouve = re.search(motif, page)
-    exiger(trouve and trouve.group(1).strip() == "Plenitu",
-           "%s n'est pas « Plenitu » (%s)" % (ou, trouve.group(1) if trouve else "absent"))
+    exiger(trouve and trouve.group(1).strip() == "Cura",
+           "%s n'est pas « Cura » (%s)" % (ou, trouve.group(1) if trouve else "absent"))
 
 # ── Le thème sombre ne doit pas repeindre les boutons en blanc ───────
 exiger('name="color-scheme"' in page,
