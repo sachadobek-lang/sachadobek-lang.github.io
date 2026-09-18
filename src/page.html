@@ -307,7 +307,10 @@ h1,h2,h3,p{margin:0}
 [data-modif]:hover .t-titre,[data-modif]:hover .r-titre{color:var(--v1)}
 .t-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:13.5px;color:var(--ink-3)}
 .t.ok .t-titre{color:var(--ink-3);font-weight:400;text-decoration:line-through}
-.sup{opacity:.3;background:none;border:0;color:var(--ink-3);padding:6px 8px;border-radius:10px;font-size:14px;line-height:1;transition:opacity .15s,color .15s,background .15s;flex:none}
+.sup{opacity:.3;background:none;border:0;color:var(--ink-3);padding:6px 8px;border-radius:10px;font-size:14px;line-height:1;transition:opacity .15s,color .15s,background .15s;flex:none;
+  position:relative}
+/* la zone qui reçoit le doigt déborde du dessin, sans le changer */
+.sup::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px}
 .sup .mot{display:none}
 .sup::after{content:"\2715";font-size:15px;line-height:1}
 .sup[data-arme="1"] .mot{display:inline;font-weight:700;font-size:13.5px}
@@ -669,7 +672,7 @@ button.tuile:active{transform:scale(.985)}
 .fiche .chiffres small{font-family:var(--ui);font-size:13px;font-weight:600;color:var(--ink-3)}
 .fiche-pied{display:flex;align-items:center;gap:10px;margin-top:auto;flex-wrap:wrap}
 .fiche .sup{opacity:.3;margin-left:auto}
-.etat-btn{border:0;border-radius:999px;padding:7px 14px;font-size:13.5px;font-weight:700;cursor:pointer;transition:filter .18s,transform .12s}
+.etat-btn{border:0;border-radius:999px;padding:12px 16px;min-height:44px;font-size:13.5px;font-weight:700;cursor:pointer;transition:filter .18s,transform .12s}
 .etat-btn:hover{filter:brightness(.96)}
 .etat-btn:active{transform:scale(.95)}
 .etat-btn.feu{background:var(--tard-doux);color:var(--tard)}
@@ -778,7 +781,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 .demo button[data-arme="1"]{background:var(--tard);color:#fff}
 .pied{text-align:center;font-size:13px;color:var(--ink-3);padding:8px 10px 0;display:flex;align-items:center;justify-content:center;gap:9px;flex-wrap:wrap}
 .pied i{width:8px;height:8px;border-radius:50%;background:var(--ok);flex:none}
-.pied button{border:0;background:var(--surface);color:var(--ink-2);padding:6px 14px;border-radius:999px;font-size:13px;font-weight:700;box-shadow:var(--o1);transition:color .18s}
+.pied button{border:0;background:var(--surface);color:var(--ink-2);padding:12px 16px;min-height:44px;border-radius:999px;font-size:13px;font-weight:700;box-shadow:var(--o1);transition:color .18s}
 .pied button:hover{color:var(--v1)}
 .pied button[data-arme="1"]{background:var(--tard);color:#fff}
 .pied i.ko{background:var(--tard)}
