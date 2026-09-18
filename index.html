@@ -155,6 +155,62 @@ h1,h2,h3,p{margin:0}
 
 
 .entete{display:flex;align-items:center;gap:14px;padding:2px 4px}
+
+/* ═══ le profil ═══
+   Le bouton ne vit pas dans l'en-tête : l'en-tête est masqué sur l'Agenda,
+   et Sacha le veut sur les trois onglets. Il est donc posé une fois, au
+   même endroit quel que soit l'écran — on le trouve sans le chercher. */
+.profil-btn{
+  position:fixed; top:calc(env(safe-area-inset-top) + 12px); right:16px; z-index:45;
+  width:44px; height:44px; border:0; padding:0; border-radius:999px;
+  background:var(--deg); color:#fff; display:grid; place-items:center;
+  font-family:var(--num); font-weight:700; font-size:16px; letter-spacing:-.01em;
+  box-shadow:var(--o2); cursor:pointer;
+  transition:transform .18s var(--ressort), box-shadow .18s var(--doux);
+}
+.profil-btn:active{transform:scale(.94)}
+.profil-btn[aria-current="page"]{box-shadow:var(--o2), 0 0 0 3px var(--surface), 0 0 0 5px var(--line-fort)}
+/* l'en-tête lui laisse la place plutôt que de passer dessous */
+.entete{padding-right:56px}
+
+.pf-tete{display:flex;align-items:center;gap:16px;padding:4px 4px 22px}
+.pf-rond{
+  width:64px;height:64px;border-radius:999px;background:var(--deg);color:#fff;
+  display:grid;place-items:center;font-family:var(--num);font-weight:700;font-size:25px;
+  box-shadow:var(--o2);flex:0 0 auto
+}
+.pf-qui{min-width:0}
+.pf-nom{font-size:23px;font-weight:800;letter-spacing:-.02em;margin:0;color:var(--ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pf-quoi{margin:3px 0 0;color:var(--ink-3);font-size:14.5px}
+
+.pf-ligne{display:flex;align-items:baseline;gap:14px;padding:13px 24px;border-top:1px solid var(--line)}
+.pf-ligne:first-of-type{border-top:0}
+.pf-cle{flex:0 0 40%;color:var(--ink-3);font-size:14.5px}
+.pf-val{flex:1 1 auto;min-width:0;color:var(--ink);font-weight:600;font-size:15px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* pas « vide » : cette classe existe déjà pour les écrans sans contenu,
+   et son padding de 30 px faisait des lignes de 110 pixels de haut. */
+.pf-val.pf-manque{color:var(--ink-3);font-weight:400;font-style:italic}
+
+.pf-gestes{display:flex;flex-wrap:wrap;gap:10px;padding:16px 24px 22px}
+.pf-gestes button{
+  flex:1 1 auto;min-height:44px;padding:12px 18px;border-radius:999px;
+  border:1px solid var(--line-fort);background:var(--surface);color:var(--ink);
+  font:inherit;font-weight:600;font-size:15px;cursor:pointer;
+  transition:background .16s var(--doux), transform .16s var(--ressort)
+}
+.pf-gestes button:active{transform:scale(.97)}
+.pf-gestes button.plein{background:var(--deg);color:#fff;border-color:transparent}
+.pf-note{margin:0;padding:0 24px 22px;color:var(--ink-3);font-size:13.5px;line-height:1.55}
+
+/* le compte : préparé, pas encore ouvert */
+.pf-compte{display:flex;align-items:center;gap:13px;margin:0 24px;padding:14px 16px;border-radius:var(--rm);
+  background:var(--surface-2);border:1px solid var(--line)}
+.pf-g{width:30px;height:30px;border-radius:999px;background:#fff;border:1px solid var(--line);
+  display:grid;place-items:center;flex:0 0 auto}
+.pf-compte b{display:block;font-size:15px;color:var(--ink-2);font-weight:600}
+.pf-compte span{display:block;font-size:13px;color:var(--ink-3);margin-top:2px}
 .entete .bonjour{font-family:var(--num);font-weight:600;font-size:clamp(26px,6vw,34px);letter-spacing:-.02em;line-height:1.1}
 .entete .quand{font-size:14px;color:var(--ink-3);margin-top:2px}
 .serie{margin-left:auto;display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--line);padding:9px 15px 9px 12px;border-radius:999px;box-shadow:var(--o1);white-space:nowrap}
@@ -1803,6 +1859,8 @@ summary.carte-tete:hover h2{color:var(--v1)}
   <span class="trait"><i></i></span>
 </div>
 
+<button class="profil-btn" id="profil-btn" aria-label="Mon profil" title="Mon profil"></button>
+
 <div class="page">
   <header class="entete anim" id="entete"></header>
   <div id="vue"></div>
@@ -2485,16 +2543,94 @@ const ritFaits = () => state.rituel.semaine === semaineIso(new Date()) ? (state.
 function rendreEntete(){
   const d = new Date(), hr = d.getHours();
   const salut = hr < 6 ? "Bonne nuit" : hr < 12 ? "Bonjour" : hr < 18 ? "Bon après-midi" : "Bonsoir";
-  const s = state.serie;
-  const vive = s.n > 0 && (s.dernier === auj() || s.dernier === dans(-1));
-  const flamme = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.7c.6 3.4-1.8 4.4-2.9 6.4-1.5 2.6.3 4.6 1.4 4.9-.5-1.9.6-3.3 1.5-3.9 0 1.6 1 2.3 1.9 3.4 1.6 1.9.5 4.3-.5 5.1 3.4-.7 5.6-3.4 5.6-6.6 0-4.6-4.3-6.2-7-9.3Z"/><path d="M8.4 20.6c-1.6-1-2.6-2.6-2.7-4.6"/></svg>';
+  /* La pastille « jours d'affilée » occupait ce coin. Elle comptait les
+     journées avec au moins une tâche terminée — or les tâches ne s'affichent
+     plus depuis que l'Agenda montre Ma Journée : elle ne bougeait donc plus,
+     et un compteur figé ne récompense rien. Sa place revient au profil, qui
+     est au même endroit sur les trois onglets. */
   $("#entete").innerHTML =
     '<div><h1 class="bonjour">' + salut + '</h1><p class="quand">'
     + d.toLocaleDateString("fr-FR", {weekday: "long", day: "numeric", month: "long"})
-    + '</p></div><div class="serie' + (vive ? " active" : "") + '" title="Jours d\'affilée avec au moins une tâche terminée">'
-    + flamme
-    + (s.n > 0 ? "<b>" + s.n + "</b><span>jour" + (s.n > 1 ? "s" : "") + " d'affilée</span>" : "<span>Aucune série</span>")
-    + "</div>";
+    + '</p></div>';
+}
+
+/* ═══ le profil ═══
+   Ce qui vous concerne était éparpillé : vos coordonnées au fond de l'écran
+   Factures, votre régime dans Calculs, vos sauvegardes sous la liste des
+   clients. Trois endroits pour une seule question — « et moi ? ». Ils se
+   rejoignent ici. Rien n'est recopié : cet écran lit et écrit les mêmes
+   données que les formulaires d'origine, qu'il se contente d'ouvrir. */
+function initiale(){
+  const n = (state.moi && state.moi.nom || "").trim();
+  return n ? n[0].toUpperCase() : "·";
+}
+
+function pfLigne(cle, valeur){
+  const vide = !String(valeur || "").trim();
+  return '<div class="pf-ligne"><span class="pf-cle">' + cle + '</span>'
+    + '<span class="pf-val' + (vide ? " pf-manque" : "") + '">'
+    + (vide ? "à renseigner" : h(valeur)) + "</span></div>";
+}
+
+function vueProfil(){
+  const m = state.moi || {};
+  const forme = (FORMES[calcForme()] || {}).nom || "Micro-entreprise";
+  const acte = ACTIVITES[calcStatut()] || {};
+  const act = acte.court || "Services";              /* pour le sous-titre */
+  const actLong = acte.formel || "Prestations de services";
+  const combien = COLS.reduce((t, c) => t + Object.keys(state[c] || {}).length, 0);
+
+  return '<div class="pf-tete anim">'
+      + '<div class="pf-rond">' + initiale() + "</div>"
+      + '<div class="pf-qui"><h1 class="pf-nom">' + (m.nom ? h(m.nom) : "Votre entreprise") + "</h1>"
+      + '<p class="pf-quoi">' + forme + " · " + act + "</p></div></div>"
+
+    + '<section class="carte anim" style="animation-delay:.04s">'
+      + '<div class="carte-tete"><h2>Vos coordonnées</h2></div>'
+      + pfLigne("Nom", m.nom)
+      + pfLigne("Adresse", m.adresse)
+      + pfLigne("SIRET", m.siret)
+      + pfLigne("E-mail", m.email)
+      + '<div class="pf-gestes"><button class="plein" data-moi="1">Modifier</button></div>'
+      + '<p class="pf-note">Ce sont les coordonnées qui apparaissent en haut de vos factures.</p>'
+    + "</section>"
+
+    + '<section class="carte anim" style="animation-delay:.08s">'
+      + '<div class="carte-tete"><h2>Votre régime</h2></div>'
+      + pfLigne("Forme", forme)
+      + pfLigne("Activité", actLong)
+      + pfLigne("Versement libératoire", calcLib() ? "Oui" : "Non")
+      + '<div class="pf-gestes"><button data-vers-calculs="1">Le régler dans Calculs</button></div>'
+      + '<p class="pf-note">C\'est lui qui décide de vos cotisations et de votre impôt. '
+      + "Il se règle là où ses effets se voient.</p>"
+    + "</section>"
+
+    + '<section class="carte anim" style="animation-delay:.12s">'
+      + '<div class="carte-tete"><h2>Vos données</h2>'
+      + '<span class="appoint">' + combien + " fiche" + (combien > 1 ? "s" : "") + "</span></div>"
+      + '<div class="pf-gestes">'
+      + '<button data-sauver="1">Enregistrer une copie</button>'
+      + '<button data-restaurer="1">Restaurer une copie</button>'
+      + "</div>"
+      + '<p class="pf-note">' + (stockOk
+          ? "Tout est enregistré sur cet appareil, et nulle part ailleurs. Une copie de la veille est gardée automatiquement."
+          : "<b>Cet appareil n'enregistre pas.</b> Faites une copie sans attendre : navigation privée ou stockage plein.")
+      + "</p>"
+    + "</section>"
+
+    + '<section class="carte anim" style="animation-delay:.16s">'
+      + '<div class="carte-tete"><h2>Votre compte</h2></div>'
+      + '<div class="pf-compte"><span class="pf-g">'
+      + '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">'
+      + '<path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.3-.2-1.9H12v3.7h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3Z"/>'
+      + '<path fill="#34A853" d="M12 22c2.7 0 5-.9 6.6-2.5l-3.2-2.5a6 6 0 0 1-9-3.1H3.1v2.6A10 10 0 0 0 12 22Z"/>'
+      + '<path fill="#FBBC05" d="M6.4 13.9a6 6 0 0 1 0-3.8V7.5H3.1a10 10 0 0 0 0 9l3.3-2.6Z"/>'
+      + '<path fill="#EA4335" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 0 0 3.1 7.5l3.3 2.6A6 6 0 0 1 12 5.9Z"/>'
+      + "</svg></span>"
+      + "<div><b>Se connecter avec Google</b><span>Bientôt — pour retrouver vos données sur un autre appareil.</span></div>"
+      + "</div>"
+      + '<p class="pf-note">Aujourd\'hui, Cura n\'a besoin d\'aucun compte : rien ne sort de votre appareil.</p>'
+    + "</section>";
 }
 
 /* ───────── tâches ───────── */
@@ -4179,15 +4315,20 @@ async function telechargerFacture(id){
 function demo(){
   let n = 0;
   COLS.forEach(c => { n += liste(c).filter(o => o.exemple).length; });
+  /* Les copies et la restauration vivent désormais dans le profil, au même
+     endroit que tout ce qui vous concerne. Elles étaient répétées au pied de
+     deux écrans : un même geste offert à trois endroits demande de choisir
+     lequel, pour rien.
+     Ce qui reste ici, c'est l'alerte — et elle seule. Un navigateur qui
+     n'enregistre pas doit se dire là où l'on travaille, pas dans un écran
+     de réglages qu'on ouvre une fois par mois. */
   return (n ? '<p class="pied">Ces fiches sont des exemples. Modifiez-les, '
-        + "supprimez-les, ajoutez les vôtres : les totaux suivent.</p>" : "")
-    + '<p class="pied"><i class="' + (stockOk ? "" : "ko") + '"></i>'
-    + (stockOk ? "Tout est gardé dans ce navigateur, sur cet appareil."
-               : "Ce navigateur bloque l'enregistrement : tout disparaîtra en fermant l'onglet.")
-    + ' <button data-sauver="1">Enregistrer une copie</button>'
-    + ' <button data-restaurer="1">Restaurer</button>'
-    + (n ? ' <button data-demo="1">Effacer les exemples</button>' : "")
-    + "</p>";
+        + "supprimez-les, ajoutez les vôtres : les totaux suivent."
+        + ' <button data-demo="1">Effacer les exemples</button></p>' : "")
+    + (stockOk ? "" :
+        '<p class="pied"><i class="ko"></i>'
+        + "Ce navigateur bloque l'enregistrement : tout disparaîtra en fermant l'onglet."
+        + ' <button data-sauver="1">Enregistrer une copie</button></p>');
 }
 
 /* ═══ emporter ses données ailleurs ═══ */
@@ -4258,7 +4399,7 @@ function importerTout(){
   ch.click();
 }
 
-const RENDU = {afaire: vueAfaire, argent: vueArgent, budget: vueBudget};
+const RENDU = {afaire: vueAfaire, argent: vueArgent, budget: vueBudget, profil: vueProfil};
 
 /* ───────── rendu ───────── */
 function rendre(){
@@ -4275,16 +4416,25 @@ function rendre(){
   badge("#n-argent", 0);
   const surAgenda = vue === "afaire";
   const surCompta = vue === "budget";
+  const surProfil = vue === "profil";
   const greffeCompta = surCompta && filtreC === "argent";
   const greffe = surAgenda || greffeCompta;
   $("#majournee").hidden = !surAgenda;
   $("#ilreste").hidden = !greffeCompta;
-  $("#vue").hidden = surAgenda;
+  $("#vue").hidden = surAgenda && !surProfil;
   /* l'en-tête ne disparaît que sur l'Agenda, qui porte le sien.
      Le masquer aussi sur Comptabilité › Mon argent faisait remonter la
      barre des trois onglets de 84 pixels : on changeait de sous-onglet
      et toute la page sautait. */
-  $("#entete").hidden = surAgenda;
+  /* Le profil porte son propre titre — le « Bonjour » au-dessus ferait
+     deux en-têtes empilés pour un écran qui n'a rien à saluer. */
+  $("#entete").hidden = surAgenda || surProfil;
+  $("#profil-btn").textContent = initiale();
+  if(surProfil) $("#profil-btn").setAttribute("aria-current", "page");
+  else $("#profil-btn").removeAttribute("aria-current");
+  document.querySelectorAll(".nav button").forEach(function(b){
+    if(surProfil) b.removeAttribute("aria-current");
+  });
   document.body.classList.toggle("sur-agenda", surAgenda);
   if(surAgenda){
     document.querySelector(".page").dataset.sec = vue;
@@ -4679,6 +4829,28 @@ $("#vue").addEventListener("pointerup", lacher);
 $("#vue").addEventListener("pointercancel", lacher);
 
 /* ───────── interactions ───────── */
+/* Toucher le rond ouvre le profil ; le retoucher revient d'où l'on vient.
+   Un écran de réglages n'est pas une destination : on y va, on en revient. */
+let vueAvantProfil = "afaire";
+$("#profil-btn").addEventListener("click", () => {
+  if(vue === "profil"){
+    vue = vueAvantProfil;
+    const cible = document.querySelector('#nav button[data-vue="' + vue + '"]');
+    if(cible){
+      document.querySelectorAll("#nav button[data-vue]").forEach(x => x.removeAttribute("aria-current"));
+      cible.setAttribute("aria-current", "page");
+    }
+  }else{
+    vueAvantProfil = vue;
+    vue = "profil";
+  }
+  clientOuvert = null;
+  memoire.clear();
+  animer = true;
+  rendre();
+  window.scrollTo({top: 0, behavior: reduit() ? "auto" : "smooth"});
+});
+
 $("#nav").addEventListener("click", e => {
   const b = e.target.closest("button");
   if(!b) return;
@@ -4814,6 +4986,18 @@ $("#vue").addEventListener("click", e => {
   if(b.dataset.ft){ filtreT = b.dataset.ft; rendre(); return; }
   if(b.dataset.fa){ filtreA = b.dataset.fa; clientOuvert = null; memoire.clear(); rendre(); return; }
   if(b.dataset.fc){ filtreC = b.dataset.fc; memoire.clear(); rendre(); return; }
+  if(b.dataset.versCalculs){
+    /* Le régime se règle là où ses effets se voient : dans Calculs, à côté
+       du chiffre qu'il fait bouger. Le profil dit ce qu'il vaut, Calculs le
+       change — une seule source, deux lectures. */
+    vue = "budget"; filtreC = "calculs";
+    document.querySelectorAll("#nav button[data-vue]").forEach(x => x.removeAttribute("aria-current"));
+    const ong = document.querySelector('#nav button[data-vue="budget"]');
+    if(ong) ong.setAttribute("aria-current", "page");
+    memoire.clear(); animer = true; rendre();
+    window.scrollTo({top: 0, behavior: reduit() ? "auto" : "smooth"});
+    return;
+  }
   if(b.dataset.forme){ state.moi.forme = b.dataset.forme; sauver(); memoire.clear(); rendre(); return; }
   if(b.dataset.ff){ filtreF = b.dataset.ff; rendre(); return; }
   if(b.dataset.fb){ filtreB = b.dataset.fb; rendre(); return; }
