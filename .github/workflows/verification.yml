@@ -1,0 +1,80 @@
+name: Vérification
+
+# Rien ne part en ligne sans passer par ici.
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  page:
+    name: La page tient debout
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: La syntaxe du script
+        run: python3 src/verif.py index.html
+
+      - name: Les contrôles de la page
+        run: python3 src/controles.py index.html
+
+      # L'oubli le plus coûteux du projet : modifier le gabarit et publier
+      # l'ancienne page. Ici, on régénère et on compare.
+      - name: index.html correspond bien au gabarit
+        run: |
+          cp index.html /tmp/publie.html
+          python3 src/build.py
+          if ! diff -q /tmp/publie.html index.html >/dev/null; then
+            echo "::error::index.html ne correspond pas à src/page.html."
+            echo "La page publiée n'est pas celle que dit le gabarit."
+            echo "À faire avant de pousser : python3 src/build.py"
+            diff /tmp/publie.html index.html | head -40
+            exit 1
+          fi
+          echo "index.html est bien la page que produit le gabarit."
+
+  dependance:
+    name: Le script tiers est celui qu'on croit
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+
+      # Si cdnjs servait un jour un autre fichier, le navigateur refuserait de
+      # l'exécuter — et l'export PDF cesserait de fonctionner sans explication.
+      # On préfère l'apprendre ici.
+      - name: L'empreinte annoncée est celle du fichier servi
+        run: |
+          adresse=$(grep -o 'https://cdnjs.cloudflare.com[^"]*' index.html | head -1)
+          annoncee=$(grep -o 'integrity="sha512-[^"]*"' index.html | head -1 | sed 's/integrity="sha512-//; s/"//')
+          curl -sS --retry 3 -o /tmp/tiers.js "$adresse"
+          reelle=$(openssl dgst -sha512 -binary /tmp/tiers.js | openssl base64 -A)
+          echo "annoncée : $annoncee"
+          echo "servie   : $reelle"
+          if [ "$annoncee" != "$reelle" ]; then
+            echo "::error::Le fichier servi par le CDN ne correspond plus à l'empreinte de la page."
+            exit 1
+          fi
+          echo "Le script tiers n'a pas changé."
+
+  verdict:
+    name: Bon pour la publication
+    runs-on: ubuntu-latest
+    needs: [page, dependance]
+    if: always()
+    steps:
+      - name: Verdict
+        run: |
+          if echo "${{ join(needs.*.result, ' ') }}" | grep -qE "failure|cancelled"; then
+            echo "::error::Un contrôle a échoué. La page ne doit pas être publiée."
+            exit 1
+          fi
+          echo "Tous les contrôles sont passés."

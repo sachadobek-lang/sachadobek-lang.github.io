@@ -1,0 +1,46 @@
+name: Veille
+
+# Une fois par jour, sans rien pousser : le seul morceau de l'application
+# qui ne nous appartient pas peut changer sans nous prévenir.
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+jobs:
+  tiers:
+    name: Le script tiers n'a pas bougé
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v5
+      - name: Comparer l'empreinte
+        run: |
+          adresse=$(grep -o 'https://cdnjs.cloudflare.com[^"]*' index.html | head -1)
+          annoncee=$(grep -o 'integrity="sha512-[^"]*"' index.html | head -1 | sed 's/integrity="sha512-//; s/"//')
+          curl -sS --retry 3 -o /tmp/tiers.js "$adresse"
+          reelle=$(openssl dgst -sha512 -binary /tmp/tiers.js | openssl base64 -A)
+          if [ "$annoncee" != "$reelle" ]; then
+            echo "::error::$adresse ne correspond plus à l'empreinte inscrite dans la page."
+            exit 1
+          fi
+          echo "Inchangé."
+
+  page:
+    name: La page publiée répond
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Interroger l'adresse publique
+        run: |
+          code=$(curl -sS -o /tmp/enligne.html -w "%{http_code}" https://sachadobek-lang.github.io/)
+          echo "réponse : $code"
+          if [ "$code" != "200" ]; then
+            echo "::error::La page publiée répond $code au lieu de 200."
+            exit 1
+          fi
+          if ! grep -q "Content-Security-Policy" /tmp/enligne.html; then
+            echo "::error::La page en ligne n'a pas de politique de sécurité : elle est périmée."
+            exit 1
+          fi
+          echo "La page en ligne répond et porte bien ses protections."
