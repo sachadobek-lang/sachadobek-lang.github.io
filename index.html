@@ -2142,6 +2142,12 @@ let anneauP = 0;
 const $ = s => document.querySelector(s);
 const h = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
 const nf = new Intl.NumberFormat("fr-FR", {maximumFractionDigits: 0});
+/* Le format français sépare les milliers par une espace fine insécable, que
+   ni l'encodage PDF standard ni le formulaire des impôts ne connaissent : le
+   montant s'y affiche en carrés. Trois endroits la remplaçaient chacun de son
+   côté, avec des listes de caractères différentes — l'un oubliait U+2009.
+   Une seule fonction désormais, pour tout ce qui sort de la page. */
+const sansFine = t => String(t).replace(/[\u202F\u00A0\u2009\u2007\u2060]/g, " ");
 const eur = n => nf.format(Math.round(Number(n) || 0)) + " €";
 const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 const auj = () => iso(new Date());
@@ -3549,7 +3555,7 @@ function texteRelance(nom){
   const enRetard = f.filter(x => statut(x) === "retard");
   /* espaces ordinaires : les espaces fines insécables passent mal d'un
      logiciel de courrier à l'autre */
-  const som = n => nf.format(Math.round(Number(n) || 0)).replace(/[\u202f\u00a0]/g, " ") + " €";
+  const som = n => sansFine(nf.format(Math.round(Number(n) || 0))) + " €";
   const dL = v => v ? dt(v).getDate() + " " + MOIS_LONG[dt(v).getMonth()] + " " + dt(v).getFullYear() : "";
   const moi = (state.moi && state.moi.nom) || "";
   const total = f.reduce((t, x) => t + (Number(x.montant) || 0), 0);
@@ -3726,10 +3732,8 @@ function chargesAn(){
 
 /* ═══ la facture en PDF ═══ */
 function euroTxt(v){
-  /* l'espace fine insécable du format français sort de l'encodage PDF standard :
-     on la remplace par une espace ordinaire, sinon le montant s'affiche en carrés */
-  return new Intl.NumberFormat("fr-FR", {minimumFractionDigits: 2, maximumFractionDigits: 2})
-    .format(Number(v) || 0).replace(/[\u202F\u00A0\u2009]/g, " ") + " EUR";
+  return sansFine(new Intl.NumberFormat("fr-FR", {minimumFractionDigits: 2, maximumFractionDigits: 2})
+    .format(Number(v) || 0)) + " EUR";
 }
 function dateTxt(iso){
   if(!iso) return "";
