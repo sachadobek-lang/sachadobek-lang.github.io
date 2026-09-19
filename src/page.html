@@ -982,7 +982,10 @@ summary.carte-tete:hover h2{color:var(--v1)}
   --line-soft:#EEEFF4;
   --ink:#14161B;
   --ink-2:#5C6270;
-  --ink-3:#969CAA;
+  /* #969CAA donnait un rapport de 2,75 sur blanc, là où la norme demande
+     4,5 pour du texte de cette taille : les initiales des jours et les
+     heures devenaient illisibles au soleil, sur un chantier. */
+  --ink-3:#646E85;
   --accent:#DF4A45;
   --focus:#4B5BD0;
   --shadow-1:0 1px 2px rgba(20,22,27,.04);
@@ -1066,7 +1069,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 #majournee .upnext .till{font-size:13px; color:var(--ink-3); font-variant-numeric:tabular-nums; flex:0 0 auto}
 #majournee .week{display:flex; align-items:center; gap:6px}
-#majournee .wk-arrow{flex:0 0 auto; width:32px; height:46px; color:var(--ink-3); display:grid; place-items:center; border-radius:10px}
+#majournee .wk-arrow{flex:0 0 auto; width:44px; height:46px; color:var(--ink-3); display:grid; place-items:center; border-radius:10px}
 #majournee .wk-arrow:hover{color:var(--ink); background:var(--surface-2)}
 #majournee .days{flex:1; min-width:0; display:grid; grid-template-columns:repeat(7,minmax(0,1fr))}
 #majournee .day-pill{min-width:0}
@@ -5467,6 +5470,9 @@ $("#vue").addEventListener("click", e => {
     if(!armer(b)) return;
     if(b.dataset.sup === "clients" && b.dataset.id === clientOuvert) clientOuvert = null;
     retirer(b.dataset.sup, b.dataset.id);
+    /* ses factures ne partent pas avec lui — le livre des recettes doit
+       être gardé dix ans. Le dire, sinon il croit avoir tout effacé. */
+    if(b.dataset.sup === "clients") bulle("Fiche retirée — ses factures restent en comptabilité");
   }
 });
 
@@ -7542,8 +7548,14 @@ var MOIS = ["J","F","M","A","M","J","J","A","S","O","N","D"];
 
 var etat = null;
 var $ = function(id){ return document.getElementById(id); };
-var eur  = new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR",maximumFractionDigits:0});
-var eur2 = new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR",minimumFractionDigits:2,maximumFractionDigits:2});
+/* Intl sépare les milliers par une espace fine insécable (U+202F) que
+   Nunito ne dessine pas : les montants s'affichaient « 1450 € » ici et
+   « 1 450 € » ailleurs, selon que le texte passait ou non par sansFine.
+   On l'applique une fois, à la source, plutôt qu'à chaque appel. */
+var eurI  = new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR",maximumFractionDigits:0});
+var eurI2 = new Intl.NumberFormat("fr-FR",{style:"currency",currency:"EUR",minimumFractionDigits:2,maximumFractionDigits:2});
+var eur  = {format: function(v){ return sansFine(eurI.format(v)); }};
+var eur2 = {format: function(v){ return sansFine(eurI2.format(v)); }};
 var C = 2*Math.PI*96, GAP = 3;
 
 function uid(){ return Math.random().toString(36).slice(2,9); }
