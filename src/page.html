@@ -2391,11 +2391,28 @@ function semaineIso(d){
   const j1 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
   return t.getUTCFullYear() + "-S" + String(Math.ceil(((t - j1) / 86400000 + 1) / 7)).padStart(2, "0");
 }
+/* L'acompte de 30 % à la commande est la règle du métier, pas l'exception.
+   Jusqu'ici encaisser créait une facture de plus au lieu de solder celle
+   qui existait : un client qui devait 1 450 € et versait 500 € se
+   retrouvait avec 1 950 € facturés et 1 450 € toujours dus. Un versement
+   se pose désormais sur la facture, et le reste continue d'être dû.
+
+   Quatre fonctions, un seul endroit qui décide. Rien d'autre dans
+   l'application n'a le droit de recalculer ça dans son coin. */
+const montantDe = f => Number(f && f.montant) || 0;
+const verse     = f => Number(f && f.verse) || 0;
 function statut(f){
   if(f.statut === "brouillon") return "brouillon";
   if(f.statut === "payee") return "payee";
+  if(verse(f) > 0 && verse(f) >= montantDe(f)) return "payee";
   return jours(f.echeance) < 0 ? "retard" : "envoyee";
 }
+const encaisseDe = f => statut(f) === "payee" ? montantDe(f) : verse(f);
+const duSur      = f => statut(f) === "payee" ? 0 : Math.max(0, montantDe(f) - verse(f));
+/* Le micro-entrepreneur déclare ce qu'il a encaissé, pas ce qu'il a
+   facturé : une facture de décembre payée en janvier appartient à
+   l'année suivante. L'application datait tout de l'émission. */
+const dateReglement = f => (f && f.regleLe) || (f && f.emise) || auj();
 const ETIQ_F = {brouillon: ["À envoyer", "att"], payee: ["Payé", "ok"], retard: ["Pas payé", "feu"], envoyee: ["En attente", "amb"]};
 const COURT_F = {brouillon: "brln", payee: "payé", retard: "retard", envoyee: "env."};
 const ETIQ_C = {actif: ["En cours", "amb"], prospect: ["Prospect", "att"], termine: ["Terminé", "ok"]};
@@ -3342,8 +3359,10 @@ function ficheClient(id){
   const e = ETIQ_C[c.statut] || ETIQ_C.prospect;
   const siennes = liste("factures").filter(f => f.client === c.nom && f.statut !== "brouillon")
                                    .sort((x, y) => String(y.emise).localeCompare(String(x.emise)));
-  const paye = siennes.filter(f => statut(f) === "payee").reduce((t, f) => t + (Number(f.montant) || 0), 0);
-  const attente = siennes.filter(f => statut(f) !== "payee").reduce((t, f) => t + (Number(f.montant) || 0), 0);
+  /* un acompte compte dans ce qui est payé, et le reste dans ce qui est dû :
+     les deux sortent des mêmes fonctions que la comptabilité. */
+  const paye = siennes.reduce((t, f) => t + encaisseDe(f), 0);
+  const attente = siennes.reduce((t, f) => t + duSur(f), 0);
   const notes = (c.notes || []).slice().sort((x, y) => String(y.d).localeCompare(String(x.d)));
   const rdv = rdvDuClient(c.nom);
   const reste = joindre(c.contact).reste;
@@ -3638,7 +3657,8 @@ function carnetClients(){
 /* ───────── vue : argent ───────── */
 function rangeeFacture(f, chezLui){
   const st = statut(f), e = ETIQ_F[st], j = jours(f.echeance);
-  const quand = st === "payee" ? "émise le " + jour(f.emise)
+  const quand = st === "payee" ? "réglée le " + jour(dateReglement(f))
+    : verse(f) > 0 ? "acompte de " + eur(verse(f)) + " reçu — reste " + eur(duSur(f))
     : st === "retard" ? "à relancer depuis " + (-j) + " jour" + (j < -1 ? "s" : "")
     : "à payer le " + jour(f.echeance);
   const ico = {
@@ -4807,22 +4827,48 @@ window.__CADENCE__ = {
     return b <= IS_SEUIL ? b * IS_REDUIT / 100
       : IS_SEUIL * IS_REDUIT / 100 + (b - IS_SEUIL) * IS_PLEIN / 100;
   },
-  rentrees: () => liste("factures").filter(f => statut(f) === "payee").map(f => ({
-    id: f.id, date: f.emise || auj(), client: f.client || "", ref: f.ref || "",
-    montant: Number(f.montant) || 0, mode: f.mode || "Virement", exemple: !!f.demo})),
+  rentrees: () => liste("factures").filter(f => f.statut !== "brouillon" && encaisseDe(f) > 0).map(f => ({
+    id: f.id, date: dateReglement(f), client: f.client || "", ref: f.ref || "",
+    montant: encaisseDe(f), mode: f.mode || "Virement", exemple: !!f.demo,
+    partiel: statut(f) !== "payee"})),
   creances: () => liste("factures").filter(f => f.statut !== "brouillon" && statut(f) !== "payee").map(f => ({
-    id: f.id, client: f.client || "", ref: f.ref || "", montant: Number(f.montant) || 0,
+    id: f.id, client: f.client || "", ref: f.ref || "", montant: duSur(f),
+    total: montantDe(f), deja: verse(f),
     desc: f.objet || "", emission: f.emise || auj(), echeance: f.echeance || auj(), exemple: !!f.demo})),
   encaisse: () => liste("factures")
-    .filter(f => statut(f) === "payee" && String(f.emise || "").slice(0, 4) === anIci())
-    .reduce((t, f) => t + (Number(f.montant) || 0), 0),
-  /* noter un paiement depuis « Mon argent » crée une facture payée :
-     une seule façon d'entrer de l'argent dans l'application */
-  noterPaiement: o => ecrire("factures", neuf(), {
-    client: (o && o.client) || "", montant: Number(o && o.montant) || 0,
-    objet: (o && o.objet) || "", ref: (o && o.ref) || refSuivante(),
-    emise: (o && o.date) || auj(), echeance: (o && o.date) || auj(),
-    statut: "payee", mode: (o && o.mode) || "Virement"}),
+    .filter(f => f.statut !== "brouillon" && String(dateReglement(f)).slice(0, 4) === anIci())
+    .reduce((t, f) => t + encaisseDe(f), 0),
+  /* Un encaissement se pose sur la facture qu'il règle. Il n'en crée une
+     que s'il n'y en avait aucune — une vente au comptant, réglée sur
+     place. C'est la même règle qu'ailleurs : l'argent n'a qu'une source. */
+  noterPaiement: o => {
+    const m = Number(o && o.montant) || 0;
+    const id = o && o.facture;
+    const quand = (o && o.date) || auj();
+    if(id && state.factures[id]){
+      const f = state.factures[id];
+      const total = verse(f) + m;
+      ecrire("factures", id, Object.assign({}, f, {
+        verse: total,
+        mode: (o && o.mode) || f.mode || "Virement",
+        regleLe: quand,
+        statut: total >= montantDe(f) ? "payee" : f.statut}));
+      return;
+    }
+    ecrire("factures", neuf(), {
+      client: (o && o.client) || "", montant: m,
+      objet: (o && o.objet) || "", ref: (o && o.ref) || refSuivante(),
+      emise: quand, echeance: quand, regleLe: quand,
+      statut: "payee", mode: (o && o.mode) || "Virement"});
+  },
+  /* ce qui reste dû, facture par facture, pour l'écran d'encaissement */
+  duesDe: nom => liste("factures")
+    .filter(f => f.statut !== "brouillon" && statut(f) !== "payee"
+                 && (!nom || f.client === nom))
+    .map(f => ({id: f.id, client: f.client || "", ref: f.ref || "",
+                objet: f.objet || "", du: duSur(f), total: montantDe(f),
+                deja: verse(f), echeance: f.echeance || auj()}))
+    .sort((a, b) => String(a.echeance).localeCompare(String(b.echeance))),
   retirerFacture: id => { if(state.factures[id]) retirer("factures", id); },
   /* depuis l'agenda : « il a signé ». On propose la fiche pré-remplie
      plutôt que de créer dans le dos de l'utilisateur. */
