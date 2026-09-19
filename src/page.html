@@ -1117,10 +1117,16 @@ summary.carte-tete:hover h2{color:var(--v1)}
    de profil flotte au-dessus du coin : la ligne lui laisse sa place,
    sinon la flèche de droite passe dessous et devient introuvable. */
 #majournee .dateline{padding-right:52px}
-#majournee .per-fl{flex:0 0 auto; width:44px; height:44px; border:0; background:none;
-  color:var(--ink-3); display:grid; place-items:center; border-radius:12px; cursor:pointer}
-#majournee .per-fl:hover{color:var(--ink); background:var(--surface-2)}
-#majournee .per-fl:active{transform:scale(.94)}
+/* Un chevron gris pâle posé sur le fond ne se voit pas sur un écran de
+   téléphone en plein jour : Sacha a dit trois fois qu'il ne pouvait pas
+   changer de semaine, alors que le clic fonctionnait. Ce sont des
+   boutons, ils en ont l'air. */
+#majournee .per-fl{flex:0 0 auto; width:42px; height:42px; border:1px solid var(--line);
+  background:var(--surface); color:var(--ink); display:grid; place-items:center;
+  border-radius:999px; cursor:pointer; box-shadow:0 1px 2px rgba(20,22,27,.06)}
+#majournee .per-fl svg{stroke-width:2.4}
+#majournee .per-fl:hover{background:var(--surface-2)}
+#majournee .per-fl:active{transform:scale(.92)}
 #majournee .dateline h1{flex:1}
 /* La bande des sept jours répétait, en vue Semaine, exactement ce que
    l'en-tête des colonnes affiche juste en dessous : deux fois les mêmes
