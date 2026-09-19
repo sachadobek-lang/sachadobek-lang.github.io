@@ -1062,16 +1062,20 @@ summary.carte-tete:hover h2{color:var(--v1)}
 /* Ces marges prenaient près de cent pixels sur un écran de téléphone —
    autant d'heures que le calendrier ne montrait pas. Resserrées, pas
    supprimées : rien ne disparaît, tout respire un peu moins. */
-#majournee .top{padding-block:16px 10px; display:flex; flex-direction:column; gap:12px}
+#majournee .top{padding-block:10px 6px; display:flex; flex-direction:column; gap:8px}
 #majournee .dateline{display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap}
 #majournee .dateline h1{
-  /* Les mêmes valeurs que les grands titres des autres écrans : 26px, 600. */
+  /* Le tableau retiré, toute la hauteur doit aller au calendrier : le
+     titre tient sur une ligne, la date à sa suite plutôt qu'en dessous.
+     Une quarantaine de pixels rendus, soit près de deux heures de plus
+     à l'écran. */
   font-family:var(--display); font-weight:600;
-  font-size:clamp(26px,6vw,34px); line-height:1.1; margin:0;
-  letter-spacing:-.02em; text-wrap:balance;
+  font-size:clamp(21px,5.2vw,27px); line-height:1.15; margin:0;
+  letter-spacing:-.02em;
+  display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;
 }
-#majournee .dateline h1 .dim{display:block; font-family:var(--ui); font-weight:400; font-size:14px;
-  letter-spacing:0; color:var(--ink-3); margin-top:3px}
+#majournee .dateline h1 .dim{font-family:var(--ui); font-weight:400; font-size:13.5px;
+  letter-spacing:0; color:var(--ink-3)}
 #majournee .today-btn{
   font-family:var(--ui); font-weight:500; font-size:14px; color:var(--ink-2);
   border:1px solid var(--line); border-radius:11px; padding:9px 15px; background:var(--surface);
@@ -1112,13 +1116,18 @@ summary.carte-tete:hover h2{color:var(--v1)}
    on lit le mois, pas dans une bande qui montrait autre chose. Le bouton
    de profil flotte au-dessus du coin : la ligne lui laisse sa place,
    sinon la flèche de droite passe dessous et devient introuvable. */
-#majournee[data-vue="mois"] .dateline{padding-right:52px}
+#majournee .dateline{padding-right:52px}
 #majournee .per-fl{flex:0 0 auto; width:44px; height:44px; border:0; background:none;
   color:var(--ink-3); display:grid; place-items:center; border-radius:12px; cursor:pointer}
 #majournee .per-fl:hover{color:var(--ink); background:var(--surface-2)}
 #majournee .per-fl:active{transform:scale(.94)}
 #majournee .dateline h1{flex:1}
-#majournee[data-vue="mois"] .week{display:none}
+/* La bande des sept jours répétait, en vue Semaine, exactement ce que
+   l'en-tête des colonnes affiche juste en dessous : deux fois les mêmes
+   dates, et soixante-quatre pixels de calendrier en moins. Elle ne reste
+   qu'en vue Jour, où elle sert à choisir le jour. */
+#majournee[data-vue="mois"] .week,
+#majournee[data-vue="semaine"] .week{display:none}
 #majournee .wk-arrow{flex:0 0 auto; width:44px; height:46px; color:var(--ink-3); display:grid; place-items:center; border-radius:10px}
 #majournee .wk-arrow:hover{color:var(--ink); background:var(--surface-2)}
 #majournee .days{flex:1; min-width:0; display:grid; grid-template-columns:repeat(7,minmax(0,1fr))}
@@ -1221,8 +1230,8 @@ summary.carte-tete:hover h2{color:var(--v1)}
   display:grid; place-items:center; transition:border-color .16s ease, color .16s ease;
 }
 #majournee .slot:hover{border-color:var(--ink-3); color:var(--ink)}
-#majournee .dayview{flex:1 1 auto; min-height:0; margin-bottom:14px; display:flex; flex-direction:column}
-#majournee .dayview .card-head{justify-content:center; padding:12px 22px 10px}
+#majournee .dayview{flex:1 1 auto; min-height:0; margin-bottom:6px; display:flex; flex-direction:column}
+#majournee .dayview .card-head{justify-content:center; padding:8px 22px 6px}
 #majournee .seg{display:inline-flex; background:var(--surface-2); border:1px solid var(--line-soft); border-radius:13px; padding:3px; gap:3px}
 #majournee .seg button{
   font-family:var(--ui); font-size:15px; font-weight:600; color:var(--ink-3);
@@ -6468,7 +6477,9 @@ var ZOOM_MAX = 240;
    C'est ce qui donnait l'impression que le calendrier « s'agrandit et se
    dégrandit » et que le bas de la page bouge. On lui donne l'espace qui
    reste jusqu'à la barre du bas, et c'est son contenu qui défile dedans. */
-var BARRE_BAS = 118;
+/* La barre du bas ne touche pas le bord : elle flotte. Le calendrier
+   peut descendre jusqu'à elle, pas jusqu'au bas de l'écran. */
+var BARRE_BAS = 94;
 function cadrerCalendrier(){
   var sc = $('scroller');
   if (!sc || $('majournee').hidden) return;
@@ -6851,7 +6862,7 @@ function renderWeek(){
      grille affichée en dessous : on ne faisait pas le lien entre ses
      flèches et le mois, et on croyait ne pas pouvoir en changer. Elle
      disparaît, et les flèches vont contre le titre, qui dit le mois. */
-  if (state.view === 'mois') return;
+  if (state.view === 'mois' || state.view === 'semaine') return;
   for (var i = 0; i < 7; i++){
     (function(i){
       var d = addDays(state.week, i), key = iso(d);
@@ -6877,8 +6888,13 @@ function renderHeader(){
   if (state.view === 'semaine'){
     var a = state.week, b = addDays(state.week, 6);
     title = weekHasToday ? 'Cette semaine' : 'Semaine du ' + a.getDate();
-    sub = a.toLocaleDateString('fr-FR',{day:'numeric', month:'long'}) + ' — '
-        + b.toLocaleDateString('fr-FR',{day:'numeric', month:'long'});
+    /* « 14 septembre — 20 septembre » passait sur deux lignes et coûtait
+       une trentaine de pixels au calendrier. Le mois ne se répète que
+       lorsqu'il change. */
+    sub = a.getMonth() === b.getMonth()
+        ? a.getDate() + ' – ' + b.toLocaleDateString('fr-FR',{day:'numeric', month:'long'})
+        : a.toLocaleDateString('fr-FR',{day:'numeric', month:'short'}) + ' – '
+          + b.toLocaleDateString('fr-FR',{day:'numeric', month:'short'});
   }
   else if (state.view === 'mois'){
     /* Le titre annonçait « Vendredi 16 octobre » alors qu'on regarde tout
@@ -6899,8 +6915,10 @@ function renderHeader(){
   h1.appendChild(s);
 
   $('majournee').setAttribute('data-vue', state.view);
-  $('moisPrev').hidden = state.view !== 'mois';
-  $('moisNext').hidden = state.view !== 'mois';
+  /* Les flèches rejoignent le titre partout où la bande disparaît. */
+  var sansBande = state.view === 'mois' || state.view === 'semaine';
+  $('moisPrev').hidden = !sansBande;
+  $('moisNext').hidden = !sansBande;
 
   var showsToday = state.view === 'semaine' ? weekHasToday : (state.date === today);
   $('todayBtn').hidden = showsToday;
