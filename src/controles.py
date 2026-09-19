@@ -52,10 +52,21 @@ if csp:
     connexions = re.search(r"connect-src ([^;]*)", regles)
     exiger(connexions, "la politique de sécurité ne dit rien de connect-src")
     if connexions:
+        # Ce contrôle a longtemps exigé qu'AUCUN serveur extérieur ne figure
+        # ici : la promesse était que rien ne pouvait sortir de l'appareil.
+        # Depuis que Cura sait garder une copie en ligne, cette promesse
+        # devient : rien ne sort vers personne d'autre que notre serveur, et
+        # rien ne part tant qu'on ne s'est pas connecté. La liste ci-dessous
+        # est donc la liste complète des destinations permises — tout ajout
+        # est une décision, pas un détail.
+        PERMIS = {"https://*.supabase.co", "wss://*.supabase.co"}
         dehors = [m for m in connexions.group(1).split()
-                  if m.startswith("http") or m.startswith("//") or m == "*"]
+                  if (m.startswith("http") or m.startswith("//") or m == "*")
+                  and m not in PERMIS]
         exiger(not dehors,
-               "connect-src autorise un serveur extérieur : %s" % " ".join(dehors))
+               "connect-src autorise une destination non prévue : %s" % " ".join(dehors))
+        exiger("*" not in connexions.group(1).split(),
+               "connect-src autorise n'importe quelle destination")
     exiger("object-src 'none'" in regles, "object-src n'est pas fermé")
     exiger("form-action 'none'" in regles, "form-action n'est pas fermé")
     exiger("worker-src 'self'" in regles,

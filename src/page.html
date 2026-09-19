@@ -6,11 +6,15 @@
 <!-- color-scheme : sans cette ligne, le mode sombre automatique de Safari et de
      Chrome repeint les contrôles natifs en blanc sur blanc. -->
 <meta name="color-scheme" content="light dark">
-<!-- Ce que la page a le droit de faire. connect-src n'autorise que ce qui reste
-     dans l'appareil : aucune ligne de comptabilité ne peut partir vers un serveur,
-     même si un script tiers était un jour compromis. Les deux 'unsafe-inline'
-     sont nécessaires : tout le style et tout le script sont dans la page. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' data: blob:; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'self'; manifest-src 'self'">
+<!-- Ce que la page a le droit de faire.
+     connect-src n'autorisait rien d'autre que l'appareil lui-même. Depuis que
+     Cura sait garder une copie en ligne, il ouvre une seule porte : notre
+     serveur, et lui seul. Aucun autre domaine ne peut recevoir quoi que ce
+     soit, même si un script tiers était un jour compromis — et rien ne part
+     tant qu'on ne s'est pas connecté.
+     Les deux 'unsafe-inline' sont nécessaires : tout le style et tout le
+     script sont dans la page. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' data: blob: https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'self'; manifest-src 'self'">
 <title>Cura</title>
 <!-- « Sur l'écran d'accueil » : plein écran, sans la barre de Safari -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -2410,6 +2414,10 @@ function sauver(){
     localStorage.setItem("cadence.v2", JSON.stringify(state));
     stockOk = true;
   }catch(e){ stockOk = false; }
+  /* Le local d'abord, toujours : l'enregistrement sur l'appareil ne
+     dépend jamais du réseau. Le dépôt en ligne suit, trois secondes
+     après le dernier geste, et son échec ne casse rien. */
+  try{ planifierSync(); }catch(e){}
 }
 let donneesAbimees = null;   /* la clé où l'on a mis de côté ce qu'on n'a pas su lire */
 
@@ -2567,6 +2575,232 @@ function rendreEntete(){
     + '</p></div>';
 }
 
+/* ═══ le compte et le coffre ═══
+   Ce que ça change, et il faut le dire franchement : jusqu'ici Cura ne
+   pouvait rien envoyer nulle part, et le navigateur lui-même l'en
+   empêchait. En se connectant, on ouvre une porte vers un serveur. Elle
+   ne s'ouvre que vers le nôtre, elle ne s'ouvre que si l'on se connecte,
+   et rien ne part tant qu'on ne l'a pas fait.
+
+   Ce qui est déposé là-bas est l'état complet de l'application, tel
+   quel, dans une seule ligne. L'appareil reste la source de vérité :
+   tout se calcule ici, le serveur ne fait que garder une copie pour
+   qu'un téléphone perdu ne soit plus une comptabilité perdue.
+
+   Trois règles, et la troisième est celle qui protège vraiment :
+   — on ne bloque jamais l'application sur le réseau ;
+   — on ne remplace jamais des données locales pleines par une copie
+     vide, quelle que soit sa date ;
+   — on ne remplace jamais rien sans le dire : en cas de désaccord entre
+     deux appareils, on demande. */
+const SERVEUR = __SERVEUR__;
+let sb = null;            /* le client, chargé seulement si l'on se connecte */
+let compte = null;        /* qui est connecté, null sinon */
+let syncEtat = "";        /* "", "en cours", "à jour", "hors ligne" */
+let syncMinuteur = null;
+let sbChargement = null;
+
+const SB_SRC = "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.116.0/dist/umd/supabase.js";
+const SB_SRI = "sha384-iLddHTLokph6Omwoyid4XKxHaWa6w41BnoEj0q5oOrzmYPpHIKt1wyjReA7s//pP";
+
+function serveurPret(){
+  return !!(SERVEUR && SERVEUR.url && SERVEUR.cle);
+}
+
+/* 213 kilo-octets qu'on ne télécharge qu'au moment de se connecter :
+   celui qui n'a pas de compte n'a aucune raison de les payer. */
+function chargerLaLibrairie(){
+  if(window.supabase) return Promise.resolve(window.supabase);
+  if(sbChargement) return sbChargement;
+  sbChargement = new Promise(function(ok, non){
+    const el = document.createElement("script");
+    el.src = SB_SRC;
+    el.integrity = SB_SRI;
+    el.crossOrigin = "anonymous";
+    el.referrerPolicy = "no-referrer";
+    el.onload = function(){
+      if(window.supabase) ok(window.supabase); else non(new Error("librairie illisible"));
+    };
+    el.onerror = function(){ sbChargement = null; non(new Error("réseau")); };
+    document.head.appendChild(el);
+  });
+  return sbChargement;
+}
+
+function clientServeur(){
+  if(sb) return Promise.resolve(sb);
+  return chargerLaLibrairie().then(function(lib){
+    sb = lib.createClient(SERVEUR.url, SERVEUR.cle, {
+      auth: {persistSession: true, autoRefreshToken: true, detectSessionInUrl: true}
+    });
+    return sb;
+  });
+}
+
+function nomAppareil(){
+  const u = navigator.userAgent;
+  if(/iPhone/.test(u)) return "iPhone";
+  if(/iPad/.test(u)) return "iPad";
+  if(/Android/.test(u)) return "téléphone Android";
+  if(/Macintosh/.test(u)) return "Mac";
+  if(/Windows/.test(u)) return "PC";
+  return "un appareil";
+}
+
+function combienDeFiches(etat){
+  return COLS.reduce(function(t, c){
+    return t + Object.keys((etat && etat[c]) || {}).length;
+  }, 0);
+}
+
+function majPastilleSync(){
+  const el = document.getElementById("pf-sync");
+  if(el) el.textContent = syncEtat;
+}
+
+/* ───────── se connecter ───────── */
+function connecterGoogle(){
+  if(!serveurPret()){ bulle("Le serveur n'est pas encore branché"); return; }
+  syncEtat = "en cours"; majPastilleSync();
+  clientServeur().then(function(c){
+    return c.auth.signInWithOAuth({
+      provider: "google",
+      options: {redirectTo: location.origin + location.pathname}
+    });
+  }).catch(function(){
+    syncEtat = "hors ligne"; majPastilleSync();
+    bulle("Connexion impossible pour le moment");
+  });
+}
+
+function deconnecter(){
+  if(!sb){ compte = null; rendre(); return; }
+  sb.auth.signOut().then(function(){
+    compte = null; syncEtat = ""; rendre();
+    bulle("Déconnecté — vos données restent sur cet appareil");
+  }).catch(function(){ bulle("Impossible de se déconnecter"); });
+}
+
+/* ───────── récupérer ce qui est là-bas ───────── */
+function poserCoffre(la){
+  COLS.forEach(function(c){ state[c] = (la.contenu && la.contenu[c]) || {}; });
+  if(la.contenu && la.contenu.moi) state.moi = la.contenu.moi;
+  sauver();
+  syncEtat = "à jour";
+  rendre();
+  bulle("Vos données sont revenues");
+}
+
+/* Deux appareils, deux versions : on demande plutôt que de choisir.
+   La question s'affiche dans le profil, pas dans une fenêtre qui surgit :
+   elle demande de comparer deux dates et deux nombres, ce qu'on ne fait
+   pas sous la pression d'une boîte de dialogue. */
+let coffreEnAttente = null;
+function demanderQuelleCopie(la, ici, laBas){
+  coffreEnAttente = {
+    la: la, ici: ici, laBas: laBas,
+    quand: la.maj_le ? new Date(la.maj_le).toLocaleDateString("fr-FR",
+      {day: "numeric", month: "long", hour: "2-digit", minute: "2-digit"}) : "",
+    appareil: la.appareil || "un autre appareil"
+  };
+  syncEtat = "deux versions";
+  vue = "profil";
+  rendre();
+  return Promise.resolve();
+}
+
+function choisirCopieDistante(){
+  const c = coffreEnAttente; coffreEnAttente = null;
+  if(c) poserCoffre(c.la); else rendre();
+}
+function choisirCopieLocale(){
+  coffreEnAttente = null;
+  pousserCoffre().then(function(){ rendre(); bulle("Cet appareil fait foi"); });
+}
+
+function tirerCoffre(){
+  if(!compte || !sb) return Promise.resolve();
+  syncEtat = "en cours"; majPastilleSync();
+  return sb.from("coffres").select("contenu,fiches,appareil,maj_le")
+    .eq("proprietaire", compte.id).maybeSingle()
+    .then(function(r){
+      if(r.error) throw r.error;
+      const la = r.data;
+      const ici = combienDeFiches(state);
+      if(!la){ return pousserCoffre(); }
+      const laBas = Number(la.fiches) || 0;
+
+      /* Une copie vide ne remplace jamais une copie pleine, même si elle
+         est plus récente : c'est le seul cas où « le dernier gagne »
+         détruit du travail sans retour possible. */
+      if(laBas === 0 && ici > 0) return pousserCoffre();
+      if(ici === 0 && laBas > 0){ poserCoffre(la); return Promise.resolve(); }
+      if(ici > 0 && laBas > 0 && la.contenu
+         && JSON.stringify(la.contenu.clients || {}) !== JSON.stringify(state.clients)){
+        return demanderQuelleCopie(la, ici, laBas);
+      }
+      syncEtat = "à jour"; majPastilleSync();
+      return Promise.resolve();
+    })
+    .catch(function(){ syncEtat = "hors ligne"; majPastilleSync(); });
+}
+
+/* ───────── déposer ce qu'on a ───────── */
+function pousserCoffre(){
+  if(!compte || !sb) return Promise.resolve();
+  const contenu = {moi: state.moi};
+  COLS.forEach(function(c){ contenu[c] = state[c]; });
+  syncEtat = "en cours"; majPastilleSync();
+  return sb.from("coffres").upsert({
+      proprietaire: compte.id,
+      contenu: contenu,
+      fiches: combienDeFiches(state),
+      appareil: nomAppareil()
+    }, {onConflict: "proprietaire"})
+    .then(function(r){
+      if(r.error) throw r.error;
+      syncEtat = "à jour"; majPastilleSync();
+    })
+    .catch(function(){ syncEtat = "hors ligne"; majPastilleSync(); });
+}
+
+/* On ne pousse pas à chaque frappe : trois secondes après le dernier
+   geste, une seule fois. */
+function planifierSync(){
+  if(!compte) return;
+  if(syncMinuteur) clearTimeout(syncMinuteur);
+  syncMinuteur = setTimeout(function(){ syncMinuteur = null; pousserCoffre(); }, 3000);
+}
+
+/* ───────── au démarrage : reprendre la session s'il y en a une ───────── */
+function reprendreSession(){
+  if(!serveurPret()) return;
+  /* On ne charge la librairie au démarrage que si l'on est déjà connecté.
+     Supabase laisse sa trace dans le stockage : on la cherche sans elle,
+     pour ne pas faire payer 213 kilo-octets à celui qui n'a pas de compte. */
+  let dejaConnecte = false;
+  try{
+    for(let i = 0; i < localStorage.length; i++){
+      const k = localStorage.key(i);
+      if(k && k.indexOf("sb-") === 0 && k.indexOf("-auth-token") > 0){ dejaConnecte = true; break; }
+    }
+  }catch(e){}
+  if(!dejaConnecte && location.hash.indexOf("access_token") < 0) return;
+
+  clientServeur().then(function(c){
+    return c.auth.getSession();
+  }).then(function(r){
+    const session = r && r.data && r.data.session;
+    if(!session) return Promise.resolve();
+    compte = session.user;
+    if(location.hash.indexOf("access_token") >= 0){
+      history.replaceState(null, "", location.pathname + location.search);
+    }
+    rendre();
+    return tirerCoffre();
+  }).catch(function(){ syncEtat = "hors ligne"; majPastilleSync(); });
+}
+
 /* ═══ le profil ═══
    Ce qui vous concerne était éparpillé : vos coordonnées au fond de l'écran
    Factures, votre régime dans Calculs, vos sauvegardes sous la liste des
@@ -2640,18 +2874,64 @@ function vueProfil(){
     + "</section>"
 
     + '<section class="carte anim" style="animation-delay:.16s">'
-      + '<div class="carte-tete"><h2>Votre compte</h2></div>'
-      + '<div class="pf-compte"><span class="pf-g">'
-      + '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">'
-      + '<path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.3-.2-1.9H12v3.7h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3Z"/>'
-      + '<path fill="#34A853" d="M12 22c2.7 0 5-.9 6.6-2.5l-3.2-2.5a6 6 0 0 1-9-3.1H3.1v2.6A10 10 0 0 0 12 22Z"/>'
-      + '<path fill="#FBBC05" d="M6.4 13.9a6 6 0 0 1 0-3.8V7.5H3.1a10 10 0 0 0 0 9l3.3-2.6Z"/>'
-      + '<path fill="#EA4335" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 0 0 3.1 7.5l3.3 2.6A6 6 0 0 1 12 5.9Z"/>'
-      + "</svg></span>"
-      + "<div><b>Se connecter avec Google</b><span>Bientôt — pour retrouver vos données sur un autre appareil.</span></div>"
+      + '<div class="carte-tete"><h2>Votre compte</h2>'
+      + (compte ? '<span class="appoint" id="pf-sync">' + h(syncEtat) + "</span>" : "")
       + "</div>"
-      + '<p class="pf-note">Aujourd\'hui, Cura n\'a besoin d\'aucun compte : rien ne sort de votre appareil.</p>'
-    + "</section>";
+      + carteCompte()
+    + "</section>"
+    + carteDeuxVersions();
+}
+
+const LOGO_G = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">'
+  + '<path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.3-.2-1.9H12v3.7h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3Z"/>'
+  + '<path fill="#34A853" d="M12 22c2.7 0 5-.9 6.6-2.5l-3.2-2.5a6 6 0 0 1-9-3.1H3.1v2.6A10 10 0 0 0 12 22Z"/>'
+  + '<path fill="#FBBC05" d="M6.4 13.9a6 6 0 0 1 0-3.8V7.5H3.1a10 10 0 0 0 0 9l3.3-2.6Z"/>'
+  + '<path fill="#EA4335" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 0 0 3.1 7.5l3.3 2.6A6 6 0 0 1 12 5.9Z"/>'
+  + "</svg>";
+
+function carteCompte(){
+  /* Connecté : on dit qui, et depuis quand la copie est à jour. */
+  if(compte){
+    const qui = (compte.email || "votre compte Google");
+    return '<div class="pf-compte"><span class="pf-g">' + LOGO_G + "</span>"
+      + "<div><b>" + h(qui) + "</b><span>Vos données sont gardées en ligne, "
+      + "et sur cet appareil.</span></div></div>"
+      + '<div class="pf-gestes"><button data-deconnecter="1">Se déconnecter</button></div>'
+      + '<p class="pf-note">La déconnexion ne supprime rien : tout reste sur cet appareil, '
+      + "et la copie en ligne vous attend.</p>";
+  }
+  /* Pas de serveur branché : on le dit, plutôt que d'offrir un bouton mort. */
+  if(!serveurPret()){
+    return '<div class="pf-compte"><span class="pf-g">' + LOGO_G + "</span>"
+      + "<div><b>Se connecter avec Google</b><span>Bientôt — le serveur n'est pas "
+      + "encore branché.</span></div></div>"
+      + '<p class="pf-note">Aujourd\'hui, Cura n\'a besoin d\'aucun compte : '
+      + "rien ne sort de votre appareil.</p>";
+  }
+  return '<div class="pf-gestes" style="padding-top:20px">'
+    + '<button class="plein" data-google="1">' + LOGO_G + " Se connecter avec Google</button></div>"
+    + '<p class="pf-note">Pour retrouver vos données si vous changez de téléphone, '
+    + "ou les ouvrir sur deux appareils. Tant que vous ne vous connectez pas, "
+    + "rien ne sort d'ici.</p>";
+}
+
+/* Deux appareils ont travaillé chacun de leur côté : on montre les deux
+   et on laisse choisir. Jamais d'écrasement silencieux. */
+function carteDeuxVersions(){
+  const c = coffreEnAttente;
+  if(!c) return "";
+  return '<section class="carte anim" style="animation-delay:.2s">'
+    + '<div class="carte-tete"><h2>Deux versions</h2></div>'
+    + '<p class="pf-note" style="padding-top:0">Cet appareil et '
+    + h(c.appareil) + " ne portent pas les mêmes fiches. "
+    + "Rien ne sera remplacé avant votre choix.</p>"
+    + pfLigne("Ici", c.ici + " fiche" + (c.ici > 1 ? "s" : ""))
+    + pfLigne("En ligne", c.laBas + " fiche" + (c.laBas > 1 ? "s" : "")
+        + (c.quand ? " · " + c.quand : ""))
+    + '<div class="pf-gestes">'
+    + '<button class="plein" data-copie="locale">Garder celles d\'ici</button>'
+    + '<button data-copie="distante">Prendre celles en ligne</button>'
+    + "</div></section>";
 }
 
 /* ───────── tâches ───────── */
@@ -5010,6 +5290,12 @@ $("#vue").addEventListener("click", e => {
   if(b.dataset.ft){ filtreT = b.dataset.ft; rendre(); return; }
   if(b.dataset.fa){ filtreA = b.dataset.fa; clientOuvert = null; memoire.clear(); rendre(); return; }
   if(b.dataset.fc){ filtreC = b.dataset.fc; memoire.clear(); rendre(); return; }
+  if(b.dataset.google){ connecterGoogle(); return; }
+  if(b.dataset.deconnecter){ deconnecter(); return; }
+  if(b.dataset.copie){
+    if(b.dataset.copie === "locale") choisirCopieLocale(); else choisirCopieDistante();
+    return;
+  }
   if(b.dataset.versCalculs){
     /* Le régime se règle là où ses effets se voient : dans Calculs, à côté
        du chiffre qu'il fait bouger. Le profil dit ce qu'il vaut, Calculs le
@@ -5387,6 +5673,11 @@ window.addEventListener("resize", () => {
 })();
 
 charger();
+
+/* S'il s'est déjà connecté, on retrouve sa session et sa copie en ligne.
+   Sinon rien ne se charge et rien ne part : l'application reste ce
+   qu'elle a toujours été. */
+reprendreSession();
 if(donneesAbimees){
   setTimeout(function(){
     bulle("Vos fiches étaient illisibles. Une copie a été gardée de côté.");

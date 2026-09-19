@@ -15,6 +15,15 @@ RACINE = os.path.dirname(ICI)
 gabarit = io.open(os.path.join(ICI, "page.html"), encoding="utf-8").read()
 exemple = json.load(open(os.path.join(ICI, "seed.json"), encoding="utf-8"))
 
+# L'adresse du serveur et sa clé publique. Tant qu'elles sont vides,
+# l'application fonctionne exactement comme avant : tout reste sur
+# l'appareil, et le bouton de connexion reste éteint.
+chemin_serveur = os.path.join(ICI, "serveur.json")
+serveur = {"url": "", "cle": ""}
+if os.path.exists(chemin_serveur):
+    brut = json.load(open(chemin_serveur, encoding="utf-8"))
+    serveur = {"url": brut.get("url", ""), "cle": brut.get("cle", "")}
+
 if "__SEED__" not in gabarit:
     sys.exit("page.html ne contient pas le marqueur __SEED__")
 
@@ -44,6 +53,7 @@ brouillon = os.path.join(RACINE, ".index-brouillon.html")
 
 io.open(brouillon, "w", encoding="utf-8").write(
     gabarit.replace("__SEED__", json.dumps(exemple, ensure_ascii=False, separators=(",", ":")))
+           .replace("__SERVEUR__", json.dumps(serveur, ensure_ascii=False, separators=(",", ":")))
 )
 
 def renoncer(motif):
