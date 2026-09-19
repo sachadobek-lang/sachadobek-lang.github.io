@@ -1059,7 +1059,10 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee :focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:8px}
 @media (prefers-reduced-motion: reduce){#majournee *{animation:none!important; transition:none!important}}
 #majournee .app{max-width:920px; margin:0 auto; min-height:100dvh; display:flex; flex-direction:column; padding-inline:24px}
-#majournee .top{padding-block:26px 18px; display:flex; flex-direction:column; gap:20px}
+/* Ces marges prenaient près de cent pixels sur un écran de téléphone —
+   autant d'heures que le calendrier ne montrait pas. Resserrées, pas
+   supprimées : rien ne disparaît, tout respire un peu moins. */
+#majournee .top{padding-block:16px 10px; display:flex; flex-direction:column; gap:12px}
 #majournee .dateline{display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap}
 #majournee .dateline h1{
   /* Les mêmes valeurs que les grands titres des autres écrans : 26px, 600. */
@@ -1086,6 +1089,17 @@ summary.carte-tete:hover h2{color:var(--v1)}
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 #majournee .upnext .till{font-size:13px; color:var(--ink-3); font-variant-numeric:tabular-nums; flex:0 0 auto}
 #majournee .week{display:flex; align-items:center; gap:6px}
+/* En vue Mois, ces deux-là encadrent le titre : on change de mois là où
+   on lit le mois, pas dans une bande qui montrait autre chose. Le bouton
+   de profil flotte au-dessus du coin : la ligne lui laisse sa place,
+   sinon la flèche de droite passe dessous et devient introuvable. */
+#majournee[data-vue="mois"] .dateline{padding-right:52px}
+#majournee .per-fl{flex:0 0 auto; width:44px; height:44px; border:0; background:none;
+  color:var(--ink-3); display:grid; place-items:center; border-radius:12px; cursor:pointer}
+#majournee .per-fl:hover{color:var(--ink); background:var(--surface-2)}
+#majournee .per-fl:active{transform:scale(.94)}
+#majournee .dateline h1{flex:1}
+#majournee[data-vue="mois"] .week{display:none}
 #majournee .wk-arrow{flex:0 0 auto; width:44px; height:46px; color:var(--ink-3); display:grid; place-items:center; border-radius:10px}
 #majournee .wk-arrow:hover{color:var(--ink); background:var(--surface-2)}
 #majournee .days{flex:1; min-width:0; display:grid; grid-template-columns:repeat(7,minmax(0,1fr))}
@@ -1188,8 +1202,8 @@ summary.carte-tete:hover h2{color:var(--v1)}
   display:grid; place-items:center; transition:border-color .16s ease, color .16s ease;
 }
 #majournee .slot:hover{border-color:var(--ink-3); color:var(--ink)}
-#majournee .dayview{flex:1; margin-bottom:28px; display:flex; flex-direction:column}
-#majournee .dayview .card-head{justify-content:center; padding:18px 22px 16px}
+#majournee .dayview{flex:1 1 auto; min-height:0; margin-bottom:14px; display:flex; flex-direction:column}
+#majournee .dayview .card-head{justify-content:center; padding:12px 22px 10px}
 #majournee .seg{display:inline-flex; background:var(--surface-2); border:1px solid var(--line-soft); border-radius:13px; padding:3px; gap:3px}
 #majournee .seg button{
   font-family:var(--ui); font-size:15px; font-weight:600; color:var(--ink-3);
@@ -1217,7 +1231,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .ev.wk .name{font-size:12px; letter-spacing:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 #majournee .ev.wk .when{font-size:10.5px; margin-top:1px}
 #majournee .ev.wk.short .when,#majournee .ev.wk.tiny .when{display:none}
-#majournee .scroller{max-height:min(58dvh,600px); overflow-y:auto; overflow-x:hidden; padding:18px 20px 20px 0}
+#majournee .scroller{flex:1 1 auto; min-height:300px; overflow-y:auto; overflow-x:hidden; padding:10px 20px 12px 0}
 /* ═══ le mois ═══
    Sept colonnes, cinq ou six rangées, et rien d'autre : le numéro du jour, et
    des points pour ce qu'il contient. On ne lit pas un mois, on le survole —
@@ -1564,7 +1578,11 @@ summary.carte-tete:hover h2{color:var(--v1)}
 }
 
 /* ── seule adaptation : vivre dans un onglet, pas dans un onglet de navigateur ── */
-#majournee .app{min-height:0}
+/* Le calendrier tenait dans 58 % de la hauteur, le reste de la page
+   bougeant sous lui : d'où l'impression qu'il « s'agrandit et se
+   dégrandit ». Il prend maintenant l'écran, et c'est son contenu qui
+   défile à l'intérieur. Le tableau reste en dessous, on y descend. */
+#majournee .app{min-height:calc(100dvh - 104px)}
 #majournee{padding-bottom:104px;background:transparent!important}
 #majournee{--bg:#F0F2F7}
 @media (prefers-color-scheme:dark){ #majournee:not([data-theme="light"]){--bg:#0B0D11} }
@@ -2139,7 +2157,13 @@ summary.carte-tete:hover h2{color:var(--v1)}
 <div class="app">
   <header class="top">
     <div class="dateline">
+      <button class="per-fl" id="moisPrev" aria-label="Mois précédent" hidden>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>
+      </button>
       <h1 id="bigdate">—</h1>
+      <button class="per-fl" id="moisNext" aria-label="Mois suivant" hidden>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg>
+      </button>
       <button class="today-btn" id="todayBtn" hidden>Aujourd’hui</button>
       <div class="upnext" id="upnext" hidden></div>
     </div>
@@ -5939,7 +5963,7 @@ var HOUR_PX = 86;
 
 /* ---------- stockage ---------- */
 var LS_EV = 'ma-journee-v1', LS_TD = 'ma-journee-todos-v1',
-    LS_DEMO = 'ma-journee-demo-off', LS_ZOOM = 'ma-journee-zoom', LS_VIEW = 'ma-journee-view';
+    LS_DEMO = 'ma-journee-demo-off', LS_ZOOM = 'ma-journee-cadre', LS_VIEW = 'ma-journee-view';
 var db = null, unsubEv = null, unsubRep = null, unsubTd = null;
 try {
   state.demoOff = localStorage.getItem(LS_DEMO) === '1';
@@ -5951,7 +5975,7 @@ try {
     if (z0.indexOf('libre:') === 0) z0 = z0.slice(6);
     var px = {tout: 34, normal: 86, detail: 156}[z0];
     if (px == null) px = parseFloat(z0);
-    if (!isNaN(px) && px > 0) state.zoomPx = clamp(px, 12, 240);
+    if (!isNaN(px) && px > 0){ state.zoomPx = clamp(px, 12, 240); state.zoomChoisi = true; }
   }
   var v0 = localStorage.getItem(LS_VIEW);
   if (v0 === 'jour' || v0 === 'semaine' || v0 === 'mois') state.view = v0;
@@ -6397,11 +6421,41 @@ function fitHour(){
    et il n'y a rien en dessous. Un double-clic fait l'aller-retour entre la
    journée entière et une heure confortable, pour qui ne connaît pas le geste. */
 var ZOOM_MAX = 240;
+/* Le scroller n'avait pas de hauteur : il prenait celle de ses 24 heures,
+   soit près de 1 900 pixels, et poussait tout ce qui suit hors de l'écran.
+   C'est ce qui donnait l'impression que le calendrier « s'agrandit et se
+   dégrandit » et que le bas de la page bouge. On lui donne l'espace qui
+   reste jusqu'à la barre du bas, et c'est son contenu qui défile dedans. */
+var BARRE_BAS = 118;
+function cadrerCalendrier(){
+  var sc = $('scroller');
+  if (!sc || $('majournee').hidden) return;
+  sc.style.height = 'auto';
+  var haut = sc.getBoundingClientRect().top;
+  var dispo = Math.round(window.innerHeight - haut - BARRE_BAS - 14);
+  sc.style.height = Math.max(280, dispo) + 'px';
+}
+
 function zoomPlancher(){
   var sc = $('scroller');
   return Math.max(12, (sc.clientHeight - 10) / HOURS);
 }
+
+/* La plage qu'on veut voir d'un coup en ouvrant : 02:00 → 22:00. Le
+   dézoom continue de descendre jusqu'à la journée entière, minuit à
+   minuit. */
+var VUE_DEBUT = 120, VUE_FIN = 1320;
+function zoomParDefaut(){
+  var sc = $('scroller');
+  /* clientHeight comprend le rembourrage haut et bas : sans le retirer,
+     la dernière heure de la plage passait sous le bord. */
+  var h = sc.clientHeight - 22;
+  return clamp(h / ((VUE_FIN - VUE_DEBUT) / 60), 12, 240);
+}
 function applyZoom(){
+  /* Tant qu'il n'a pas zoomé lui-même, la taille d'une heure se déduit de
+     la plage qu'on veut lui montrer, et suit donc la hauteur de l'écran. */
+  if (!state.zoomChoisi) state.zoomPx = zoomParDefaut();
   HOUR_PX = clamp(state.zoomPx, zoomPlancher(), ZOOM_MAX);
   /* C'est #majournee qui déclare --hour, pas :root. Écrire la valeur sur
      :root ne changeait rien : la règle du bloc l'emportait. */
@@ -6417,6 +6471,7 @@ function zoomVers(px, yEcran){
   var y = (yEcran == null) ? sc.clientHeight / 2 : (yEcran - r.top);
   var part = (sc.scrollTop + y) / avant;
   state.zoomPx = clamp(px, zoomPlancher(), ZOOM_MAX);
+  state.zoomChoisi = true;
   try { localStorage.setItem(LS_ZOOM, state.zoomPx.toFixed(1)); } catch(e){}
   applyZoom(); renderTrack();
   sc.scrollTop = Math.max(0, part * tr.offsetHeight - y);
@@ -6750,6 +6805,11 @@ function setView(v){
 function renderWeek(){
   var box = $('days');
   box.innerHTML = '';
+  /* En vue Mois cette bande montrait une semaine sans rapport avec la
+     grille affichée en dessous : on ne faisait pas le lien entre ses
+     flèches et le mois, et on croyait ne pas pouvoir en changer. Elle
+     disparaît, et les flèches vont contre le titre, qui dit le mois. */
+  if (state.view === 'mois') return;
   for (var i = 0; i < 7; i++){
     (function(i){
       var d = addDays(state.week, i), key = iso(d);
@@ -6778,6 +6838,15 @@ function renderHeader(){
     sub = a.toLocaleDateString('fr-FR',{day:'numeric', month:'long'}) + ' — '
         + b.toLocaleDateString('fr-FR',{day:'numeric', month:'long'});
   }
+  else if (state.view === 'mois'){
+    /* Le titre annonçait « Vendredi 16 octobre » alors qu'on regarde tout
+       octobre : rien ne disait quel mois était à l'écran, et les flèches
+       au-dessus semblaient ne servir à rien. */
+    var mm = moisDe(state.date);
+    title = mm.toLocaleDateString('fr-FR', {month:'long'});
+    title = title.charAt(0).toUpperCase() + title.slice(1);
+    sub = String(mm.getFullYear());
+  }
   else if (state.date === today){ title = 'Aujourd’hui'; sub = label; }
   else if (state.date === iso(addDays(new Date(),1))){ title = 'Demain'; sub = label; }
   else { title = label.charAt(0).toUpperCase() + label.slice(1); sub = String(d.getFullYear()); }
@@ -6786,6 +6855,10 @@ function renderHeader(){
   h1.appendChild(document.createTextNode(title));
   var s = document.createElement('span'); s.className = 'dim'; s.textContent = sub;
   h1.appendChild(s);
+
+  $('majournee').setAttribute('data-vue', state.view);
+  $('moisPrev').hidden = state.view !== 'mois';
+  $('moisNext').hidden = state.view !== 'mois';
 
   var showsToday = state.view === 'semaine' ? weekHasToday : (state.date === today);
   $('todayBtn').hidden = showsToday;
@@ -6952,7 +7025,7 @@ function planNote(t){
   openSheet(null, {start: slot.start, dur: slot.dur, title: t.text.split('\n')[0].slice(0, 60)});
 }
 
-function render(){ renderHeader(); renderWeek(); applyZoom(); renderTrack(); renderNotes(); }
+function render(){ renderHeader(); renderWeek(); cadrerCalendrier(); applyZoom(); renderTrack(); renderNotes(); }
 
 /* ---------- fiche ---------- */
 function buildPickers(){
@@ -7438,6 +7511,25 @@ $('todayBtn').addEventListener('click', function(){
    jours, comme dans tous les agendas de poche. Le seuil de 50 px évite de
    changer de semaine en effleurant, et on laisse passer le défilement
    vertical de la page. */
+/* Le même geste sur le calendrier lui-même : on fait glisser la grille
+   pour passer à la semaine ou au mois suivant, sans aller chercher une
+   flèche de 44 pixels en haut de l'écran. */
+(function(){
+  var x0 = 0, y0 = 0, suit = false, sc = $('scroller');
+  sc.addEventListener('touchstart', function(e){
+    if (e.touches.length !== 1) { suit = false; return; }
+    x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; suit = true;
+  }, {passive: true});
+  sc.addEventListener('touchend', function(e){
+    if (!suit) return;
+    suit = false;
+    var t = e.changedTouches[0];
+    var dx = t.clientX - x0, dy = t.clientY - y0;
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.6) return;
+    flecheBande(dx < 0 ? 1 : -1);
+  }, {passive: true});
+})();
+
 (function(){
   var x0 = 0, y0 = 0, suit = false;
   var bande = $('days');
@@ -7460,6 +7552,8 @@ $('todayBtn').addEventListener('click', function(){
 function flecheBande(sens){
   if (state.view === 'mois') reculer(sens); else shiftWeek(sens * 7);
 }
+$('moisPrev').addEventListener('click', function(){ flecheBande(-1); });
+$('moisNext').addEventListener('click', function(){ flecheBande(1); });
 $('prevWeek').addEventListener('click', function(){ flecheBande(-1); });
 $('nextWeek').addEventListener('click', function(){ flecheBande(1); });
 /* Les flèches suivent ce qu'on regarde : une semaine en vue Semaine,
@@ -7494,29 +7588,31 @@ $('viewSeg').addEventListener('click', function(e){
   if (b) setView(b.dataset.v);
 });
 
+/* On ouvre sur la plage utile plutôt que sur l'heure qu'il est : à 20 h,
+   se retrouver au milieu de la soirée avec la journée au-dessus ne dit
+   rien de ce qu'on a à faire. Si la journée entière tient à l'écran, il
+   n'y a rien à faire défiler du tout. */
 function scrollToNow(){
   if (state.view === 'mois'){ $('scroller').scrollTop = 0; return; }
-  var sc = $('scroller'), tr = $('track'), n = new Date();
-  var demo = demoActive() && state.date === today;
-  var m = demo ? 570 : (state.date === today ? (n.getHours()*60 + n.getMinutes()) : 540);
-  var y = ((clamp(m, DAY_START, DAY_END) - DAY_START)/SPAN) * tr.offsetHeight;
-  sc.scrollTop = Math.max(0, y - sc.clientHeight/2.6);
+  var sc = $('scroller'), tr = $('track');
+  var y = ((VUE_DEBUT - DAY_START)/SPAN) * tr.offsetHeight;
+  sc.scrollTop = Math.max(0, Math.min(y, tr.offsetHeight - sc.clientHeight));
 }
 
 var rsz;
 window.addEventListener('resize', function(){
   clearTimeout(rsz);
   /* Le plancher du zoom dépend de la hauteur visible : il se recalcule. */
-  rsz = setTimeout(function(){ applyZoom(); renderTrack(); }, 150);
+  rsz = setTimeout(function(){ cadrerCalendrier(); applyZoom(); renderTrack(); }, 150);
 });
 
 /* ---------- démarrage ---------- */
 refreshLocal();
-requestAnimationFrame(function(){ applyZoom(); renderTrack(); scrollToNow(); });
+requestAnimationFrame(function(){ cadrerCalendrier(); applyZoom(); renderTrack(); scrollToNow(); });
 
 /* Cura prévient quand on revient sur l'onglet */
 window.majourneeReveil = function(){
-  requestAnimationFrame(function(){ applyZoom(); renderTrack(); scrollToNow(); });
+  requestAnimationFrame(function(){ cadrerCalendrier(); applyZoom(); renderTrack(); scrollToNow(); });
 };
 setInterval(function(){
   if (state.date === today){ renderTrack(); renderUpNext(true); }
