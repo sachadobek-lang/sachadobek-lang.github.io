@@ -176,8 +176,11 @@ h1,h2,h3,p{margin:0}
   background:var(--deg); color:#fff; display:grid; place-items:center;
   font-family:var(--num); font-weight:700; font-size:16px; letter-spacing:-.01em;
   box-shadow:var(--o2); cursor:pointer;
-  transition:transform .18s var(--ressort), box-shadow .18s var(--doux);
+  transition:transform .18s var(--ressort), box-shadow .18s var(--doux), opacity .2s var(--doux);
 }
+/* il est posé par-dessus la page : dès qu'on descend, il s'efface plutôt
+   que de masquer un montant. Il revient en haut, là où on le cherche. */
+.profil-btn.ecarte{opacity:0;pointer-events:none;transform:translateY(-6px)}
 .profil-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;
   stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .profil-btn:active{transform:scale(.94)}
@@ -761,8 +764,11 @@ button.tuile:active{transform:scale(.985)}
 /* au doigt, la cible doit faire 44 px : on ne rate pas un appel */
 @media (pointer:coarse){.joindre a,.joindre button{padding:13px 17px}
   .joindre-nu a{width:38px;height:38px}}
+.en-attente{margin:14px 0 0;text-align:center;font-size:14.5px;color:var(--ink-2)}
+.en-attente b{font-family:var(--num);font-weight:600;color:var(--tard)}
 .paye{padding:16px 22px 22px}
 .paye .gros{font-family:var(--num);font-weight:600;font-size:38px;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.1;color:var(--ok)}
+.paye .gros.du{color:var(--tard)}
 .paye .lab{font-size:14px;font-weight:600;color:var(--ink-3)}
 .paye .reste{margin-top:8px;font-size:14.5px;color:var(--ink-2)}
 .paye .reste b{font-family:var(--num);font-weight:600;color:var(--tard)}
@@ -893,7 +899,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 .bienvenue .valider{padding:17px 34px;margin-top:10px}
 
 /* ═══ bulle ═══ */
-.bulle{position:fixed;z-index:60;left:50%;bottom:100px;transform:translate(-50%,16px);opacity:0;pointer-events:none;
+.bulle{position:fixed;z-index:60;left:50%;bottom:26px;transform:translate(-50%,16px);opacity:0;pointer-events:none;
   display:flex;align-items:center;gap:10px;background:var(--ink);color:var(--ground);padding:14px 20px;border-radius:999px;
   font-size:15px;font-weight:700;box-shadow:var(--o3);transition:opacity .26s var(--doux),transform .34s var(--ressort);max-width:calc(100vw - 32px)}
 .bulle.on{opacity:1;transform:translate(-50%,0)}
@@ -1924,6 +1930,8 @@ summary.carte-tete:hover h2{color:var(--v1)}
         </div>
       </div>
 
+      <p class="en-attente" id="en-attente" hidden></p>
+
       <div class="legende">
         <div class="l moi"><span class="d"></span>
           <span class="nom">À vous<small>vous pouvez le dépenser</small></span>
@@ -2868,7 +2876,9 @@ function vueProfil(){
       + '<button data-restaurer="1">Restaurer une copie</button>'
       + "</div>"
       + '<p class="pf-note">' + (stockOk
-          ? "Tout est enregistré sur cet appareil, et nulle part ailleurs. Une copie de la veille est gardée automatiquement."
+          ? (compte
+              ? "Sur cet appareil, et dans votre coffre en ligne. Une copie de la veille est gardée automatiquement."
+              : "Tout est enregistré sur cet appareil, et nulle part ailleurs. Une copie de la veille est gardée automatiquement.")
           : "<b>Cet appareil n'enregistre pas.</b> Faites une copie sans attendre : navigation privée ou stockage plein.")
       + "</p>"
     + "</section>"
@@ -3235,7 +3245,7 @@ function fiche(c){
                               .reduce((s, f) => s + (Number(f.montant) || 0), 0);
   const nb = (c.notes || []).length;
   return '<article class="fiche" data-client="' + h(c.id) + '"><h3>' + h(c.nom) + "</h3>"
-    + '<p class="projet">' + h(c.projet || "—") + "</p>"
+    + (c.projet ? '<p class="projet">' + h(c.projet) + "</p>" : "")
     + '<div class="fiche-pied"><span class="chiffres">' + eur(fx) + "<small>facturé"
     + (nb ? " · " + nb + " note" + (nb > 1 ? "s" : "") : "") + "</small></span>"
     + '<button class="etat-btn ' + e[1] + '" data-etat="' + h(c.id) + '" title="Appuyez pour changer">' + e[0] + "</button>"
@@ -3350,10 +3360,17 @@ function ficheClient(id){
     + "</span>"
     + '<button class="etat-btn ' + e[1] + '" data-etat="' + h(c.id) + '" title="Appuyez pour changer">' + e[0] + "</button>"
     + "</div>" + rangeeJoindre(c)
-    + '<div class="paye"><p class="lab">Ce client vous a payé</p>'
-    + '<p class="gros" data-compte="paye-' + h(c.id) + '" data-val="' + paye + '">' + eur(paye) + "</p>"
-    + (attente ? '<p class="reste">Il reste <b>' + eur(attente) + "</b> à encaisser.</p>"
-               : (paye ? '<p class="reste">Tout est réglé.</p>' : '<p class="reste">Aucune facture pour l\'instant.</p>'))
+    /* le plus gros chiffre de la carte est celui qu'on attend. Tant qu'il
+       reste quelque chose à encaisser, c'est lui ; sinon c'est le total payé. */
+    + '<div class="paye">'
+    + (attente
+        ? '<p class="lab">Ce client vous doit</p>'
+          + '<p class="gros du" data-compte="du-' + h(c.id) + '" data-val="' + attente + '">' + eur(attente) + "</p>"
+          + (paye ? '<p class="reste">Il vous a déjà payé <b>' + eur(paye) + "</b>.</p>"
+                  : '<p class="reste">Rien d\'encaissé pour l\'instant.</p>')
+        : '<p class="lab">Ce client vous a payé</p>'
+          + '<p class="gros" data-compte="paye-' + h(c.id) + '" data-val="' + paye + '">' + eur(paye) + "</p>"
+          + (paye ? '<p class="reste">Tout est réglé.</p>' : '<p class="reste">Aucune facture pour l\'instant.</p>'))
     + "</div>"
     + '<div class="action-client"><button data-facturer="' + h(c.nom) + '">Faire une facture</button>'
     + (attente ? '<button class="doux" data-relance="' + h(c.nom) + '">Relancer</button>' : "")
@@ -3590,11 +3607,11 @@ function carnetClients(){
   Object.keys(groupes).sort().reverse().forEach(m => {
     const g = groupes[m].sort(parNom);
     const som = g.reduce((t, c) => t + totalDe(c.nom), 0);
-    corps += separateur(titreMois(m), g.length + " signé" + (g.length > 1 ? "s" : "") + " · " + eur(som))
+    corps += separateur(titreMois(m), g.length + " facturé" + (g.length > 1 ? "s" : "") + " · " + eur(som))
       + '<div class="fiches">' + g.map(fiche).join("") + "</div>";
   });
   if(attente.length){
-    corps += separateur("Pas encore signés", attente.length + " en approche")
+    corps += separateur("Pas encore facturés", attente.length + " client" + (attente.length > 1 ? "s" : ""))
       + '<div class="fiches">' + attente.sort(parNom).map(fiche).join("") + "</div>";
   }
 
@@ -3612,7 +3629,7 @@ function carnetClients(){
     + '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">'
     + '<path d="M12 5.5v13M5.5 12h13"/></svg>Nouveau client</button>'
     + '<section class="carte anim"><div class="carte-tete"><h2>Vos clients</h2>'
-    + '<span class="appoint">' + actifs.length + " chantier" + (actifs.length > 1 ? "s" : "") + " en cours</span></div>"
+    + '<span class="appoint">' + cl.length + " client" + (cl.length > 1 ? "s" : "") + "</span></div>"
     + (cl.length ? corps
        : '<p class="vide"><b>Aucun client</b>Commencez par celui que vous avez eu au téléphone aujourd\'hui.</p>')
     + "</section>" + demo();
@@ -4583,7 +4600,11 @@ async function livreRecettes(){
 async function telechargerFacture(id){
   const brut = state.factures[id];
   if(!brut) return;
-  if(!(state.moi && state.moi.nom)){
+  /* nom, adresse et SIRET sont obligatoires sur une facture française :
+     15 € d'amende par mention manquante. Plutôt qu'un avertissement de
+     plus, le formulaire qui s'ouvrait déjà avant la première facture les
+     exige — une seule règle, aucun écran en plus. */
+  if(!(state.moi && state.moi.nom && state.moi.adresse && state.moi.siret)){
     bulle("Dites-nous qui vous êtes");
     ouvrir("moi", null, function(){ telechargerFacture(id); });
     return;
@@ -4921,13 +4942,13 @@ const CHAMPS = {
     + '<label><input type="radio" name="statut" value="termine"><span>Terminé</span></label></div></div></details>'}),
 
   moi: () => ({titre: "Qui êtes-vous ?", html:
-    '<p class="aide" style="margin:0 0 4px">Ces informations apparaîtront sur vos factures. À remplir une seule fois.</p>'
+    '<p class="aide" style="margin:0 0 4px">La loi les exige sur chaque facture. À remplir une seule fois.</p>'
     + '<div class="champ"><label for="f1">Votre nom ou celui de l\'entreprise</label>'
     + '<input id="f1" name="nom" required maxlength="80" placeholder="Atelier Dubois" autocomplete="organization" value="' + h(state.moi.nom) + '"></div>'
     + '<div class="champ"><label for="f2">Votre adresse</label>'
-    + '<input id="f2" name="adresse" maxlength="120" placeholder="12 rue des Artisans, 69003 Lyon" value="' + h(state.moi.adresse) + '"></div>'
+    + '<input id="f2" name="adresse" required maxlength="120" placeholder="12 rue des Artisans, 69003 Lyon" value="' + h(state.moi.adresse) + '"></div>'
     + '<div class="champ"><label for="f3">SIRET</label>'
-    + '<input id="f3" name="siret" maxlength="20" placeholder="123 456 789 00012" value="' + h(state.moi.siret) + '"></div>'
+    + '<input id="f3" name="siret" required maxlength="20" placeholder="123 456 789 00012" value="' + h(state.moi.siret) + '"></div>'
     + '<details class="detail"><summary>Plus de détails</summary>'
     + '<div class="paire"><div class="champ"><label for="f4">E-mail</label>'
     + '<input id="f4" name="email" type="email" maxlength="80" placeholder="facultatif" value="' + h(state.moi.email) + '"></div>'
@@ -5136,6 +5157,23 @@ $("#vue").addEventListener("pointercancel", lacher);
 /* Toucher le rond ouvre le profil ; le retoucher revient d'où l'on vient.
    Un écran de réglages n'est pas une destination : on y va, on en revient. */
 let vueAvantProfil = "afaire";
+/* Il est en position fixe : sans ceci, il reste posé sur le texte pendant
+   qu'on descend et masque le premier montant venu. Il s'efface dès qu'on
+   quitte le haut de la page, et revient quand on y remonte. */
+(function(){
+  const b = $("#profil-btn");
+  let dernier = -1;
+  const ajuster = () => {
+    const y = window.scrollY || document.documentElement.scrollTop || 0;
+    const loin = y > 40;
+    if(loin === dernier) return;
+    dernier = loin;
+    b.classList.toggle("ecarte", loin);
+  };
+  window.addEventListener("scroll", ajuster, {passive: true});
+  ajuster();
+})();
+
 $("#profil-btn").addEventListener("click", () => {
   if(vue === "profil"){
     vue = vueAvantProfil;
@@ -7489,7 +7527,7 @@ function etatNeuf(){
     /* vides : elles sont remplies par synchroniser(), à partir des
        factures de Comptabilité. Un seul endroit où l'argent existe. */
     rentrees: [], creances: [],
-    objectif:{net:9000,frais:36000,jours:220},
+    objectif:{net:"",frais:"",jours:""},
     facture:{eNom:"",eSiret:"",eAdr:"",cNom:"",cAdr:"",num:an+"-012",date:iso(d),ech:iso(new Date(d.getTime()+30*864e5)),desc:"",montant:0}
   };
 }
@@ -7559,6 +7597,13 @@ function rendreArgent(){
 
   roule("c-moi",eur.format(b.moi));
   $("c-pc").textContent = b.encaisse>0 ? Math.round(fM*100)+" %" : "";
+
+  /* le disque ne montre que l'argent arrivé. Sans cette ligne, celui qui a
+     facturé 1 450 € et n'a rien encaissé lit cinq fois « 0 € » et croit
+     l'application en panne. */
+  var du = (etat.creances||[]).reduce(function(t,c){ return t+num(c.montant); },0);
+  $("en-attente").hidden = !(du>0);
+  if(du>0) $("en-attente").innerHTML = "<b>"+eur.format(du)+"</b> facturés, pas encore encaissés.";
   roule("v-moi",eur.format(b.moi));
   roule("v-tva",eur.format(b.tva));
   roule("v-urssaf",eur.format(b.urssaf));
@@ -7649,7 +7694,11 @@ function rendreObjectif(){
   var jours=Math.max(1,num(o.jours));
   var tjm=caNec/jours;
 
-  $("sum-tjm").textContent = eur.format(tjm)+" / jour";
+  /* tant qu'il n'a rien dit de ce qu'il veut gagner, l'application n'a
+     aucun prix à lui annoncer : un chiffre livré d'usine se lit comme un
+     conseil le concernant. */
+  var muet = !num(o.net) && !num(o.frais);
+  $("sum-tjm").textContent = muet ? "à remplir" : eur.format(tjm)+" / jour";
   $("o-table").innerHTML =
     "<tr><td>Ce que vous voulez dans la poche</td><td>"+eur.format(num(o.net)*12)+" / an</td></tr>"+
     "<tr><td>Vos frais</td><td>"+eur.format(num(o.frais))+" / an</td></tr>"+
@@ -7660,9 +7709,11 @@ function rendreObjectif(){
   $("o-chiffre").textContent=eur.format(b.ca)+" / "+eur.format(caNec);
   $("o-barre").style.width=(part*100).toFixed(1)+"%";
   var manque=Math.max(0,caNec-b.ca), jr = tjm>0?Math.ceil(manque/tjm):0;
-  $("o-reste").innerHTML = manque<=0
-    ? "Objectif atteint. Tout ce qui rentre maintenant est en plus."
-    : "Il te manque "+nb(eur.format(manque))+" — environ "+nb(jr)+" jour"+(jr>1?"s":"")+" à facturer.";
+  $("o-reste").innerHTML = muet
+    ? "Dites ce que vous voulez gagner : l'application calcule le reste."
+    : manque<=0
+      ? "Objectif atteint. Tout ce qui rentre maintenant est en plus."
+      : "Il vous manque "+nb(eur.format(manque))+" — environ "+nb(jr)+" jour"+(jr>1?"s":"")+" à facturer.";
   sauver();
 }
 
