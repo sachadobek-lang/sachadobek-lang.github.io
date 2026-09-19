@@ -54,6 +54,10 @@ self.addEventListener("install", e => {
   );
 });
 
+/* Ce que la boîte figée a encore le droit de garder. */
+const encoreUtile = url =>
+  DEHORS.some(d => url.startsWith(d)) || FIGES_ICI.some(f => url.endsWith(f));
+
 self.addEventListener("activate", e => {
   /* Les boîtes des versions précédentes n'ont plus lieu d'être. */
   e.waitUntil(
@@ -61,6 +65,16 @@ self.addEventListener("activate", e => {
       .then(noms => Promise.all(
         noms.filter(n => (n.startsWith("cura-") || n.startsWith("plenitu-")) && n !== BOITE && n !== FIGE)
             .map(n => caches.delete(n))))
+      /* La boîte figée, elle, n'était jamais nettoyée : elle garde ce
+         qu'on lui a confié jusqu'à ce qu'on l'en décharge. Les polices
+         venaient de Google et sont maintenant servies par le dépôt —
+         sans ceci, leurs anciennes copies resteraient indéfiniment sur
+         le téléphone, une centaine de kilo-octets que plus rien ne
+         demande. Vrai pour toute dépendance qu'on retirera ensuite. */
+      .then(() => caches.open(FIGE))
+      .then(boite => boite.keys().then(cles => Promise.all(
+        cles.filter(r => !encoreUtile(r.url)).map(r => boite.delete(r)))))
+      .catch(() => {})
       .then(() => self.clients.claim())
   );
 });
