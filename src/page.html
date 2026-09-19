@@ -35,6 +35,10 @@
   --deg:linear-gradient(135deg,#3A465A 0%,#11161E 100%);
   --deg-fonce:linear-gradient(140deg,#242C3A 0%,#070A0F 100%);
   --deg-pale:linear-gradient(135deg,#F0F2F6 0%,#E6EAF1 100%);
+  /* la barre du bas flotte au-dessus de la page : elle porte le dégradé
+     comme le reste de l'identité, mais translucide pour laisser deviner
+     ce qui passe dessous */
+  --deg-barre:linear-gradient(135deg,rgba(255,255,255,.92) 0%,rgba(226,231,240,.88) 100%);
   --fond:linear-gradient(180deg,#F5F7FB 0%,#EBEEF4 100%);
   --tuile-neutre:linear-gradient(150deg,#FFFFFF 0%,#F1F7FF 100%);
   --tuile-vert:linear-gradient(150deg,#E9F9F1 0%,#D5EFE4 100%);
@@ -75,6 +79,7 @@
     --deg:linear-gradient(135deg,#4C5A72 0%,#1A212C 100%);
     --deg-fonce:linear-gradient(140deg,#2B3442 0%,#0C1118 100%);
     --deg-pale:linear-gradient(135deg,#1A212B 0%,#161C25 100%);
+    --deg-barre:linear-gradient(135deg,rgba(30,38,50,.90) 0%,rgba(17,22,30,.88) 100%);
     --v1:#AEB9CA; --v2:#8593A8; --v-txt:#B9C4D6;
     --fond:linear-gradient(180deg,#0E1116 0%,#080A0D 100%);
     --tuile-neutre:linear-gradient(150deg,#16202E 0%,#131C2B 100%);
@@ -102,6 +107,7 @@
   --deg:linear-gradient(135deg,#4C5A72 0%,#1A212C 100%);
   --deg-fonce:linear-gradient(140deg,#2B3442 0%,#0C1118 100%);
   --deg-pale:linear-gradient(135deg,#1A212B 0%,#161C25 100%);
+  --deg-barre:linear-gradient(135deg,rgba(30,38,50,.90) 0%,rgba(17,22,30,.88) 100%);
     --v1:#AEB9CA; --v2:#8593A8; --v-txt:#B9C4D6;
   --fond:linear-gradient(180deg,#0E1116 0%,#080A0D 100%);
   --tuile-neutre:linear-gradient(150deg,#16202E 0%,#131C2B 100%);
@@ -801,9 +807,10 @@ button.tuile:active{transform:scale(.985)}
 
 /* ═══ navigation : libellés toujours visibles ═══ */
 .nav{position:fixed;z-index:40;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:3px;padding:7px;
-  background:var(--surface);border:1px solid var(--line);border-radius:999px;box-shadow:var(--o3);max-width:calc(100vw - 20px)}
+  background:var(--deg-pale);border:1px solid var(--line);border-radius:999px;
+  box-shadow:var(--o3), inset 0 1px 0 rgba(255,255,255,.55);max-width:calc(100vw - 20px)}
 @supports (backdrop-filter:blur(2px)){
-  .nav{background:color-mix(in srgb,var(--surface) 88%,transparent);backdrop-filter:blur(22px) saturate(1.6);-webkit-backdrop-filter:blur(22px) saturate(1.6)}
+  .nav{background:var(--deg-barre);backdrop-filter:blur(22px) saturate(1.6);-webkit-backdrop-filter:blur(22px) saturate(1.6)}
 }
 .nav button{display:flex;align-items:center;justify-content:center;gap:8px;border:0;background:none;color:var(--ink-2);
   flex:1 1 0;min-width:0;min-height:52px;padding:12px 14px;border-radius:999px;
@@ -812,10 +819,14 @@ button.tuile:active{transform:scale(.985)}
 .nav button[aria-current="page"]{flex:1.7 1 0}
 .nav button svg{width:21px;height:21px;flex:none;stroke-width:2.1;fill:none}
 .nav button:hover{color:var(--ink)}
-.nav button[aria-current="page"]{background:var(--deg);color:#fff}
+/* l'onglet ouvert prend le dégradé profond et se détache du voile : c'est
+   le seul endroit de la barre qui porte la signature à pleine force */
+.nav button[aria-current="page"]{background:var(--deg-fonce);color:#fff;
+  box-shadow:0 6px 18px -8px rgba(17,22,30,.55), inset 0 1px 0 rgba(255,255,255,.14)}
 .nav .compte{display:grid;place-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--tard);color:#fff;font-family:var(--num);font-size:12px;font-weight:600}
 .nav button[aria-current="page"] .compte{background:#fff;color:var(--v2)}
-.nav .plus{background:var(--deg);color:#fff;margin-left:4px}
+.nav .plus{background:var(--deg);color:#fff;margin-left:4px;
+  box-shadow:0 6px 18px -8px rgba(17,22,30,.5), inset 0 1px 0 rgba(255,255,255,.16)}
 .nav .plus:hover{color:#fff;transform:scale(1.05)}
 .nav .plus:active{transform:scale(.94)}
 .nav .plus svg{stroke-width:2.8}
