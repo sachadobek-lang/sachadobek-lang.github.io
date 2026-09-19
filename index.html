@@ -390,8 +390,11 @@ h1,h2,h3,p{margin:0}
 .t.ok .t-titre{color:var(--ink-3);font-weight:400;text-decoration:line-through}
 .sup{opacity:.3;background:none;border:0;color:var(--ink-3);padding:6px 8px;border-radius:10px;font-size:14px;line-height:1;transition:opacity .15s,color .15s,background .15s;flex:none;
   position:relative}
-/* la zone qui reçoit le doigt déborde du dessin, sans le changer */
-.sup::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px}
+/* la zone qui reçoit le doigt déborde du dessin, sans le changer.
+   Elle était écrite sur ::after, puis une seconde règle ::after la
+   remplaçait par la croix : la cible de 44 px disparaissait, et le livre
+   des recettes affichait deux croix l'une sur l'autre. */
+.sup::before{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:44px;height:44px}
 .sup .mot{display:none}
 .sup::after{content:"\2715";font-size:15px;line-height:1}
 .sup[data-arme="1"] .mot{display:inline;font-weight:700;font-size:13.5px}
@@ -764,6 +767,16 @@ button.tuile:active{transform:scale(.985)}
 /* au doigt, la cible doit faire 44 px : on ne rate pas un appel */
 @media (pointer:coarse){.joindre a,.joindre button{padding:13px 17px}
   .joindre-nu a{width:38px;height:38px}}
+.dues{display:flex;flex-direction:column;gap:8px;margin:4px 0 10px}
+.dues .due{display:flex;align-items:center;gap:12px;width:100%;text-align:left;
+  border:1px solid var(--line);background:var(--surface);border-radius:var(--rl);
+  padding:13px 16px;cursor:pointer;font:inherit;color:inherit}
+.dues .due:active{transform:scale(.99)}
+.dues .due-qui{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.dues .due-qui b{font-weight:700}
+.dues .due-qui small{color:var(--ink-3);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dues .due-som{font-family:var(--num);font-weight:600;color:var(--tard);flex:none}
+.btn.lien{border:0;background:none;color:var(--ink-3);text-decoration:underline;padding:6px 2px}
 .en-attente{margin:14px 0 0;text-align:center;font-size:14.5px;color:var(--ink-2)}
 .en-attente b{font-family:var(--num);font-weight:600;color:var(--tard)}
 .paye{padding:16px 22px 22px}
@@ -1768,7 +1781,9 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .tbl-scroll{overflow-x:auto}
 #ilreste .mentions{font-size:12px;color:var(--ink-faint);line-height:1.5}
 #ilreste .mentions b{color:var(--ink-soft);font-weight:600}
-#ilreste .note{font-size:13px;color:var(--ink-faint);line-height:1.55;border-top:1px solid var(--rule);padding-top:13px;margin:0}
+/* .note sert aussi aux notes d'un client, qui sont en flex : sans ce
+   display, le paragraphe se coupait en colonnes d'un mot de large. */
+#ilreste .note{display:block;font-size:13px;color:var(--ink-faint);line-height:1.55;border-top:1px solid var(--rule);padding-top:13px;margin:0}
 #ilreste .note b{color:var(--ink-soft);font-weight:600}
 #ilreste .note-inline{font-size:13px;color:var(--ink-faint);line-height:1.55;margin:0}
 #ilreste .note-inline b{color:var(--ink-soft);font-weight:600}
@@ -1892,7 +1907,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 
   <!-- l'onglet « Mon argent » nomme déjà l'écran : ce titre faisait une
        troisième formulation à lire avant d'arriver au chiffre -->
-  <h1 class="noprint" hidden>Il te reste combien&nbsp;?</h1>
+  <h1 class="noprint" hidden>Il vous reste combien&nbsp;?</h1>
 
   <div class="tabs noprint" role="tablist" hidden>
     <button id="tab-argent"   role="tab" aria-selected="true">Mon argent</button>
@@ -1998,7 +2013,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
     <button class="gros noprint" id="gros-facture">＋ Nouvelle facture</button>
 
     <div class="cadre noprint" id="cadre-doit">
-      <span class="t">On te doit</span>
+      <span class="t">On vous doit</span>
       <span class="v" id="d-total">—</span>
       <span class="s" id="d-detail">—</span>
     </div>
@@ -2035,7 +2050,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
         </div>
 
         <div class="cadre noprint">
-          <span class="t" id="t-tva-lbl">Le client te doit</span>
+          <span class="t" id="t-tva-lbl">Le client vous doit</span>
           <span class="v" id="t-ttc">—</span>
           <span class="s" id="t-detail">—</span>
         </div>
@@ -2051,7 +2066,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
     </div>
 
     <p class="note noprint">
-      <b>Le calendrier de relance des comptables</b> — cinq jours après l'échéance, un mot gentil. Quinze jours, une relance ferme. Trente jours, une lettre recommandée. Quarante-cinq jours, une mise en demeure. Les <b>40 €</b> d'indemnité de recouvrement sont dus dès le premier jour de retard, sans que tu aies à les réclamer.
+      <b>Le calendrier de relance des comptables</b> — cinq jours après l'échéance, un mot gentil. Quinze jours, une relance ferme. Trente jours, une lettre recommandée. Quarante-cinq jours, une mise en demeure. Les <b>40 €</b> d'indemnité de recouvrement sont dus dès le premier jour de retard, sans que vous ayez à les réclamer.
     </p>
   </div>
 
@@ -2060,22 +2075,32 @@ summary.carte-tete:hover h2{color:var(--v1)}
 
     <button class="gros noprint" id="gros-2">＋ J'ai été payé</button>
 
+    <!-- Encaisser commence par la question qu'on se pose vraiment :
+         laquelle de mes factures vient d'être réglée. Retaper le nom, le
+         montant et le numéro à la main, c'était rouvrir la porte aux
+         doublons que ce formulaire créait à chaque fois. -->
     <div class="card noprint" id="form-rentree" hidden>
-      <h2>On t'a payé combien&nbsp;?</h2>
-      <div class="frow">
-        <label class="f"><span>Combien</span><input type="text" inputmode="decimal" id="n-montant" placeholder="1200"></label>
-        <label class="f"><span>Quel jour</span><input type="date" id="n-date"></label>
-      </div>
-      <label class="f"><span>Qui t'a payé</span><input type="text" id="n-client" placeholder="Boulangerie Mercier"></label>
-      <div class="frow">
-        <label class="f"><span>Comment</span>
-          <select id="n-mode"><option>Virement</option><option>Carte</option><option>Chèque</option><option>Espèces</option></select>
-        </label>
-        <label class="f"><span>N° de facture</span><input type="text" id="n-ref" placeholder="2026-001"></label>
-      </div>
-      <div class="actions">
-        <button class="btn plein" id="valider-rentree">C'est noté</button>
-        <button class="btn" id="annuler-rentree">Annuler</button>
+      <h2 id="n-titre">Qui vous a payé&nbsp;?</h2>
+      <div id="n-dues" class="dues"></div>
+      <button class="btn lien" id="n-sans" hidden>Un règlement sans facture</button>
+
+      <div id="n-saisie" hidden>
+        <p class="aide" id="n-quoi" hidden></p>
+        <div class="frow">
+          <label class="f"><span id="n-lab-montant">Combien</span><input type="text" inputmode="decimal" id="n-montant" placeholder="1200"></label>
+          <label class="f"><span>Quel jour</span><input type="date" id="n-date"></label>
+        </div>
+        <label class="f" id="n-l-client"><span>Qui vous a payé</span><input type="text" id="n-client" placeholder="Boulangerie Mercier"></label>
+        <div class="frow">
+          <label class="f"><span>Comment</span>
+            <select id="n-mode"><option>Virement</option><option>Carte</option><option>Chèque</option><option>Espèces</option></select>
+          </label>
+          <label class="f" id="n-l-ref"><span>N° de facture</span><input type="text" id="n-ref" placeholder="2026-001"></label>
+        </div>
+        <div class="actions">
+          <button class="btn plein" id="valider-rentree">C'est noté</button>
+          <button class="btn" id="annuler-rentree">Annuler</button>
+        </div>
       </div>
     </div>
 
@@ -2084,7 +2109,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
     <div class="actions noprint"><button class="btn" id="imprimer-livre">Imprimer le livre des recettes</button></div>
 
     <p class="note noprint">
-      <b>C'est ton livre des recettes</b> — le seul document comptable obligatoire en micro-entreprise. Date d'encaissement, client, référence, mode de règlement, dans l'ordre. Garde-le <b>10 ans</b> : c'est lui qu'on te demandera en cas de contrôle.
+      <b>C'est votre livre des recettes</b> — le seul document comptable obligatoire en micro-entreprise. Date d'encaissement, client, référence, mode de règlement, dans l'ordre. Gardez-le <b>10 ans</b> : c'est lui qu'on vous demandera en cas de contrôle.
     </p>
   </div>
 
@@ -2391,11 +2416,28 @@ function semaineIso(d){
   const j1 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1));
   return t.getUTCFullYear() + "-S" + String(Math.ceil(((t - j1) / 86400000 + 1) / 7)).padStart(2, "0");
 }
+/* L'acompte de 30 % à la commande est la règle du métier, pas l'exception.
+   Jusqu'ici encaisser créait une facture de plus au lieu de solder celle
+   qui existait : un client qui devait 1 450 € et versait 500 € se
+   retrouvait avec 1 950 € facturés et 1 450 € toujours dus. Un versement
+   se pose désormais sur la facture, et le reste continue d'être dû.
+
+   Quatre fonctions, un seul endroit qui décide. Rien d'autre dans
+   l'application n'a le droit de recalculer ça dans son coin. */
+const montantDe = f => Number(f && f.montant) || 0;
+const verse     = f => Number(f && f.verse) || 0;
 function statut(f){
   if(f.statut === "brouillon") return "brouillon";
   if(f.statut === "payee") return "payee";
+  if(verse(f) > 0 && verse(f) >= montantDe(f)) return "payee";
   return jours(f.echeance) < 0 ? "retard" : "envoyee";
 }
+const encaisseDe = f => statut(f) === "payee" ? montantDe(f) : verse(f);
+const duSur      = f => statut(f) === "payee" ? 0 : Math.max(0, montantDe(f) - verse(f));
+/* Le micro-entrepreneur déclare ce qu'il a encaissé, pas ce qu'il a
+   facturé : une facture de décembre payée en janvier appartient à
+   l'année suivante. L'application datait tout de l'émission. */
+const dateReglement = f => (f && f.regleLe) || (f && f.emise) || auj();
 const ETIQ_F = {brouillon: ["À envoyer", "att"], payee: ["Payé", "ok"], retard: ["Pas payé", "feu"], envoyee: ["En attente", "amb"]};
 const COURT_F = {brouillon: "brln", payee: "payé", retard: "retard", envoyee: "env."};
 const ETIQ_C = {actif: ["En cours", "amb"], prospect: ["Prospect", "att"], termine: ["Terminé", "ok"]};
@@ -3342,8 +3384,10 @@ function ficheClient(id){
   const e = ETIQ_C[c.statut] || ETIQ_C.prospect;
   const siennes = liste("factures").filter(f => f.client === c.nom && f.statut !== "brouillon")
                                    .sort((x, y) => String(y.emise).localeCompare(String(x.emise)));
-  const paye = siennes.filter(f => statut(f) === "payee").reduce((t, f) => t + (Number(f.montant) || 0), 0);
-  const attente = siennes.filter(f => statut(f) !== "payee").reduce((t, f) => t + (Number(f.montant) || 0), 0);
+  /* un acompte compte dans ce qui est payé, et le reste dans ce qui est dû :
+     les deux sortent des mêmes fonctions que la comptabilité. */
+  const paye = siennes.reduce((t, f) => t + encaisseDe(f), 0);
+  const attente = siennes.reduce((t, f) => t + duSur(f), 0);
   const notes = (c.notes || []).slice().sort((x, y) => String(y.d).localeCompare(String(x.d)));
   const rdv = rdvDuClient(c.nom);
   const reste = joindre(c.contact).reste;
@@ -3638,7 +3682,8 @@ function carnetClients(){
 /* ───────── vue : argent ───────── */
 function rangeeFacture(f, chezLui){
   const st = statut(f), e = ETIQ_F[st], j = jours(f.echeance);
-  const quand = st === "payee" ? "émise le " + jour(f.emise)
+  const quand = st === "payee" ? "réglée le " + jour(dateReglement(f))
+    : verse(f) > 0 ? "acompte de " + eur(verse(f)) + " reçu — reste " + eur(duSur(f))
     : st === "retard" ? "à relancer depuis " + (-j) + " jour" + (j < -1 ? "s" : "")
     : "à payer le " + jour(f.echeance);
   const ico = {
@@ -4807,23 +4852,62 @@ window.__CADENCE__ = {
     return b <= IS_SEUIL ? b * IS_REDUIT / 100
       : IS_SEUIL * IS_REDUIT / 100 + (b - IS_SEUIL) * IS_PLEIN / 100;
   },
-  rentrees: () => liste("factures").filter(f => statut(f) === "payee").map(f => ({
-    id: f.id, date: f.emise || auj(), client: f.client || "", ref: f.ref || "",
-    montant: Number(f.montant) || 0, mode: f.mode || "Virement", exemple: !!f.demo})),
+  rentrees: () => liste("factures").filter(f => f.statut !== "brouillon" && encaisseDe(f) > 0).map(f => ({
+    id: f.id, date: dateReglement(f), client: f.client || "", ref: f.ref || "",
+    montant: encaisseDe(f), mode: f.mode || "Virement", exemple: !!f.demo,
+    partiel: statut(f) !== "payee"})),
   creances: () => liste("factures").filter(f => f.statut !== "brouillon" && statut(f) !== "payee").map(f => ({
-    id: f.id, client: f.client || "", ref: f.ref || "", montant: Number(f.montant) || 0,
+    id: f.id, client: f.client || "", ref: f.ref || "", montant: duSur(f),
+    total: montantDe(f), deja: verse(f),
     desc: f.objet || "", emission: f.emise || auj(), echeance: f.echeance || auj(), exemple: !!f.demo})),
   encaisse: () => liste("factures")
-    .filter(f => statut(f) === "payee" && String(f.emise || "").slice(0, 4) === anIci())
-    .reduce((t, f) => t + (Number(f.montant) || 0), 0),
-  /* noter un paiement depuis « Mon argent » crée une facture payée :
-     une seule façon d'entrer de l'argent dans l'application */
-  noterPaiement: o => ecrire("factures", neuf(), {
-    client: (o && o.client) || "", montant: Number(o && o.montant) || 0,
-    objet: (o && o.objet) || "", ref: (o && o.ref) || refSuivante(),
-    emise: (o && o.date) || auj(), echeance: (o && o.date) || auj(),
-    statut: "payee", mode: (o && o.mode) || "Virement"}),
+    .filter(f => f.statut !== "brouillon" && String(dateReglement(f)).slice(0, 4) === anIci())
+    .reduce((t, f) => t + encaisseDe(f), 0),
+  /* Un encaissement se pose sur la facture qu'il règle. Il n'en crée une
+     que s'il n'y en avait aucune — une vente au comptant, réglée sur
+     place. C'est la même règle qu'ailleurs : l'argent n'a qu'une source. */
+  noterPaiement: o => {
+    const m = Number(o && o.montant) || 0;
+    const id = o && o.facture;
+    const quand = (o && o.date) || auj();
+    if(id && state.factures[id]){
+      const f = state.factures[id];
+      const total = verse(f) + m;
+      ecrire("factures", id, Object.assign({}, f, {
+        verse: total,
+        mode: (o && o.mode) || f.mode || "Virement",
+        regleLe: quand,
+        statut: total >= montantDe(f) ? "payee" : f.statut}));
+      return;
+    }
+    ecrire("factures", neuf(), {
+      client: (o && o.client) || "", montant: m,
+      objet: (o && o.objet) || "", ref: (o && o.ref) || refSuivante(),
+      emise: quand, echeance: quand, regleLe: quand, comptant: true,
+      statut: "payee", mode: (o && o.mode) || "Virement"});
+  },
+  /* ce qui reste dû, facture par facture, pour l'écran d'encaissement */
+  duesDe: nom => liste("factures")
+    .filter(f => f.statut !== "brouillon" && statut(f) !== "payee"
+                 && (!nom || f.client === nom))
+    .map(f => ({id: f.id, client: f.client || "", ref: f.ref || "",
+                objet: f.objet || "", du: duSur(f), total: montantDe(f),
+                deja: verse(f), echeance: f.echeance || auj()}))
+    .sort((a, b) => String(a.echeance).localeCompare(String(b.echeance))),
   retirerFacture: id => { if(state.factures[id]) retirer("factures", id); },
+  /* Dans le livre des recettes, la croix veut dire « ce règlement n'a pas
+     eu lieu » — pas « cette facture n'existe plus ». Elle effaçait la
+     facture entière, client et montant compris. Le versement est annulé,
+     la facture redevient due. Une vente réglée sur place, elle, n'existait
+     que par son encaissement : elle s'en va avec lui. */
+  annulerReglement: id => {
+    const f = state.factures[id];
+    if(!f) return;
+    if(f.comptant){ retirer("factures", id); return; }
+    const net = Object.assign({}, f, {verse: 0, statut: "envoyee"});
+    delete net.regleLe;
+    ecrire("factures", id, net);
+  },
   /* depuis l'agenda : « il a signé ». On propose la fiche pré-remplie
      plutôt que de créer dans le dos de l'utilisateur. */
   clientDepuisRdv: o => {
@@ -5352,7 +5436,8 @@ $("#vue").addEventListener("click", e => {
   if(b.dataset.paye){
     const f = state.factures[b.dataset.paye];
     if(!f) return;
-    ecrire("factures", b.dataset.paye, Object.assign({}, f, {statut: "payee", regle: f.regle || "Virement"}));
+    ecrire("factures", b.dataset.paye, Object.assign({}, f, {statut: "payee",
+      regle: f.regle || "Virement", regleLe: f.regleLe || auj()}));
     bulle("Encaissement noté");
     return;
   }
@@ -7721,14 +7806,14 @@ function rendreObjectif(){
 function rendreLivre(){
   var rs=etat.rentrees.slice().sort(function(a,b){ return String(a.date).localeCompare(String(b.date)); });
   $("livre").innerHTML = !rs.length
-    ? '<div class="vide">Rien encore. Appuie sur « J\'ai été payé » dès qu\'un client te règle.</div>'
+    ? '<div class="vide">Rien encore. Appuyez sur « J\'ai été payé » dès qu\'un client vous règle.</div>'
     : rs.map(function(r,i){
         return '<div class="ligne'+(r.exemple?" exemple":"")+'">'+
           '<span class="no">'+(i+1)+'</span>'+
           '<span class="qui"><b>'+esc(r.client||"Sans nom")+(r.exemple?' <span class="etiq">exemple</span>':'')+'</b>'+
           '<small>'+nb(jour(r.date))+' · '+esc(r.mode||"—")+(r.ref?' · n° '+nb(r.ref):'')+'</small></span>'+
           '<span class="som">'+esc(eur2.format(num(r.montant)))+'</span>'+
-          '<button class="sup noprint" data-sup="'+r.id+'" aria-label="Supprimer">✕</button></div>';
+          '<button class="sup noprint" data-sup="'+r.id+'" aria-label="Annuler cet encaissement"></button></div>';
       }).join("");
 }
 
@@ -7821,33 +7906,96 @@ function sauver(){ try{ localStorage.setItem("itrc5",JSON.stringify(etat)); }cat
 
 
 /* ---------- rentrées ---------- */
+/* la facture qu'on est en train de régler, ou null pour un encaissement
+   sans facture — une vente réglée sur place. */
+var rentreePour = null;
+
 function ouvrirRentree(pre){
   onglet("livre");
   $("form-rentree").hidden=false;
+  rentreePour = null;
   $("n-date").value=iso(new Date());
-  $("n-montant").value = pre&&pre.montant ? pre.montant : "";
-  $("n-client").value  = pre&&pre.client  ? pre.client  : "";
-  $("n-ref").value     = pre&&pre.ref     ? pre.ref     : "";
-  ($("n-montant").value ? $("n-client") : $("n-montant")).focus();
+  var C = window.__CADENCE__;
+  var dues = C ? C.duesDe(pre && pre.client) : [];
+
+  if(pre && pre.facture){
+    var v = dues.filter(function(d){ return d.id===pre.facture; })[0];
+    if(v){ saisirPour(v); return; }
+  }
+  if(!dues.length){ saisirPour(null, pre); return; }
+
+  $("n-titre").textContent = "Qui vous a payé ?";
+  $("n-dues").hidden = false;
+  $("n-dues").innerHTML = dues.map(function(d){
+    return '<button class="due" data-due="'+esc(d.id)+'">'
+      + '<span class="due-qui"><b>'+esc(d.client||"Sans nom")+'</b><small>'
+      + esc([d.ref, d.objet].filter(Boolean).join(" · ") || "facture")
+      + (d.deja>0 ? " · acompte de "+eur.format(d.deja)+" reçu" : "")
+      + '</small></span><span class="due-som">'+esc(eur.format(d.du))+'</span></button>';
+  }).join("");
+  $("n-sans").hidden = false;
+  $("n-saisie").hidden = true;
 }
+
+/* second temps : combien, quand, comment. Le montant est déjà là. */
+function saisirPour(due, pre){
+  rentreePour = due || null;
+  $("n-dues").hidden = true;
+  $("n-sans").hidden = true;
+  $("n-saisie").hidden = false;
+  $("n-quoi").hidden = !due;
+  $("n-l-client").hidden = !!due;
+  $("n-l-ref").hidden = !!due;
+  if(due){
+    $("n-titre").textContent = due.client || "Ce règlement";
+    $("n-quoi").textContent = [due.ref, due.objet].filter(Boolean).join(" · ")
+      + " — " + eur.format(due.du) + " à régler"
+      + (due.deja>0 ? " (acompte de "+eur.format(due.deja)+" déjà reçu)" : "");
+    $("n-lab-montant").textContent = "Combien a-t-il versé";
+    $("n-montant").value = due.du;
+    $("n-client").value = due.client || "";
+    $("n-ref").value = due.ref || "";
+  }else{
+    $("n-titre").textContent = "Un règlement sans facture";
+    $("n-lab-montant").textContent = "Combien";
+    $("n-montant").value = pre&&pre.montant ? pre.montant : "";
+    $("n-client").value  = pre&&pre.client  ? pre.client  : "";
+    $("n-ref").value     = pre&&pre.ref     ? pre.ref     : "";
+  }
+  $("n-montant").focus();
+  $("n-montant").select();
+}
+
+$("n-dues").addEventListener("click",function(e){
+  var b=e.target.closest("[data-due]"); if(!b) return;
+  var C=window.__CADENCE__; if(!C) return;
+  var d=C.duesDe().filter(function(x){ return x.id===b.getAttribute("data-due"); })[0];
+  if(d) saisirPour(d);
+});
+$("n-sans").addEventListener("click",function(){ saisirPour(null, null); });
 $("gros-1").addEventListener("click",function(){ ouvrirRentree(); });
 $("gros-2").addEventListener("click",function(){ ouvrirRentree(); });
 $("annuler-rentree").addEventListener("click",function(){ $("form-rentree").hidden=true; onglet("argent"); });
 $("valider-rentree").addEventListener("click",function(){
   var m=num($("n-montant").value);
   if(m<=0){ $("n-montant").focus(); return; }
+  /* on ne laisse pas encaisser plus que ce qui reste dû : le trop-perçu
+     ne vient jamais d'un client généreux, il vient d'une faute de frappe. */
+  if(rentreePour && m > rentreePour.du){ m = rentreePour.du; }
   if(window.__CADENCE__){
     window.__CADENCE__.noterPaiement({date:$("n-date").value||iso(new Date()),
+      facture: rentreePour ? rentreePour.id : "",
       client:$("n-client").value.trim(), ref:$("n-ref").value.trim(),
       montant:m, mode:$("n-mode").value});
   }
+  rentreePour=null;
   $("form-rentree").hidden=true;
   synchroniser(); rendreLivre(); rendreArgent(); rendreObjectif();
   onglet("argent");   /* la barre est masquée : on ramène l'utilisateur */
 });
 $("livre").addEventListener("click",function(e){
   var b=e.target.closest("[data-sup]"); if(!b) return;
-  if(window.__CADENCE__) window.__CADENCE__.retirerFacture(b.getAttribute("data-sup"));
+  if(window.__CADENCE__) window.__CADENCE__.annulerReglement(b.getAttribute("data-sup"));
   synchroniser(); rendreLivre(); rendreArgent(); rendreObjectif();
 });
 $("vider-exemples").addEventListener("click",function(){
@@ -7863,9 +8011,10 @@ $("liste-creances").addEventListener("click",function(e){
     var id=p.getAttribute("data-paye");
     var c=etat.creances.filter(function(x){ return x.id===id; })[0];
     if(!c) return;
-    etat.creances=etat.creances.filter(function(x){ return x.id!==id; });
-    rendreFactures();
-    ouvrirRentree({montant:num(c.montant),client:c.client,ref:c.ref});
+    /* la créance restait affichée comme réglée alors que rien n'était
+       écrit : au premier rafraîchissement elle revenait, doublée. On
+       passe l'identifiant, et c'est la facture elle-même qui est soldée. */
+    ouvrirRentree({facture:id, client:c.client});
     return;
   }
   var a=e.target.closest("[data-annule]");
