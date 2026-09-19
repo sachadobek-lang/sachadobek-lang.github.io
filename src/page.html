@@ -1591,7 +1591,15 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .sheet-foot .signe{border:0;border-radius:999px;padding:12px 18px;margin-left:auto;
   background:var(--surface-3);color:var(--ink);font:inherit;font-size:15px;font-weight:650;cursor:pointer}
 #majournee .sheet-foot .signe:hover{filter:brightness(1.06)}
-#majournee .sheet-foot{padding:14px 24px calc(20px + env(safe-area-inset-bottom)); display:flex; gap:10px; align-items:center}
+/* Cinq boutons sur une ligne faisaient 428 pixels de large dans une
+   fenêtre de 375 : la feuille entière débordait, « Enregistrer » sortait
+   de l'écran. Avec quatre boutons elle tenait à neuf pixels près — un
+   libellé un peu plus long aurait suffi à la casser. Elle s'enroule
+   désormais, et ne peut plus imposer sa largeur. */
+#majournee .sheet-foot{padding:14px 24px calc(20px + env(safe-area-inset-bottom));
+  display:flex; gap:10px; align-items:center; flex-wrap:wrap; max-width:100%}
+#majournee .sheet-foot .ok{margin-left:auto}
+#majournee .sheet{max-width:100%}
 #majournee .ok{
   flex:1; background:var(--ink); color:var(--bg);
   font-family:var(--display); font-weight:600; font-size:16px; letter-spacing:-.005em;
@@ -2328,6 +2336,9 @@ summary.carte-tete:hover h2{color:var(--v1)}
       <button class="iconbtn trash" id="del" aria-label="Supprimer" hidden></button>
       <button class="iconbtn" id="dup" aria-label="Copier vers demain" title="Copier vers demain" hidden>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="8.5" width="11.5" height="11.5" rx="2.6"/><path d="M15.5 8.5v-2a2.5 2.5 0 0 0-2.5-2.5H6.5A2.5 2.5 0 0 0 4 6.5V13a2.5 2.5 0 0 0 2.5 2.5h2"/></svg>
+      </button>
+      <button class="iconbtn" id="versCal" aria-label="Mettre dans mon calendrier" title="Mettre dans mon calendrier" hidden>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="5" width="17.6" height="15.8" rx="3.4"/><path d="M3.2 10h17.6M8.2 2.6v3.6M15.8 2.6v3.6"/><path d="M12 13v4.4M9.8 15.2h4.4"/></svg>
       </button>
       <button class="signe" id="signe" hidden>Il a signé</button>
       <button class="ok" id="save">Enregistrer</button>
@@ -4996,6 +5007,38 @@ window.__CADENCE__ = {
                 deja: verse(f), echeance: f.echeance || auj()}))
     .sort((a, b) => String(a.echeance).localeCompare(String(b.echeance))),
   retirerFacture: id => { if(state.factures[id]) retirer("factures", id); },
+  /* bulle() vit dans ce bloc-ci ; l'Agenda est dans un autre, et ne peut
+     pas l'appeler directement. Tout ce qui traverse passe par ici. */
+  dire: t => bulle(t),
+  /* Livrer un fichier n'est pas la même chose partout : dans le
+     visualiseur seul le service de téléchargement y arrive, ailleurs
+     c'est le navigateur. La règle était déjà écrite pour les factures ;
+     l'Agenda l'emprunte au lieu d'en inventer une seconde. */
+  livrerTexte: async (texte, nom, type) => {
+    if(window.claude && window.claude.use){
+      const dl = await window.claude.use("downloads").catch(() => null);
+      if(!dl){ bulle("Téléchargement indisponible ici"); return false; }
+      try{
+        await dl.save({filename: nom, data: new TextEncoder().encode(texte).buffer});
+        return true;
+      }catch(e){
+        const c = e && e.code;
+        bulle(c === "declined" ? "Téléchargement annulé"
+            : c === "rate_limited" ? "Réessayez dans un instant"
+            : "Téléchargement impossible");
+        return false;
+      }
+    }
+    try{
+      const b = new Blob([texte], {type: (type || "text/plain") + ";charset=utf-8"});
+      const u = URL.createObjectURL(b);
+      const a = document.createElement("a");
+      a.href = u; a.download = nom; a.rel = "noopener";
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(u), 4000);
+      return true;
+    }catch(e){ bulle("Téléchargement impossible"); return false; }
+  },
   /* Dans le livre des recettes, la croix veut dire « ce règlement n'a pas
      eu lieu » — pas « cette facture n'existe plus ». Elle effaçait la
      facture entière, client et montant compris. Le versement est annulé,
@@ -7207,6 +7250,8 @@ function openSheet(ev, seed){
         : 'Le jour, l’heure et la durée se lisent dans la phrase.');
   $('del').hidden = isNew;
   $('dup').hidden = isNew;
+  /* on n'envoie dans un calendrier qu'un rendez-vous déjà posé */
+  $('versCal').hidden = isNew;
   /* on ne propose de transformer en client qu'un rendez-vous réel */
   $('signe').hidden = isNew || !String(state.draft.title || '').trim()
     || !(window.__CADENCE__ && window.__CADENCE__.clientDepuisRdv);
@@ -7618,6 +7663,74 @@ $('todayBtn').addEventListener('click', function(){
 function flecheBande(sens){
   if (state.view === 'mois') reculer(sens); else shiftWeek(sens * 7);
 }
+/* ---------- mettre un rendez-vous dans le calendrier du téléphone ----------
+   Le format .ics est celui que lisent l'iPhone, Google Agenda, Outlook et
+   tout le reste depuis vingt ans. Aucun compte, aucune permission, aucun
+   réseau : un fichier que le téléphone sait ouvrir. C'est le seul moyen
+   d'envoyer un rendez-vous dans son agenda sans lui demander l'accès à
+   tout son calendrier. */
+function icsEchap(t){
+  return String(t == null ? '' : t)
+    .replace(/\\/g, '\\\\').replace(/;/g, '\\;')
+    .replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+}
+/* Les heures partent en UTC : c'est ce qui évite qu'un rendez-vous de
+   9 h se retrouve à 11 h quand le téléphone est réglé sur un autre
+   fuseau. Le téléphone le réaffichera à l'heure locale. */
+function icsQuand(dateIso, minutes){
+  var p = dateIso.split('-').map(Number);
+  var d = new Date(p[0], p[1] - 1, p[2], Math.floor(minutes / 60), minutes % 60, 0);
+  return d.getUTCFullYear() + pad(d.getUTCMonth() + 1) + pad(d.getUTCDate()) + 'T'
+       + pad(d.getUTCHours()) + pad(d.getUTCMinutes()) + '00Z';
+}
+/* Une ligne d'un fichier .ics ne dépasse pas 75 octets : au-delà elle se
+   replie, précédée d'une espace. Les lecteurs stricts refusent le fichier
+   entier si on l'oublie. */
+function icsPlier(ligne){
+  var out = '', reste = ligne;
+  while (reste.length > 73){ out += reste.slice(0, 73) + '\r\n '; reste = reste.slice(73); }
+  return out + reste;
+}
+function icsDe(evs){
+  var L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Cura//FR', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
+  var tampon = icsQuand(iso(new Date()), 0);
+  evs.forEach(function(e){
+    var debut = Number(e.start) || 0, duree = Number(e.dur) || 60;
+    L.push('BEGIN:VEVENT');
+    L.push('UID:' + icsEchap(String(e.id).replace(/[^A-Za-z0-9@._-]/g, '')) + '@cura');
+    L.push('DTSTAMP:' + tampon);
+    L.push('DTSTART:' + icsQuand(e.date, debut));
+    L.push('DTEND:' + icsQuand(e.date, debut + duree));
+    L.push(icsPlier('SUMMARY:' + icsEchap(e.title || 'Rendez-vous')));
+    if (e.rep === 'week') L.push('RRULE:FREQ=WEEKLY');
+    else if (e.rep === 'day') L.push('RRULE:FREQ=DAILY');
+    L.push('END:VEVENT');
+  });
+  L.push('END:VCALENDAR');
+  return L.join('\r\n') + '\r\n';
+}
+function nomFichier(t){
+  return String(t || 'rendez-vous').replace(/[^A-Za-z0-9._-]+/g, '-').slice(0, 40) || 'rendez-vous';
+}
+/* Tout l'agenda dans un fichier : ce que l'autre bloc appellera pour
+   l'export complet, et ce qui permet de vérifier le format produit
+   sans avoir à télécharger quoi que ce soit. */
+window.__AGENDA__ = {
+  ics: function(depuis, jusqua){
+    var d0 = depuis || iso(addDays(new Date(), -30));
+    var d1 = jusqua || iso(addDays(new Date(), 400));
+    var tout = [];
+    var d = fromIso(d0), fin = fromIso(d1);
+    while (d <= fin){
+      var k = iso(d);
+      eventsOf(k).forEach(function(e){ if (!e.demo) tout.push(e); });
+      d = addDays(d, 1);
+    }
+    return icsDe(tout);
+  },
+  combien: function(){ return state.events.length + state.repeats.length; }
+};
+
 /* ---------- choisir un mois, n'importe quelle année ---------- */
 var pickAn = null;
 var MOIS_COURTS = ['janv.','févr.','mars','avril','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
@@ -7646,6 +7759,20 @@ function rendrePick(){
     box.appendChild(b);
   });
 }
+$('versCal').addEventListener('click', function(){
+  var d = state.draft;
+  if (!d) return;
+  var C = window.__CADENCE__;
+  if (!C || !C.livrerTexte) return;
+  var texte = icsDe([{
+    id: state.editing || ('cura-' + Date.now()),
+    date: d.date, title: d.title, start: d.start, dur: d.dur, rep: d.rep
+  }]);
+  C.livrerTexte(texte, nomFichier(d.title) + '.ics', 'text/calendar').then(function(ok){
+    if (ok) C.dire('Ouvrez le fichier : votre téléphone l’ajoutera');
+  });
+});
+
 $('bigdate').addEventListener('click', ouvrirPick);
 $('bigdate').addEventListener('keydown', function(e){
   if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ouvrirPick(); }
