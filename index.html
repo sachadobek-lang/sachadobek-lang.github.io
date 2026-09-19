@@ -1089,6 +1089,25 @@ summary.carte-tete:hover h2{color:var(--v1)}
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 #majournee .upnext .till{font-size:13px; color:var(--ink-3); font-variant-numeric:tabular-nums; flex:0 0 auto}
 #majournee .week{display:flex; align-items:center; gap:6px}
+#majournee .dateline h1[role="button"]{cursor:pointer; border-radius:12px}
+#majournee .dateline h1[role="button"]:active{transform:scale(.99)}
+#majournee .pick-wrap{position:fixed; inset:0; z-index:120; display:flex;
+  align-items:flex-end; justify-content:center}
+#majournee .pick-wrap .backdrop{position:absolute; inset:0; background:rgba(12,16,22,.44)}
+#majournee .pick{position:relative; width:min(520px,100%); background:var(--surface);
+  border-radius:24px 24px 0 0; padding:20px 20px calc(20px + env(safe-area-inset-bottom));
+  box-shadow:0 -10px 40px rgba(20,22,27,.2)}
+#majournee .pick-an{display:flex; align-items:center; justify-content:space-between; gap:10px; padding-bottom:14px}
+#majournee .pick-an span{flex:1; text-align:center; font-family:var(--display);
+  font-weight:600; font-size:22px; font-variant-numeric:tabular-nums; color:var(--ink)}
+#majournee .pick-mois{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
+#majournee .pick-mois button{padding:14px 6px; border:1px solid var(--line); background:var(--surface);
+  border-radius:14px; font:inherit; font-weight:600; color:var(--ink); cursor:pointer}
+#majournee .pick-mois button[aria-current="true"]{background:var(--ink); color:var(--surface); border-color:var(--ink)}
+#majournee .pick-mois button:active{transform:scale(.97)}
+#majournee .pick-auj{margin-top:14px; width:100%; padding:13px; border:0; border-radius:14px;
+  background:var(--surface-2); color:var(--ink-2); font:inherit; font-weight:600; cursor:pointer}
+
 /* En vue Mois, ces deux-là encadrent le titre : on change de mois là où
    on lit le mois, pas dans une bande qui montrait autre chose. Le bouton
    de profil flotte au-dessus du coin : la ligne lui laisse sa place,
@@ -2160,7 +2179,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
       <button class="per-fl" id="moisPrev" aria-label="Mois précédent" hidden>
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>
       </button>
-      <h1 id="bigdate">—</h1>
+      <h1 id="bigdate" role="button" tabindex="0" title="Choisir le mois et l’année">—</h1>
       <button class="per-fl" id="moisNext" aria-label="Mois suivant" hidden>
         <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg>
       </button>
@@ -2213,13 +2232,36 @@ summary.carte-tete:hover h2{color:var(--v1)}
     </div>
   </section>
 
-  <section class="card board" aria-labelledby="notesLbl">
+  <!-- Le tableau des notes est retiré de l'écran à la demande de Sacha :
+       l'agenda est le calendrier, rien d'autre. Rien n'est effacé — les
+       notes restent enregistrées, et le bloc revient en retirant ce
+       « hidden » si elles doivent réapparaître un jour. -->
+  <section class="card board" aria-labelledby="notesLbl" hidden>
     <div class="card-head">
       <span class="lbl" id="notesLbl">Tableau</span>
       <button class="ghost" id="clearDone" hidden>Effacer les notes faites</button>
     </div>
     <div class="board-grid" id="notesGrid"></div>
   </section>
+</div>
+
+<!-- Aller à n'importe quel mois de n'importe quelle année sans cliquer
+     douze fois sur une flèche : on touche le titre, et on choisit. -->
+<div class="pick-wrap" id="pickWrap" hidden>
+  <div class="backdrop" id="pickBack"></div>
+  <div class="pick" role="dialog" aria-modal="true" aria-label="Choisir le mois et l’année">
+    <div class="pick-an">
+      <button class="per-fl" id="anPrev" aria-label="Année précédente">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>
+      </button>
+      <span id="anTitre">—</span>
+      <button class="per-fl" id="anNext" aria-label="Année suivante">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg>
+      </button>
+    </div>
+    <div class="pick-mois" id="pickMois"></div>
+    <button class="pick-auj" id="pickAuj">Revenir à aujourd’hui</button>
+  </div>
 </div>
 
 <div class="sheet-wrap" id="sheetWrap" hidden>
@@ -7552,6 +7594,43 @@ $('todayBtn').addEventListener('click', function(){
 function flecheBande(sens){
   if (state.view === 'mois') reculer(sens); else shiftWeek(sens * 7);
 }
+/* ---------- choisir un mois, n'importe quelle année ---------- */
+var pickAn = null;
+var MOIS_COURTS = ['janv.','févr.','mars','avril','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+function ouvrirPick(){
+  pickAn = fromIso(state.date).getFullYear();
+  rendrePick();
+  $('pickWrap').hidden = false;
+}
+function fermerPick(){ $('pickWrap').hidden = true; }
+function rendrePick(){
+  $('anTitre').textContent = pickAn;
+  var d = fromIso(state.date);
+  var box = $('pickMois');
+  box.innerHTML = '';
+  MOIS_COURTS.forEach(function(nom, i){
+    var b = document.createElement('button');
+    b.textContent = nom;
+    if (pickAn === d.getFullYear() && i === d.getMonth()) b.setAttribute('aria-current','true');
+    b.addEventListener('click', function(){
+      var cible = new Date(pickAn, i, 1);
+      state.date = iso(cible);
+      state.week = mondayOf(cible);
+      if (db) subscribeWeek(); else refreshLocal();
+      fermerPick(); render(); scrollToNow();
+    });
+    box.appendChild(b);
+  });
+}
+$('bigdate').addEventListener('click', ouvrirPick);
+$('bigdate').addEventListener('keydown', function(e){
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); ouvrirPick(); }
+});
+$('pickBack').addEventListener('click', fermerPick);
+$('anPrev').addEventListener('click', function(){ pickAn--; rendrePick(); });
+$('anNext').addEventListener('click', function(){ pickAn++; rendrePick(); });
+$('pickAuj').addEventListener('click', function(){ fermerPick(); $('todayBtn').click(); });
+
 $('moisPrev').addEventListener('click', function(){ flecheBande(-1); });
 $('moisNext').addEventListener('click', function(){ flecheBande(1); });
 $('prevWeek').addEventListener('click', function(){ flecheBande(-1); });
