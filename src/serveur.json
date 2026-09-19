@@ -1,5 +1,5 @@
 {
-  "_note": "L'adresse du serveur et sa clé publique. Cette clé est faite pour être lue : elle est dans le code de la page, comme dans toutes les applications qui utilisent Supabase. Elle ne donne accès à rien toute seule — la sécurité vient des règles de la base, où chacun ne voit que ses propres lignes. La clé service_role, elle, ne doit JAMAIS figurer ici.",
-  "url": "",
-  "cle": ""
+  "_note": "L'adresse du serveur et sa clé publique. Cette clé est faite pour être lue : elle est dans le code de la page, et Supabase la nomme « publishable » pour cette raison. Elle ne donne accès à rien toute seule — la sécurité vient des règles de la base, où chacun ne voit que ses propres lignes. La clé « secret », elle, ne doit JAMAIS figurer ici.",
+  "url": "https://xiwtdyjujzacoxaxqmmu.supabase.co",
+  "cle": "sb_publishable_Psu4GDhpRlosviMNAOnVkg_pI-Ls64F"
 }
