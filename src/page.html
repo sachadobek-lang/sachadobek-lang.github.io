@@ -174,6 +174,8 @@ h1,h2,h3,p{margin:0}
   box-shadow:var(--o2); cursor:pointer;
   transition:transform .18s var(--ressort), box-shadow .18s var(--doux);
 }
+.profil-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;
+  stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .profil-btn:active{transform:scale(.94)}
 .profil-btn[aria-current="page"]{box-shadow:var(--o2), 0 0 0 3px var(--surface), 0 0 0 5px var(--line-fort)}
 /* l'en-tête lui laisse la place plutôt que de passer dessous */
@@ -808,7 +810,7 @@ button.tuile:active{transform:scale(.985)}
 /* ═══ navigation : libellés toujours visibles ═══ */
 .nav{position:fixed;z-index:40;left:50%;bottom:18px;transform:translateX(-50%);display:flex;align-items:center;gap:3px;padding:7px;
   background:var(--deg-pale);border:1px solid var(--line);border-radius:999px;
-  box-shadow:var(--o3), inset 0 1px 0 rgba(255,255,255,.55);max-width:calc(100vw - 20px)}
+  box-shadow:var(--o3);max-width:calc(100vw - 20px)}
 @supports (backdrop-filter:blur(2px)){
   .nav{background:var(--deg-barre);backdrop-filter:blur(22px) saturate(1.6);-webkit-backdrop-filter:blur(22px) saturate(1.6)}
 }
@@ -822,11 +824,11 @@ button.tuile:active{transform:scale(.985)}
 /* l'onglet ouvert prend le dégradé profond et se détache du voile : c'est
    le seul endroit de la barre qui porte la signature à pleine force */
 .nav button[aria-current="page"]{background:var(--deg-fonce);color:#fff;
-  box-shadow:0 6px 18px -8px rgba(17,22,30,.55), inset 0 1px 0 rgba(255,255,255,.14)}
+  box-shadow:0 6px 18px -8px rgba(17,22,30,.55)}
 .nav .compte{display:grid;place-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--tard);color:#fff;font-family:var(--num);font-size:12px;font-weight:600}
 .nav button[aria-current="page"] .compte{background:#fff;color:var(--v2)}
 .nav .plus{background:var(--deg);color:#fff;margin-left:4px;
-  box-shadow:0 6px 18px -8px rgba(17,22,30,.5), inset 0 1px 0 rgba(255,255,255,.16)}
+  box-shadow:0 6px 18px -8px rgba(17,22,30,.5)}
 .nav .plus:hover{color:#fff;transform:scale(1.05)}
 .nav .plus:active{transform:scale(.94)}
 .nav .plus svg{stroke-width:2.8}
@@ -2571,9 +2573,17 @@ function rendreEntete(){
    clients. Trois endroits pour une seule question — « et moi ? ». Ils se
    rejoignent ici. Rien n'est recopié : cet écran lit et écrit les mêmes
    données que les formulaires d'origine, qu'il se contente d'ouvrir. */
+/* Sans nom, un point ne veut rien dire. On met la silhouette que toutes
+   les applications posent au même endroit : elle se reconnaît sans être
+   lue. Dès que le nom est renseigné, l'initiale la remplace — c'est plus
+   personnel, et c'est ce que font les mêmes applications. */
+const SILHOUETTE = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">'
+  + '<circle cx="12" cy="8.6" r="3.9"/>'
+  + '<path d="M4.4 20.4c0-3.9 3.4-6.4 7.6-6.4s7.6 2.5 7.6 6.4"/></svg>';
+
 function initiale(){
   const n = (state.moi && state.moi.nom || "").trim();
-  return n ? n[0].toUpperCase() : "·";
+  return n ? n[0].toUpperCase() : "";
 }
 
 function pfLigne(cle, valeur){
@@ -4440,7 +4450,10 @@ function rendre(){
   /* Le profil porte son propre titre — le « Bonjour » au-dessus ferait
      deux en-têtes empilés pour un écran qui n'a rien à saluer. */
   $("#entete").hidden = surAgenda || surProfil;
-  $("#profil-btn").textContent = initiale();
+  const lettre = initiale();
+  const bouton = $("#profil-btn");
+  if(lettre) bouton.textContent = lettre;
+  else bouton.innerHTML = SILHOUETTE;
   if(surProfil) $("#profil-btn").setAttribute("aria-current", "page");
   else $("#profil-btn").removeAttribute("aria-current");
   document.querySelectorAll(".nav button").forEach(function(b){
