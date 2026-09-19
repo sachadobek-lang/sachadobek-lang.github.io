@@ -14,7 +14,7 @@
      tant qu'on ne s'est pas connecté.
      Les deux 'unsafe-inline' sont nécessaires : tout le style et tout le
      script sont dans la page. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob:; connect-src 'self' data: blob: https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'self'; manifest-src 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; font-src 'self' data:; img-src 'self' data: blob:; connect-src 'self' data: blob: https://*.supabase.co wss://*.supabase.co; object-src 'none'; base-uri 'none'; form-action 'none'; worker-src 'self'; manifest-src 'self'">
 <title>Cura</title>
 <!-- « Sur l'écran d'accueil » : plein écran, sans la barre de Safari -->
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -25,9 +25,26 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.svg" type="image/svg+xml">
 <meta name="theme-color" content="#F5F7FB">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap">
+<link rel="preload" href="polices/nunito-var.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="polices/outfit-var.woff2" as="font" type="font/woff2" crossorigin>
 <style>
+/* Les deux familles étaient demandées à Google, une graisse par fichier :
+   sept fichiers, 317 kilo-octets, précédés d'une résolution DNS et d'une
+   poignée de main TLS vers un tiers — avant le premier mot lisible. Ce
+   sont des polices variables : un seul fichier par famille porte toutes
+   les graisses, et réduit aux 219 caractères que cette application peut
+   afficher, le tout tient en 60 kilo-octets. Servies d'ici, elles
+   fonctionnent sans réseau et ne signalent plus les visites à personne. */
+@font-face{
+  font-family:"Nunito";
+  src:url("polices/nunito-var.woff2") format("woff2");
+  font-weight:200 1000; font-style:normal; font-display:swap;
+}
+@font-face{
+  font-family:"Outfit";
+  src:url("polices/outfit-var.woff2") format("woff2");
+  font-weight:100 900; font-style:normal; font-display:swap;
+}
 :root{
   --ground:#EFF3F8; --surface:#FFFFFF; --surface-2:#F5F8FC; --surface-3:#E9EFF6;
   --line:#DFE7F0; --line-fort:#C6D2E0;

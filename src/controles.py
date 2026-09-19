@@ -84,7 +84,10 @@ for balise in re.findall(r"<script\b[^>]*\bsrc=[^>]*>", page):
 # ── Aucune adresse en clair, et aucun domaine inattendu ──────────────
 exiger("http://" not in page.replace("http://www.w3.org", ""),
        "une adresse en http:// sans chiffrement figure dans la page")
-autorises = {"fonts.googleapis.com", "fonts.gstatic.com", "cdnjs.cloudflare.com",
+# Les polices ont été rapatriées dans le dépôt : ces deux domaines ne
+# doivent plus jamais réapparaître. Les laisser dans la liste, c'est
+# permettre qu'un copier-coller les rebranche sans que personne ne le voie.
+autorises = {"cdnjs.cloudflare.com",
              "maps.apple.com", "www.google.com", "waze.com", "www.w3.org"}
 charges = set(re.findall(r'(?:src|href)="https://([^/"]+)', page))
 inconnus = sorted(charges - autorises)
@@ -113,6 +116,15 @@ if os.path.exists(chemin_sw):
     exiger(re.search(r"e\.respondWith\(\s*fetch\(requete\)", sw),
            "sw.js ne demande pas le réseau en premier : il figerait l'application sur une vieille version")
 
+# ── Les polices sont servies par le dépôt, pas par un tiers ──────────
+for f in ("polices/nunito-var.woff2", "polices/outfit-var.woff2"):
+    exiger(os.path.exists(os.path.join(RACINE, f)),
+           "%s est absent : le texte s'afficherait dans la police du système" % f)
+exiger("fonts.gstatic.com" not in page and "fonts.googleapis.com" not in page,
+       "la page redemande ses polices à Google : elle ne s'affichera plus correctement sans réseau")
+exiger("font-src 'self'" in page,
+       "le CSP n'enferme plus les polices sur le dépôt")
+
 # ── Une page trop lourde s'ouvre mal en 4G ───────────────────────────
 poids = len(page.encode("utf-8"))
 exiger(poids < 2_000_000,
@@ -123,4 +135,8 @@ if fautes:
     for f in fautes:
         print("  " + f)
     sys.exit(1)
-print("contrôles passés · %d · page de %.0f Ko" % (10 + len(charges), poids / 1024))
+# Ce compteur additionnait les domaines externes aux contrôles : en
+# retirer un faisait baisser le total, et donnait à croire qu'un garde-fou
+# avait sauté. Les deux nombres sont dits séparément.
+print("contrôles passés · %d domaine(s) externe(s) · page de %.0f Ko"
+      % (len(charges), poids / 1024))

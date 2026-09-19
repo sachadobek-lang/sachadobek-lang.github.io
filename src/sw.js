@@ -33,15 +33,17 @@ const VERSION = "__VERSION__";
 const BOITE = "cura-" + VERSION;
 const FIGE = "cura-fige";
 
-const DEHORS = ["https://fonts.googleapis.com", "https://fonts.gstatic.com",
-                "https://cdnjs.cloudflare.com"];
+/* Les polices étaient ici : elles sont désormais servies par le dépôt,
+   donc figées par FIGES_ICI comme le reste de ce qui ne bouge pas. */
+const DEHORS = ["https://cdnjs.cloudflare.com"];
 
 /* Nos propres fichiers qui ne changent pas au rythme de l'application.
    Le formulaire des impôts pèse 700 kilo-octets et n'est republié qu'au
    printemps : le ranger avec la page le ferait retélécharger à chaque
    publication — soit plusieurs fois par jour — pour une déclaration qu'on
    remplit une fois par an. */
-const FIGES_ICI = ["formulaire-2042.pdf"];
+const FIGES_ICI = ["formulaire-2042.pdf",
+                   "polices/nunito-var.woff2", "polices/outfit-var.woff2"];
 
 self.addEventListener("install", e => {
   e.waitUntil(
