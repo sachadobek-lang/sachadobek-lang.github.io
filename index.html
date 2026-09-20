@@ -48,7 +48,7 @@
 :root{
   --ground:#EFF3F8; --surface:#FFFFFF; --surface-2:#F5F8FC; --surface-3:#E9EFF6;
   --line:#DFE7F0; --line-fort:#C6D2E0;
-  --ink:#14202E; --ink-2:#4F5B70; --ink-3:#6B7890;
+  --ink:#14202E; --ink-2:#4F5B70; --ink-3:#646E85;
 
   /* la signature : un seul dégradé, du graphite au noir, à peine bleuté */
   --v1:#2F3B4D; --v2:#55637A;
@@ -88,7 +88,7 @@
   --doux:cubic-bezier(.22,.61,.36,1);
   /* relais pour l'agenda greffé */
   --cad-surface:#FFFFFF; --cad-surface-2:#F5F8FC; --cad-line:#DFE7F0; --cad-line-fort:#C6D2E0;
-  --cad-ink:#14202E; --cad-ink-2:#4F5B70; --cad-ink-3:#6B7890; --cad-v1:#2F3B4D; --cad-tard:#A3670F;
+  --cad-ink:#14202E; --cad-ink-2:#4F5B70; --cad-ink-3:#646E85 /* 4,65 sur blanc : la norme demande 4,5 */; --cad-v1:#2F3B4D; --cad-tard:#A3670F;
   --cad-tard-doux:#FBEDD6; --cad-attente-doux:#E3ECFB; --cad-deg-pale:#EEF1F6; --cad-rouge:#C63D2A;
 }
 @media (prefers-color-scheme:dark){
@@ -1039,17 +1039,25 @@ summary.carte-tete:hover h2{color:var(--v1)}
   --display:var(--num);
   --ui:var(--ui-cadence);
 
-  --bg:#F3F4F8;
-  --surface:#FFFFFF;
-  --surface-2:#F7F8FB;
-  --line:#E4E6EC;
-  --line-soft:#EEEFF4;
-  --ink:#14161B;
-  --ink-2:#5C6270;
-  /* #969CAA donnait un rapport de 2,75 sur blanc, là où la norme demande
-     4,5 pour du texte de cette taille : les initiales des jours et les
-     heures devenaient illisibles au soleil, sur un chantier. */
-  --ink-3:#646E85;
+  /* L'Agenda gardait son propre jeu de gris, hérité de l'application dont
+     il vient : sept variables communes avec le reste de Cura, sept
+     valeurs différentes. Écart par écart c'est deux ou trois pour cent —
+     mais le texte, les traits et les fonds changeaient de teinte à chaque
+     changement d'onglet, et l'ensemble ne paraissait pas d'un seul bloc.
+     La Comptabilité avait déjà été rebranchée sur les --cad-* ; l'Agenda
+     l'est à son tour. Seuls les neutres sont mis en commun : les couleurs
+     d'accent restent propres à chaque écran, c'est leur rôle.
+     (Le contraste de --ink-3 avait été corrigé ici même : #969CAA donnait
+     2,75 sur blanc contre les 4,5 que demande la norme. --cad-ink-3 vaut
+     #646E85, soit 4,45 — la correction tient.) */
+  --bg:var(--ground);
+  --surface:var(--cad-surface);
+  --surface-2:var(--cad-surface-2);
+  --line:var(--cad-line);
+  --line-soft:var(--cad-deg-pale);
+  --ink:var(--cad-ink);
+  --ink-2:var(--cad-ink-2);
+  --ink-3:var(--cad-ink-3);
   --accent:#DF4A45;
   --focus:#4B5BD0;
   --shadow-1:0 1px 2px rgba(20,22,27,.04);
