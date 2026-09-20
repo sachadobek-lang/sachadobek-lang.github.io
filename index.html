@@ -888,6 +888,27 @@ button.tuile:active{transform:scale(.985)}
 .nav button:hover{color:var(--ink)}
 /* l'onglet ouvert prend le dégradé profond et se détache du voile : c'est
    le seul endroit de la barre qui porte la signature à pleine force */
+/* Une lueur, pas une enseigne. Elle ne se pose que sur l'onglet ouvert,
+   le seul dont le texte soit blanc sur fond sombre — c'est la seule
+   condition où un néon éclaire au lieu de salir. Et elle prend la
+   température de son onglet : bleue pour l'Agenda et les Clients,
+   ambrée pour la Comptabilité. Le même système des trois températures,
+   prolongé d'un cran.
+   Deux ombres : une proche et dense qui fait le trait lumineux, une
+   large et faible qui fait le halo. Aucune ne déborde assez pour
+   empâter une lettre de 12,5 pixels — vérifié à l'écran. */
+.nav button[aria-current="page"]{
+  text-shadow:0 0 7px rgba(150,196,255,.55), 0 0 18px rgba(120,176,255,.30);
+}
+.nav button[aria-current="page"] svg{
+  filter:drop-shadow(0 0 5px rgba(150,196,255,.5));
+}
+:root[data-onglet="budget"] .nav button[aria-current="page"]{
+  text-shadow:0 0 7px rgba(255,206,138,.58), 0 0 18px rgba(240,178,96,.32);
+}
+:root[data-onglet="budget"] .nav button[aria-current="page"] svg{
+  filter:drop-shadow(0 0 5px rgba(255,206,138,.52));
+}
 .nav button[aria-current="page"]{background:var(--deg-fonce);color:#fff;
   box-shadow:0 6px 18px -8px rgba(17,22,30,.55)}
 .nav .compte{display:grid;place-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--tard);color:#fff;font-family:var(--num);font-size:12px;font-weight:600}
