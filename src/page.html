@@ -964,6 +964,25 @@ summary.carte-tete:hover h2{color:var(--v1)}
 
 .anim{animation:monte .5s var(--doux) backwards}
 .sans-anim .anim{animation:none}
+
+/* Mesuré : à l'arrivée sur un écran, Clients animait trois cartes en
+   cascade ; l'Agenda et la Comptabilité, zéro. Deux écrans sur trois
+   tombaient d'un bloc, et c'est ce qui les faisait paraître plus raides
+   que le troisième sans qu'on sache pourquoi. Même entrée pour les
+   trois, posée le temps de l'animation seulement : le calendrier se
+   redessine souvent, il ne doit pas clignoter à chaque fois. */
+#majournee.arrivee > .app > *,
+#ilreste.arrivee > .page > *{animation:monte .46s var(--doux) backwards}
+#majournee.arrivee > .app > *:nth-child(2),
+#ilreste.arrivee > .page > *:nth-child(2){animation-delay:.05s}
+#majournee.arrivee > .app > *:nth-child(3),
+#ilreste.arrivee > .page > *:nth-child(3){animation-delay:.1s}
+#majournee.arrivee > .app > *:nth-child(n+4),
+#ilreste.arrivee > .page > *:nth-child(n+4){animation-delay:.15s}
+@media (prefers-reduced-motion:reduce){
+  #majournee.arrivee > .app > *,
+  #ilreste.arrivee > .page > *{animation:none}
+}
 @keyframes monte{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
 @media(max-width:520px){
@@ -5469,7 +5488,22 @@ $("#nav").addEventListener("click", e => {
   anneauP = 0;
   rendre();
   window.scrollTo({top: 0, behavior: reduit() ? "auto" : "smooth"});
+  entrerEcran(vue);
 });
+
+/* L'Agenda et la Comptabilité vivent dans leurs propres blocs, sans la
+   classe « anim » que porte chaque carte de Clients. On la leur donne au
+   moment où l'on arrive, et on la retire aussitôt après. */
+function entrerEcran(v){
+  if(reduit()) return;
+  const cible = v === "afaire" ? $("#majournee")
+              : v === "budget" ? $("#ilreste") : null;
+  if(!cible) return;
+  cible.classList.remove("arrivee");
+  void cible.offsetWidth;          /* relance l'animation, sinon elle ne rejoue pas */
+  cible.classList.add("arrivee");
+  setTimeout(() => cible.classList.remove("arrivee"), 700);
+}
 
 function armer(b){
   if(b.dataset.arme === "1") return true;
