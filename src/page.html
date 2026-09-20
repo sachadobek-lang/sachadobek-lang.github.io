@@ -405,6 +405,19 @@ h1,h2,h3,p{margin:0}
 [data-modif]:hover .t-titre,[data-modif]:hover .r-titre{color:var(--v1)}
 .t-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;font-size:13.5px;color:var(--ink-3)}
 .t.ok .t-titre{color:var(--ink-3);font-weight:400;text-decoration:line-through}
+/* Trois choses que le doigt attend d'une application et qu'une page web
+   ne donne pas d'elle-même :
+   — le rectangle gris que le navigateur dessine sur tout ce qu'on touche,
+     qui fait « site » et non « application » ;
+   — le délai d'attente avant de réagir, hérité du double-appui pour
+     zoomer, dont on n'a pas l'usage ici ;
+   — le fait que rien ne bouge sous le doigt pendant l'appui. */
+#vue button, #nav button, .btn, .sup, .iconbtn, #majournee button{
+  -webkit-tap-highlight-color:transparent; touch-action:manipulation}
+/* La barre du bas est ce qu'on touche le plus souvent dans toute
+   l'application, et c'était le seul endroit qui ne répondait pas. */
+.nav button{transition:transform .14s var(--ressort), background .18s var(--doux), color .18s var(--doux)}
+.nav button:active{transform:scale(.94)}
 .sup{opacity:.3;background:none;border:0;color:var(--ink-3);padding:6px 8px;border-radius:10px;font-size:14px;line-height:1;transition:opacity .15s,color .15s,background .15s;flex:none;
   position:relative}
 /* la zone qui reçoit le doigt déborde du dessin, sans le changer.
@@ -8380,10 +8393,19 @@ $("valider-rentree").addEventListener("click",function(){
       client:$("n-client").value.trim(), ref:$("n-ref").value.trim(),
       montant:m, mode:$("n-mode").value});
   }
+  /* Encaisser est le seul moment de la journée où l'on gagne vraiment
+     quelque chose, et c'était le seul geste de l'application qui ne
+     disait rien : le formulaire se fermait, l'onglet changeait, fin.
+     Ajouter un client, lui, affichait « Client ajouté ». La hiérarchie
+     était à l'envers. */
+  var reste = rentreePour ? Math.max(0, rentreePour.du - m) : 0;
+  var mot = eur.format(m) + " encaissés";
+  if (rentreePour) mot += reste <= 0 ? " — facture réglée" : " — reste " + eur.format(reste);
   rentreePour=null;
   $("form-rentree").hidden=true;
   synchroniser(); rendreLivre(); rendreArgent(); rendreObjectif();
   onglet("argent");   /* la barre est masquée : on ramène l'utilisateur */
+  if(window.__CADENCE__ && window.__CADENCE__.dire) window.__CADENCE__.dire(mot);
 });
 $("livre").addEventListener("click",function(e){
   var b=e.target.closest("[data-sup]"); if(!b) return;
