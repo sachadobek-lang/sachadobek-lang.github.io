@@ -1274,8 +1274,14 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .day-pill .marks{display:flex; gap:3.5px; height:4px; align-items:center}
 #majournee .day-pill .marks i{width:4px; height:4px; border-radius:99px; background:var(--m)}
 #majournee .card{
+  /* La carte du calendrier portait --shadow-1, l'ombre propre à l'Agenda :
+     un seul plan à 4 % d'opacité. Celles de Clients portent --o1, qui en
+     a deux — un trait proche, et une ombre large à 28 % qui donne
+     l'élévation. Le fond n'est qu'à trois points de clarté des cartes :
+     sans cette seconde ombre, rien ne les soulève et l'écran paraît
+     plat. Même élévation pour les trois écrans. */
   background:var(--surface); border:1px solid var(--line-soft);
-  border-radius:22px; box-shadow:var(--shadow-1); overflow:hidden;
+  border-radius:22px; box-shadow:var(--o1); overflow:hidden;
 }
 #majournee .card-head{
   display:flex; align-items:center; justify-content:space-between; gap:12px;
