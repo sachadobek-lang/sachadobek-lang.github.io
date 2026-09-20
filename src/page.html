@@ -985,6 +985,26 @@ summary.carte-tete:hover h2{color:var(--v1)}
 }
 @keyframes monte{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
+/* Le rendez-vous qu'on vient de poser se pose vraiment : il arrive un
+   peu trop grand et se règle, au lieu d'apparaître d'un coup. C'est le
+   seul moment où l'on voit le résultat de son geste dans l'agenda, et
+   il ne se voyait pas. Les noms « pop » et « glisse » servent déjà
+   ailleurs — la barre de chargement et les compteurs. */
+@keyframes pose{
+  0%{opacity:0;transform:scale(.94)}
+  60%{opacity:1;transform:scale(1.015)}
+  100%{opacity:1;transform:scale(1)}
+}
+/* Changer de semaine ou de mois : le calendrier vient du côté d'où on
+   l'a appelé. Sans cela, le contenu se remplace sans qu'on sache dans
+   quel sens on s'est déplacé. */
+@keyframes venuD{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes venuG{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
+#majournee .ev.pose{animation:pose .34s var(--ressort) backwards}
+@media (prefers-reduced-motion:reduce){
+  #majournee .ev.pose{animation:none}
+}
+
 @media(max-width:520px){
   .nav{width:calc(100vw - 16px);max-width:none;justify-content:space-between;padding:6px;gap:0}
   .nav button{padding:13px 8px;gap:6px;font-size:14px;min-height:56px}
@@ -6743,7 +6763,8 @@ function makeBlock(ev, opts){
   var px = ((end - start)/60) * HOUR_PX;
   var b = document.createElement('button');
   b.className = 'ev' + (px < 26 ? ' tiny' : (px < 52 ? ' short' : ''))
-    + (ev.demo ? ' demo' : '') + (opts.week ? ' wk' : '');
+    + (ev.demo ? ' demo' : '') + (opts.week ? ' wk' : '')
+    + (ev.id === dernierPose || ev.base === dernierPose ? ' pose' : '');
   b.style.setProperty('--c', 'var(--c-' + cat.c + ')');
   b.style.top = ((start - DAY_START)/SPAN*100) + '%';
   b.style.height = ((end - start)/SPAN*100) + '%';
@@ -7386,7 +7407,15 @@ function commitDraft(){
   if (d.note && d.note.trim()) ev.note = d.note.trim();
   return ev;
 }
+/* L'identifiant du dernier rendez-vous validé, pour que le rendu sache
+   lequel vient d'arriver. Les trois endroits qui appellent localApply
+   sont des gestes de l'utilisateur — créer, enregistrer, copier — jamais
+   la synchronisation : il n'y a donc pas de risque que tout l'agenda
+   s'anime en revenant du serveur. */
+var dernierPose = null;
 function localApply(ev, removeId){
+  dernierPose = ev && ev.id;
+  setTimeout(function(){ dernierPose = null; }, 900);
   var wasRep = state.repeats.some(function(x){ return x.id === ev.id; });
   state.events = state.events.filter(function(x){ return x.id !== ev.id && x.id !== removeId; });
   state.repeats = state.repeats.filter(function(x){ return x.id !== ev.id && x.id !== removeId; });
@@ -7768,6 +7797,20 @@ $('todayBtn').addEventListener('click', function(){
    même en vue Jour. En vue Mois, cette bande devient celle du mois affiché. */
 function flecheBande(sens){
   if (state.view === 'mois') reculer(sens); else shiftWeek(sens * 7);
+  glisserVers(sens);
+}
+/* Le contenu arrive du côté opposé au déplacement : on va vers l'avant,
+   il entre par la droite. C'est ce qui dit dans quel sens on s'est
+   déplacé, sans avoir à relire la date. */
+function glisserVers(sens){
+  try{ if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; }catch(e){}
+  ['grille','moisGrille','wkhead'].forEach(function(id){
+    var e = $(id);
+    if (!e || e.hidden) return;
+    e.style.animation = 'none';
+    void e.offsetWidth;                /* sans cela l'animation ne rejoue pas */
+    e.style.animation = 'venu' + (sens > 0 ? 'D' : 'G') + ' .28s var(--doux)';
+  });
 }
 /* ---------- mettre un rendez-vous dans le calendrier du téléphone ----------
    Le format .ics est celui que lisent l'iPhone, Google Agenda, Outlook et
