@@ -991,10 +991,25 @@ summary.carte-tete:hover h2{color:var(--v1)}
   .nav button svg{width:19px;height:19px}
   .nav .plus{margin-left:0;padding:10px 12px}
   .nav .plus .nom{display:none}
-  .nav button .nom{display:none}
-  .nav button[aria-current="page"] .nom{display:inline}
-  .nav button{padding:13px 8px}
-  .nav button[aria-current="page"]{padding:13px 14px 13px 11px}
+  /* Sur téléphone, seul l'onglet ouvert portait son nom : les deux autres
+     étaient des icônes muettes. Pour qui connaît l'application c'est
+     élégant ; pour qui la découvre, les deux tiers du produit — les
+     clients et la comptabilité — n'existent pas. On ne vend pas ce qui
+     ne se voit pas. Les trois se nomment ; l'onglet ouvert reste
+     distinct par son fond, pas par le fait d'être le seul à parler. */
+  .nav button .nom{display:inline}
+  .nav button{padding:11px 6px; gap:5px; font-size:12.5px; letter-spacing:-.01em}
+  .nav button svg{width:18px;height:18px}
+  .nav button, .nav button[aria-current="page"]{flex:1 1 0}
+  .nav button[aria-current="page"]{padding:11px 8px}
+  .nav .nom{overflow:hidden;text-overflow:ellipsis}
+}
+/* Sur les écrans les plus étroits — un iPhone SE fait 320 points —
+   « Comptabilité » se coupait. Entre le mot et le pictogramme, c'est le
+   mot qui dit ce que l'onglet contient. */
+@media(max-width:360px){
+  .nav button svg{display:none}
+  .nav button{font-size:12px;padding:12px 6px}
   /* le compteur devient un point : le chiffre reste lisible dans la page */
   .nav .compte{width:9px;height:9px;min-width:0;padding:0;font-size:0;border-radius:50%;margin-left:-2px}
   .t{gap:13px;padding:14px 16px}
