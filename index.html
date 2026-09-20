@@ -1093,6 +1093,18 @@ summary.carte-tete:hover h2{color:var(--v1)}
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
 #majournee .upnext .till{font-size:13px; color:var(--ink-3); font-variant-numeric:tabular-nums; flex:0 0 auto}
 #majournee .week{display:flex; align-items:center; gap:6px}
+#majournee .mois-nav{display:flex; align-items:center; gap:10px; width:100%;
+  justify-content:space-between; padding-bottom:10px}
+#majournee .mois-lbl{flex:1; border:0; background:none; cursor:pointer; padding:6px 4px;
+  font-family:var(--display); font-weight:600; font-size:19px; letter-spacing:-.01em;
+  color:var(--ink); font-variant-numeric:tabular-nums; border-radius:12px}
+#majournee .mois-lbl:active{transform:scale(.99)}
+#majournee .dayview .card-head{flex-wrap:wrap}
+/* la ligne du haut n'a plus rien à dire quand le mois est écrit ici */
+#majournee[data-vue="mois"] .dateline{display:none}
+/* mais c'est elle qui tenait le bouton de profil à distance : sans elle,
+   la barre de saisie remonte et son « + » passe sous le rond. */
+#majournee[data-vue="mois"] .quick{margin-right:52px}
 #majournee .dateline h1[role="button"]{cursor:pointer; border-radius:12px}
 #majournee .dateline h1[role="button"]:active{transform:scale(.99)}
 #majournee .pick-wrap{position:fixed; inset:0; z-index:120; display:flex;
@@ -2199,12 +2211,12 @@ summary.carte-tete:hover h2{color:var(--v1)}
 <div class="app">
   <header class="top">
     <div class="dateline">
-      <button class="per-fl" id="moisPrev" aria-label="Mois précédent" hidden>
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>
+      <button class="per-fl" id="semPrev" aria-label="Semaine précédente" hidden>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>
       </button>
       <h1 id="bigdate" role="button" tabindex="0" title="Choisir le mois et l’année">—</h1>
-      <button class="per-fl" id="moisNext" aria-label="Mois suivant" hidden>
-        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg>
+      <button class="per-fl" id="semNext" aria-label="Semaine suivante" hidden>
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg>
       </button>
       <button class="today-btn" id="todayBtn" hidden>Aujourd’hui</button>
       <div class="upnext" id="upnext" hidden></div>
@@ -2235,6 +2247,18 @@ summary.carte-tete:hover h2{color:var(--v1)}
 
   <section class="card dayview">
     <div class="card-head">
+      <!-- En vue Mois, le nom du mois était tout en haut de l'écran, loin
+           de la grille : on ne voyait pas qu'il changeait. Il se pose ici,
+           contre le calendrier qu'il nomme. -->
+      <div class="mois-nav" id="moisNav" hidden>
+        <button class="per-fl" id="moisPrev" aria-label="Mois précédent">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>
+        </button>
+        <button class="mois-lbl" id="moisLbl" title="Choisir le mois et l’année">—</button>
+        <button class="per-fl" id="moisNext" aria-label="Mois suivant">
+          <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg>
+        </button>
+      </div>
       <div class="seg" id="viewSeg" role="group" aria-label="Vue">
         <button data-v="jour">Jour</button>
         <button data-v="semaine">Semaine</button>
@@ -6964,10 +6988,17 @@ function renderHeader(){
   h1.appendChild(s);
 
   $('majournee').setAttribute('data-vue', state.view);
-  /* Les flèches rejoignent le titre partout où la bande disparaît. */
-  var sansBande = state.view === 'mois' || state.view === 'semaine';
-  $('moisPrev').hidden = !sansBande;
-  $('moisNext').hidden = !sansBande;
+  /* En vue Mois, le mois et ses flèches vivent contre la grille ; en vue
+     Semaine, où la bande des jours a disparu, ils restent près du titre. */
+  var enMois = state.view === 'mois';
+  $('moisNav').hidden = !enMois;
+  $('semPrev').hidden = state.view !== 'semaine';
+  $('semNext').hidden = state.view !== 'semaine';
+  if (enMois){
+    var mm2 = moisDe(state.date);
+    var nom2 = mm2.toLocaleDateString('fr-FR', {month:'long', year:'numeric'});
+    $('moisLbl').textContent = nom2.charAt(0).toUpperCase() + nom2.slice(1);
+  }
 
   var showsToday = state.view === 'semaine' ? weekHasToday : (state.date === today);
   $('todayBtn').hidden = showsToday;
@@ -7784,6 +7815,9 @@ $('pickAuj').addEventListener('click', function(){ fermerPick(); $('todayBtn').c
 
 $('moisPrev').addEventListener('click', function(){ flecheBande(-1); });
 $('moisNext').addEventListener('click', function(){ flecheBande(1); });
+$('semPrev').addEventListener('click', function(){ flecheBande(-1); });
+$('semNext').addEventListener('click', function(){ flecheBande(1); });
+$('moisLbl').addEventListener('click', ouvrirPick);
 $('prevWeek').addEventListener('click', function(){ flecheBande(-1); });
 $('nextWeek').addEventListener('click', function(){ flecheBande(1); });
 /* Les flèches suivent ce qu'on regarde : une semaine en vue Semaine,
