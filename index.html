@@ -2050,23 +2050,57 @@ summary.carte-tete:hover h2{color:var(--v1)}
    Tout est en dur ici : aucune police extérieure, aucune image, rien qui
    puisse arriver en retard. Ce voile doit être le premier pixel affiché,
    sinon il ne sert à rien. */
-#demarrage{position:fixed;inset:0;z-index:200;background:var(--ground);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;
-  opacity:1;transition:opacity .34s var(--doux)}
+/* L'écran d'ouverture. Le noir n'est pas un effet : il ne demande rien à
+   l'œil, et une application qui s'ouvre sur du noir paraît plus rapide
+   qu'une autre qui s'ouvre sur du contenu à déchiffrer. Le halo au
+   centre évite le noir plat, qui ferait écran éteint.
+
+   La lueur part vive et décroît — pas l'inverse. À l'ouverture on la
+   prend en pleine intensité, et le plancher de 480 millisecondes suffit
+   à en voir la retombée. Une pulsation qui démarrerait en bas ne se
+   verrait jamais. */
+#demarrage{position:fixed;inset:0;z-index:200;
+  background:
+    radial-gradient(130% 95% at 50% 42%, #121B2B 0%, #080C14 52%, #04060A 100%);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;
+  opacity:1;transition:opacity .42s var(--doux)}
 #demarrage.parti{opacity:0;pointer-events:none}
-#demarrage .marque{width:64px;height:64px;border-radius:0;background:none;
-  display:grid;place-content:center;box-shadow:var(--o2);
-  animation:respire 2.4s var(--doux) infinite}
-#demarrage .marque svg{width:64px;height:64px}
-#demarrage .nom{font-family:var(--num);font-weight:600;font-size:23px;
-  letter-spacing:-.02em;color:var(--ink)}
-#demarrage .trait{width:132px;height:3px;border-radius:99px;background:var(--line);overflow:hidden}
-#demarrage .trait i{display:block;height:100%;width:40%;border-radius:99px;background:var(--deg);
+#demarrage .marque{width:112px;height:112px;border-radius:0;background:none;
+  display:grid;place-content:center;
+  animation:phare 1.7s ease-in-out infinite}
+#demarrage .marque svg{width:112px;height:112px}
+#demarrage .nom{font-family:var(--num);font-weight:600;font-size:27px;
+  letter-spacing:-.02em;color:#EDF3FC;
+  animation:phareMot 1.7s ease-in-out infinite}
+#demarrage .trait{width:150px;height:2px;border-radius:99px;
+  background:rgba(150,196,255,.13);overflow:hidden}
+#demarrage .trait i{display:block;height:100%;width:42%;border-radius:99px;
+  background:linear-gradient(90deg,transparent,#BDD8FF,transparent);
+  box-shadow:0 0 12px rgba(150,196,255,.85);
   animation:glisse 1.15s var(--doux) infinite}
+
+/* vif, puis moins vif : c'est le mouvement demandé, et il commence en haut */
+@keyframes phare{
+  0%  {filter:drop-shadow(0 0 22px rgba(176,212,255,.80)) drop-shadow(0 0 62px rgba(120,176,255,.42));
+       transform:scale(1.03)}
+  55% {filter:drop-shadow(0 0 9px rgba(150,196,255,.24))  drop-shadow(0 0 30px rgba(110,170,255,.10));
+       transform:scale(1)}
+  100%{filter:drop-shadow(0 0 22px rgba(176,212,255,.80)) drop-shadow(0 0 62px rgba(120,176,255,.42));
+       transform:scale(1.03)}
+}
+@keyframes phareMot{
+  0%  {text-shadow:0 0 12px rgba(176,212,255,.72), 0 0 34px rgba(120,176,255,.36)}
+  55% {text-shadow:0 0 7px rgba(150,196,255,.26),  0 0 20px rgba(110,170,255,.12)}
+  100%{text-shadow:0 0 12px rgba(176,212,255,.72), 0 0 34px rgba(120,176,255,.36)}
+}
 @keyframes respire{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
 @keyframes glisse{0%{transform:translateX(-110%)}100%{transform:translateX(360%)}}
 @media (prefers-reduced-motion:reduce){
-  #demarrage .marque{animation:none}
+  /* la lueur reste, à mi-intensité : c'est le mouvement qu'on retire,
+     pas la lumière */
+  #demarrage .marque{animation:none;
+    filter:drop-shadow(0 0 16px rgba(160,202,255,.5)) drop-shadow(0 0 44px rgba(120,176,255,.24))}
+  #demarrage .nom{animation:none;text-shadow:0 0 10px rgba(160,202,255,.45)}
   #demarrage .trait i{animation:none;width:100%}
 }
 </style>
@@ -6078,11 +6112,21 @@ window.addEventListener("resize", () => {
     if(parti) return;
     parti = true;
     voile.classList.add("parti");
+    rendreLaCouleur();
     setTimeout(() => { if(voile.parentNode) voile.parentNode.removeChild(voile); }, 400);
   };
   /* Un plancher de durée. Sans lui, une page qui se peint en cinquante
      millisecondes fait clignoter le voile, ce qui est pire que pas de
      voile du tout : on croit à un défaut d'affichage. */
+  /* Sur un téléphone, la barre d'état prend la couleur déclarée par la
+     page. Elle serait restée claire au-dessus d'un écran noir, avec un
+     liseré blanc en haut pendant toute l'ouverture. On l'accorde au
+     voile, et on lui rend sa couleur quand il s'efface. */
+  const meta = document.querySelector('meta[name="theme-color"]');
+  const couleurApp = meta ? meta.getAttribute('content') : null;
+  if(meta) meta.setAttribute('content', '#070A10');
+  const rendreLaCouleur = () => { if(meta && couleurApp) meta.setAttribute('content', couleurApp); };
+
   const depart = Date.now();
   window.__finDuDemarrage__ = () => {
     const reste = Math.max(0, 480 - (Date.now() - depart));
