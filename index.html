@@ -5148,6 +5148,12 @@ window.__CADENCE__ = {
      place. C'est la même règle qu'ailleurs : l'argent n'a qu'une source. */
   noterPaiement: o => {
     const m = Number(o && o.montant) || 0;
+    /* Le formulaire refuse déjà zéro et les négatifs, mais cette fonction
+       est le pont entre les deux moitiés de l'application : elle est
+       appelable d'ailleurs. Un encaissement négatif passait, et il
+       fausserait aussi bien le livre des recettes que l'assiette des
+       cotisations. Une recette est positive ou n'existe pas. */
+    if (!(m > 0)) return;
     const id = o && o.facture;
     const quand = (o && o.date) || auj();
     if(id && state.factures[id]){
@@ -6613,7 +6619,20 @@ function parsePhrase(text, baseDate){
     if (m) out.dur = +m[1];
   }
   if (out.start == null){
-    m = cut(/\b(?:[àa]\s*)?(\d{1,2})\s*[h:](\d{2})?/);
+    /* « à 16h » est une préposition ; « A 16h » est une désignation — Lot A,
+       Zone A, Bâtiment A, comme on en trouve sur tous les chantiers. La
+       phrase est mise en minuscules pour être analysée : les deux
+       devenaient identiques, et le A du chantier partait avec l'heure.
+       « Chantier A 16h » devenait « Chantier ». On regarde donc ce qui a
+       été tapé avant de couper : un A majuscule n'est jamais la
+       préposition. */
+    var avecPrefixe = /\b(?:[àa]\s*)?(\d{1,2})\s*[h:](\d{2})?/;
+    var sansPrefixe = /\b(?:à\s*)?(\d{1,2})\s*[h:](\d{2})?/;
+    var essai = s.match(avecPrefixe);
+    var estUneLettre = !!(essai && essai.index != null
+      && /^a\s/.test(s.substr(essai.index, 2))
+      && /^A/.test(orig.substr(essai.index, 1)));
+    m = cut(estUneLettre ? sansPrefixe : avecPrefixe);
     if (m) out.start = (+m[1])*60 + (+(m[2] || 0));
   }
   if (out.dur == null){
@@ -6670,8 +6689,17 @@ function parsePhrase(text, baseDate){
   for (var i = 0; i < KW.length; i++){ if (KW[i][0].test(low)) { out.cat = KW[i][1]; break; } }
 
   var title = orig.replace(/\s+/g, ' ').trim();
-  title = title.replace(/^(?:le|la|les|l'|un|une|de|du|d'|[àa]|au|vers|puis|et)\s+/i, '');
-  title = title.replace(/\s+(?:le|la|[àa]|au|de|du|vers|et|puis)$/i, '').trim();
+  /* Ces deux lignes retirent les mots de liaison qui restent aux bords du
+     titre. « [àa] » avec le drapeau d'insensibilité à la casse attrapait
+     aussi le A majuscule : « Chantier A » devenait « Chantier », « Lot A »
+     devenait « Lot », « Bâtiment A » devenait « Bâtiment ». Sur un
+     chantier, A et B désignent des lots ou des bâtiments — c'est une
+     donnée, pas une préposition. Le « à » accentué et le « a » minuscule
+     restent retirés ; le A majuscule isolé est conservé. */
+  title = title.replace(/^(?:le|la|les|l'|un|une|de|du|d'|à|au|vers|puis|et)\s+/i, '')
+               .replace(/^a\s+/, '');
+  title = title.replace(/\s+(?:le|la|à|au|de|du|vers|et|puis)$/i, '')
+               .replace(/\s+a$/, '').trim();
   if (title) out.title = title.charAt(0).toUpperCase() + title.slice(1);
   return out;
 }
