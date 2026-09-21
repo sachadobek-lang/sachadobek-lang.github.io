@@ -167,8 +167,27 @@ body.sur-agenda .page{max-width:none;padding:0}
    l'écran, aucune option de plus, la règle des trois tient.
    Chaque valeur appartient à l'agent de son onglet : à lui de la
    régler ou de la retirer. */
-:root[data-onglet="afaire"]{--fond:linear-gradient(180deg,#EFF4FD 0%,#E1EAF6 100%)}  /* le froid de l’Agenda s’écarte du neutre autant que la chaleur de la Comptabilité :
-     sinon on sent le changement d’un côté et pas de l’autre */
+:root[data-onglet="afaire"]{
+  /* Sacha, le 21 septembre : « pour le calendrier change le fond, rends-le
+     un peu plus chaud ». L'Agenda partait vers le froid — un bleu à 216°.
+     Il part maintenant vers le papier chaud, à 31°.
+
+     La température des trois onglets tourne donc : l'Agenda devient le
+     plus chaud, la Comptabilité garde son ivoire plus pâle, Clients reste
+     le neutre. L'écart entre les trois tient toujours, il a seulement
+     changé de sens.
+
+     Les traits suivent le fond, pour la raison que la Comptabilité avait
+     déjà rencontrée : un filet à 212° sur un papier à 31°, c'est 181
+     degrés d'écart, la complémentaire presque exacte, et les vingt-quatre
+     lignes de la grille du jour la montrent toute la journée. Seule la
+     teinte bouge — saturation et clarté sont reprises au point près, donc
+     le contraste du texte et des traits est inchangé. */
+  --fond:linear-gradient(180deg,#FBF6F0 0%,#F1EAE1 100%);
+  --line:#F0E7DF; --line-fort:#E0D4C6; --surface-2:#FCF8F5; --surface-3:#F6EFE9;
+  --cad-line:#F0E7DF; --cad-line-fort:#E0D4C6; --cad-surface-2:#FCF8F5;
+  --cad-deg-pale:#F6F1EE;
+}
 :root[data-onglet="budget"]{
   --fond:linear-gradient(180deg,#F9F7F3 0%,#F0ECE5 100%);
   /* L'idée des trois températures ne portait que sur le fond. Sur les
@@ -183,10 +202,30 @@ body.sur-agenda .page{max-width:none;padding:0}
   --cad-deg-pale:#F6F3EE;
 }
 @media (prefers-color-scheme:dark){
-  :root:not([data-theme="light"])[data-onglet="afaire"]{--fond:linear-gradient(180deg,#0D1119 0%,#070A0F 100%)}
+  :root:not([data-theme="light"])[data-onglet="afaire"]{
+  /* Le bloc clair ci-dessus pose --line, --surface-2… sans condition de
+     thème : sans ces deux lignes, les vingt-quatre filets de la grille
+     restaient crème sur le noir. Le sombre reprend donc les mêmes
+     valeurs, réchauffées de la même façon — teinte à 31°, saturation et
+     clarté reprises au point près sur les gris d'origine. */
+  --fond:linear-gradient(180deg,#15120D 0%,#0B0806 100%);
+  --line:#403223; --line-fort:#524333; --surface-2:#31261A; --surface-3:#241A10;
+  --cad-line:#403223; --cad-line-fort:#524333; --cad-surface-2:#31261A;
+  --cad-deg-pale:#2B231A;
+}
   :root:not([data-theme="light"])[data-onglet="budget"]{--fond:linear-gradient(180deg,#12110E 0%,#0A0906 100%)}
 }
-:root[data-theme="dark"][data-onglet="afaire"]{--fond:linear-gradient(180deg,#0D1119 0%,#070A0F 100%)}
+:root[data-theme="dark"][data-onglet="afaire"]{
+  /* Le bloc clair ci-dessus pose --line, --surface-2… sans condition de
+     thème : sans ces deux lignes, les vingt-quatre filets de la grille
+     restaient crème sur le noir. Le sombre reprend donc les mêmes
+     valeurs, réchauffées de la même façon — teinte à 31°, saturation et
+     clarté reprises au point près sur les gris d'origine. */
+  --fond:linear-gradient(180deg,#15120D 0%,#0B0806 100%);
+  --line:#403223; --line-fort:#524333; --surface-2:#31261A; --surface-3:#241A10;
+  --cad-line:#403223; --cad-line-fort:#524333; --cad-surface-2:#31261A;
+  --cad-deg-pale:#2B231A;
+}
 :root[data-theme="dark"][data-onglet="budget"]{--fond:linear-gradient(180deg,#12110E 0%,#0A0906 100%)}
 
 body{margin:0;background:var(--fond) fixed;color:var(--ink);font-family:var(--ui);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
@@ -1231,7 +1270,8 @@ summary.carte-tete:hover h2{color:var(--v1)}
   --c-teal:#2A7F8F;
   --c-ambre:#B9772E;
 
-  --dot:#D2D7E4;
+  /* le pointillé suit le papier : même saturation, même clarté, teinte à 31° */
+  --dot:#E4DBD2;
   --hour:86px;
   color-scheme:light;
 }
@@ -1239,7 +1279,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
     --bg:#0B0C0F; --surface:#14161B; --surface-2:#1A1D24;
     --line:#272B34; --line-soft:#20242B;
     --ink:#EDEFF4; --ink-2:#A0A7B5; --ink-3:#6E7583;
-    --accent:#F0625C; --focus:#8D99F0; --dot:#2A2F3C;
+    --accent:#F0625C; --focus:#8D99F0; --dot:#3C332A;
     --shadow-1:0 1px 2px rgba(0,0,0,.5);
     --shadow-2:0 4px 12px rgba(0,0,0,.5), 0 24px 56px rgba(0,0,0,.6);
     --shadow-drag:0 8px 24px rgba(0,0,0,.6);
@@ -1252,7 +1292,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   --bg:#0B0C0F; --surface:#14161B; --surface-2:#1A1D24;
   --line:#272B34; --line-soft:#20242B;
   --ink:#EDEFF4; --ink-2:#A0A7B5; --ink-3:#6E7583;
-  --accent:#F0625C; --focus:#8D99F0; --dot:#2A2F3C;
+  --accent:#F0625C; --focus:#8D99F0; --dot:#3C332A;
   --shadow-1:0 1px 2px rgba(0,0,0,.5);
   --shadow-2:0 4px 12px rgba(0,0,0,.5), 0 24px 56px rgba(0,0,0,.6);
   --shadow-drag:0 8px 24px rgba(0,0,0,.6);
@@ -2007,8 +2047,8 @@ summary.carte-tete:hover h2{color:var(--v1)}
    défile à l'intérieur. Le tableau reste en dessous, on y descend. */
 #majournee .app{min-height:calc(100dvh - 104px)}
 #majournee{padding-bottom:104px;background:transparent!important}
-#majournee{--bg:#F0F2F7}
-@media (prefers-color-scheme:dark){ #majournee:not([data-theme="light"]){--bg:#0B0D11} }
+#majournee{--bg:#F7F4F0}
+@media (prefers-color-scheme:dark){ #majournee:not([data-theme="light"]){--bg:#110D0B} }
 
 /* ══════════ IL TE RESTE COMBIEN ? — greffée telle quelle ══════════ */
 
