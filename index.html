@@ -2261,12 +2261,13 @@ summary.carte-tete:hover h2{color:var(--v1)}
     <!-- L'ordre voulu par Sacha : ce qu'on vient faire, puis l'argent,
          puis ce que l'État prendra, puis ce qu'il faut mettre de côté.
          On agit d'abord, on regarde ensuite, on provisionne en dernier. -->
-    <!-- « J'ai été payé » est parti : Sacha ne s'en servait pas, et le
-         geste existe là où il a du sens — sur la facture qu'on encaisse,
-         pas sur un écran qui ne sait pas encore de quelle facture il
-         s'agit. Faire une facture reprend toute la largeur, en blanc,
-         comme avant qu'ils ne soient deux. -->
-    <button class="gros doux seul" id="gros-fact">＋ Faire une facture</button>
+    <!-- Les deux raccourcis ont disparu, et pour la même raison chacun.
+         « J'ai été payé » ne savait pas de quelle facture il parlait : le
+         geste vit maintenant sur la facture elle-même. « Faire une
+         facture » existait déjà deux fois ailleurs — en tête de l'onglet
+         Factures, et sur la fiche d'un client. Le troisième exemplaire ne
+         faisait que retarder le disque, qui est la réponse de cet écran.
+         Mon argent commence donc par ce qu'on vient y chercher. -->
 
     <div class="bloc-disque">
       <div class="disc">
@@ -8975,9 +8976,10 @@ $("choix-activite").addEventListener("click",function(e){
   }
   rendreReglages(); rendreArgent(); rendreObjectif();
 });
-$("gros-fact").addEventListener("click",function(){
-  if(window.__CADENCE__) window.__CADENCE__.nouvelleFacture();
-});
+/* Le raccourci « Faire une facture » de cet écran a été retiré : il
+   existait déjà en tête de l'onglet Factures et sur la fiche d'un
+   client. nouvelleFacture() reste sur le pont — ces deux-là s'en
+   servent — mais plus rien ne l'appelle d'ici. */
 $("r-vfl").addEventListener("change",function(e){
   etat.vfl=e.target.checked;
   if(window.__CADENCE__) window.__CADENCE__.choisirVfl(etat.vfl);
