@@ -1528,42 +1528,83 @@ summary.carte-tete:hover h2{color:var(--v1)}
   border:1px solid var(--line-soft); background:var(--surface)}
 #majournee .route .rt-go:hover{color:var(--ink); border-color:var(--line)}
 #majournee .route .rt-non{margin-left:auto; flex:0 0 auto}
+/* ═══ rétrécir d'un seul mouvement ═══
+   Le bloc passait par trois états — pleine taille, « short », « tiny » —
+   et chacun changeait d'un coup les marges, la taille du texte, l'arrondi,
+   et faisait disparaître l'heure puis l'icône d'un seul saut. En zoomant
+   on voyait donc le calendrier se recomposer par à-coups, à deux endroits
+   précis, au lieu de rétrécir.
+   Tout se calcule maintenant à partir de la hauteur réelle du bloc, que
+   makeBlock mesure et dépose ici sous forme de trois curseurs :
+     --t   la taille générale, de 0 au plus petit à 1 à pleine taille ;
+     --tH  l'heure, qui s'efface la première, et en s'effaçant rend sa
+           place — c'est ce qui manquait : une heure invisible mais qui
+           occupait encore sa ligne poussait le nom vers le haut ;
+     --tI  l'icône, qui s'efface ensuite, et rend sa largeur.
+   Les trois valeurs extrêmes sont exactement celles d'avant : à pleine
+   taille et au plus petit, rien n'a changé d'un pixel. C'est entre les
+   deux que la marche a disparu. */
 #majournee .ev{
-  position:absolute; z-index:2; border-radius:12px; padding:9px 12px 9px 15px; min-height:0;
+  position:absolute; z-index:2; min-height:0;
+  border-radius:calc(8px + var(--t,1) * 4px);
+  padding:var(--py,9px) calc(9px + var(--t,1) * 3px)
+          var(--py,9px) calc(12px + var(--t,1) * 3px);
   text-align:left; overflow:hidden; color:var(--ink);
   background:color-mix(in oklab, var(--c) 13%, var(--surface));
   border:1px solid color-mix(in oklab, var(--c) 32%, var(--surface));
-  display:flex; gap:10px; align-items:flex-start;
+  display:flex; gap:calc(var(--tI,1) * 10px); align-items:flex-start;
   transition:background-color .14s ease, transform .14s ease;
 }
 #majournee .ev::before{
-  content:""; position:absolute; left:6px; top:8px; bottom:8px; width:2.5px;
+  content:""; position:absolute;
+  left:calc(5px + var(--t,1) * 1px);
+  top:calc(3px + var(--t,1) * 5px); bottom:calc(3px + var(--t,1) * 5px);
+  width:calc(2px + var(--t,1) * .5px);
   border-radius:99px; background:var(--c);
 }
 #majournee .ev:hover{background:color-mix(in oklab, var(--c) 20%, var(--surface)); transform:translateY(-1px)}
-#majournee .ev .ico{flex:0 0 auto; color:var(--c); margin-top:1px}
+#majournee .ev .ico{
+  flex:0 0 auto; color:var(--c); margin-top:calc(var(--t,1) * 1px);
+  width:calc(var(--tI,1) * 15px); overflow:hidden;
+  opacity:var(--tI,1);
+}
+/* L'icône se réduit, elle ne se fait pas couper : sans cette ligne, le
+   dessin gardait ses quinze pixels et c'est la boîte qui rétrécissait
+   autour — on voyait une mallette tranchée en deux. */
+#majournee .ev .ico svg{
+  width:calc(var(--tI,1) * 15px); height:calc(var(--tI,1) * 15px); display:block;
+}
 #majournee .ev .txt{min-width:0; flex:1}
 #majournee .ev .name{
-  display:block; font-family:var(--ui); font-weight:700; font-size:16px;
+  display:block; font-family:var(--ui);
+  font-weight:calc(600 + var(--t,1) * 100);
+  font-size:calc(11.5px + var(--t,1) * 4.5px);
   line-height:1.3; overflow-wrap:anywhere;
 }
-#majournee .ev .when{display:block; font-size:13.5px; color:var(--ink-2); font-variant-numeric:tabular-nums; margin-top:2px}
-#majournee .ev .rep{position:absolute; top:9px; right:10px; color:var(--c); opacity:.75}
-#majournee .ev.short{padding:7px 11px 7px 14px; align-items:center; gap:8px}
-#majournee .ev.short .name{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-#majournee .ev.short .when,#majournee .ev.short .rep{display:none}
-#majournee .ev.tiny{padding:3px 9px 3px 12px; border-radius:8px; gap:6px}
-#majournee .ev.tiny::before{top:3px; bottom:3px; left:5px; width:2px}
-/* Sous 26 pixels, « .short » masquait déjà l'heure — mais « .tiny », qui
-   est plus petit encore, la laissait affichée. En 13,5 px, soit plus
-   grosse que le nom à 11,5. Elle ne se lisait pas : elle était coupée par
-   le bord du bloc, mais elle occupait sa place et poussait le nom vers
-   le haut. D'où ces « petites écritures en dessous », et un nom qui ne
-   tenait jamais au milieu de son bloc. */
-#majournee .ev.tiny .ico,#majournee .ev.tiny .rep,#majournee .ev.tiny .when{display:none}
-#majournee .ev.tiny{align-items:center}
-#majournee .ev.tiny .txt{display:flex; align-items:center; min-height:0}
-#majournee .ev.tiny .name{font-size:11.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1}
+/* L'heure ne se cache pas : elle se referme. Sa hauteur tombe à zéro en
+   même temps que son opacité, donc elle cesse d'occuper la ligne qui
+   poussait le nom. C'était exactement le défaut du dézoom. */
+#majournee .ev .when{
+  display:block; color:var(--ink-2); font-variant-numeric:tabular-nums;
+  font-size:calc(10px + var(--tH,1) * 3.5px);
+  height:calc(var(--tH,1) * 17px);
+  margin-top:calc(var(--tH,1) * 2px);
+  opacity:var(--tH,1); overflow:hidden;
+}
+#majournee .ev .rep{
+  position:absolute; top:calc(4px + var(--t,1) * 5px); right:calc(8px + var(--t,1) * 2px);
+  color:var(--c); opacity:calc(var(--tI,1) * .75);
+}
+/* Le nom tient sur une ligne dès que le bloc n'a plus la hauteur d'en
+   écrire deux — sans quoi la seconde ligne serait coupée en plein milieu
+   d'un mot par le bord du bloc. */
+#majournee .ev.short .name,#majournee .ev.tiny .name{
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+/* Ces quatre règles masquaient l'heure et recentraient le nom d'un seul
+   coup sous 26 pixels — la correction du dézoom, en version brutale. Les
+   curseurs --tH et --py font la même chose en continu, et le font mieux :
+   l'heure rend sa place au lieu de disparaître en la gardant. */
 #majournee .ev.demo{opacity:.72}
 #majournee .ev.dragging{
   z-index:6; box-shadow:var(--shadow-drag); transform:none; cursor:grabbing;
@@ -6877,7 +6918,36 @@ function makeBlock(ev, opts){
   /* Sous 26 px un nom n'est plus lisible : le bloc garde cette hauteur même
      quand la durée réelle en demanderait moins. Mieux vaut un quart d'heure
      qui paraît un peu long qu'un rendez-vous qu'on ne peut pas lire. */
-  b.style.minHeight = Math.max(26, Math.min(34, HOUR_PX * 0.34)).toFixed(0) + 'px';
+  var minH = Math.max(26, Math.min(34, HOUR_PX * 0.34));
+  b.style.minHeight = minH.toFixed(0) + 'px';
+
+  /* ═══ les trois curseurs du rétrécissement ═══
+     C'est la hauteur qu'aura vraiment le bloc — celle du rendez-vous, ou
+     le minimum ci-dessus s'il est plus court — qui décide de tout ce que
+     la feuille de style fait varier. Trois seuils au lieu d'un, parce que
+     les trois choses ne doivent pas céder en même temps : l'heure part la
+     première, l'icône ensuite, et le nom rapetissse tout du long sans
+     jamais disparaître. À 64 px et au-dessus rien n'a changé d'avant ; à
+     26 px non plus. Entre les deux, la marche a disparu. */
+  var hEff = Math.max(px, minH);
+  var courbe = function(a, z){ return clamp((hEff - a) / (z - a), 0, 1); };
+  var t  = courbe(26, 64);   /* la taille générale */
+  var tH = courbe(34, 58);   /* l'heure : elle cède la première */
+  var tI = courbe(30, 50);   /* l'icône : elle cède ensuite */
+  b.style.setProperty('--t',  t.toFixed(3));
+  b.style.setProperty('--tH', tH.toFixed(3));
+  b.style.setProperty('--tI', tI.toFixed(3));
+
+  /* Le rembourrage vertical ne suit pas une courbe mais une condition :
+     que le contenu soit centré. Quand le bloc est haut, la hauteur libre
+     est grande et le rembourrage se fixe à 9 px, le nom reste en haut
+     comme avant. Quand il est juste, il se réduit jusqu'à ce que le texte
+     tombe au milieu. C'est ce qui remplace le « align-items:center »
+     qu'on ne peut pas interpoler. */
+  var hNom    = (11.5 + 4.5 * t) * 1.3;
+  var hHeure  = tH > 0 ? (17 + 2) * tH : 0;
+  var py      = clamp((hEff - hNom - hHeure) / 2, 3, 9);
+  b.style.setProperty('--py', py.toFixed(1) + 'px');
   var band = opts.band, w = band.w / (ev._cols || 1);
   b.style.left = 'calc(' + (band.left + w * (ev._col || 0)) + '% + 2px)';
   b.style.width = 'calc(' + w + '% - 4px)';
