@@ -1,4 +1,4 @@
-/* Cura hors-ligne — version a2c0198cacdc
+/* Cura hors-ligne — version ce202140427e
  *
  * Ce fichier existe pour une seule raison : que l'application s'ouvre dans
  * le métro, chez un client, partout où il n'y a pas de réseau.
@@ -29,7 +29,7 @@
  * Donc : ne pas rediagnostiquer ceci depuis un port local. Le seul endroit
  * où l'observer est la page publique.
  */
-const VERSION = "a2c0198cacdc";
+const VERSION = "ce202140427e";
 const BOITE = "cura-" + VERSION;
 const FIGE = "cura-fige";
 

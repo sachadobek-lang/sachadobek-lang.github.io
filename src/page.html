@@ -388,6 +388,11 @@ h1,h2,h3,p{margin:0}
 .seuil .reste-s{font-family:var(--num);font-weight:600;font-size:21px;letter-spacing:-.025em;font-variant-numeric:tabular-nums}
 .seuil .sous-s{font-size:12.5px;color:var(--ink-3)}
 .seuil .piste-s{height:7px;background:var(--surface-3);border-radius:999px;overflow:hidden}
+.seuil .piste-s i{display:block;height:100%;border-radius:999px;background:var(--deg);
+  transition:width .8s var(--doux)}
+/* la note vivait dans .decl, qui porte ses propres marges ; posée seule
+   dans la carte elle touchait les deux bords */
+.seuils-note{margin:0;padding:0 24px 22px;font-size:13.5px;line-height:1.5;color:var(--ink-3)}
 .seuil .piste-s i{display:block;height:100%;border-radius:999px;background:var(--deg)}
 .seuil.chaud .reste-s{color:var(--tard)}
 .seuil.chaud .piste-s i{background:var(--tard)}
@@ -437,6 +442,13 @@ h1,h2,h3,p{margin:0}
 .ligne-c{display:flex;align-items:center;gap:12px;font-size:15.5px;color:var(--ink-2)}
 .ligne-c select{margin-left:auto;border:2px solid var(--line);background:var(--surface);color:var(--ink);
   border-radius:var(--rs);padding:10px 13px;font-size:15px}
+/* le champ « je me verse » porte la même robe que les listes déroulantes
+   qui l'entourent : c'est un réglage, pas une saisie à part */
+.ligne-c input{margin-left:auto;width:7.5rem;border:2px solid var(--line);background:var(--surface);
+  color:var(--ink);border-radius:var(--rs);padding:10px 13px;font-family:var(--num);font-size:15px;
+  font-weight:600;text-align:right;-webkit-appearance:none}
+.ligne-c input:focus-visible{border-color:var(--v1)}
+.ligne-note{margin:-2px 0 0;font-size:13px;line-height:1.45;color:var(--ink-3)}
 
 /* ═══ plafond du régime ═══ */
 .plafond{padding:2px 24px 22px}
@@ -686,7 +698,11 @@ summary.groupe:hover{background:var(--line)}
 .decl-ou b{font-family:var(--num);font-weight:600;font-size:18px;color:var(--ink);
   letter-spacing:.01em}
 .decl-gestes{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
-@media(max-width:400px){.decl-gestes{gap:8px}}
+/* Les deux libellés refusent d'être coupés — « Ouvrir impots.gouv.fr »
+   ne se lit pas sur deux lignes. Côte à côte, ils demandaient 329 px pour
+   295 : le bouton sombre dépassait de dix pixels hors de sa carte. Sous
+   400 px ils se rangent l'un sous l'autre, où chacun a toute la place. */
+@media(max-width:400px){.decl-gestes{gap:8px;grid-template-columns:1fr}}
 .decl-copier,.decl-ouvrir{display:flex;align-items:center;justify-content:center;
   border:0;border-radius:var(--rm);padding:15px 8px;font:inherit;font-family:var(--num);
   font-weight:600;font-size:15px;white-space:nowrap;cursor:pointer;text-decoration:none;
@@ -1645,11 +1661,18 @@ summary.carte-tete:hover h2{color:var(--v1)}
   width:calc(var(--tI,1) * 15px); height:calc(var(--tI,1) * 15px); display:block;
 }
 #majournee .ev .txt{min-width:0; flex:1}
+/* « -webkit-box » avec line-clamp est la seule façon, aujourd'hui encore,
+   de dire « pas plus de N lignes, et des points de suspension à la fin ».
+   makeBlock calcule N d'après la hauteur : le nom ne passe donc jamais
+   sous le bord, et ce qui est écrit est écrit en entier. */
 #majournee .ev .name{
-  display:block; font-family:var(--ui);
+  font-family:var(--ui);
   font-weight:calc(600 + var(--t,1) * 100);
   font-size:calc(11.5px + var(--t,1) * 4.5px);
-  line-height:1.3; overflow-wrap:anywhere;
+  line-height:1.3; overflow-wrap:break-word; hyphens:auto;
+  display:-webkit-box; -webkit-box-orient:vertical;
+  -webkit-line-clamp:var(--lignes, 2); line-clamp:var(--lignes, 2);
+  overflow:hidden;
 }
 /* L'heure ne se cache pas : elle se referme. Sa hauteur tombe à zéro en
    même temps que son opacité, donc elle cesse d'occuper la ligne qui
@@ -1723,9 +1746,19 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .ev.serre .ico,
 #majournee .ev.serre .rep,
 #majournee .ev.serre .when{display:none}
+/* Un bloc étroit est souvent haut : une réunion d'une heure au niveau
+   « quatre heures » fait quarante-sept pixels de large et cent quatre-
+   vingt-dix de haut. Écrire le nom sur une seule ligne coupée jetait
+   cent soixante-dix pixels de hauteur pour n'en montrer que cinq
+   lettres. Il s'écrit donc sur autant de lignes que la hauteur en
+   permet — makeBlock les compte et les dépose dans --lignes.
+   « break-word » et non « anywhere » : on ne coupe à l'intérieur d'un
+   mot que si le mot seul ne tient pas sur une ligne, sinon on retombe
+   sur une lettre par ligne. Et « hyphens:auto » pour que cette coupure,
+   quand elle arrive, se fasse avec un trait d'union — le navigateur sait
+   couper le français depuis que la page déclare sa langue. */
 #majournee .ev.serre .name{
   font-size:var(--nom, 11px); font-weight:600; line-height:1.15;
-  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 
 
@@ -2679,6 +2712,9 @@ const calcGenre  = () => FORMES[calcForme()].genre;
 const calcStatut = () => (state.moi && ACTIVITES[state.moi.regime]) ? state.moi.regime : "services";
 const calcLib    = () => !!(state.moi && state.moi.liberatoire);
 const calcParts  = () => Number(state.moi && state.moi.parts) || 1;
+/* Ce que le dirigeant se verse chaque mois, net de cotisations et avant
+   impôt sur le revenu — le chiffre qu'il a en tête, pas le brut. */
+const calcRemun  = () => Math.max(0, Number(state.moi && state.moi.remun) || 0);
 let clientOuvert = null;
 let ecranClients = "carnet"; /* « carnet » : tous les clients, ce qu'on voit d'abord · « pile » : qui rappeler */
 let pliOuvert = false;
@@ -4356,6 +4392,31 @@ const IS_REDUIT = 15, IS_SEUIL = 42500, IS_PLEIN = 25;
    dépasser le chiffre d'affaires : sur les tout petits montants, le
    pourcentage seul donnait un impôt trop élevé */
 const ABAT_MINI = 305;
+/* La déduction forfaitaire de 10 % sur les salaires et les rémunérations
+   de l'article 62 — celle du gérant majoritaire et du président de SAS.
+   Encadrée : jamais moins de 509 €, jamais plus de 14 555 € (revenus 2025,
+   imposition 2026). L'oublier gonfle l'impôt d'un dirigeant de plusieurs
+   centaines d'euros. */
+const DED10_MIN = 509, DED10_MAX = 14555;
+/* Les dividendes : prélèvement forfaitaire unique. Il est passé de 30 % à
+   31,4 % le 1er janvier 2026 — 12,8 % d'impôt, inchangé, et 18,6 % de
+   prélèvements sociaux contre 17,2 % en 2025. Une application qui a gardé
+   30 % promet 1,4 % d'argent qui n'existe pas. */
+const PFU = 31.4;
+/* Plafond annuel de la Sécurité sociale 2026, relevé de 2 %. Il sert de
+   repère aux cotisations du dirigeant. */
+const PASS = 48060;
+/* Ce que coûtent les cotisations du dirigeant, en pourcentage de ce qu'il
+   se verse réellement — deux régimes, deux mondes :
+     · gérant majoritaire de SARL : travailleur non salarié, environ 45 %,
+       le même régime qu'une entreprise individuelle ;
+     · président de SAS ou de SASU : assimilé salarié, environ 63 % du
+       brut selon Bpifrance, soit près de 81 % de ce qui arrive dans sa
+       poche — c'est le prix d'une protection sociale de salarié, sans le
+       chômage, auquel il ne cotise pas.
+   Ces deux-là sont, avec les cotisations de l'entreprise individuelle, les
+   seuls chiffres approchés de l'application. Les écrans disent « environ ». */
+const DIR_TNS = 45, DIR_ASSIM = 81;
 
 /* ═══ UNE SEULE TABLE DE TAUX POUR TOUTE L'APPLICATION ═══
    « Calculs », « Mon argent » et le carnet la lisent tous. Il y en avait
@@ -4365,9 +4426,9 @@ const ABAT_MINI = 305;
    chiffre. Les taux sont ceux du 1er janvier 2026 (décret 2025-943 pour
    le BNC) et les plafonds ceux de la période 2026-2028. */
 const ACTIVITES = {
-  vente:    {nom: "Je vends des choses", note: "commerce, artisanat de vente", court: "Vente", formel: "Vente de marchandises", abat: 71, cotis: 12.3, liber: 1.0, plaf: 203100, tva: 85000},
-  services: {nom: "Je rends des services", note: "travaux, prestations, artisanat", court: "Services", formel: "Prestations de services", abat: 50, cotis: 21.2, liber: 1.7, plaf: 83600, tva: 37500},
-  liberal:  {nom: "Je suis en libéral", note: "conseil, santé, création", court: "Libéral", formel: "Profession libérale", abat: 34, cotis: 25.6, liber: 2.2, plaf: 83600, tva: 37500}
+  vente:    {nom: "Je vends des choses", note: "commerce, artisanat de vente", court: "Vente", formel: "Vente de marchandises", abat: 71, cotis: 12.3, liber: 1.0, plaf: 203100, tva: 85000, tvaMaj: 93500},
+  services: {nom: "Je rends des services", note: "travaux, prestations, artisanat", court: "Services", formel: "Prestations de services", abat: 50, cotis: 21.2, liber: 1.7, plaf: 83600, tva: 37500, tvaMaj: 41250},
+  liberal:  {nom: "Je suis en libéral", note: "conseil, santé, création", court: "Libéral", formel: "Profession libérale", abat: 34, cotis: 25.6, liber: 2.2, plaf: 83600, tva: 37500, tvaMaj: 41250}
 };
 
 /* ═══ les quatre formes les plus répandues en France ═══
@@ -4386,9 +4447,11 @@ const FORMES = {
   ei:    {nom: "Entreprise individuelle", note: "au réel, sans société", court: "EI",
     formel: "Entreprise individuelle au réel", genre: "ei"},
   sarl:  {nom: "SARL / EURL", note: "impôt sur les sociétés", court: "SARL",
-    formel: "SARL ou EURL", genre: "is"},
+    formel: "SARL ou EURL", genre: "is", dir: "tns", dirTaux: DIR_TNS,
+    dirNom: "Gérant majoritaire", dirNote: "travailleur non salarié"},
   sas:   {nom: "SAS / SASU", note: "impôt sur les sociétés", court: "SAS",
-    formel: "SAS ou SASU", genre: "is"}
+    formel: "SAS ou SASU", genre: "is", dir: "assimile", dirTaux: DIR_ASSIM,
+    dirNom: "Président", dirNote: "assimilé salarié, sans chômage"}
 };
 
 /* Le seul chiffre de cette application qui ne soit pas un taux officiel.
@@ -4458,15 +4521,41 @@ function partageImpot(){
   const a = ACTIVITES[calcStatut()] || ACTIVITES.services;
   const genre = f.genre;
 
-  /* Société : l'impôt porte sur le bénéfice, pas sur le chiffre
-     d'affaires. Plutôt que de poser une question de plus, on retire les
-     dépenses déjà notées dans l'application — l'argent n'a qu'une source. */
+  /* ═══ Société : la question n'est pas ce que gagne la société ═══
+     L'écran répondait « il vous restera X » en calculant ca − dépenses −
+     impôt sur les sociétés. Ce X n'était pas à vous : il dormait sur le
+     compte de la société. Pour l'avoir, il faut se le verser — et se le
+     verser coûte deux fois, en cotisations puis en impôt.
+     On pose donc la seule question qui manque, celle que le dirigeant se
+     pose tous les mois : combien je me verse ? Le reste s'enchaîne.
+       1. la rémunération coûte à la société ce qu'elle verse, plus les
+          cotisations — 45 % pour un gérant majoritaire de SARL, 81 % pour
+          un président de SAS, qui est assimilé salarié ;
+       2. ce qui reste est le bénéfice, sur lequel l'IS est dû ;
+       3. l'après-IS peut sortir en dividendes, taxés au forfait de 31,4 % ;
+       4. la rémunération, elle, passe au barème après la déduction de 10 %.
+     Ce qui arrive vraiment dans la poche, c'est 4 + 3. */
   if(genre === "is"){
     const charges = Math.min(ca, chargesAn());
-    const benef = Math.max(0, ca - charges);
+    const remun = 12 * calcRemun();
+    const tauxDir = f.dirTaux || DIR_TNS;
+    const cotisDir = remun * tauxDir / 100;
+    const coutDir = remun + cotisDir;
+    const benef = Math.max(0, ca - charges - coutDir);
     const is = impotIS(benef);
-    return {ca: ca, forme: f, act: a, cotis: 0, charges: charges, base: benef,
-      impot: is, net: ca - charges - is, genre: genre, societe: true};
+    const distribuable = Math.max(0, benef - is);
+    const pfu = distribuable * PFU / 100;
+    const dividendes = distribuable - pfu;
+    /* la déduction de 10 %, plancher et plafond compris */
+    const ded = remun > 0 ? Math.min(DED10_MAX, Math.max(DED10_MIN, remun * 0.10)) : 0;
+    const baseIR = Math.max(0, remun - Math.min(remun, ded));
+    const ir = impotBareme(baseIR, calcParts());
+    return {ca: ca, forme: f, act: a, charges: charges, genre: genre, societe: true,
+      remun: remun, cotis: cotisDir, base: benef, is: is,
+      distribuable: distribuable, pfu: pfu, dividendes: dividendes, ir: ir,
+      /* les deux impôts réunis, pour la barre : IS + forfait + barème */
+      impot: is + pfu + ir,
+      net: Math.max(0, remun - ir) + dividendes};
   }
 
   /* Entreprise individuelle au réel : cotisations sur le bénéfice, puis
@@ -4512,7 +4601,9 @@ function vueCalculs(){
     + '<input id="c-ca" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="40 000" value="'
     + (ca ? nf.format(ca) : "") + '"></div>'
     + (ca > 0 ? '<div class="reponse-c"><p class="heros-val" data-compte="calcnet" data-val="' + k.net + '">'
-        + eur(k.net) + '</p><span>' + (k.societe ? "restera dans la société" : "il vous restera, une fois tout payé")
+        + eur(k.net) + '</p><span>' + (k.societe
+          ? (k.remun > 0 ? "dans votre poche, une fois tout payé" : "à sortir de la société — dites-vous combien vous vous versez")
+          : "il vous restera, une fois tout payé")
         + '</span></div>' : "")
     + '<div class="statuts">' + Object.keys(FORMES).map(cle => {
         const f = FORMES[cle];
@@ -4541,6 +4632,16 @@ function vueCalculs(){
       + "</div>";
   }else if(k.genre === "ei"){
     out += '<div class="reglages-c">' + foyer + "</div>";
+  }else if(k.genre === "is"){
+    /* Une seule question de plus, et c'est celle qu'il se pose déjà tous
+       les mois. Sans elle, l'écran ne peut rien dire de ce qu'il touche. */
+    out += '<div class="reglages-c">'
+      + '<label class="ligne-c"><span>Je me verse par mois</span>'
+      + '<input id="c-remun" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" '
+      + 'placeholder="2 000" value="' + (calcRemun() ? nf.format(calcRemun()) : "") + '"></label>'
+      + '<p class="ligne-note">' + h(k.forme.dirNom) + " — " + h(k.forme.dirNote)
+      + ", environ " + pct(k.forme.dirTaux) + "\u00a0% de cotisations en plus de ce que vous touchez.</p>"
+      + foyer + "</div>";
   }
   out += "</section>";
 
@@ -4559,29 +4660,74 @@ function vueCalculs(){
     + (k.impot ? '<i class="impot" style="width:' + pc(k.impot).toFixed(1) + '%"></i>' : "")
     + "</div>"
     + '<div class="legende">'
-    + ligneLegende("moi", k.societe ? "Pour la société" : "Pour vous", k.societe ? "après impôt" : "une fois tout payé", k.net, part(k.net))
+    + ligneLegende("moi", "Pour vous",
+        k.societe ? (k.remun > 0
+            ? "votre rémunération après impôt, plus " + eur(k.dividendes) + " de dividendes"
+            : "tout est encore dans la société")
+          : "une fois tout payé", k.net, part(k.net))
     + (k.charges ? ligneLegende("depense", "Vos dépenses", "ce que vous avez noté cette année", k.charges, part(k.charges)) : "")
     + (k.cotis ? ligneLegende("cotis", "Cotisations sociales",
-        k.genre === "ei" ? "retraite, santé — environ " + pct(EI_COTIS) + " % de votre bénéfice"
-                         : "retraite, santé, chômage — " + pct(k.act.cotis) + " %",
+        k.societe ? h(k.forme.dirNote) + " — environ " + pct(k.forme.dirTaux) + "\u00a0% de ce que vous vous versez"
+        : k.genre === "ei" ? "retraite, santé — environ " + pct(EI_COTIS) + "\u00a0% de votre bénéfice"
+                         : "retraite, santé, chômage — " + pct(k.act.cotis) + "\u00a0%",
         k.cotis, part(k.cotis)) : "")
-    + (k.impot ? ligneLegende("impot", k.societe ? "Impôt sur les sociétés" : "Impôt sur le revenu",
-        k.societe ? ((k.base <= IS_SEUIL ? "taux réduit de 15 %" : "15 % jusqu'à " + eur(IS_SEUIL) + ", puis 25 %")
-            + (k.charges ? ", sur " + eur(k.base) + " de bénéfice" : ""))
-          : (k.genre === "ei" ? "barème, calculé sur " + eur(k.base) + " une fois vos cotisations déduites"
-             : (calcLib() ? "versement libératoire, " + pct(k.act.liber) + " %"
-                : "barème, calculé sur " + eur(k.base) + " après abattement de " + pct(k.act.abat) + " %")),
-        k.impot, part(k.impot)) : "")
+    /* Une société paie trois impôts et non un. Les confondre en une seule
+       ligne « impôt » empêche de voir lequel coûte le plus — or c'est
+       exactement la question que se pose quelqu'un qui hésite à se verser
+       un salaire plutôt qu'un dividende. */
+    + (k.societe
+        ? (k.is ? ligneLegende("impot", "Impôt sur les sociétés",
+              (k.base <= IS_SEUIL ? "taux réduit de 15\u00a0%" : "15\u00a0% jusqu'à " + eur(IS_SEUIL) + ", puis 25\u00a0%")
+              + ", sur " + eur(k.base) + " de bénéfice", k.is, part(k.is)) : "")
+          + (k.pfu ? ligneLegende("impot", "Impôt sur les dividendes",
+              "forfait de " + pct(PFU) + "\u00a0% — 12,8\u00a0% d'impôt et 18,6\u00a0% de prélèvements sociaux",
+              k.pfu, part(k.pfu)) : "")
+          + (k.ir ? ligneLegende("impot", "Impôt sur votre rémunération",
+              "barème, après la déduction de 10\u00a0%", k.ir, part(k.ir)) : "")
+        : (k.impot ? ligneLegende("impot", "Impôt sur le revenu",
+            (k.genre === "ei" ? "barème, calculé sur " + eur(k.base) + " une fois vos cotisations déduites"
+             : (calcLib() ? "versement libératoire, " + pct(k.act.liber) + "\u00a0%"
+                : "barème, calculé sur " + eur(k.base) + " après abattement de " + pct(k.act.abat) + "\u00a0%")),
+            k.impot, part(k.impot)) : ""))
     + "</div></div></section>";
 
-  /* les murs, seulement s'ils sont franchis */
-  const murs = [];
-  if(k.genre === "micro" && ca > k.act.tva) murs.push("Au-delà de " + eur(k.act.tva) + ", vous devez facturer la TVA à vos clients.");
-  if(k.genre === "micro" && ca > k.act.plaf) murs.push("Au-delà de " + eur(k.act.plaf) + ", vous sortez de la micro-entreprise.");
-  if(murs.length){
+  /* ═══ les deux murs, avant de les prendre ═══
+     Ils n'étaient annoncés qu'une fois franchis : l'application attendait
+     que le mur soit derrière vous pour le signaler. Or ce qu'on veut
+     savoir, c'est ce qu'il reste avant. Les chiffres étaient déjà là et
+     le dessin aussi — il ne manquait que de les montrer.
+     Le seuil de TVA en a deux : au-delà du premier on garde la franchise
+     jusqu'au 31 décembre, au-delà du majoré la TVA s'applique dès le
+     premier jour du mois du dépassement. Dire « au-delà de 37 500 € vous
+     devez facturer la TVA » était faux, et faux dans le sens qui inquiète
+     pour rien. */
+  if(k.genre === "micro" && ca > 0){
+    const jauge = (titre, atteint, seuil, majore, sousTexte) => {
+      const reste = seuil - atteint;
+      const pcJ = Math.min(100, atteint / seuil * 100);
+      const chaud = reste <= seuil * 0.15;
+      const franchi = reste <= 0;
+      return '<div class="seuil' + (franchi ? " franchi" : chaud ? " chaud" : "") + '">'
+        + '<span class="quoi-s">' + titre + "</span>"
+        + '<span class="reste-s">' + (franchi ? "dépassé de " + eur(-reste) : "il reste " + eur(reste)) + "</span>"
+        + '<span class="piste-s"><i style="width:' + pcJ.toFixed(1) + '%"></i></span>'
+        + '<span class="sous-s">' + eur(atteint) + " sur " + eur(seuil)
+        + (majore && franchi ? " — " + sousTexte : majore ? "" : "") + "</span>"
+        + "</div>";
+    };
     out += '<section class="carte anim" style="animation-delay:.1s">'
-      + murs.map(m => '<div class="r"><span class="pastille feu">!</span><span class="r-corps"><span class="r-titre" style="font-weight:600">'
-        + m + "</span></span></div>").join("") + "</section>";
+      + '<div class="carte-tete"><h2>Les deux murs</h2>'
+      + '<span class="appoint">sur ' + eur(ca) + "</span></div>"
+      + '<div class="seuils">'
+      + jauge("Avant de facturer la TVA", ca, k.act.tva, true,
+          ca > k.act.tvaMaj
+            ? "au-delà de " + eur(k.act.tvaMaj) + ", la TVA s'applique dès ce mois-ci"
+            : "vous gardez la franchise jusqu'au 31 décembre")
+      + jauge("Avant de sortir de la micro", ca, k.act.plaf, false, "")
+      + "</div>"
+      + '<p class="seuils-note">Ces deux plafonds sont indépendants depuis 2025&nbsp;: '
+      + "on peut devoir la TVA en restant micro-entrepreneur.</p>"
+      + "</section>";
   }
 
   /* Ce qu'on reporte aux impôts, c'est le chiffre d'affaires encaissé,
@@ -5098,7 +5244,7 @@ async function feuilleDeclaration(){
     doc.text(euroTxt(v), D, y, {align: "right"});
     y += 7;
   };
-  ligne("Base imposable, après abattement de " + pct(k.act.abat) + " %", k.base);
+  ligne("Base imposable, après abattement de " + pct(k.act.abat) + "\u00a0%", k.base);
   ligne("Cotisations sociales, " + pct(k.act.cotis) + " % du chiffre d'affaires", k.cotis);
   ligne(calcLib() ? "Impôt, versement libératoire" : "Impôt sur le revenu, barème " + an, k.impot);
   y += 2;
@@ -6113,6 +6259,34 @@ $("#vue").addEventListener("toggle", e => {
 
 /* le montant se recalcule à la frappe : on redessine, puis on rend le curseur */
 $("#vue").addEventListener("input", e => {
+  /* La rémunération du dirigeant se saisit comme le chiffre d'affaires,
+     mais elle est un fait le concernant : elle va dans state.moi et elle
+     est enregistrée, alors que le chiffre d'affaires n'est qu'une
+     simulation. On la remet en forme au même endroit pour n'avoir qu'une
+     seule façon de lire un nombre tapé à la main. */
+  if(e.target.id === "c-remun"){
+    const brutR = String(e.target.value);
+    const entierR = brutR.split(/[.,]/)[0].replace(/\D/g, "");
+    const avantR = Math.min(entierR.length,
+      brutR.slice(0, e.target.selectionStart || 0).replace(/\D/g, "").length);
+    state.moi.remun = Number(entierR) || 0;
+    sauver();
+    memoire.set("calcnet", partageImpot().net);
+    animer = false;
+    rendre();
+    const chR = $("#c-remun");
+    if(chR){
+      chR.value = state.moi.remun ? nf.format(state.moi.remun) : "";
+      let i = 0, vus = 0;
+      while(i < chR.value.length && vus < avantR){
+        if(/\d/.test(chR.value[i])) vus++;
+        i++;
+      }
+      chR.focus();
+      try{ chR.setSelectionRange(i, i); }catch(err){}
+    }
+    return;
+  }
   if(e.target.id !== "c-ca") return;
   const brut = String(e.target.value);
   /* on compte les chiffres situés avant le curseur : les séparateurs vont
@@ -7242,6 +7416,7 @@ function makeBlock(ev, opts){
   var hHeure  = tH > 0 ? (17 + 2) * tH : 0;
   var py      = clamp((hEff - hNom - hHeure) / 2, 3, 9);
   b.style.setProperty('--py', py.toFixed(1) + 'px');
+
   var band = opts.band, w = band.w / (ev._cols || 1);
   var gauche = band.left + w * (ev._col || 0);
 
@@ -7276,7 +7451,8 @@ function makeBlock(ev, opts){
      qu'il y a un rendez-vous, et lequel. Au-dessus de 96 px rien ne
      change : la vue Jour ordinaire est intacte. */
   var largeurPx = (opts.largeur || 320) * (w / 100) - 4;
-  if (largeurPx < 96){
+  var etroit = largeurPx < 96;
+  if (etroit){
     b.classList.add('serre');
     /* La place qui restera vraiment au texte : la largeur du bloc, moins
        le trait de couleur et le rembourrage resserré. Le nom ne peut pas
@@ -7284,6 +7460,23 @@ function makeBlock(ev, opts){
        qu'une lettre. */
     b.style.setProperty('--nom', clamp((largeurPx - 9) / 3.4, 9, 13).toFixed(1) + 'px');
   }
+
+  /* ═══ combien de lignes le bloc peut porter ═══
+     Le banc d'essai l'a montré sur 5 120 blocs : dans 727 cas le nom
+     passait sous le bord. Un bloc large mais court — « Rendez-vous client
+     pour le métré de la cuisine » dans vingt-six pixels de haut —
+     l'écrivait sur trois lignes dont deux invisibles et la troisième
+     tranchée en son milieu. Le débordement était caché, pas évité.
+     On compte donc les lignes que la hauteur peut vraiment porter, pour
+     tous les blocs et non plus seulement les étroits, et on n'en écrit
+     pas une de plus. Quatre au maximum : un nom de rendez-vous n'est pas
+     un paragraphe.
+     Ce calcul vient après « etroit », et non avant : la première fois je
+     l'avais posé plus haut, et makeBlock levait sur chaque bloc. */
+  var nomPx  = etroit ? clamp((largeurPx - 9) / 3.4, 9, 13) : (11.5 + 4.5 * t);
+  var hLigne = nomPx * (etroit ? 1.15 : 1.3);
+  b.style.setProperty('--lignes',
+    String(clamp(Math.floor((hEff - 2 * py - hHeure) / hLigne), 1, 4)));
   b.innerHTML = icon(cat.k, px < 52 ? 14 : 15) + '<span class="txt"></span>'
     + (ev.rep && ev.rep !== 'none' ? '<span class="rep">' + svg(I_REPEAT, 12, 1.8) + '</span>' : '')
     + '<span class="ev-rz"></span>';
