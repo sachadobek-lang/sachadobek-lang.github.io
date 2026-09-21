@@ -183,6 +183,21 @@ body.sur-agenda .page{max-width:none;padding:0}
 :root[data-theme="dark"][data-onglet="budget"]{--fond:linear-gradient(180deg,#12110E 0%,#0A0906 100%)}
 
 body{margin:0;background:var(--fond) fixed;color:var(--ink);font-family:var(--ui);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+/* ═══ le voile sous la barre ═══
+   La barre du bas flotte à dix-huit pixels du bord. Dans cette bande, et
+   sur les dix pixels de chaque côté, le contenu de la page défilait à nu :
+   on voyait passer un bout de phrase sous la barre, coupé net. Ce voile
+   reprend exactement le même fond que la page — même dégradé, même
+   attachement fixe, donc la même couleur au même endroit, dans les trois
+   onglets et dans les deux thèmes — et il s'efface vers le haut. Le texte
+   ne disparaît plus derrière la barre : il s'éteint avant de l'atteindre. */
+body::after{
+  content:""; position:fixed; left:0; right:0; bottom:0; z-index:39;
+  height:calc(96px + env(safe-area-inset-bottom)); pointer-events:none;
+  background:var(--fond) fixed;
+  -webkit-mask-image:linear-gradient(to top,#000 0%,#000 46%,transparent 100%);
+  mask-image:linear-gradient(to top,#000 0%,#000 46%,transparent 100%);
+}
 button,input,select{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:3px solid var(--v1);outline-offset:3px;border-radius:10px}
@@ -1393,27 +1408,6 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .ev.wk .name{font-size:12px; letter-spacing:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 #majournee .ev.wk .when{font-size:10.5px; margin-top:1px}
 #majournee .ev.wk.short .when,#majournee .ev.wk.tiny .when{display:none}
-/* ═══ la semaine sur un téléphone ═══
-   Sept colonnes dans 375 pixels laissent 43 pixels par jour. Une fois la
-   marge, le trait de couleur et le rembourrage retirés, il restait douze
-   pixels pour le nom : « Pose du comptoir » s'affichait « P. ». Une
-   écriture qu'on ne peut pas lire n'informe pas, elle donne seulement
-   l'impression que quelque chose s'est cassé.
-   Alors on ne l'écrit plus. Le bloc devient sa couleur, pleine : on voit
-   d'un regard où la semaine est chargée, ce qui est la seule question
-   qu'on pose à une vue Semaine sur un écran de poche. Le nom, l'heure et
-   le reste sont à un doigt — on touche le bloc, ou l'on passe en Jour.
-   Au-delà de 520 pixels les colonnes tiennent le texte : il revient. */
-@media (max-width:520px){
-  #majournee .ev.wk{
-    padding:0; border-radius:7px; min-height:14px;
-    background:color-mix(in oklab, var(--c) 58%, var(--surface));
-    border-color:color-mix(in oklab, var(--c) 72%, var(--surface));
-  }
-  #majournee .ev.wk::before{display:none}
-  #majournee .ev.wk .txt{display:none}
-  #majournee .ev.wk:hover{background:color-mix(in oklab, var(--c) 70%, var(--surface))}
-}
 /* touch-action:pan-y dit au navigateur : sur cette surface, un doigt fait
    défiler, et rien d'autre ne t'appartient. Sans cette ligne, deux doigts
    sur la grille agrandissaient la page entière de Safari — l'application
@@ -1425,16 +1419,21 @@ summary.carte-tete:hover h2{color:var(--v1)}
    Sept colonnes, cinq ou six rangées, et rien d'autre : le numéro du jour, et
    des points pour ce qu'il contient. On ne lit pas un mois, on le survole —
    écrire les titres ici donnerait une page illisible et ne dirait pas plus. */
-#majournee .mois{display:flex; flex-direction:column; gap:2px; padding:4px 4px 10px 0}
+/* Les rangées avaient une hauteur fixe : un mois de cinq semaines laissait
+   deux cents pixels de blanc sous la grille, dans une carte qui, elle,
+   prenait toute la page. Le mois occupe maintenant la hauteur qu'on lui
+   donne, et ses cases grandissent avec elle. */
+#majournee .mois{display:flex; flex-direction:column; gap:2px; padding:4px 4px 10px 0; min-height:100%}
 #majournee .mois-jours{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:2px; padding-bottom:6px}
 #majournee .mois-jours span{
   text-align:center; font-size:11px; font-weight:600; letter-spacing:.1em;
   text-transform:uppercase; color:var(--ink-3);
 }
-#majournee .mois-corps{display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:2px}
+#majournee .mois-corps{display:grid; grid-template-columns:repeat(7,minmax(0,1fr));
+  grid-auto-rows:minmax(56px,1fr); gap:2px; flex:1 1 auto}
 #majournee .m-case{
-  display:flex; flex-direction:column; align-items:center; gap:5px;
-  min-height:62px; padding:8px 2px 6px; border-radius:12px;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:5px;
+  min-height:0; padding:8px 2px 6px; border-radius:12px;
   transition:background-color .14s ease;
 }
 #majournee .m-case:hover{background:var(--surface-2)}
@@ -1446,11 +1445,17 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .m-case.hors .n{color:var(--ink-3); opacity:.55}
 #majournee .m-case.today .n{background:var(--ink); color:var(--bg)}
 #majournee .m-case[aria-current="true"] .n{box-shadow:inset 0 0 0 2px var(--ink-3)}
+/* Le jour choisi porte un anneau, aujourd'hui porte un disque plein. Quand
+   c'est le même jour — ce qui est le cas presque toujours — l'anneau se
+   dessinait à l'intérieur du disque : un liseré gris dans un rond noir,
+   qu'on lit comme un défaut d'affichage et non comme une information. Le
+   disque suffit à dire les deux. */
+#majournee .m-case.today[aria-current="true"] .n{box-shadow:none}
 #majournee .m-pts{display:flex; flex-wrap:wrap; justify-content:center; gap:3px; max-width:100%}
 #majournee .m-pts i{width:5px; height:5px; border-radius:99px; background:var(--m); flex:0 0 auto}
 #majournee .m-plus{font-size:10.5px; color:var(--ink-3); line-height:1; font-variant-numeric:tabular-nums}
 @media (max-width:480px){
-  #majournee .m-case{min-height:56px; padding:7px 1px 5px}
+  #majournee .m-case{padding:7px 1px 5px}
   #majournee .m-case .n{width:28px; height:28px; font-size:14px}
 }
 #majournee .grid{display:grid; grid-template-columns:70px 1fr; position:relative}
@@ -1552,6 +1557,30 @@ summary.carte-tete:hover h2{color:var(--v1)}
 }
 #majournee .ev:hover .ev-rz::after{opacity:.5}
 #majournee .ev.tiny .ev-rz{display:none}
+
+/* ═══ le bloc trop étroit pour un nom ═══
+   Sept colonnes de semaine dans 375 pixels, ou cinq rendez-vous qui se
+   chevauchent le même matin : dans les deux cas il reste une trentaine de
+   pixels de large, et le nom s'écrit une lettre par ligne. C'est le seul
+   endroit de l'application qui donnait l'impression d'être cassé.
+   Le bloc devient alors sa couleur, pleine — on voit l'occupation d'un
+   regard, ce qui est la seule question qu'on pose à ces vues-là — et le
+   nom reste à un doigt. La classe est posée par makeBlock, qui mesure la
+   largeur réelle : la règle vaut donc à toutes les tailles d'écran, en
+   semaine comme en jour, sans seuil deviné.
+   Elle est posée ici, après les règles de .tiny et de .wk : à spécificité
+   égale c'est la dernière écrite qui gagne, et celle-ci doit gagner. */
+#majournee .ev.etroit{
+  padding:0; border-radius:7px;
+  background:color-mix(in oklab, var(--c) 58%, var(--surface));
+  border-color:color-mix(in oklab, var(--c) 72%, var(--surface));
+}
+#majournee .ev.etroit::before,
+#majournee .ev.etroit .txt,
+#majournee .ev.etroit .ico,
+#majournee .ev.etroit .rep{display:none}
+#majournee .ev.etroit:hover{background:color-mix(in oklab, var(--c) 70%, var(--surface))}
+
 @media (hover:none){#majournee .ev-rz{display:none} }
 /* Le trait de l'heure barrait le nom du rendez-vous en cours et le rendait
    illisible. Il passe derrière : on le voit dépasser de chaque côté, et
@@ -6920,19 +6949,52 @@ function makeBlock(ev, opts){
   b.style.setProperty('--c', 'var(--c-' + cat.c + ')');
   b.style.top = ((start - DAY_START)/SPAN*100) + '%';
   b.style.height = ((end - start)/SPAN*100) + '%';
+  var band = opts.band, w = band.w / (ev._cols || 1);
+  var gauche = band.left + w * (ev._col || 0);
+
+  /* ═══ quand découper ne sert plus ═══
+     Six rendez-vous qui se chevauchent dans une colonne de semaine de
+     quarante-trois pixels donnent six traits de trois pixels : ni
+     lisibles, ni touchables — un doigt fait sept millimètres. En dessous
+     de quatorze pixels on cesse donc de découper : les blocs reprennent
+     toute la largeur de la colonne et se superposent.
+     On perd de pouvoir compter combien ils sont ; on gagne de voir que la
+     journée est prise, et d'en ouvrir un d'un doigt. La vue Jour, elle,
+     a la place de les séparer, et continue de le faire. */
+  if ((opts.largeur || 320) * (w / 100) - 4 < 14){
+    w = band.w;
+    gauche = band.left;
+  }
+
+  b.style.left = 'calc(' + gauche + '% + 2px)';
+  b.style.width = 'calc(' + w + '% - 4px)';
+
+  /* ═══ trop étroit pour un nom ═══
+     Deux situations donnent la même image, et c'est la plus laide de
+     l'application : sept colonnes de semaine sur un téléphone, ou cinq
+     rendez-vous qui se chevauchent le même matin. Le bloc tombe à trente
+     pixels, et « Devis Martin » s'écrit une lettre par ligne.
+     On ne devine plus avec un seuil d'écran : on calcule la largeur que
+     le bloc aura vraiment. En dessous de soixante-seize pixels — il en
+     faut environ vingt-sept pour les marges et cinquante pour deux
+     syllabes lisibles — le texte ne rentre pas, donc on ne l'écrit pas.
+     Le bloc devient sa couleur, pleine. On voit l'occupation, on touche
+     pour lire le reste. Une écriture illisible n'informe personne ; elle
+     donne seulement l'impression que quelque chose s'est cassé. */
+  var largeurPx = (opts.largeur || 320) * (w / 100) - 4;
+  var etroit = largeurPx < 76;
+  if (etroit) b.classList.add('etroit');
+
   /* Sous 26 px un nom n'est plus lisible : le bloc garde cette hauteur même
      quand la durée réelle en demanderait moins. Mieux vaut un quart d'heure
      qui paraît un peu long qu'un rendez-vous qu'on ne peut pas lire.
-     Sauf dans la semaine d'un téléphone, où il n'y a plus de nom à lire :
-     le bloc n'est plus que sa couleur, et lui imposer 26 px ferait passer
-     un quart d'heure pour une heure — la seule chose que cette vue sert à
-     montrer serait fausse. Neuf pixels suffisent à le voir. */
-  var etroit = opts.week && window.matchMedia('(max-width:520px)').matches;
+     Sauf quand le bloc est déjà trop étroit pour un nom : il n'y a plus
+     rien à lire, et lui imposer 26 px ferait passer un quart d'heure pour
+     une heure — la seule chose que ces vues servent à montrer serait
+     fausse. Neuf pixels suffisent à le voir. */
   b.style.minHeight = etroit ? '9px'
     : Math.max(26, Math.min(34, HOUR_PX * 0.34)).toFixed(0) + 'px';
-  var band = opts.band, w = band.w / (ev._cols || 1);
-  b.style.left = 'calc(' + (band.left + w * (ev._col || 0)) + '% + 2px)';
-  b.style.width = 'calc(' + w + '% - 4px)';
+
   b.innerHTML = icon(cat.k, px < 52 ? 14 : 15) + '<span class="txt"></span>'
     + (ev.rep && ev.rep !== 'none' ? '<span class="rep">' + svg(I_REPEAT, 12, 1.8) + '</span>' : '')
     + '<span class="ev-rz"></span>';
@@ -7113,6 +7175,11 @@ function renderTrack(){
   });
   track.appendChild(hit);
 
+  /* Mesurée une seule fois par rendu, et transmise à chaque bloc : c'est
+     elle qui décide si un nom tiendra. La mesurer bloc par bloc coûterait
+     un recalcul de mise en page à chaque appel. */
+  var largeurPiste = track.clientWidth || 320;
+
   var total = 0;
   if (week){
     for (var j = 0; j < 7; j++){
@@ -7120,7 +7187,7 @@ function renderTrack(){
       var evs = layout(eventsOf(dk));
       total += evs.length;
       var band = {left: j * 100/7, w: 100/7};
-      evs.forEach(function(ev){ track.appendChild(makeBlock(ev, {band: band, week: true})); });
+      evs.forEach(function(ev){ track.appendChild(makeBlock(ev, {band: band, week: true, largeur: largeurPiste})); });
     }
   } else {
     var list = layout(eventsOf(state.date));
@@ -7152,7 +7219,7 @@ function renderTrack(){
       });
     }
     list.forEach(function(ev){
-      track.appendChild(makeBlock(ev, {band: {left:0, w:100}}));
+      track.appendChild(makeBlock(ev, {band: {left:0, w:100}, largeur: largeurPiste}));
     });
     bandes.forEach(function(p){ track.appendChild(makeRoute(p)); });
   }
@@ -7445,28 +7512,38 @@ function render(){ renderHeader(); renderWeek(); cadrerCalendrier(); applyZoom()
 /* ---------- fiche ---------- */
 function buildPickers(){
   var cats = $('cats');
+  /* Les commandes de la feuille existent dès le premier affichage, mais le
+     brouillon qu'elles modifient n'apparaît qu'à l'ouverture. Entre les
+     deux — au clavier, au lecteur d'écran, ou d'un doigt posé pendant que
+     la feuille se referme — un clic tombait sur « state.draft.rep = … »
+     et levait une erreur sur un objet qui n'existe pas encore. On la pose
+     une fois pour toutes plutôt que de la répéter à chaque ligne. */
+  function br(){ return state.draft || null; }
+
   CATS.forEach(function(c){
     var b = document.createElement('button');
     b.type = 'button'; b.className = 'cat'; b.dataset.k = c.k;
     b.style.setProperty('--c','var(--c-' + c.c + ')');
     b.innerHTML = icon(c.k, 21) + '<span class="l">' + c.l + '</span>';
-    b.addEventListener('click', function(){ state.draft.cat = c.k; state.draft.catLock = true; syncSheet(); });
+    b.addEventListener('click', function(){ var d = br(); if (!d) return;
+      d.cat = c.k; d.catLock = true; syncSheet(); });
     cats.appendChild(b);
   });
   $('timePick').addEventListener('input', function(e){
+    var d = br(); if (!d) return;
     var v = (e.target.value || '').split(':');
     if (v.length === 2 && v[0] !== ''){
-      state.draft.start = clamp((+v[0])*60 + (+v[1]), 0, 1439);
+      d.start = clamp((+v[0])*60 + (+v[1]), 0, 1439);
       syncSheet(true);
     }
   });
-  $('evLieu').addEventListener('input', function(e){ state.draft.lieu = e.target.value; });
-  $('evNote').addEventListener('input', function(e){ state.draft.note = e.target.value; });
+  $('evLieu').addEventListener('input', function(e){ var d = br(); if (d) d.lieu = e.target.value; });
+  $('evNote').addEventListener('input', function(e){ var d = br(); if (d) d.note = e.target.value; });
   var dp = $('durPick');
   DURATIONS.forEach(function(m){
     var b = document.createElement('button');
     b.className = 'chip'; b.dataset.d = m; b.textContent = durLabel(m);
-    b.addEventListener('click', function(){ state.draft.dur = m; syncSheet(); });
+    b.addEventListener('click', function(){ var d = br(); if (!d) return; d.dur = m; syncSheet(); });
     dp.appendChild(b);
   });
   /* « La journée » d'Outlook. Pour un artisan ce n'est pas minuit à minuit :
@@ -7475,20 +7552,26 @@ function buildPickers(){
   var bj = document.createElement('button');
   bj.className = 'chip'; bj.dataset.d = JOURNEE; bj.textContent = 'La journée';
   bj.addEventListener('click', function(){
-    state.draft.dur = JOURNEE; state.draft.start = JOURNEE_DEBUT; syncSheet();
+    var d = br(); if (!d) return;
+    d.dur = JOURNEE; d.start = JOURNEE_DEBUT; syncSheet();
   });
   dp.appendChild(bj);
   var rp = $('repPick');
   REPEATS.forEach(function(r){
     var b = document.createElement('button');
     b.className = 'chip'; b.dataset.r = r.k; b.textContent = r.l;
-    b.addEventListener('click', function(){ state.draft.rep = r.k; syncSheet(); });
+    b.addEventListener('click', function(){ var d = br(); if (!d) return; d.rep = r.k; syncSheet(); });
     rp.appendChild(b);
   });
 }
 
 function syncSheet(skipTime){
-  var d = state.draft, cat = CAT[d.cat] || CAT.autre;
+  /* Le dernier verrou, et le seul qui les couvre tous : tout ce qui
+     rafraîchit la feuille passe ici. Sans brouillon, il n'y a rien à
+     rafraîchir — ce n'est pas une erreur, c'est une feuille fermée. */
+  var d = state.draft;
+  if (!d) return;
+  var cat = CAT[d.cat] || CAT.autre;
   document.querySelectorAll('#cats .cat').forEach(function(b){
     b.setAttribute('aria-pressed', String(b.dataset.k === d.cat)); });
   if (!skipTime) $('timePick').value = hhmm(d.start);
@@ -7577,7 +7660,12 @@ function disarmDelete(){
 }
 
 function commitDraft(){
-  var d = state.draft, cat = CAT[d.cat] || CAT.autre;
+  /* Sans brouillon il n'y a pas de fiche à écrire. On rend null plutôt
+     que de lever : ses appelants savent quoi en faire, et un appelant de
+     plus, demain, ne rouvrira pas la même brèche. */
+  var d = state.draft;
+  if (!d) return null;
+  var cat = CAT[d.cat] || CAT.autre;
   var ev = { id:d.id, date:d.date, cat:d.cat, title:(d.title || cat.l),
              start: clamp(d.start, DAY_START, DAY_END - 15), dur: d.dur, rep: d.rep || 'none' };
   /* Deux champs facultatifs : on ne les écrit que s'ils sont remplis, pour que
@@ -7870,6 +7958,7 @@ document.addEventListener('keydown', function(e){
 
 $('evName').addEventListener('input', function(e){
   var d = state.draft;
+  if (!d) return;            /* la feuille n'a pas encore été ouverte */
   var g = parsePhrase(e.target.value, d.date);
   d.title = g.title || '';
   if (g.start != null) d.start = clamp(g.start, DAY_START, DAY_END - 15);
@@ -7885,11 +7974,13 @@ $('evName').addEventListener('keydown', function(e){
 
 $('signe').addEventListener('click', function(){
   if (!window.__CADENCE__ || !window.__CADENCE__.clientDepuisRdv) return;
+  if (!state.draft) return;
   var t = state.draft.title, d = state.draft.date;
   closeSheet();
   window.__CADENCE__.clientDepuisRdv({title: t, date: d});
 });
 $('save').addEventListener('click', function(){
+  if (!state.draft) return;   /* rien à enregistrer : aucune feuille ouverte */
   var ev = commitDraft();
   dismissDemo();
   closeSheet();
@@ -7905,6 +7996,7 @@ $('save').addEventListener('click', function(){
 
 $('dup').addEventListener('click', function(){
   var base = commitDraft();
+  if (!base) return;
   var copy = {id: uid(), date: iso(addDays(fromIso(base.date), 1)), cat: base.cat,
               title: base.title, start: base.start, dur: base.dur, rep:'none'};
   closeSheet();
@@ -8773,12 +8865,17 @@ Object.keys(CHAMPS).forEach(function(id){
 });
 $("f-montant").addEventListener("input",function(e){ etat.facture.montant=num(e.target.value); rendreBrouillon(); });
 
+/* ONGLETS cite quatre panneaux, mais « p-calculs » n'existe plus : la
+   fonction onglet() s'en protège déjà par « if(el) », ces deux-ci ne le
+   faisaient pas. Le clic levait une erreur avant d'atteindre print() —
+   autrement dit le bouton Imprimer n'imprimait rien. La même garde, aux
+   deux endroits où elle manquait. */
 $("imprimer-facture").addEventListener("click",function(){
-  ONGLETS.forEach(function(p){ $(p[1]).hidden=p[0]!=="factures"; });
+  ONGLETS.forEach(function(p){ var el=$(p[1]); if(el) el.hidden=p[0]!=="factures"; });
   window.print();
 });
 $("imprimer-livre").addEventListener("click",function(){
-  ONGLETS.forEach(function(p){ $(p[1]).hidden=p[0]!=="livre"; });
+  ONGLETS.forEach(function(p){ var el=$(p[1]); if(el) el.hidden=p[0]!=="livre"; });
   window.print();
 });
 $("envoyer-facture").addEventListener("click",function(){
