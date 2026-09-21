@@ -670,7 +670,10 @@ summary.groupe:hover{background:var(--line)}
 .pastille.att{background:var(--surface-3);color:var(--ink-2)}
 .pastille.amb{background:var(--attente-doux);color:var(--attente)}
 .pastille small{display:block;font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.8}
-.r-corps{min-width:0;flex:1;display:flex;flex-direction:column;gap:3px}
+/* min-width:0 laisse le texte se compresser jusqu'à zéro : c'est ce qui
+   permet la coupure propre, et c'est aussi ce qui autorise l'écrasement
+   total. 6rem est le plancher sous lequel un nom cesse d'être lisible. */
+.r-corps{min-width:6rem;flex:1;display:flex;flex-direction:column;gap:3px}
 .r-titre{font-size:16px;font-weight:700;overflow-wrap:anywhere}
 .r-meta{display:flex;flex-wrap:wrap;align-items:center;gap:5px 10px;font-size:13.5px;color:var(--ink-3)}
 .r-som{font-family:var(--num);font-weight:600;font-size:17px;font-variant-numeric:tabular-nums;text-align:right;flex:none}
@@ -974,10 +977,19 @@ summary.carte-tete:hover h2{color:var(--v1)}
 .etape b{display:block;color:var(--ink);font-weight:700;font-size:16px}
 .bienvenue .valider{padding:17px 34px;margin-top:10px}
 
-/* ═══ bulle ═══ */
-.bulle{position:fixed;z-index:60;left:50%;bottom:26px;transform:translate(-50%,16px);opacity:0;pointer-events:none;
+/* ═══ bulle ═══
+   Elle était posée à 26 px du bas, c'est-à-dire sur la barre de navigation
+   dès que le message tenait sur deux lignes — « Fiche retirée — ses
+   factures restent en comptabilité » recouvrait les trois onglets et sa
+   dernière ligne finissait sous le trait de l'iPhone. Elle passe au-dessus
+   de la barre, et on lui donne une largeur de lecture. */
+.bulle{position:fixed;z-index:60;left:50%;bottom:calc(env(safe-area-inset-bottom) + 104px);transform:translate(-50%,16px);opacity:0;pointer-events:none;
   display:flex;align-items:center;gap:10px;background:var(--ink);color:var(--ground);padding:14px 20px;border-radius:999px;
-  font-size:15px;font-weight:700;box-shadow:var(--o3);transition:opacity .26s var(--doux),transform .34s var(--ressort);max-width:calc(100vw - 32px)}
+  font-size:15px;font-weight:700;box-shadow:var(--o3);transition:opacity .26s var(--doux),transform .34s var(--ressort);
+  /* left:50% sans width lui laissait la moitié droite de l'écran pour
+     largeur disponible : 188 px, et « comptabilité » sur quatre lignes.
+     max-content la libère, max-width la borne. */
+  width:max-content;max-width:min(calc(100vw - 32px),21rem);text-align:left;line-height:1.35}
 .bulle.on{opacity:1;transform:translate(-50%,0)}
 .bulle svg{width:18px;height:18px;flex:none;color:var(--ok);fill:none}
 #confettis{position:fixed;inset:0;z-index:55;pointer-events:none}
@@ -1056,6 +1068,23 @@ summary.carte-tete:hover h2{color:var(--v1)}
   .nav button, .nav button[aria-current="page"]{flex:1 1 0}
   .nav button[aria-current="page"]{padding:11px 8px}
   .nav .nom{overflow:hidden;text-overflow:ellipsis}
+
+  /* Une rangée de facture porte six éléments : pastille, nom, montant,
+     PDF, « Payée », supprimer. Les cinq derniers sont de largeur fixe et
+     en réclament 361 à eux seuls ; la rangée en fait 343 sur un iPhone.
+     Le nom, seul élément souple, était donc écrasé à zéro et s'écrivait
+     une lettre par ligne — « Menuiserie Dubois et Fils » sur vingt-cinq
+     lignes, sans la moindre erreur nulle part.
+     Ces règles existaient, mais sous 360 px seulement : entre 361 et 520,
+     c'est-à-dire sur la quasi-totalité des téléphones, elles ne
+     s'appliquaient pas. */
+  .r{padding:14px 40px 14px 16px;gap:9px 12px;flex-wrap:wrap;position:relative}
+  .r + .r::before{left:16px;right:16px}
+  .r .pastille{width:42px;height:42px;border-radius:14px;font-size:14px}
+  .r .r-corps{flex:1 1 52%;min-width:8.5rem}
+  .r .r-som{margin-left:auto}
+  .r .mini{margin-left:auto}
+  .r .sup{position:absolute;top:10px;right:4px;opacity:.45}
 }
 /* Sur les écrans les plus étroits — un iPhone SE fait 320 points —
    « Comptabilité » se coupait. Entre le mot et le pictogramme, c'est le
@@ -1069,13 +1098,6 @@ summary.carte-tete:hover h2{color:var(--v1)}
   .t + .t::before{left:52px;right:16px}
   .vite{padding:14px 16px;gap:13px}
   .vite::before{left:52px;right:16px}
-  .r{padding:14px 40px 14px 16px;gap:9px 12px;flex-wrap:wrap;position:relative}
-  .r + .r::before{left:16px;right:16px}
-  .r .pastille{width:42px;height:42px;border-radius:14px;font-size:14px}
-  .r .r-corps{flex:1 1 52%}
-  .r .r-som{margin-left:auto}
-  .r .mini{margin-left:auto}
-  .r .sup{position:absolute;top:10px;right:4px;opacity:.45}
   .carte-tete,.groupe,.fiches,.rituel,.mois{padding-left:16px;padding-right:16px}
   .segments{margin-left:16px;margin-right:16px}
 }
@@ -2851,10 +2873,12 @@ function calculs(){
     enRetard: resteJour.filter(t => jours(t.echeance) < 0),
     attente: attente, impayees: impayees, parMois: parMois, moisIci: moisIci,
     caIci: parMois(moisIci), caAvant: parMois(iso(dPrec).slice(0, 7)),
-    duAttente: attente.reduce((s, f) => s + (Number(f.montant) || 0), 0),
-    duRetard: impayees.reduce((s, f) => s + (Number(f.montant) || 0), 0),
-    encaisse: fact.filter(f => statut(f) === "payee" && String(f.emise || "").slice(0, 7) === moisIci)
-                  .reduce((s, f) => s + (Number(f.montant) || 0), 0)
+    /* duSur retire l'acompte déjà reçu : on ne réclame pas deux fois ce
+       qui est déjà rentré, et « on vous doit » ne gonfle plus. */
+    duAttente: attente.reduce((s, f) => s + duSur(f), 0),
+    duRetard: impayees.reduce((s, f) => s + duSur(f), 0),
+    encaisse: fact.filter(f => String(dateReglement(f)).slice(0, 7) === moisIci)
+                  .reduce((s, f) => s + encaisseDe(f), 0)
   };
 }
 /* Une facture dépassée engendre sa propre tâche de relance.
@@ -3783,7 +3807,8 @@ function aRappeler(){
 
   liste("clients").forEach(c => {
     const f = sesFactures(c.nom, fact);
-    const duSom = f.filter(x => statut(x) !== "payee").reduce((t, x) => t + (Number(x.montant) || 0), 0);
+    /* acompte déduit : duSur est la seule réponse à « combien il doit ». */
+    const duSom = f.reduce((t, x) => t + duSur(x), 0);
     const retard = f.filter(x => statut(x) === "retard")
                     .sort((a, b) => String(a.echeance).localeCompare(String(b.echeance)))[0];
 
@@ -3792,7 +3817,7 @@ function aRappeler(){
       const j = -jours(retard.echeance);
       file.push({id: c.id, nom: c.nom, rang: 1, genre: "relance",
         cle: "retard:" + retard.id,
-        etiq: ["Pas payé", "feu"],
+        etiq: [verse(retard) > 0 ? "En retard" : "Pas payé", "feu"],
         phrase: (retard.objet ? h(retard.objet) : "La facture " + h(retard.ref || ""))
           + " devait être réglé" + (retard.objet ? "" : "e") + " <b>il y a " + j + " jour" + (j > 1 ? "s" : "") + "</b>.",
         somme: duSom, sous: h(retard.ref || "facture en retard"),
@@ -3961,7 +3986,10 @@ function carnetClients(){
 
 /* ───────── vue : argent ───────── */
 function rangeeFacture(f, chezLui){
-  const st = statut(f), e = ETIQ_F[st], j = jours(f.echeance);
+  const st = statut(f), j = jours(f.echeance);
+  /* la ligne annonçait « Pas payé » juste au-dessus de « acompte de 32 €
+     reçu ». Quand une part est versée, le mot juste est « En retard ». */
+  const e = (st === "retard" && verse(f) > 0) ? ["En retard", "feu"] : ETIQ_F[st];
   const quand = st === "payee" ? "réglée le " + jour(dateReglement(f))
     : verse(f) > 0 ? "acompte de " + eur(verse(f)) + " reçu — reste " + eur(duSur(f))
     : st === "retard" ? "à relancer depuis " + (-j) + " jour" + (j < -1 ? "s" : "")
@@ -4400,7 +4428,11 @@ function texteRelance(nom){
   const som = n => sansFine(nf.format(Math.round(Number(n) || 0))) + " €";
   const dL = v => v ? dt(v).getDate() + " " + MOIS_LONG[dt(v).getMonth()] + " " + dt(v).getFullYear() : "";
   const moi = (state.moi && state.moi.nom) || "";
-  const total = f.reduce((t, x) => t + (Number(x.montant) || 0), 0);
+  /* on ne réclame que le solde. Réclamer le montant entier à un client qui
+     a versé un acompte, c’est une lettre fausse qui part sous son nom — et
+     elle vexe précisément celui qui a payé le plus vite. */
+  const total = f.reduce((t, x) => t + duSur(x), 0);
+  const acompteDe = x => verse(x) > 0 ? " (acompte de " + som(verse(x)) + " bien reçu)" : "";
 
   let corps = "Bonjour,\n\n";
   if(f.length === 1){
@@ -4408,15 +4440,16 @@ function texteRelance(nom){
     corps += enRetard.length
       ? "Sauf erreur de ma part, la facture " + (x.ref || "") + " du " + dL(x.emise)
         + ", d'un montant de " + som(x.montant) + ", est arrivée à échéance le "
-        + dL(x.echeance) + " et n'a pas encore été réglée.\n\n"
+        + dL(x.echeance) + " et reste due à hauteur de " + som(duSur(x)) + acompteDe(x) + ".\n\n"
         + "Je vous remercie de bien vouloir procéder à son règlement dans les meilleurs délais.\n\n"
       : "Je me permets de vous rappeler que la facture " + (x.ref || "") + " du " + dL(x.emise)
-        + ", d'un montant de " + som(x.montant) + ", arrive à échéance le " + dL(x.echeance) + ".\n\n"
+        + ", d'un montant de " + som(x.montant) + ", arrive à échéance le " + dL(x.echeance)
+        + " pour un solde de " + som(duSur(x)) + acompteDe(x) + ".\n\n"
         + "Je vous remercie par avance de votre règlement.\n\n";
   } else {
     corps += "Sauf erreur de ma part, les factures suivantes restent à ce jour impayées :\n\n"
-      + f.map(x => "— " + (x.ref || "facture") + " du " + dL(x.emise) + ", " + som(x.montant)
-              + ", à régler avant le " + dL(x.echeance)).join("\n")
+      + f.map(x => "— " + (x.ref || "facture") + " du " + dL(x.emise) + ", " + som(duSur(x))
+              + " restant dus" + acompteDe(x) + ", à régler avant le " + dL(x.echeance)).join("\n")
       + "\n\nSoit un total de " + som(total) + ".\n\n"
       + "Je vous remercie de bien vouloir procéder à leur règlement.\n\n";
   }
@@ -4537,12 +4570,25 @@ function ouvrirRelance(nom){
   requestAnimationFrame(() => { f.classList.add("on"); $("#voile").classList.add("on"); });
 }
 
-/* les totaux de l'année, ceux auxquels les fiches clients se comparent */
+/* les totaux de l'année, ceux auxquels les fiches clients se comparent
+
+   Ces deux chiffres comptaient la valeur faciale des factures « payee ».
+   Depuis que l'acompte existe, c'est faux : un client qui verse 435 € sur
+   1 450 € ne rendait la facture ni payée ni encaissée, et l'écran
+   Factures affichait « Déjà encaissé : 0 € » pendant que « Mon argent »
+   affichait 435 €. Deux écrans de la même application, deux réponses sur
+   le même argent.
+   On passe donc par encaisseDe, comme le fait le pont. Et l'encaissé se
+   date du règlement, pas de l'émission : une facture de décembre réglée
+   en janvier appartient à l'année suivante, c'est la règle du micro. */
 function bilanAn(){
   const an = String(new Date().getFullYear());
-  const f = liste("factures").filter(x => x.statut !== "brouillon" && String(x.emise || "").slice(0, 4) === an);
-  return {facture: f.reduce((t, x) => t + (Number(x.montant) || 0), 0),
-    encaisse: f.filter(x => statut(x) === "payee").reduce((t, x) => t + (Number(x.montant) || 0), 0)};
+  const tout = liste("factures").filter(x => x.statut !== "brouillon");
+  return {
+    facture: tout.filter(x => String(x.emise || "").slice(0, 4) === an)
+                 .reduce((t, x) => t + montantDe(x), 0),
+    encaisse: tout.filter(x => String(dateReglement(x)).slice(0, 4) === an)
+                  .reduce((t, x) => t + encaisseDe(x), 0)};
 }
 
 function ligneLegende(cls, titre, sous, montant, pourcent){
@@ -4556,12 +4602,24 @@ function ligneLegende(cls, titre, sous, montant, pourcent){
    Il y avait ici une deuxième table de taux et une cinquantaine de lignes
    de calculs (objectif mensuel, prix de journée, plus gros client) que
    plus aucun écran n'affichait. Le livre demande trois choses, les voici. */
+/* Le livre des recettes enregistre l’argent reçu, dans l’ordre où il est
+   reçu. Deux règles que le code ignorait :
+   — un acompte est une recette. Ne garder que les factures soldées, c’est
+     sous-déclarer de l’argent déjà encaissé ;
+   — une facture de décembre réglée en janvier appartient à l’année du
+     règlement, pas à celle de l’émission.
+   Le total et le PDF lisent tous les deux cette fonction : rien d’autre
+   n’a le droit de recalculer les recettes de l’année. */
+function recettesDeLAn(an){
+  return liste("factures")
+    .filter(f => f.statut !== "brouillon" && encaisseDe(f) > 0
+                 && String(dateReglement(f)).slice(0, 4) === an)
+    .sort((a, b) => String(dateReglement(a)).localeCompare(String(dateReglement(b))));
+}
 function bilanLivre(){
   const an = String(new Date().getFullYear());
   return {an: an, regle: FORMES[calcForme()],
-    encaisse: liste("factures")
-      .filter(f => statut(f) === "payee" && String(f.emise || "").slice(0, 4) === an)
-      .reduce((t, f) => t + (Number(f.montant) || 0), 0)};
+    encaisse: recettesDeLAn(an).reduce((t, f) => t + encaisseDe(f), 0)};
 }
 
 /* ═══ ce que vous avez déjà noté comme dépenses cette année ═══ */
@@ -4851,9 +4909,7 @@ async function livreRecettes(){
   if(!window.jspdf || !window.jspdf.jsPDF){ bulle("PDF indisponible ici"); return; }
   const k = bilanLivre();
   const moi = state.moi || {};
-  const lignes = liste("factures")
-    .filter(f => statut(f) === "payee" && String(f.emise || "").slice(0, 4) === k.an)
-    .sort((a, b) => String(a.emise).localeCompare(String(b.emise)));
+  const lignes = recettesDeLAn(k.an);
 
   const doc = new window.jspdf.jsPDF({unit: "mm", format: "a4"});
   const G = 18, D = 192;
@@ -4882,12 +4938,13 @@ async function livreRecettes(){
 
   lignes.forEach(f => {
     if(y > 268){ doc.addPage(); y = 22; entete(); }
-    doc.text(dateTxt(f.emise), G + 3, y);
+    const part = statut(f) !== "payee";
+    doc.text(dateTxt(dateReglement(f)), G + 3, y);
     doc.text(doc.splitTextToSize(String(f.client || ""), 50)[0] || "", G + 26, y);
-    doc.text(doc.splitTextToSize(String(f.objet || ""), 42)[0] || "", G + 76, y);
+    doc.text(doc.splitTextToSize(String(f.objet || "") + (part ? " (acompte)" : ""), 42)[0] || "", G + 76, y);
     doc.text(String(f.regle || "Virement"), D - 62, y);
     doc.text(String(f.ref || ""), D - 30, y, {align: "right"});
-    doc.text(euroTxt(f.montant), D - 3, y, {align: "right"});
+    doc.text(euroTxt(encaisseDe(f)), D - 3, y, {align: "right"});
     y += 6.6;
   });
 
@@ -5799,7 +5856,11 @@ $("#vue").addEventListener("click", e => {
   if(b.dataset.sup){
     if(!armer(b)) return;
     if(b.dataset.sup === "clients" && b.dataset.id === clientOuvert) clientOuvert = null;
+    /* ce qui part avec elle doit être dit avant qu’elle disparaisse */
+    const partie = b.dataset.sup === "factures" && state.factures && state.factures[b.dataset.id]
+      ? encaisseDe(state.factures[b.dataset.id]) : 0;
     retirer(b.dataset.sup, b.dataset.id);
+    if(partie > 0) bulle("Facture supprimée — " + eur(partie) + " retirés de vos recettes");
     /* ses factures ne partent pas avec lui — le livre des recettes doit
        être gardé dix ans. Le dire, sinon il croit avoir tout effacé. */
     if(b.dataset.sup === "clients") bulle("Fiche retirée — ses factures restent en comptabilité");
