@@ -2239,12 +2239,6 @@ summary.carte-tete:hover h2{color:var(--v1)}
        troisième formulation à lire avant d'arriver au chiffre -->
   <h1 class="noprint" hidden>Il vous reste combien&nbsp;?</h1>
 
-  <div class="tabs noprint" role="tablist" hidden>
-    <button id="tab-argent"   role="tab" aria-selected="true">Mon argent</button>
-    <button id="tab-factures" role="tab" aria-selected="false" hidden>Mes factures<span class="pastille" id="pastille" hidden>0</span></button>
-    <button id="tab-livre"    role="tab" aria-selected="false" hidden>Mes rentrées</button>
-    <button id="tab-calculs"  role="tab" aria-selected="false" hidden>Calculs</button>
-  </div>
 
   <!-- ============ MON ARGENT ============ -->
   <div class="panel noprint" id="p-argent" role="tabpanel">
@@ -2338,67 +2332,6 @@ summary.carte-tete:hover h2{color:var(--v1)}
   </div>
 
   <!-- ============ MES FACTURES ============ -->
-  <div class="panel" id="p-factures" role="tabpanel" hidden>
-
-    <button class="gros noprint" id="gros-facture">＋ Nouvelle facture</button>
-
-    <div class="cadre noprint" id="cadre-doit">
-      <span class="t">On vous doit</span>
-      <span class="v" id="d-total">—</span>
-      <span class="s" id="d-detail">—</span>
-    </div>
-
-    <div class="liste noprint" id="liste-creances"></div>
-
-    <!-- le formulaire, caché tant qu'on ne fait pas de facture -->
-    <div id="bloc-facture" hidden>
-      <div class="panel">
-        <div class="card noprint">
-          <h2>Toi</h2>
-          <div class="frow">
-            <label class="f"><span>Votre nom</span><input type="text" id="e-nom" placeholder="Studio Belleville"></label>
-            <label class="f"><span>SIRET</span><input type="text" id="e-siret" placeholder="123 456 789 00012"></label>
-          </div>
-          <label class="f"><span>Votre adresse</span><textarea id="e-adr" placeholder="12 rue des Cascades&#10;75020 Paris"></textarea></label>
-        </div>
-
-        <div class="card noprint">
-          <h2>Votre client</h2>
-          <label class="f"><span>Son nom</span><input type="text" id="c-nom" placeholder="Boulangerie Mercier"></label>
-          <label class="f"><span>Son adresse</span><textarea id="c-adr" placeholder="4 place du Marché&#10;75011 Paris"></textarea></label>
-        </div>
-
-        <div class="card noprint">
-          <h2>La facture</h2>
-          <div class="frow">
-            <label class="f"><span>Numéro</span><input type="text" id="f-num"></label>
-            <label class="f"><span>Date</span><input type="date" id="f-date"></label>
-            <label class="f"><span>À payer avant le</span><input type="date" id="f-ech"></label>
-          </div>
-          <label class="f"><span>Ce que vous avez fait</span><input type="text" id="f-desc" placeholder="Création du logo"></label>
-          <label class="f"><span>Combien</span><input type="text" inputmode="decimal" id="f-montant" placeholder="1200"></label>
-        </div>
-
-        <div class="cadre noprint">
-          <span class="t" id="t-tva-lbl">Le client vous doit</span>
-          <span class="v" id="t-ttc">—</span>
-          <span class="s" id="t-detail">—</span>
-        </div>
-
-        <div class="actions noprint">
-          <button class="btn plein" id="envoyer-facture">Je l'ai envoyée</button>
-          <button class="btn" id="imprimer-facture">Imprimer ou PDF</button>
-          <button class="btn" id="fermer-facture">Fermer</button>
-        </div>
-
-        <div class="apercu" id="apercu"></div>
-      </div>
-    </div>
-
-    <p class="note noprint">
-      <b>Le calendrier de relance des comptables</b> — cinq jours après l'échéance, un mot gentil. Quinze jours, une relance ferme. Trente jours, une lettre recommandée. Quarante-cinq jours, une mise en demeure. Les <b>40 €</b> d'indemnité de recouvrement sont dus dès le premier jour de retard, sans que vous ayez à les réclamer.
-    </p>
-  </div>
 
   <!-- ============ MES RENTRÉES ============ -->
   <div class="panel" id="p-livre" role="tabpanel" hidden>
@@ -8619,37 +8552,6 @@ function rendreArgent(){
 }
 
 /* ---------- rendu : factures ---------- */
-function rendreFactures(){
-  var cs=creancesTriees();
-  var total=cs.reduce(function(s,c){ return s+num(c.montant); },0);
-  var retard=cs.filter(function(c){ return c.retard>0; });
-  var totalRetard=retard.reduce(function(s,c){ return s+num(c.montant); },0);
-
-  roule("d-total",eur.format(total));
-  $("cadre-doit").classList.toggle("alerte",totalRetard>0);
-  $("d-detail").innerHTML = cs.length===0
-    ? "Personne. Tout le monde vous a payé."
-    : (totalRetard>0
-        ? "<b>"+nb(eur.format(totalRetard))+"</b> sont déjà en retard, sur "+nb(retard.length)+" facture"+(retard.length>1?"s":"")+"."
-        : "Rien en retard pour l'instant.");
-
-  var p=$("pastille");
-  if(retard.length>0){ p.hidden=false; p.textContent=retard.length; } else p.hidden=true;
-
-  $("liste-creances").innerHTML = cs.length===0
-    ? '<div class="vide">Quand vous envoyez une facture, elle apparaît ici jusqu\'à ce qu\'on vous paie.</div>'
-    : cs.map(function(c){
-        return '<div class="creance'+(c.retard>0?" retard":"")+'">'+
-          '<div class="haut"><span class="qui"><b>'+esc(c.client||"Sans nom")+
-            (c.exemple?' <span class="etiq">exemple</span>':'')+'</b>'+
-            '<small>'+esc(c.desc||"—")+' · n° '+nb(c.ref||"—")+' · envoyée le '+nb(jour(c.emission))+'</small></span>'+
-          '<span class="som">'+esc(eur2.format(num(c.montant)))+'</span></div>'+
-          '<div class="quoi">'+c.html+'</div>'+
-          '<div class="bas"><button class="btn plein" data-paye="'+c.id+'">Il m\'a payé</button>'+
-          '<button class="btn" data-annule="'+c.id+'">Retirer</button></div></div>';
-      }).join("");
-}
-
 /* ---------- rendu : objectif ---------- */
 function rendreObjectif(){
   var o=etat.objectif, b=bilan();
@@ -8699,39 +8601,6 @@ function rendreLivre(){
       }).join("");
 }
 
-/* ---------- rendu : brouillon de facture ---------- */
-var CHAMPS={"e-nom":"eNom","e-siret":"eSiret","e-adr":"eAdr","c-nom":"cNom","c-adr":"cAdr",
-            "f-num":"num","f-date":"date","f-ech":"ech","f-desc":"desc"};
-function rendreBrouillon(){
-  var f=etat.facture;
-  Object.keys(CHAMPS).forEach(function(id){ var el=$(id); if(el&&document.activeElement!==el) el.value=f[CHAMPS[id]]||""; });
-  if(document.activeElement!==$("f-montant")) $("f-montant").value=f.montant||"";
-
-  var ht=num(f.montant), tva=etat.tva?ht*TAUX_TVA:0;
-  roule("t-ttc",eur2.format(ht+tva));
-  $("t-detail").innerHTML = etat.tva
-    ? nb(eur2.format(ht))+" hors taxes, plus "+nb(eur2.format(tva))+" de TVA."
-    : "Pas de TVA — vous êtes en franchise en base.";
-
-  var vide=function(v,s){ return (v&&String(v).trim())?esc(v):'<span style="color:var(--ink-faint)">'+s+'</span>'; };
-  $("apercu").innerHTML =
-    '<div class="tete"><div><h3>Facture '+vide(f.num,"n° —")+'</h3>'+
-    '<div class="meta">Émise le '+nb(jour(f.date))+' · à payer avant le '+nb(jour(f.ech))+'</div></div>'+
-    '<div class="qui2"><strong>'+vide(f.eNom,"Votre nom")+'</strong>'+(f.eAdr?esc(f.eAdr)+"\n":"")+(f.eSiret?"SIRET "+nb(f.eSiret):"")+'</div>'+
-    '<div class="qui2"><strong>Facturé à</strong>'+vide(f.cNom,"Votre client")+"\n"+esc(f.cAdr||"")+'</div></div>'+
-    '<div class="tbl-scroll"><table><thead><tr><th>Désignation</th><th class="r">Total HT</th></tr></thead>'+
-    '<tbody><tr><td>'+vide(f.desc,"—")+'</td><td class="r">'+eur2.format(ht)+'</td></tr></tbody></table></div>'+
-    '<div class="fin"><div><span>Total HT</span><span>'+eur2.format(ht)+'</span></div>'+
-    (etat.tva?'<div><span>TVA 20 %</span><span>'+eur2.format(tva)+'</span></div>':'')+
-    '<div class="ttc"><span>Total à payer</span><span>'+eur2.format(ht+tva)+'</span></div></div>'+
-    '<div class="mentions" style="margin-top:18px">'+
-    (etat.tva?"":"<b>TVA non applicable, article 293 B du CGI.</b><br>")+
-    "En cas de retard de paiement, des pénalités sont dues au taux de trois fois le taux d'intérêt légal, "+
-    "ainsi qu'une indemnité forfaitaire pour frais de recouvrement de 40 €, sans qu'un rappel soit nécessaire "+
-    "(articles L441-10 et D441-5 du code de commerce).</div>";
-  sauver();
-}
-
 function boutonChoix(id, attr, actif, titre, sous){
   return '<button type="button" '+attr+'="'+id+'" aria-pressed="'+actif+'">'+
     '<span class="mark"><svg width="13" height="13" viewBox="0 0 14 14" aria-hidden="true">'+
@@ -8771,19 +8640,20 @@ function synchroniser(){
   etat.forme = C.maForme();
   etat.vfl = C.monVfl();
 }
-function toutRendre(){ rendreReglages(); rendreLivre(); rendreFactures(); rendreBrouillon(); rendreObjectif(); rendreArgent(); }
+function toutRendre(){ rendreReglages(); rendreLivre(); rendreObjectif(); rendreArgent(); }
 window.__MAJ_ARGENT__ = function(){ synchroniser(); toutRendre(); };
 
-/* ---------- onglets ---------- */
-var ONGLETS=[["argent","p-argent"],["factures","p-factures"],["livre","p-livre"],["calculs","p-calculs"]];
+/* ---------- panneaux ----------
+   Il y en avait quatre, derrière une barre d'onglets à demeure masquée :
+   « p-calculs » n'existait plus dans la page, et « p-factures » n'avait
+   plus d'entrée — la facture se fait depuis Comptabilité. Restent les
+   deux que l'on atteint vraiment : l'argent, et le livre qu'ouvre
+   « J'ai été payé ». */
+var ONGLETS=[["argent","p-argent"],["livre","p-livre"]];
 function onglet(n){
-  ONGLETS.forEach(function(p){
-    $("tab-"+p[0]).setAttribute("aria-selected",p[0]===n);
-    var el=$(p[1]); if(el) el.hidden = p[0]!==n;
-  });
+  ONGLETS.forEach(function(p){ var el=$(p[1]); if(el) el.hidden = p[0]!==n; });
   etat.onglet=n; sauver();
 }
-ONGLETS.forEach(function(p){ $("tab-"+p[0]).addEventListener("click",function(){ onglet(p[0]); }); });
 function sauver(){ try{ localStorage.setItem("itrc5",JSON.stringify(etat)); }catch(e){} }
 
 
@@ -8896,62 +8766,10 @@ $("vider-exemples").addEventListener("click",function(){
 });
 
 /* ---------- créances ---------- */
-$("liste-creances").addEventListener("click",function(e){
-  var p=e.target.closest("[data-paye]");
-  if(p){
-    var id=p.getAttribute("data-paye");
-    var c=etat.creances.filter(function(x){ return x.id===id; })[0];
-    if(!c) return;
-    /* la créance restait affichée comme réglée alors que rien n'était
-       écrit : au premier rafraîchissement elle revenait, doublée. On
-       passe l'identifiant, et c'est la facture elle-même qui est soldée. */
-    ouvrirRentree({facture:id, client:c.client});
-    return;
-  }
-  var a=e.target.closest("[data-annule]");
-  if(a){
-    etat.creances=etat.creances.filter(function(x){ return x.id!==a.getAttribute("data-annule"); });
-    rendreFactures();
-  }
-});
-
-/* ---------- facture ---------- */
-$("gros-facture").addEventListener("click",function(){
-  $("bloc-facture").hidden=false;
-  $("f-desc").focus();
-});
-$("fermer-facture").addEventListener("click",function(){ $("bloc-facture").hidden=true; });
-Object.keys(CHAMPS).forEach(function(id){
-  $(id).addEventListener("input",function(e){ etat.facture[CHAMPS[id]]=e.target.value; rendreBrouillon(); });
-});
-$("f-montant").addEventListener("input",function(e){ etat.facture.montant=num(e.target.value); rendreBrouillon(); });
-
-/* ONGLETS cite quatre panneaux, mais « p-calculs » n'existe plus : la
-   fonction onglet() s'en protège déjà par « if(el) », ces deux-ci ne le
-   faisaient pas. Le clic levait une erreur avant d'atteindre print() —
-   autrement dit le bouton Imprimer n'imprimait rien. La même garde, aux
-   deux endroits où elle manquait. */
-$("imprimer-facture").addEventListener("click",function(){
-  ONGLETS.forEach(function(p){ var el=$(p[1]); if(el) el.hidden=p[0]!=="factures"; });
-  window.print();
-});
 $("imprimer-livre").addEventListener("click",function(){
   ONGLETS.forEach(function(p){ var el=$(p[1]); if(el) el.hidden=p[0]!=="livre"; });
   window.print();
 });
-$("envoyer-facture").addEventListener("click",function(){
-  var f=etat.facture, ht=num(f.montant);
-  if(ht<=0){ $("f-montant").focus(); return; }
-  etat.creances.push({id:uid(),client:f.cNom||"Sans nom",ref:f.num,desc:f.desc,
-    montant:ht*(etat.tva?1+TAUX_TVA:1),emission:f.date||iso(new Date()),echeance:f.ech,exemple:false});
-  var m=String(f.num).match(/^(.*?)(\d+)$/);
-  if(m) f.num=m[1]+String(parseInt(m[2],10)+1).padStart(m[2].length,"0");
-  f.desc=""; f.montant=0; f.cNom=""; f.cAdr="";
-  $("bloc-facture").hidden=true;
-  rendreBrouillon(); rendreFactures();
-  window.scrollTo({top:0,behavior:"smooth"});
-});
-
 /* ---------- objectif et réglages ---------- */
 [["o-net","net"],["o-frais","frais"],["o-jours","jours"]].forEach(function(p){
   $(p[0]).addEventListener("input",function(e){ etat.objectif[p[1]]=num(e.target.value); rendreObjectif(); });
@@ -8975,7 +8793,7 @@ $("r-vfl").addEventListener("change",function(e){
   if(window.__CADENCE__) window.__CADENCE__.choisirVfl(etat.vfl);
   rendreArgent(); rendreObjectif();
 });
-$("r-tva").addEventListener("change",function(e){ etat.tva=e.target.checked; rendreArgent(); rendreBrouillon(); rendreObjectif(); });
+$("r-tva").addEventListener("change",function(e){ etat.tva=e.target.checked; rendreArgent(); rendreObjectif(); });
 
 /* ---------- démarrage ---------- */
 etat=etatNeuf();
