@@ -458,7 +458,13 @@ h1,h2,h3,p{margin:0}
   font-family:var(--num);font-weight:600;font-size:clamp(34px,8.5vw,46px);letter-spacing:-.03em;
   color:var(--ink);font-variant-numeric:tabular-nums;transition:border-color .18s}
 .saisie-gros input:focus{outline:0;border-bottom-color:var(--v1)}
-.saisie-gros input::placeholder{color:var(--ink-3)}
+/* L'invite était « 40 000 », écrite en quarante-six pixels à la place
+   exacte du résultat. Sacha l'a lue comme un chiffre de l'application :
+   « il y a 40 000 en exemple ». Une invite qui a la taille, la police et
+   la position d'une donnée est une donnée, quelle que soit sa couleur.
+   Elle redevient un mot, et un mot plus petit que le nombre qu'il attend. */
+.saisie-gros input::placeholder{color:var(--ink-3);font-family:var(--ui);
+  font-size:18px;font-weight:600;letter-spacing:0}
 
 .statuts{display:grid;gap:10px;padding:0 24px 22px}
 .statuts button{display:flex;align-items:center;gap:13px;text-align:left;border:2px solid var(--line);
@@ -2550,7 +2556,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 
     <div class="liste" id="livre"></div>
 
-    <div class="actions noprint"><button class="btn" id="imprimer-livre">Imprimer le livre des recettes</button></div>
+    <div class="actions noprint"><button class="btn" id="imprimer-livre">Imprimer tout ce que j'ai encaissé</button></div>
 
     <p class="note noprint">
       <b>C'est votre livre des recettes</b> — le seul document comptable obligatoire en micro-entreprise. Date d'encaissement, client, référence, mode de règlement, dans l'ordre. Gardez-le <b>10 ans</b> : c'est lui qu'on vous demandera en cas de contrôle.
@@ -4695,7 +4701,7 @@ function vueCalculs(){
 
   let out = '<section class="carte anim"><div class="carte-tete"><h2>Combien vous restera-t-il ?</h2></div>'
     + '<div class="saisie-gros"><label for="c-ca">Ce que vous encaissez dans l\'année</label>'
-    + '<input id="c-ca" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="40 000" value="'
+    + '<input id="c-ca" type="text" inputmode="numeric" autocomplete="off" spellcheck="false" placeholder="à remplir" value="'
     + (ca ? nf.format(ca) : "") + '"></div>'
     + (ca > 0 ? '<div class="reponse-c"><p class="heros-val" data-compte="calcnet" data-val="' + k.net + '">'
         + eur(k.net) + '</p><span>' + (k.societe
@@ -9251,7 +9257,10 @@ function rendreObjectif(){
 function rendreLivre(){
   var rs=etat.rentrees.slice().sort(function(a,b){ return String(a.date).localeCompare(String(b.date)); });
   $("livre").innerHTML = !rs.length
-    ? '<div class="vide">Rien encore. Appuyez sur « J\'ai été payé » dès qu\'un client vous règle.</div>'
+    /* Ce message envoyait vers « J'ai été payé », retiré de Mon argent ce
+       matin. Une consigne qui nomme un bouton absent fait chercher, puis
+       douter de l'application. Le geste est maintenant sur la facture. */
+    ? '<div class="vide">Rien encore. Sur une facture, appuyez sur « Payée » ou « Acompte » dès qu\'un client vous règle.</div>'
     : rs.map(function(r,i){
         return '<div class="ligne'+(r.exemple?" exemple":"")+'">'+
           '<span class="no">'+(i+1)+'</span>'+
