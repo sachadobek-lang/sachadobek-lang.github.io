@@ -1,3 +1,10 @@
+<!DOCTYPE html>
+<!-- La page n'avait ni <!DOCTYPE>, ni <html>, ni <body> : le navigateur les
+     invente, et ça marchait. Mais un <html> inventé n'a pas de langue. Un
+     lecteur d'écran lisait donc « Vous avez trois rendez-vous » avec une
+     voix anglaise, et Safari proposait à des artisans français de traduire
+     la page depuis l'anglais. Trois lignes réparent les deux. -->
+<html lang="fr">
 <meta charset="utf-8">
 <!-- viewport-fit=cover : sans lui, env(safe-area-inset-*) vaut toujours
      zéro et les marges réservées à la barre d'accueil de l'iPhone ne
@@ -264,6 +271,25 @@ h1,h2,h3,p{margin:0}
 .pf-note{margin:0;padding:0 24px 22px;color:var(--ink-3);font-size:13.5px;line-height:1.55}
 
 /* le compte : préparé, pas encore ouvert */
+/* La carte qui dit « non » se distingue sans crier : un liseré ambré, la
+   même couleur que les cotisations, pas un rouge d'erreur. Il ne s'est
+   rien passé de grave — il y a quelque chose à faire. */
+.profil-btn.dehors{position:relative}
+.profil-btn.dehors::after{
+  content:"";position:absolute;top:1px;right:1px;width:10px;height:10px;border-radius:999px;
+  background:var(--c-ambre,#B4802E);border:2px solid var(--bg);
+}
+.abri-corps{padding:4px 24px 26px}
+.abri-corps p{margin:0 0 14px;font-size:15px;line-height:1.5;color:var(--ink-2)}
+.abri-geste{padding:14px 16px;margin-bottom:10px;border-radius:var(--rm);
+  background:var(--surface-2);border:1px solid var(--line)}
+/* Le « > » compte : sans lui, les mots mis en gras dans la phrase — le
+   nom des deux boutons de Safari — passaient chacun à la ligne, et
+   l'instruction se lisait en cinq morceaux empilés. */
+.abri-geste > b{display:block;font-size:15px;color:var(--ink)}
+.abri-geste span{display:block;font-size:13.5px;line-height:1.5;color:var(--ink-3);margin-top:4px}
+.abri-geste span b{color:var(--ink-2)}
+.abri-geste button{margin-top:12px;width:100%}
 .pf-compte{display:flex;align-items:center;gap:13px;margin:0 24px;padding:14px 16px;border-radius:var(--rm);
   background:var(--surface-2);border:1px solid var(--line)}
 .pf-g{width:30px;height:30px;border-radius:999px;background:#fff;border:1px solid var(--line);
@@ -282,6 +308,11 @@ h1,h2,h3,p{margin:0}
 
 /* ═══ cartes ═══ */
 .carte{background:var(--surface);border-radius:var(--rl);box-shadow:var(--o1);overflow:hidden}
+/* La carte qui dit « non » se distingue sans crier : un liseré ambré, la
+   couleur des cotisations, pas un rouge d'erreur. Il ne s'est rien passé
+   de grave — il y a quelque chose à faire. Elle est écrite après .carte
+   pour que l'ombre de la carte survive au liseré. */
+.carte.carte-alerte{box-shadow:var(--o1),inset 0 0 0 1.5px color-mix(in oklab,#B9772E 45%,transparent)}
 .carte-tete{display:flex;align-items:center;gap:12px;padding:24px 24px 16px}
 .carte-tete h2{font-family:var(--num);font-weight:600;font-size:19px;letter-spacing:-.015em}
 .carte-tete .appoint{margin-left:auto;font-size:14px;color:var(--ink-3);font-weight:600;white-space:nowrap}
@@ -3001,7 +3032,7 @@ function connecterGoogle(){
 function deconnecter(){
   if(!sb){ compte = null; rendre(); return; }
   sb.auth.signOut().then(function(){
-    compte = null; syncEtat = ""; rendre();
+    compte = null; syncEtat = ""; rendre(); majPointAbri();
     bulle("Déconnecté — vos données restent sur cet appareil");
   }).catch(function(){ bulle("Impossible de se déconnecter"); });
 }
@@ -3140,6 +3171,57 @@ const SILHOUETTE = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false
   + '<circle cx="12" cy="8.6" r="3.9"/>'
   + '<path d="M4.4 20.4c0-3.9 3.4-6.4 7.6-6.4s7.6 2.5 7.6 6.4"/></svg>';
 
+/* On ne le demande pas à chaque ouverture : une inquiétude répétée cesse
+   d'être lue. Une fois quand il y a enfin quelque chose à perdre, puis
+   plus rien avant un mois, et jamais une fois le geste fait. */
+/* Le point du bouton profil est posé par rendre(). Mais rendre() s'exécute
+   une première fois avant que le second bloc de script — l'Agenda — n'ait
+   eu le temps d'exister, et le compte des rendez-vous valait donc zéro.
+   On le repose une fois que tout est là. */
+function majPointAbri(){
+  const b = $("#profil-btn");
+  if(b) b.classList.toggle("dehors", !aLAbri() && quelqueChoseAPerdre());
+}
+
+const LS_ABRI = "cura.abri.demande";
+function peutDemanderAbri(){
+  if(aLAbri() || !quelqueChoseAPerdre()) return false;
+  try{
+    const d = localStorage.getItem(LS_ABRI);
+    if(!d) return true;
+    return (Date.now() - Number(d)) > 30 * 24 * 3600 * 1000;
+  }catch(e){ return false; }
+}
+function demanderAbri(){
+  if(!peutDemanderAbri()) return;
+  try{ localStorage.setItem(LS_ABRI, String(Date.now())); }catch(e){}
+  const f = $("#feuille");
+  if(!f) return;
+  dernierFocus = document.activeElement;
+  typeActif = null;
+  f.innerHTML = '<div class="poignee"></div>'
+    + '<div class="feuille-tete"><h2 id="feuille-titre">Vos données ne sont que sur ce téléphone</h2>'
+    + '<button class="fermer" id="x" aria-label="Fermer">×</button></div>'
+    + '<div class="abri-corps">'
+      + "<p>Safari efface les données d'un site qu'on n'a pas ouvert depuis "
+      + "<b>sept jours</b>. Vos " + combienDeFiches() + " fiches partiraient avec.</p>"
+      + "<p>Un seul de ces deux gestes suffit à en sortir&nbsp;:</p>"
+      + '<div class="abri-geste"><b>Installer Cura sur l\'écran d\'accueil</b>'
+      + "<span>Dans Safari&nbsp;: <b>Partager</b>, en bas de l'écran, puis "
+      + "<b>Sur l'écran d'accueil</b>. Cura devient une application, et plus "
+      + "rien ne s'efface tout seul.</span></div>"
+      + '<div class="abri-geste"><b>Garder une copie en ligne</b>'
+      + "<span>Elle protège en plus d'un téléphone perdu ou cassé.</span>"
+      + (serveurPret() ? '<button class="plein" data-google="1">' + LOGO_G
+          + " Se connecter avec Google</button>" : "")
+      + "</div>"
+      + '<div class="pf-gestes"><button data-sauver="1">Enregistrer une copie</button>'
+      + '<button data-abri-fin="1">Plus tard</button></div>'
+    + "</div>";
+  f.hidden = false; $("#voile").hidden = false;
+  requestAnimationFrame(() => { f.classList.add("on"); $("#voile").classList.add("on"); });
+}
+
 function initiale(){
   const n = (state.moi && state.moi.nom || "").trim();
   return n ? n[0].toUpperCase() : "";
@@ -3164,6 +3246,10 @@ function vueProfil(){
       + '<div class="pf-rond">' + initiale() + "</div>"
       + '<div class="pf-qui"><h1 class="pf-nom">' + (m.nom ? h(m.nom) : "Votre entreprise") + "</h1>"
       + '<p class="pf-quoi">' + forme + " · " + act + "</p></div></div>"
+
+    /* En tête, et non en bas : c'est la seule carte du profil qui réponde
+       à une question qu'on ne se pose qu'une fois trop tard. */
+    + carteAbri()
 
     + '<section class="carte anim" style="animation-delay:.04s">'
       + '<div class="carte-tete"><h2>Vos coordonnées</h2></div>'
@@ -3209,12 +3295,86 @@ function vueProfil(){
     + carteDeuxVersions();
 }
 
+/* ═══ mettre à l'abri ═══
+   Ce qui rend ce sujet différent de tous les autres : c'est le seul où
+   l'application peut détruire le travail de quelqu'un sans que personne
+   ne fasse d'erreur.
+   Safari sur iPhone efface les données d'un site qui n'a pas été ouvert
+   depuis sept jours. Pas « peut les effacer » : c'est sa règle, et elle
+   s'applique à Cura comme aux autres. Un artisan saisit trois semaines de
+   factures, part en congés, revient — il ne reste rien.
+   Deux choses, et deux seulement, mettent hors de cette règle :
+     — installer Cura sur l'écran d'accueil, ce qui en fait une
+       application et non plus un site. Rien dans la page ne le disait ;
+     — se connecter, ce qui dépose une copie en ligne. C'était rangé dans
+       le profil, où personne ne va avant d'avoir perdu quelque chose.
+   La copie dans un fichier est utile, mais elle ne protège pas de ça :
+   elle demande un geste, et l'effacement arrive précisément quand on ne
+   fait plus de gestes. On la propose, on ne prétend pas qu'elle suffit.
+   La sauvegarde de la veille non plus : elle vit dans le même stockage,
+   donc elle part avec. */
+function installee(){
+  try{
+    return window.navigator.standalone === true
+        || window.matchMedia("(display-mode: standalone)").matches;
+  }catch(e){ return false; }
+}
+function aLAbri(){ return !!compte || installee(); }
+function combienDeFiches(){
+  const ici = COLS.reduce((t, c) => t + Object.keys(state[c] || {}).length, 0);
+  let agenda = 0;
+  try{ agenda = (window.__AGENDA__ && window.__AGENDA__.combien()) || 0; }catch(e){}
+  return ici + agenda;
+}
+/* En dessous de trois fiches il n'y a rien à perdre, et avertir quelqu'un
+   qui essaie l'application pour la première fois l'inquiéterait pour rien. */
+function quelqueChoseAPerdre(){ return combienDeFiches() >= 3; }
+
 const LOGO_G = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">'
   + '<path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.3-.2-1.9H12v3.7h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3Z"/>'
   + '<path fill="#34A853" d="M12 22c2.7 0 5-.9 6.6-2.5l-3.2-2.5a6 6 0 0 1-9-3.1H3.1v2.6A10 10 0 0 0 12 22Z"/>'
   + '<path fill="#FBBC05" d="M6.4 13.9a6 6 0 0 1 0-3.8V7.5H3.1a10 10 0 0 0 0 9l3.3-2.6Z"/>'
   + '<path fill="#EA4335" d="M12 5.9c1.5 0 2.8.5 3.8 1.5l2.8-2.8A10 10 0 0 0 3.1 7.5l3.3 2.6A6 6 0 0 1 12 5.9Z"/>'
   + "</svg>";
+
+/* Le geste d'installation ne peut pas être déclenché par la page sur
+   iPhone : Safari n'expose rien. On ne peut que le décrire — alors on le
+   décrit exactement, avec le mot qui est sur le bouton. */
+function carteAbri(){
+  const dehors = !aLAbri();
+  const corps = dehors
+    ? '<p class="pf-note" style="padding-top:0"><b>Vos données ne sont que sur ce téléphone.</b> '
+      + "Et Safari efface celles d'un site qu'on n'a pas ouvert depuis sept jours. "
+      + "Deux gestes mettent Cura hors de cette règle — un seul suffit.</p>"
+      + '<div class="pf-ligne"><span class="pf-cle">Sur l\'écran d\'accueil</span>'
+      + '<span class="pf-val pf-manque">à faire</span></div>'
+      + '<p class="pf-note" style="padding-top:6px">Dans Safari, touchez '
+      + "<b>Partager</b> en bas de l'écran, puis <b>Sur l'écran d'accueil</b>. "
+      + "Cura devient une application : plus rien ne s'efface tout seul.</p>"
+      + '<div class="pf-ligne"><span class="pf-cle">Copie en ligne</span>'
+      + '<span class="pf-val' + (compte ? '' : ' pf-manque') + '">'
+      + (compte ? "en place" : "à faire") + "</span></div>"
+      + (compte ? "" : '<div class="pf-gestes"><button class="plein" data-google="1">'
+          + LOGO_G + " Se connecter avec Google</button></div>")
+      + '<p class="pf-note">Elle protège aussi d\'un téléphone perdu ou cassé, '
+      + "ce que l'écran d'accueil ne fait pas.</p>"
+    : '<p class="pf-note" style="padding-top:0">'
+      + (installee() && compte
+          ? "Cura est installée sur cet appareil, et une copie vous attend en ligne. Rien ne peut s'effacer tout seul."
+          : installee()
+            ? "Cura est installée sur cet appareil : Safari n'efface plus rien. "
+              + "Une copie en ligne protégerait aussi d'un téléphone perdu."
+            : "Une copie de tout vous attend en ligne. Même si ce téléphone disparaît, vos fiches sont là.")
+      + "</p>";
+  return '<section class="carte anim' + (dehors ? " carte-alerte" : "") + '">'
+    + '<div class="carte-tete"><h2>Vos données sont-elles à l\'abri&nbsp;?</h2>'
+    + '<span class="appoint">' + (dehors ? "non" : "oui") + "</span></div>"
+    + corps
+    + '<div class="pf-gestes"><button data-sauver="1">Enregistrer une copie dans un fichier</button></div>'
+    + '<p class="pf-note">Une copie dans un fichier est utile, mais elle demande un geste — '
+    + "et l'effacement arrive justement quand on n'en fait plus.</p>"
+  + "</section>";
+}
 
 function carteCompte(){
   /* Connecté : on dit qui, et depuis quand la copie est à jour. */
@@ -5108,6 +5268,11 @@ function rendre(){
   const bouton = $("#profil-btn");
   if(lettre) bouton.textContent = lettre;
   else bouton.innerHTML = SILHOUETTE;
+  /* Le bouton profil est le seul présent sur les quatre écrans. Tant que
+     les données ne sont à l'abri nulle part et qu'il y a quelque chose à
+     perdre, il porte un point. Discret, mais partout, et il s'éteint tout
+     seul le jour où le geste est fait — rien à refermer. */
+  bouton.classList.toggle("dehors", !aLAbri() && quelqueChoseAPerdre());
   if(surProfil) $("#profil-btn").setAttribute("aria-current", "page");
   else $("#profil-btn").removeAttribute("aria-current");
   document.querySelectorAll(".nav button").forEach(function(b){
@@ -5933,6 +6098,13 @@ $("#vue").addEventListener("change", e => {
 $("#feuille").addEventListener("click", e => {
   if(e.target.closest("#x")){ fermer(); return; }
   const b = e.target.closest("button");
+  /* La feuille « à l'abri » n'est pas un formulaire : ses trois boutons
+     appellent directement ce que le profil appelle déjà. */
+  if(b && b.dataset.abriFin){ fermer(); return; }
+  if(b && e.target.closest(".abri-corps")){
+    if(b.dataset.google){ fermer(); connecterGoogle(); return; }
+    if(b.dataset.sauver){ exporterTout(); return; }
+  }
   if(b && b.dataset.copierRelance){
     const z = $("#relance-txt");
     if(z){
@@ -6195,6 +6367,12 @@ rendre();
    tôt découvrirait un écran encore vide. */
 requestAnimationFrame(() => requestAnimationFrame(() => {
   if(window.__finDuDemarrage__) window.__finDuDemarrage__();
+  /* Après l'écran de chargement, jamais pendant : une inquiétude posée
+     sur un écran noir ne se lit pas, elle se subit. Et deux secondes de
+     plus, pour qu'il voie d'abord sa journée — on ne l'arrête pas sur le
+     seuil, on l'arrête une fois qu'il est chez lui. */
+  majPointAbri();
+  setTimeout(function(){ majPointAbri(); demanderAbri(); }, 2000);
 }));
 
 </script>
@@ -8257,6 +8435,21 @@ window.addEventListener('resize', function(){
 refreshLocal();
 requestAnimationFrame(function(){ cadrerCalendrier(); applyZoom(); renderTrack(); scrollToNow(); });
 
+/* Le pont existait dans un seul sens : l'Agenda lisait Cura. Il lui faut
+   l'autre, pour une seule question — combien de rendez-vous y a-t-il à
+   perdre. Sans elle, l'avertissement sur les données ne compterait que
+   les clients et les factures, et resterait muet pour qui ne se sert que
+   du calendrier. Les exemples ne comptent pas : on n'inquiète personne
+   pour des fiches qu'on lui a données. */
+window.__AGENDA__ = {
+  combien: function(){
+    try{
+      return state.events.filter(function(e){ return !e.demo; }).length
+           + state.repeats.filter(function(e){ return !e.demo; }).length;
+    }catch(e){ return 0; }
+  }
+};
+
 /* Cura prévient quand on revient sur l'onglet */
 window.majourneeReveil = function(){
   requestAnimationFrame(function(){ cadrerCalendrier(); applyZoom(); renderTrack(); scrollToNow(); });
@@ -8776,3 +8969,4 @@ onglet("argent");
 
 </script>
 
+</html>
