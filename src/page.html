@@ -54,8 +54,19 @@
   /* la signature : un seul dégradé, du graphite au noir, à peine bleuté */
   --v1:#2F3B4D; --v2:#55637A;
   --v-txt:#2C3749;   /* l'accent quand il sert de texte : assez sombre pour être lu */
-  --deg:linear-gradient(135deg,#3A465A 0%,#11161E 100%);
-  --deg-fonce:linear-gradient(140deg,#242C3A 0%,#070A0F 100%);
+  /* Sacha : « le noir du profil en haut et de la barre en bas, mets-le
+     moins éclairé — il est trop éclairé par une lumière un peu bizarre ».
+     La lumière, c'était le haut du dégradé : un gris BLEU à 29 % de
+     clarté descendant à 9 sur un rond de quarante-quatre pixels, en
+     diagonale. Vingt points d'écart sur une si petite surface se lisent
+     comme un reflet, et le bleu lui donnait sa couleur étrange.
+     L'écart tombe à quatre points pour le profil, cinq pour l'onglet
+     ouvert. Le dégradé existe encore — un noir parfaitement plat paraît
+     mort, et ces deux surfaces sont les seules de l'application qui
+     portent la signature sombre — mais on ne le lit plus comme une
+     lampe posée à côté. */
+  --deg:linear-gradient(135deg,#1B2027 0%,#11161E 100%);
+  --deg-fonce:linear-gradient(140deg,#12161C 0%,#070A0F 100%);
   --deg-pale:linear-gradient(135deg,#F0F2F6 0%,#E6EAF1 100%);
   /* la barre du bas flotte au-dessus de la page : elle porte le dégradé
      comme le reste de l'identité, mais translucide pour laisser deviner
@@ -107,8 +118,8 @@
     --line:#233040; --line-fort:#334152;
     --ink:#ECF2F9; --ink-2:#A2AFC2; --ink-3:#73819A;
     --v-txt:#B9C4D6;
-    --deg:linear-gradient(135deg,#4C5A72 0%,#1A212C 100%);
-    --deg-fonce:linear-gradient(140deg,#2B3442 0%,#0C1118 100%);
+    --deg:linear-gradient(135deg,#232934 0%,#1A212C 100%);
+    --deg-fonce:linear-gradient(140deg,#161A22 0%,#0C1118 100%);
     --deg-pale:linear-gradient(135deg,#1A212B 0%,#161C25 100%);
     --deg-barre:linear-gradient(135deg,rgba(30,38,50,.90) 0%,rgba(17,22,30,.88) 100%);
     --v1:#AEB9CA; --v2:#8593A8; --v-txt:#B9C4D6;
@@ -1046,16 +1057,20 @@ button.tuile:active{transform:scale(.985)}
    large et faible qui fait le halo. Aucune ne déborde assez pour
    empâter une lettre de 12,5 pixels — vérifié à l'écran. */
 .nav button[aria-current="page"]{
-  text-shadow:0 0 7px rgba(150,196,255,.55), 0 0 18px rgba(120,176,255,.30);
+  /* Baissée de quarante pour cent en même temps que les dégradés : trois
+     lumières superposées faisaient une de trop. Elle reste — c'est une
+     demande explicite, « un tout petit peu un effet néon » — mais elle
+     éclaire au lieu de briller. */
+  text-shadow:0 0 7px rgba(150,196,255,.34), 0 0 18px rgba(120,176,255,.18);
 }
 .nav button[aria-current="page"] svg{
-  filter:drop-shadow(0 0 5px rgba(150,196,255,.5));
+  filter:drop-shadow(0 0 5px rgba(150,196,255,.32));
 }
 :root[data-onglet="budget"] .nav button[aria-current="page"]{
-  text-shadow:0 0 7px rgba(255,206,138,.58), 0 0 18px rgba(240,178,96,.32);
+  text-shadow:0 0 7px rgba(255,206,138,.36), 0 0 18px rgba(240,178,96,.19);
 }
 :root[data-onglet="budget"] .nav button[aria-current="page"] svg{
-  filter:drop-shadow(0 0 5px rgba(255,206,138,.52));
+  filter:drop-shadow(0 0 5px rgba(255,206,138,.33));
 }
 .nav button[aria-current="page"]{background:var(--deg-fonce);color:#fff;
   box-shadow:0 6px 18px -8px rgba(17,22,30,.55)}
