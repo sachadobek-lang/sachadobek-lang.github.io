@@ -274,7 +274,13 @@ h1,h2,h3,p{margin:0}
 /* La carte qui dit « non » se distingue sans crier : un liseré ambré, la
    même couleur que les cotisations, pas un rouge d'erreur. Il ne s'est
    rien passé de grave — il y a quelque chose à faire. */
-.profil-btn.dehors{position:relative}
+/* Cette ligne disait « position:relative » pour ancrer le point. Elle
+   écrasait le « position:fixed » du bouton, qui retombait alors à sa
+   place dans le flux — c'est-à-dire tout en haut à gauche, décalé de
+   16 px vers la gauche par le « right:16px » devenu un simple décalage.
+   Le bouton se retrouvait à moitié hors de l'écran, et seulement quand
+   le point était allumé. Il est déjà positionné : il n'avait besoin de
+   rien. */
 .profil-btn.dehors::after{
   content:"";position:absolute;top:1px;right:1px;width:10px;height:10px;border-radius:999px;
   background:var(--c-ambre,#B4802E);border:2px solid var(--bg);
