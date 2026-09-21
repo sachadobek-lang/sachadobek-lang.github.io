@@ -1875,20 +1875,6 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .chiffre{font-family:var(--num);font-variant-numeric:tabular-nums;font-size:.97em}
 /* la barre d'onglets de Comptabilité suffit : deux barres l'une dans
    l'autre, avec les mêmes mots, personne ne s'y retrouve */
-#ilreste .tabs{display:none}
-#ilreste .tabs button{
-  flex:1;min-height:48px;border:0;border-radius:11px;background:none;
-  color:var(--ink-soft);font:inherit;font-size:15.5px;font-weight:500;cursor:pointer;
-  transition:background .15s,color .15s;
-}
-#ilreste .tabs button[aria-selected=true]{background:var(--moi);color:var(--on-moi);font-weight:600}
-#ilreste .tabs button:hover:not([aria-selected=true]){color:var(--ink)}
-#ilreste .tabs .pastille{
-  display:inline-block;min-width:19px;height:19px;line-height:19px;padding:0 5px;margin-left:5px;
-  border-radius:99px;background:var(--chaud);color:#fff;font-size:11.5px;font-weight:600;
-  font-family:var(--num);vertical-align:1px;
-}
-#ilreste .tabs button[aria-selected=true] .pastille{background:var(--on-moi);color:var(--moi)}
 #ilreste .panel{display:flex;flex-direction:column;gap:18px}
 #ilreste .roll{display:inline-flex;align-items:center;line-height:1;white-space:nowrap}
 #ilreste .rd{display:inline-block;overflow:hidden;height:1.15em;width:1ch;flex:none}
@@ -1936,11 +1922,8 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .legende .urssaf .d{background:var(--urssaf)}
 #ilreste .legende .urssaf .v{color:var(--urssaf)}
 #ilreste .cadre{border:2px solid var(--ink);border-radius:18px;padding:16px 18px;display:flex;flex-direction:column;gap:4px}
-#ilreste .cadre.alerte{border-color:var(--chaud);background:var(--chaud-bg)}
 #ilreste .cadre .t{font-size:14.5px;color:var(--ink-soft)}
-#ilreste .cadre.alerte .t{color:var(--chaud)}
 #ilreste .cadre .v{font-family:var(--num);font-size:31px;font-weight:600;line-height:1.15}
-#ilreste .cadre.alerte .v{color:var(--chaud)}
 #ilreste .cadre .s{font-size:13.5px;color:var(--ink-soft)}
 #ilreste .cadre .s b{color:var(--ink);font-weight:600}
 #ilreste .mois{display:flex;align-items:flex-end;gap:4px;height:74px}
@@ -1992,18 +1975,6 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .ligne .sup:hover{background:var(--chaud-bg);color:var(--chaud);border-color:var(--chaud)}
 #ilreste .ligne.exemple{background:var(--sunken)}
 #ilreste .vide{padding:26px 18px;text-align:center;color:var(--ink-faint);font-size:15px}
-#ilreste .creance{display:flex;flex-direction:column;gap:10px;padding:15px;border-bottom:1px solid var(--rule)}
-#ilreste .creance:last-child{border-bottom:0}
-#ilreste .creance.retard{background:var(--chaud-bg)}
-#ilreste .creance .haut{display:flex;align-items:flex-start;gap:11px}
-#ilreste .creance .haut .qui{flex:1;min-width:0}
-#ilreste .creance .haut .qui b{display:block;font-size:16px;font-weight:600}
-#ilreste .creance .haut .qui small{display:block;font-size:12.5px;color:var(--ink-faint)}
-#ilreste .creance .haut .som{font-family:var(--num);font-size:19px;font-weight:600;white-space:nowrap}
-#ilreste .creance .quoi{font-size:13.5px;color:var(--ink-soft)}
-#ilreste .creance.retard .quoi{color:var(--chaud);font-weight:500}
-#ilreste .creance .bas{display:flex;gap:8px}
-#ilreste .creance .bas .btn{flex:1}
 #ilreste .etiq{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.04em;padding:2px 7px;border-radius:99px;background:var(--sunken);color:var(--ink-faint);text-transform:uppercase}
 #ilreste details.repli{border:1px solid var(--rule);border-radius:16px;overflow:hidden}
 #ilreste details.repli > summary{
@@ -2038,24 +2009,6 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste table.det td{padding:7px 0;border-bottom:1px solid var(--rule);color:var(--ink-soft)}
 #ilreste table.det td:last-child{text-align:right;font-family:var(--num);white-space:nowrap;color:var(--ink)}
 #ilreste table.det tr:last-child td{border-bottom:0}
-#ilreste .apercu{background:var(--surface);border:1px solid var(--rule);border-radius:16px;padding:22px;font-size:14px;line-height:1.5}
-#ilreste .apercu .tete{display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between;margin-bottom:18px}
-#ilreste .apercu h3{font-family:var(--num);font-size:20px;margin:0 0 3px}
-#ilreste .apercu .meta{color:var(--ink-soft);font-size:12.5px}
-#ilreste .apercu .qui2{font-size:12.5px;white-space:pre-line;color:var(--ink-soft);min-width:160px}
-#ilreste .apercu .qui2 strong{color:var(--ink);font-size:13.5px;display:block;margin-bottom:2px}
-#ilreste .apercu table{width:100%;border-collapse:collapse;font-size:13.5px;margin-bottom:13px}
-#ilreste .apercu th{text-align:left;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-faint);font-weight:500;padding:0 0 6px;border-bottom:1px solid var(--rule)}
-#ilreste .apercu th.r,#ilreste .apercu td.r{text-align:right}
-#ilreste .apercu td{padding:8px 0;border-bottom:1px solid var(--rule)}
-#ilreste .apercu td.r{font-family:var(--num);white-space:nowrap;padding-left:10px}
-#ilreste .apercu .fin{display:flex;flex-direction:column;gap:5px;margin-left:auto;max-width:260px}
-#ilreste .apercu .fin div{display:flex;gap:16px}
-#ilreste .apercu .fin div span:last-child{margin-left:auto;font-family:var(--num)}
-#ilreste .apercu .fin .ttc{border-top:1px solid var(--rule);padding-top:7px;margin-top:3px;font-weight:600;font-size:16.5px}
-#ilreste .tbl-scroll{overflow-x:auto}
-#ilreste .mentions{font-size:12px;color:var(--ink-faint);line-height:1.5}
-#ilreste .mentions b{color:var(--ink-soft);font-weight:600}
 /* .note sert aussi aux notes d'un client, qui sont en flex : sans ce
    display, le paragraphe se coupait en colonnes d'un mot de large. */
 #ilreste .note{display:block;font-size:13px;color:var(--ink-faint);line-height:1.55;border-top:1px solid var(--rule);padding-top:13px;margin:0}
@@ -2064,7 +2017,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .note-inline b{color:var(--ink-soft);font-weight:600}
 
 @media print{
-  @page{margin:14mm}#ilreste{background:#fff;color:#111}#ilreste .page{max-width:none;padding:0;gap:0}#ilreste .noprint{display:none!important}#ilreste .apercu{border:0;border-radius:0;padding:0;font-size:12pt}#ilreste .apercu th{border-bottom:1px solid #999}#ilreste .apercu td{border-bottom:1px solid #ddd}#ilreste .mentions{color:#444;font-size:9pt;margin-top:18px}#ilreste .liste{border:0;border-radius:0}#ilreste .ligne{border-bottom:1px solid #ddd}#ilreste .ligne .sup{display:none}
+  @page{margin:14mm}#ilreste{background:#fff;color:#111}#ilreste .page{max-width:none;padding:0;gap:0}#ilreste .noprint{display:none!important}#ilreste .liste{border:0;border-radius:0}#ilreste .ligne{border-bottom:1px solid #ddd}#ilreste .ligne .sup{display:none}
 }
 
 /* ── pour vivre à l'intérieur de Cura ── */
@@ -2074,7 +2027,6 @@ summary.carte-tete:hover h2{color:var(--v1)}
 /* ═══ mêmes cartes que Calculs et Factures ═══ */
 #ilreste .cadre,#ilreste .card,#ilreste .echeance{
   border:0;border-radius:var(--rl);background:var(--surface);box-shadow:var(--o1);padding:21px 22px}
-#ilreste .cadre.alerte{background:var(--chaud-bg);box-shadow:none}
 #ilreste .cadre .v{font-size:38px;letter-spacing:-.03em;line-height:1.1}
 #ilreste .gros{border-radius:var(--rm);font-family:var(--num);font-size:17.5px;font-weight:600}
 /* les deux libellés doivent tenir sur une ligne chacun, sinon l'un des
