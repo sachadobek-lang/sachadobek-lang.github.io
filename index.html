@@ -7425,13 +7425,16 @@ function makeBlock(ev, opts){
      quarante-deux pixels donnent six blocs de seize : mesuré, le nom y
      dispose de zéro pixel, et on ne voit que des traits. Or un trait ne
      dit pas qu'il y a un rendez-vous.
-     Il faut environ quarante pixels pour écrire trois lettres et des
-     points de suspension. En dessous, on ne découpe plus : les blocs
-     reprennent toute la largeur de la colonne et se superposent. On perd
-     de pouvoir les compter du regard ; on gagne de lire ce qu'il y a,
-     ce qui est la question posée. La vue Jour a la place de les séparer
-     jusqu'à sept, et continue de le faire. */
-  if ((opts.largeur || 320) * (w / 100) - 4 < 40){
+     Le plancher était à quarante pixels, fixé à l'époque où un bloc
+     étroit n'écrivait rien du tout. Depuis qu'il écrit, il est trop
+     haut : six rendez-vous qui se chevauchent sur un téléphone donnent
+     des colonnes de trente-huit pixels et demi, et tout s'empilait —
+     cinq des six devenaient invisibles pour épargner un pixel et demi.
+     Mesuré : à vingt-huit pixels il reste dix-neuf pixels de texte,
+     soit trois lettres à neuf pixels. C'est peu, mais c'est lisible, et
+     surtout les six rendez-vous existent. En dessous seulement, on cesse
+     de découper : mieux vaut un seul nom lisible que dix traits muets. */
+  if ((opts.largeur || 320) * (w / 100) - 4 < 28){
     w = band.w;
     gauche = band.left;
   }
@@ -7451,14 +7454,22 @@ function makeBlock(ev, opts){
      qu'il y a un rendez-vous, et lequel. Au-dessus de 96 px rien ne
      change : la vue Jour ordinaire est intacte. */
   var largeurPx = (opts.largeur || 320) * (w / 100) - 4;
-  var etroit = largeurPx < 96;
+  /* Le seuil était à 96 px, et le banc d'essai a montré que c'était trop
+     bas : sur 4 352 blocs, les 28 seuls échecs restants étaient tous à
+     cette largeur exacte. Un bloc de 96 px gardait le traitement large —
+     rembourrage complet, icône et son espace, soit cinquante-deux pixels
+     d'habillage — et il ne restait que quarante-quatre pixels de texte,
+     cinq lettres, dans un bloc haut de soixante-dix. Il faut une
+     soixantaine de pixels de texte pour qu'un nom veuille dire quelque
+     chose : le seuil passe à 116. */
+  var etroit = largeurPx < 116;
   if (etroit){
     b.classList.add('serre');
     /* La place qui restera vraiment au texte : la largeur du bloc, moins
        le trait de couleur et le rembourrage resserré. Le nom ne peut pas
        être plus grand que le quart de cette place, sinon il n'en montre
        qu'une lettre. */
-    b.style.setProperty('--nom', clamp((largeurPx - 9) / 3.4, 9, 13).toFixed(1) + 'px');
+    b.style.setProperty('--nom', clamp((largeurPx - 9) / 3.4, 9, 15).toFixed(1) + 'px');
   }
 
   /* ═══ combien de lignes le bloc peut porter ═══
@@ -7473,7 +7484,7 @@ function makeBlock(ev, opts){
      un paragraphe.
      Ce calcul vient après « etroit », et non avant : la première fois je
      l'avais posé plus haut, et makeBlock levait sur chaque bloc. */
-  var nomPx  = etroit ? clamp((largeurPx - 9) / 3.4, 9, 13) : (11.5 + 4.5 * t);
+  var nomPx  = etroit ? clamp((largeurPx - 9) / 3.4, 9, 15) : (11.5 + 4.5 * t);
   var hLigne = nomPx * (etroit ? 1.15 : 1.3);
   b.style.setProperty('--lignes',
     String(clamp(Math.floor((hEff - 2 * py - hHeure) / hLigne), 1, 4)));
