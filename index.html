@@ -1355,7 +1355,15 @@ summary.carte-tete:hover h2{color:var(--v1)}
    autant d'heures que le calendrier ne montrait pas. Resserrées, pas
    supprimées : rien ne disparaît, tout respire un peu moins. */
 #majournee .top{padding-block:10px 6px; display:flex; flex-direction:column; gap:8px}
-#majournee .dateline{display:flex; align-items:center; justify-content:space-between; gap:20px; flex-wrap:wrap}
+/* min-height : l'avatar est en position fixe, 44 px de haut, dans le coin.
+   Tant que le titre portait la date sur deux niveaux, la rangée était
+   assez haute pour que la bande des sept jours passe dessous. La date
+   retirée, la rangée est tombée à vingt-quatre pixels et la bande est
+   remontée DERRIÈRE l'avatar — « DIM » et la flèche de droite passaient
+   dessous. La rangée réserve donc sa hauteur, que le titre la remplisse
+   ou non. */
+#majournee .dateline{display:flex; align-items:center; justify-content:space-between;
+  gap:20px; flex-wrap:wrap; min-height:44px}
 #majournee .dateline h1{
   /* Le tableau retiré, toute la hauteur doit aller au calendrier : le
      titre tient sur une ligne, la date à sa suite plutôt qu'en dessous.
@@ -7928,13 +7936,12 @@ function renderHeader(){
   if (state.view === 'semaine'){
     var a = state.week, b = addDays(state.week, 6);
     title = weekHasToday ? 'Cette semaine' : 'Semaine du ' + a.getDate();
-    /* « 14 septembre — 20 septembre » passait sur deux lignes et coûtait
-       une trentaine de pixels au calendrier. Le mois ne se répète que
-       lorsqu'il change. */
-    sub = a.getMonth() === b.getMonth()
-        ? a.getDate() + ' – ' + b.toLocaleDateString('fr-FR',{day:'numeric', month:'long'})
-        : a.toLocaleDateString('fr-FR',{day:'numeric', month:'short'}) + ' – '
-          + b.toLocaleDateString('fr-FR',{day:'numeric', month:'short'});
+    /* La suite disait « 21 – 27 septembre ». La barre de période, contre
+       le calendrier juste en dessous, dit exactement la même chose — et
+       elle, on peut la toucher pour changer de semaine. Deux fois la
+       même phrase, dont une inerte. Le titre garde ce que la barre ne
+       dit pas : que cette semaine est la nôtre. */
+    sub = '';
   }
   else if (state.view === 'mois'){
     /* Le titre annonçait « Vendredi 16 octobre » alors qu'on regarde tout
@@ -7943,16 +7950,29 @@ function renderHeader(){
     var mm = moisDe(state.date);
     title = mm.toLocaleDateString('fr-FR', {month:'long'});
     title = title.charAt(0).toUpperCase() + title.slice(1);
-    sub = String(mm.getFullYear());
+    /* Même chose : la barre de période écrit « septembre 2026 » en
+       entier. L'année n'a pas à être dite deux fois à dix pixels
+       d'écart. */
+    sub = '';
   }
-  else if (state.date === today){ title = 'Aujourd’hui'; sub = label; }
-  else if (state.date === iso(addDays(new Date(),1))){ title = 'Demain'; sub = label; }
+  /* « Aujourd'hui » et « Demain » portaient la date complète en petit à
+     leur suite — « Aujourd'hui · lundi 21 septembre ». Sacha : « c'est
+     déjà marqué, ça fait trop d'écriture et ça sert à rien ». Il a
+     raison : la bande des sept jours, trois centimètres plus bas, montre
+     LUN et le 21 entouré. Deux fois la même phrase.
+     Les autres jours gardent leur suite, parce qu'elle porte l'année —
+     « Jeudi 24 septembre · 2026 » — et que l'année n'est écrite nulle
+     part ailleurs. Ce n'est donc pas la même information. */
+  else if (state.date === today){ title = 'Aujourd’hui'; sub = ''; }
+  else if (state.date === iso(addDays(new Date(),1))){ title = 'Demain'; sub = ''; }
   else { title = label.charAt(0).toUpperCase() + label.slice(1); sub = String(d.getFullYear()); }
   var h1 = $('bigdate');
   h1.innerHTML = '';
   h1.appendChild(document.createTextNode(title));
-  var s = document.createElement('span'); s.className = 'dim'; s.textContent = sub;
-  h1.appendChild(s);
+  if (sub){
+    var s = document.createElement('span'); s.className = 'dim'; s.textContent = sub;
+    h1.appendChild(s);
+  }
 
   $('majournee').setAttribute('data-vue', state.view);
   /* Une seule barre de période, contre la grille, pour la semaine comme
