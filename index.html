@@ -1114,6 +1114,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   width:max-content;max-width:min(calc(100vw - 32px),21rem);text-align:left;line-height:1.35}
 .bulle.on{opacity:1;transform:translate(-50%,0)}
 .bulle svg{width:18px;height:18px;flex:none;color:var(--ok);fill:none}
+.bulle svg.demande{color:var(--tard)}
 #confettis{position:fixed;inset:0;z-index:55;pointer-events:none}
 
 /* ═══ démo + pied ═══ */
@@ -4382,8 +4383,10 @@ function ecranFactures(){
     + '<span class="sous">rentré depuis janvier</span></div>'
     + '<div class="tuile bleu"><span class="lab">On vous doit</span>'
     + '<span class="val" data-compte="dus" data-val="' + c.duAttente + '">' + eur(c.duAttente) + "</span>"
+    /* « Tout le monde a payé » sur une application vierge affirme quelque
+       chose d'une situation qui n'existe pas : il n'y a personne. */
     + '<span class="sous">' + (combien === 0
-        ? "tout le monde a payé"
+        ? (an.facture > 0 ? "tout le monde a payé" : "aucune facture pour l'instant")
         : (c.impayees.length
             ? combien + " facture" + (combien > 1 ? "s" : "") + ", dont "
               + c.impayees.length + " à relancer"
@@ -4772,28 +4775,44 @@ function vueCalculs(){
      devez facturer la TVA » était faux, et faux dans le sens qui inquiète
      pour rien. */
   if(k.genre === "micro" && ca > 0){
-    const jauge = (titre, atteint, seuil, majore, sousTexte) => {
+    /* Une jauge mesure le mur qui arrive, pas celui qu'on a derrière soi.
+       À 41 000 € en services, elle annonçait « dépassé de 3 500 € » d'un
+       seuil de 37 500 € qui ne décide plus rien — pendant que le seuil qui
+       décide, 41 250 €, était à 250 € et dormait dans la petite ligne
+       grise. Celui qui lisait le gros chiffre lisait le mauvais.
+       Quand le premier seuil est franchi, la jauge passe au suivant, et
+       son titre cesse de dire « avant » d'une chose déjà faite. */
+    const jauge = (titre, titreFranchi, atteint, seuil, sousTexte) => {
       const reste = seuil - atteint;
       const pcJ = Math.min(100, atteint / seuil * 100);
       const chaud = reste <= seuil * 0.15;
       const franchi = reste <= 0;
       return '<div class="seuil' + (franchi ? " franchi" : chaud ? " chaud" : "") + '">'
-        + '<span class="quoi-s">' + titre + "</span>"
+        + '<span class="quoi-s">' + (franchi ? titreFranchi : titre) + "</span>"
         + '<span class="reste-s">' + (franchi ? "dépassé de " + eur(-reste) : "il reste " + eur(reste)) + "</span>"
         + '<span class="piste-s"><i style="width:' + pcJ.toFixed(1) + '%"></i></span>'
         + '<span class="sous-s">' + eur(atteint) + " sur " + eur(seuil)
-        + (majore && franchi ? " — " + sousTexte : majore ? "" : "") + "</span>"
+        + (sousTexte ? " — " + sousTexte : "") + "</span>"
         + "</div>";
     };
+    /* le seuil de TVA qui compte aujourd'hui : le premier tant qu'on est
+       dessous, le majoré dès qu'on l'a passé */
+    const passe = ca > k.act.tva;
     out += '<section class="carte anim" style="animation-delay:.1s">'
       + '<div class="carte-tete"><h2>Les deux murs</h2>'
       + '<span class="appoint">sur ' + eur(ca) + "</span></div>"
       + '<div class="seuils">'
-      + jauge("Avant de facturer la TVA", ca, k.act.tva, true,
-          ca > k.act.tvaMaj
-            ? "au-delà de " + eur(k.act.tvaMaj) + ", la TVA s'applique dès ce mois-ci"
-            : "vous gardez la franchise jusqu'au 31 décembre")
-      + jauge("Avant de sortir de la micro", ca, k.act.plaf, false, "")
+      + (passe
+          ? jauge("Avant de facturer la TVA", "Avant que la TVA s'applique",
+              ca, k.act.tvaMaj,
+              ca > k.act.tvaMaj
+                ? "la TVA s'applique depuis le début de ce mois-ci"
+                : "au-delà de " + eur(k.act.tva) + " vous gardez la franchise jusqu'au 31 décembre, au-delà de "
+                  + eur(k.act.tvaMaj) + " elle tombe tout de suite")
+          : jauge("Avant de facturer la TVA", "Avant de facturer la TVA",
+              ca, k.act.tva, ""))
+      + jauge("Avant de sortir de la micro", "Vous êtes sorti de la micro",
+          ca, k.act.plaf, "")
       + "</div>"
       + '<p class="seuils-note">Ces deux plafonds sont indépendants depuis 2025&nbsp;: '
       + "on peut devoir la TVA en restant micro-entrepreneur.</p>"
@@ -5425,7 +5444,10 @@ async function telechargerFacture(id){
      plus, le formulaire qui s'ouvrait déjà avant la première facture les
      exige — une seule règle, aucun écran en plus. */
   if(!(state.moi && state.moi.nom && state.moi.adresse && state.moi.siret)){
-    bulle("Dites-nous qui vous êtes");
+    /* Pas de bulle ici : elle se posait sur le titre de la feuille qu'elle
+       annonce, et elle répétait ce que cette feuille dit déjà mieux —
+       « Qui êtes-vous ? La loi les exige sur chaque facture. » Deux voix
+       pour un message, dont l'une couvre l'autre. */
     ouvrir("moi", null, function(){ telechargerFacture(id); });
     return;
   }
@@ -5772,9 +5794,17 @@ function compter(el, a, b){
 
 /* ───────── bulle + confettis ───────── */
 let minuteurBulle;
-function bulle(txt){
+/* La coche verte veut dire « c'est fait ». Elle s'affichait aussi sur
+   « Dites-nous qui vous êtes », qui veut dire le contraire : arrêtez-vous,
+   il manque quelque chose. Un plombier qui voit une coche verte range son
+   téléphone. Une demande porte donc un point d'interrogation, pas une
+   coche — le seul signe qui change, et il change tout. */
+function bulle(txt, genre){
   const b = $("#bulle");
-  b.innerHTML = '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>' + h(txt);
+  const icone = genre === "demande"
+    ? '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" class="demande"><path d="M9.2 9.2a2.9 2.9 0 1 1 3.9 2.7c-.7.3-1.1 1-1.1 1.7v.6"/><circle cx="12" cy="17.6" r="1.2" fill="currentColor" stroke="none"/></svg>'
+    : '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
+  b.innerHTML = icone + h(txt);
   b.classList.add("on");
   clearTimeout(minuteurBulle);
   minuteurBulle = setTimeout(() => b.classList.remove("on"), 2600);
@@ -5865,7 +5895,9 @@ const CHAMPS = {
     '<div class="champ"><label for="f1">Pour qui ?</label><input id="f1" name="client" required maxlength="80" list="lc" placeholder="Nom du client" autocomplete="off"></div>'
     + '<div class="champ"><label for="f2">Combien ? (€)</label><input id="f2" name="montant" type="number" min="0.01" step="any" required placeholder="0" inputmode="decimal"></div>'
     + '<div class="champ"><label for="f6">Pour quoi ?</label><input id="f6" name="objet" maxlength="120" placeholder="Comptoir et banquettes en chêne" autocomplete="off"></div>'
-    + '<p class="aide">Elle sera notée comme envoyée aujourd\'hui, à payer sous 30 jours.</p>'
+    + '<p class="aide">' + (enModif
+        ? "Sa date d'émission et son numéro ne changent pas."
+        : "Elle sera notée comme envoyée aujourd'hui, à payer sous 30 jours.") + "</p>"
     + '<details class="detail"><summary>Plus de détails</summary>'
     + '<div class="paire"><div class="champ"><label for="f3">Référence</label><input id="f3" name="ref" maxlength="24" value="' + refSuivante() + '"></div>'
     + '<div class="champ"><label for="f4">À payer avant le</label><input id="f4" name="echeance" type="date" value="' + dans(30) + '"></div></div>'
@@ -5909,7 +5941,13 @@ function ouvrir(type, prerempli, ensuite, modifId){
         '<button type="button" data-type="' + t + '" aria-pressed="' + (t === type) + '">' + NOM_TYPE[t] + "</button>").join("") + "</div>" : "")
     + '<form id="form">' + modele.html
     + '<datalist id="lc">' + liste("clients").map(c => '<option value="' + h(c.nom) + '">').join("") + "</datalist>"
-    + '<button class="valider" type="submit">' + (enModif ? "Enregistrer" : "Ajouter") + "</button></form>";
+    /* « Ajouter » convient à une facture ou à un client. Sur « Qui
+       êtes-vous ? », il laissait croire qu'on ajoutait une deuxième
+       personne, et surtout il gardait le libellé du geste interrompu :
+       on croyait ajouter la facture. */
+    + '<button class="valider" type="submit">'
+      + (type === "moi" ? "C'est bien moi" : enModif ? "Enregistrer" : "Ajouter")
+      + "</button></form>";
   clearTimeout(minuteurFeuille);
   f.hidden = false; $("#voile").hidden = false;
   requestAnimationFrame(() => { f.classList.add("on"); $("#voile").classList.add("on"); });
