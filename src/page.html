@@ -709,6 +709,16 @@ summary.groupe:hover{background:var(--line)}
    à la pastille active l'air de sortir de son cadre */
 .segments button[aria-pressed="true"]{background:var(--surface);color:var(--v1);
   box-shadow:0 1px 2px rgba(20,32,46,.06), 0 4px 9px -6px rgba(20,32,46,.30)}
+/* Sur un écran de 320 px — iPhone SE première génération — les trois
+   libellés demandaient 286 px pour 256 disponibles, et « Calculs » sortait
+   de la bande, coupé net par son bord arrondi. Les boutons ne pouvaient pas
+   rétrécir : white-space:nowrap leur donne une largeur minimale égale à
+   celle du mot. On leur rend donc la place en rognant le rembourrage plutôt
+   qu'en coupant le mot — un onglet qu'on ne lit pas n'est pas un onglet. */
+@media(max-width:360px){
+  .segments{gap:3px;padding:5px}
+  .segments button{padding:13px 4px;font-size:15px;letter-spacing:-.012em}
+}
 
 /* ═══ rangées argent ═══ */
 .r{display:flex;align-items:center;gap:15px;padding:18px 24px;position:relative;transition:background .15s}
@@ -2608,6 +2618,14 @@ const nf = new Intl.NumberFormat("fr-FR", {maximumFractionDigits: 0});
    côté, avec des listes de caractères différentes — l'un oubliait U+2009.
    Une seule fonction désormais, pour tout ce qui sort de la page. */
 const sansFine = t => String(t).replace(/[\u202F\u00A0\u2009\u2007\u2060]/g, " ");
+/* Les centimes, pour tout ce qui engage : la facture PDF les écrivait, la
+   lettre de relance les arrondissait. Une facture de 1 234,57 € était
+   réclamée « 1 234,57 EUR » sur le PDF et « 1 235 € » dans la mise en
+   demeure — deux montants pour une seule dette, dans un courrier qui cite
+   les articles L441-10 et D441-5. Les deux passent maintenant par cts().
+   L'affichage à l'écran garde l'euro rond : là, rien n'engage. */
+const NF2 = new Intl.NumberFormat("fr-FR", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const cts = v => sansFine(NF2.format(Number(v) || 0));
 const eur = n => nf.format(Math.round(Number(n) || 0)) + " €";
 const iso = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
 const auj = () => iso(new Date());
@@ -4549,7 +4567,7 @@ function texteRelance(nom){
   const enRetard = f.filter(x => statut(x) === "retard");
   /* espaces ordinaires : les espaces fines insécables passent mal d'un
      logiciel de courrier à l'autre */
-  const som = n => sansFine(nf.format(Math.round(Number(n) || 0))) + " €";
+  const som = n => cts(n) + " €";
   const dL = v => v ? dt(v).getDate() + " " + MOIS_LONG[dt(v).getMonth()] + " " + dt(v).getFullYear() : "";
   const moi = (state.moi && state.moi.nom) || "";
   /* on ne réclame que le solde. Réclamer le montant entier à un client qui
@@ -4756,8 +4774,7 @@ function chargesAn(){
 
 /* ═══ la facture en PDF ═══ */
 function euroTxt(v){
-  return sansFine(new Intl.NumberFormat("fr-FR", {minimumFractionDigits: 2, maximumFractionDigits: 2})
-    .format(Number(v) || 0)) + " EUR";
+  return cts(v) + " EUR";
 }
 function dateTxt(iso){
   if(!iso) return "";
@@ -5549,7 +5566,7 @@ const CHAMPS = {
 
   facture: () => ({titre: "Nouvelle facture", html:
     '<div class="champ"><label for="f1">Pour qui ?</label><input id="f1" name="client" required maxlength="80" list="lc" placeholder="Nom du client" autocomplete="off"></div>'
-    + '<div class="champ"><label for="f2">Combien ? (€)</label><input id="f2" name="montant" type="number" min="0" step="any" required placeholder="0" inputmode="decimal"></div>'
+    + '<div class="champ"><label for="f2">Combien ? (€)</label><input id="f2" name="montant" type="number" min="0.01" step="any" required placeholder="0" inputmode="decimal"></div>'
     + '<div class="champ"><label for="f6">Pour quoi ?</label><input id="f6" name="objet" maxlength="120" placeholder="Comptoir et banquettes en chêne" autocomplete="off"></div>'
     + '<p class="aide">Elle sera notée comme envoyée aujourd\'hui, à payer sous 30 jours.</p>'
     + '<details class="detail"><summary>Plus de détails</summary>'
@@ -5564,7 +5581,7 @@ const CHAMPS = {
 };
 function formSortie(ex){
   return '<div class="champ"><label for="f1">Quoi ?</label><input id="f1" name="libelle" required maxlength="90" placeholder="' + ex + '" autocomplete="off"></div>'
-    + '<div class="champ"><label for="f2">Combien ? (€)</label><input id="f2" name="montant" type="number" min="0" step="any" required placeholder="0" inputmode="decimal"></div>'
+    + '<div class="champ"><label for="f2">Combien ? (€)</label><input id="f2" name="montant" type="number" min="0.01" step="any" required placeholder="0" inputmode="decimal"></div>'
     + '<details class="detail"><summary>Plus de détails</summary>'
     + '<div class="champ"><label for="f3">Quand ?</label><input id="f3" name="date" type="date" value="' + auj() + '"></div></details>';
 }
