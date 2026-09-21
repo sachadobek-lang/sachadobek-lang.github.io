@@ -1630,9 +1630,17 @@ summary.carte-tete:hover h2{color:var(--v1)}
 /* L'heure ne se cache pas : elle se referme. Sa hauteur tombe à zéro en
    même temps que son opacité, donc elle cesse d'occuper la ligne qui
    poussait le nom. C'était exactement le défaut du dézoom. */
+/* La police doit rétrécir au moins aussi vite que la boîte, sinon les
+   chiffres dépassent et le bord du bloc les tranche en deux — mesuré sur
+   un bloc de 47,6 px : boîte de 9,6 px pour une police de 12. C'est le
+   défaut que la version par paliers n'avait pas, parce qu'elle sautait
+   par-dessus cette zone au lieu de la traverser. Les deux partent
+   maintenant du même curseur : à pleine taille 13,5 px comme avant, et
+   plus bas la boîte reste toujours plus haute que la ligne. */
 #majournee .ev .when{
   display:block; color:var(--ink-2); font-variant-numeric:tabular-nums;
-  font-size:calc(10px + var(--tH,1) * 3.5px);
+  font-size:calc(var(--tH,1) * 13.5px);
+  line-height:1.25;
   height:calc(var(--tH,1) * 17px);
   margin-top:calc(var(--tH,1) * 2px);
   opacity:var(--tH,1); overflow:hidden;
@@ -1666,6 +1674,35 @@ summary.carte-tete:hover h2{color:var(--v1)}
 }
 #majournee .ev:hover .ev-rz::after{opacity:.5}
 #majournee .ev.tiny .ev-rz{display:none}
+
+/* ═══ le bloc trop étroit pour écrire normalement ═══
+   Posée par makeBlock, qui mesure la largeur réelle du bloc. Elle ne se
+   déclenche que sous 96 px — sept colonnes de semaine sur un téléphone,
+   ou plusieurs rendez-vous qui se chevauchent. Ailleurs, rien ne bouge.
+   Trois choses rendent leur place, dans cet ordre de renoncement :
+   l'icône et son espace (25 px), le rembourrage (27 px → 13), l'heure.
+   Ce qui reste va au nom, qui se réduit juste assez pour tenir.
+   Écrite ici, après .short et .tiny : à spécificité égale c'est la
+   dernière qui gagne, et celle-ci doit gagner. */
+/* Pas de align-items:center ici : dans un bloc haut et étroit, le nom
+   centré flottait au milieu d'une colonne de cent cinquante pixels et on
+   ne voyait plus à quelle heure le rendez-vous commence. Le rembourrage
+   calculé par makeBlock s'en charge déjà : il colle le nom en haut quand
+   le bloc est haut, et le centre quand le bloc est juste. */
+/* Quatorze pixels de rembourrage sur un bloc de trente-deux, c'est
+   quarante-quatre pour cent du bloc occupés par du vide pendant que le
+   nom n'a que seize pixels pour s'écrire. Serré à neuf, le texte passe
+   de seize à vingt-trois pixels — une lettre et demie de plus, gagnée
+   sans rien changer ailleurs sur l'écran. */
+#majournee .ev.serre{padding:var(--py,4px) 2px var(--py,4px) 7px; gap:0}
+#majournee .ev.serre::before{left:2px; top:3px; bottom:3px; width:2px}
+#majournee .ev.serre .ico,
+#majournee .ev.serre .rep,
+#majournee .ev.serre .when{display:none}
+#majournee .ev.serre .name{
+  font-size:var(--nom, 11px); font-weight:600; line-height:1.15;
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
 
 
 
@@ -7150,8 +7187,47 @@ function makeBlock(ev, opts){
   var py      = clamp((hEff - hNom - hHeure) / 2, 3, 9);
   b.style.setProperty('--py', py.toFixed(1) + 'px');
   var band = opts.band, w = band.w / (ev._cols || 1);
-  b.style.left = 'calc(' + (band.left + w * (ev._col || 0)) + '% + 2px)';
+  var gauche = band.left + w * (ev._col || 0);
+
+  /* ═══ cesser de découper quand il n'y a plus la place d'écrire ═══
+     Six rendez-vous qui se chevauchent dans une colonne de semaine de
+     quarante-deux pixels donnent six blocs de seize : mesuré, le nom y
+     dispose de zéro pixel, et on ne voit que des traits. Or un trait ne
+     dit pas qu'il y a un rendez-vous.
+     Il faut environ quarante pixels pour écrire trois lettres et des
+     points de suspension. En dessous, on ne découpe plus : les blocs
+     reprennent toute la largeur de la colonne et se superposent. On perd
+     de pouvoir les compter du regard ; on gagne de lire ce qu'il y a,
+     ce qui est la question posée. La vue Jour a la place de les séparer
+     jusqu'à sept, et continue de le faire. */
+  if ((opts.largeur || 320) * (w / 100) - 4 < 40){
+    w = band.w;
+    gauche = band.left;
+  }
+
+  b.style.left = 'calc(' + gauche + '% + 2px)';
   b.style.width = 'calc(' + w + '% - 4px)';
+
+  /* ═══ écrire petit plutôt que ne pas écrire ═══
+     Mesuré sur un bloc de 47 px — trois rendez-vous qui se chevauchent
+     sur un téléphone : le nom disposait de ZÉRO pixel de large pour
+     quatorze pixels de texte. Il ne s'écrivait pas en petit, il ne
+     s'écrivait pas du tout, et « Devis Martin » tombait une lettre par
+     ligne. Le rembourrage, l'icône et l'espace qui la suit mangeaient
+     cinquante-deux des quarante-sept pixels disponibles.
+     Sous 96 px, ces trois-là cèdent la place, et le nom se réduit juste
+     assez pour tenir. On ne lit pas tout — on lit assez pour savoir
+     qu'il y a un rendez-vous, et lequel. Au-dessus de 96 px rien ne
+     change : la vue Jour ordinaire est intacte. */
+  var largeurPx = (opts.largeur || 320) * (w / 100) - 4;
+  if (largeurPx < 96){
+    b.classList.add('serre');
+    /* La place qui restera vraiment au texte : la largeur du bloc, moins
+       le trait de couleur et le rembourrage resserré. Le nom ne peut pas
+       être plus grand que le quart de cette place, sinon il n'en montre
+       qu'une lettre. */
+    b.style.setProperty('--nom', clamp((largeurPx - 9) / 3.4, 9, 13).toFixed(1) + 'px');
+  }
   b.innerHTML = icon(cat.k, px < 52 ? 14 : 15) + '<span class="txt"></span>'
     + (ev.rep && ev.rep !== 'none' ? '<span class="rep">' + svg(I_REPEAT, 12, 1.8) + '</span>' : '')
     + '<span class="ev-rz"></span>';
@@ -7332,6 +7408,11 @@ function renderTrack(){
   });
   track.appendChild(hit);
 
+  /* Mesurée une fois par rendu et transmise à chaque bloc : c'est elle qui
+     décide de la place qu'il restera pour écrire. La mesurer bloc par bloc
+     coûterait un recalcul de mise en page à chaque appel. */
+  var largeurPiste = track.clientWidth || 320;
+
   var total = 0;
   if (week){
     for (var j = 0; j < 7; j++){
@@ -7339,7 +7420,7 @@ function renderTrack(){
       var evs = layout(eventsOf(dk));
       total += evs.length;
       var band = {left: j * 100/7, w: 100/7};
-      evs.forEach(function(ev){ track.appendChild(makeBlock(ev, {band: band, week: true})); });
+      evs.forEach(function(ev){ track.appendChild(makeBlock(ev, {band: band, week: true, largeur: largeurPiste})); });
     }
   } else {
     var list = layout(eventsOf(state.date));
@@ -7371,7 +7452,7 @@ function renderTrack(){
       });
     }
     list.forEach(function(ev){
-      track.appendChild(makeBlock(ev, {band: {left:0, w:100}}));
+      track.appendChild(makeBlock(ev, {band: {left:0, w:100}, largeur: largeurPiste}));
     });
     bandes.forEach(function(p){ track.appendChild(makeRoute(p)); });
   }
