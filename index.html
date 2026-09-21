@@ -2463,7 +2463,11 @@ summary.carte-tete:hover h2{color:var(--v1)}
   </div>
 </div>
 
-<div class="sheet-wrap" id="sheetWrap" hidden>
+<!-- Sans role="dialog" ni aria-modal, un lecteur d'écran annonçait cette
+     feuille comme un morceau de page parmi d'autres, et laissait lire ce
+     qu'il y a derrière. La feuille de Cura le déclarait déjà ; celle-ci
+     l'avait oublié. -->
+<div class="sheet-wrap" id="sheetWrap" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
   <div class="backdrop" id="backdrop"></div>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
     <div class="sheet-head">
@@ -7729,7 +7733,39 @@ function defaultStart(){
   return clamp(Math.ceil((n.getHours()*60 + n.getMinutes())/30)*30, DAY_START, DAY_END - 60);
 }
 
+/* ═══ isoler la feuille du reste de la page ═══
+   Mesuré : la feuille ouverte, quarante-huit commandes du fond restaient
+   atteignables à la tabulation. Au clavier on sortait donc de la feuille
+   sans la fermer, et un lecteur d'écran lisait la page derrière elle.
+   « inert » dit au navigateur d'ignorer une branche entière — clic,
+   tabulation et lecture d'écran d'un seul coup. On le pose sur tous les
+   voisins rencontrés en remontant de la feuille jusqu'au corps, et on ne
+   retire que ce qu'on a posé : une branche déjà inerte pour une autre
+   raison le reste. */
+function isoler(el, actif){
+  var n = el;
+  while (n && n !== document.body && n.parentElement){
+    var p = n.parentElement;
+    for (var i = 0; i < p.children.length; i++){
+      var f = p.children[i];
+      if (f === n) continue;
+      if (actif){
+        if (!f.hasAttribute('inert')){ f.setAttribute('inert', ''); f.dataset.inertPose = '1'; }
+      } else if (f.dataset && f.dataset.inertPose){
+        f.removeAttribute('inert'); delete f.dataset.inertPose;
+      }
+    }
+    n = p;
+  }
+}
+
+var focusAvantFeuille = null;
+
 function openSheet(ev, seed){
+  /* On retient d'où l'on vient : à la fermeture, le focus doit revenir
+     sur le bouton qui a ouvert, pas retomber sur le corps de la page —
+     au clavier, retomber sur le corps oblige à tout retraverser. */
+  focusAvantFeuille = document.activeElement;
   var isNew = !ev || !!ev.demo;
   state.editing = null;
   if (ev && !ev.demo){
@@ -7778,10 +7814,19 @@ function openSheet(ev, seed){
   disarmDelete();
   syncSheet();
   $('sheetWrap').hidden = false;
+  isoler($('sheetWrap'), true);
   document.body.style.overflow = 'hidden';
   setTimeout(function(){ $('evName').focus({preventScroll:true}); }, 60);
 }
-function closeSheet(){ $('sheetWrap').hidden = true; document.body.style.overflow = ''; }
+function closeSheet(){
+  $('sheetWrap').hidden = true;
+  document.body.style.overflow = '';
+  isoler($('sheetWrap'), false);
+  if (focusAvantFeuille && focusAvantFeuille.isConnected){
+    try { focusAvantFeuille.focus({preventScroll: true}); } catch(e){}
+  }
+  focusAvantFeuille = null;
+}
 /* le bouton + de la barre, quand Sacha est sur l'Agenda */
 window.__AGENDA_NOUVELLE__ = function(){ openSheet(); };
 function disarmDelete(){
