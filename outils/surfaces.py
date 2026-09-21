@@ -38,6 +38,12 @@ def web(adresse, secondes=6):
     with urllib.request.urlopen(adresse, timeout=secondes) as r:
         return r.read()
 
+def en_attente():
+    """Les fichiers modifiés mais pas encore commités, s'il y en a."""
+    r = subprocess.run(["git", "status", "--porcelain", "--", "index.html", "src/page.html", "sw.js"],
+                       cwd=RACINE, capture_output=True, text=True)
+    return [l[3:].strip() for l in r.stdout.splitlines() if l.strip()]
+
 SURFACES = [
     ("ma copie de travail", lambda: fichier(os.path.join(RACINE, "index.html"))),
     ("main (local)",        lambda: git("main:index.html")),
@@ -57,9 +63,24 @@ for nom, lire in SURFACES:
 reference = vu.get("main (local)") or vu.get("ma copie de travail")
 graves, normaux = [], []
 
+# Une copie de travail qui s'écarte de main a deux causes opposées, et le
+# même mot les confondait. Si des fichiers attendent d'être commités, elle
+# est EN AVANCE : « fusionner ou régénérer » est alors un mauvais conseil,
+# il n'y a rien à rattraper, seulement à commiter. Ce faux signal a coûté
+# une enquête à deux agents le même jour — l'un a conclu « anomalie de
+# publication » sur une page qui était simplement plus récente.
 if "ma copie de travail" in vu and vu["ma copie de travail"] != reference:
-    graves.append("ta copie de travail s'écarte de main local.\n"
-                  "    Fusionner, ou régénérer : python3 src/build.py")
+    attente = en_attente()
+    if attente:
+        normaux.append("ta copie de travail est EN AVANCE sur main : "
+                       + ", ".join(attente) + "\n"
+                       "    attend" + ("ent" if len(attente) > 1 else "")
+                       + " d'être commité" + ("s" if len(attente) > 1 else "") + ".\n"
+                       "    Rien à rattraper. Et tout ce qui est servi depuis le disque —\n"
+                       "    le 4173 — montre déjà cette version, pas celle qui est poussée.")
+    else:
+        graves.append("ta copie de travail s'écarte de main local sans rien en attente.\n"
+                      "    Un fichier généré n'a pas suivi sa source : python3 src/build.py")
 
 # Le 4173 sert le dépôt principal : il doit donc refléter la copie de travail,
 # pas main local. Les comparer à main local accusait un serveur qui servait
