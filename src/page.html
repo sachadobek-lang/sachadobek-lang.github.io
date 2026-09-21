@@ -1415,7 +1415,34 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .ev.wk .name{font-size:12px; letter-spacing:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 #majournee .ev.wk .when{font-size:10.5px; margin-top:1px}
 #majournee .ev.wk.short .when,#majournee .ev.wk.tiny .when{display:none}
-#majournee .scroller{flex:1 1 auto; min-height:300px; overflow-y:auto; overflow-x:hidden; padding:10px 20px 12px 0}
+/* ═══ la semaine sur un téléphone ═══
+   Sept colonnes dans 375 pixels laissent 43 pixels par jour. Une fois la
+   marge, le trait de couleur et le rembourrage retirés, il restait douze
+   pixels pour le nom : « Pose du comptoir » s'affichait « P. ». Une
+   écriture qu'on ne peut pas lire n'informe pas, elle donne seulement
+   l'impression que quelque chose s'est cassé.
+   Alors on ne l'écrit plus. Le bloc devient sa couleur, pleine : on voit
+   d'un regard où la semaine est chargée, ce qui est la seule question
+   qu'on pose à une vue Semaine sur un écran de poche. Le nom, l'heure et
+   le reste sont à un doigt — on touche le bloc, ou l'on passe en Jour.
+   Au-delà de 520 pixels les colonnes tiennent le texte : il revient. */
+@media (max-width:520px){
+  #majournee .ev.wk{
+    padding:0; border-radius:7px; min-height:14px;
+    background:color-mix(in oklab, var(--c) 58%, var(--surface));
+    border-color:color-mix(in oklab, var(--c) 72%, var(--surface));
+  }
+  #majournee .ev.wk::before{display:none}
+  #majournee .ev.wk .txt{display:none}
+  #majournee .ev.wk:hover{background:color-mix(in oklab, var(--c) 70%, var(--surface))}
+}
+/* touch-action:pan-y dit au navigateur : sur cette surface, un doigt fait
+   défiler, et rien d'autre ne t'appartient. Sans cette ligne, deux doigts
+   sur la grille agrandissaient la page entière de Safari — l'application
+   sortait de l'écran — au lieu d'agrandir le calendrier. On ne peut pas
+   annuler ce geste après coup sur iPhone : il faut le déclarer avant. */
+#majournee .scroller{flex:1 1 auto; min-height:300px; overflow-y:auto; overflow-x:hidden;
+  padding:10px 20px 12px 0; touch-action:pan-y; overscroll-behavior:contain}
 /* ═══ le mois ═══
    Sept colonnes, cinq ou six rangées, et rien d'autre : le numéro du jour, et
    des points pour ce qu'il contient. On ne lit pas un mois, on le survole —
@@ -1461,7 +1488,9 @@ summary.carte-tete:hover h2{color:var(--v1)}
 }
 #majournee .track{position:relative; height:calc(var(--hour) * 24)}
 #majournee .track .rule{position:absolute; left:0; right:0; height:1px; background:var(--line-soft)}
-#majournee .hitbox{position:absolute; inset:0; width:100%; cursor:copy}
+/* Elle couvre toute la grille : si elle gardait le touch-action des
+   boutons, le pincement lui échapperait exactement là où il sert. */
+#majournee .hitbox{position:absolute; inset:0; width:100%; cursor:copy; touch-action:pan-y}
 #majournee .gap{
   position:absolute; left:2px; right:2px; border-radius:12px;
   border:1px dashed transparent; display:grid; place-items:center;
@@ -1520,8 +1549,16 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .ev.short .when,#majournee .ev.short .rep{display:none}
 #majournee .ev.tiny{padding:3px 9px 3px 12px; border-radius:8px; gap:6px}
 #majournee .ev.tiny::before{top:3px; bottom:3px; left:5px; width:2px}
-#majournee .ev.tiny .ico,#majournee .ev.tiny .rep{display:none}
-#majournee .ev.tiny .name{font-size:11.5px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+/* Sous 26 pixels, « .short » masquait déjà l'heure — mais « .tiny », qui
+   est plus petit encore, la laissait affichée. En 13,5 px, soit plus
+   grosse que le nom à 11,5. Elle ne se lisait pas : elle était coupée par
+   le bord du bloc, mais elle occupait sa place et poussait le nom vers
+   le haut. D'où ces « petites écritures en dessous », et un nom qui ne
+   tenait jamais au milieu de son bloc. */
+#majournee .ev.tiny .ico,#majournee .ev.tiny .rep,#majournee .ev.tiny .when{display:none}
+#majournee .ev.tiny{align-items:center}
+#majournee .ev.tiny .txt{display:flex; align-items:center; min-height:0}
+#majournee .ev.tiny .name{font-size:11.5px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1}
 #majournee .ev.demo{opacity:.72}
 #majournee .ev.dragging{
   z-index:6; box-shadow:var(--shadow-drag); transform:none; cursor:grabbing;
@@ -6765,6 +6802,10 @@ function parsePhrase(text, baseDate){
   return out;
 }
 
+/* Partagée avec la zone de création, plus bas : c'est le même
+   aller-retour entre la journée entière et une heure confortable. */
+var basculerZoom = null;
+
 /* ---------- placement ---------- */
 function layout(list){
   var evs = list.slice().sort(function(a,b){ return a.start - b.start || a.dur - b.dur; });
@@ -6942,8 +6983,14 @@ function makeBlock(ev, opts){
   b.style.height = ((end - start)/SPAN*100) + '%';
   /* Sous 26 px un nom n'est plus lisible : le bloc garde cette hauteur même
      quand la durée réelle en demanderait moins. Mieux vaut un quart d'heure
-     qui paraît un peu long qu'un rendez-vous qu'on ne peut pas lire. */
-  b.style.minHeight = Math.max(26, Math.min(34, HOUR_PX * 0.34)).toFixed(0) + 'px';
+     qui paraît un peu long qu'un rendez-vous qu'on ne peut pas lire.
+     Sauf dans la semaine d'un téléphone, où il n'y a plus de nom à lire :
+     le bloc n'est plus que sa couleur, et lui imposer 26 px ferait passer
+     un quart d'heure pour une heure — la seule chose que cette vue sert à
+     montrer serait fausse. Neuf pixels suffisent à le voir. */
+  var etroit = opts.week && window.matchMedia('(max-width:520px)').matches;
+  b.style.minHeight = etroit ? '9px'
+    : Math.max(26, Math.min(34, HOUR_PX * 0.34)).toFixed(0) + 'px';
   var band = opts.band, w = band.w / (ev._cols || 1);
   b.style.left = 'calc(' + (band.left + w * (ev._col || 0)) + '% + 2px)';
   b.style.width = 'calc(' + w + '% - 4px)';
@@ -7094,15 +7141,36 @@ function renderTrack(){
   var hit = document.createElement('button');
   hit.className = 'hitbox';
   hit.setAttribute('aria-label','Ajouter une activité à cette heure');
+  /* Cette zone couvre toute la grille et ouvrait la création dès le
+     premier appui. Le double-appui pour changer de taille était donc
+     impossible partout, sauf sur l'étroite colonne des heures : « il y a
+     un endroit où tu peux zoomer, un endroit où tu ne peux pas ».
+     On laisse passer le temps d'un second appui avant de créer. Trois
+     centièmes de seconde de plus pour poser un rendez-vous en touchant la
+     grille — ce n'est pas le geste principal, la phrase du haut l'est —
+     et le zoom devient possible sur toute la surface. */
+  var attenteCreation = null, dernierAppui = 0;
   hit.addEventListener('click', function(e){
-    var r = track.getBoundingClientRect();
-    var mins = DAY_START + ((e.clientY - r.top) / r.height) * SPAN;
-    var d = state.date;
-    if (week){
-      var idx = clamp(Math.floor((e.clientX - r.left) / (r.width/7)), 0, 6);
-      d = iso(addDays(state.week, idx));
+    var y = e.clientY, x = e.clientX, maintenant = Date.now();
+    if (maintenant - dernierAppui < 320){
+      if (attenteCreation){ clearTimeout(attenteCreation); attenteCreation = null; }
+      dernierAppui = 0;
+      if (basculerZoom) basculerZoom(y);
+      return;
     }
-    openSheet(null, {start: Math.round(clamp(mins, DAY_START, DAY_END-60)/30)*30, date: d});
+    dernierAppui = maintenant;
+    if (attenteCreation) clearTimeout(attenteCreation);
+    attenteCreation = setTimeout(function(){
+      attenteCreation = null;
+      var r = track.getBoundingClientRect();
+      var mins = DAY_START + ((y - r.top) / r.height) * SPAN;
+      var d = state.date;
+      if (week){
+        var idx = clamp(Math.floor((x - r.left) / (r.width/7)), 0, 6);
+        d = iso(addDays(state.week, idx));
+      }
+      openSheet(null, {start: Math.round(clamp(mins, DAY_START, DAY_END-60)/30)*30, date: d});
+    }, 300);
   });
   track.appendChild(hit);
 
@@ -7801,6 +7869,15 @@ document.addEventListener('keydown', function(e){
   }, {passive: false});
   sc.addEventListener('touchend', function(){ pince = 0; }, {passive: true});
 
+  /* Safari sur iPhone n'envoie pas que des touches : il envoie aussi ses
+     propres événements de geste, et c'est eux qui agrandissent la page.
+     touch-action les empêche déjà sur la grille ; on le redit ici pour
+     les versions qui ne l'écoutent pas, sinon un pincement un peu large
+     déborde sur le cadre et fait sauter toute l'application. */
+  ['gesturestart', 'gesturechange', 'gestureend'].forEach(function(nom){
+    sc.addEventListener(nom, function(e){ e.preventDefault(); }, {passive: false});
+  });
+
   /* Pour qui ne connaît pas le pincement : deux clics font l'aller-retour
      entre la journée entière et une heure confortable. C'est le seul geste
      à découvrir, et il ne coûte aucun bouton. */
@@ -7808,14 +7885,21 @@ document.addEventListener('keydown', function(e){
     var plancher = zoomPlancher();
     zoomVers(HOUR_PX <= plancher + 2 ? 76 : plancher, y);
   }
+  basculerZoom = basculer;   /* la grille s'en sert aussi */
   sc.addEventListener('dblclick', function(e){
-    if (e.target.closest('.ev, .gap, .route, .hitbox')) return;
+    if (e.target.closest('.ev, .gap, .route')) return;
     basculer(e.clientY);
   });
+  /* Un doigt sur la grille produit un touchend PUIS un click. Si les deux
+     comptaient les appuis, un double-appui basculerait deux fois et
+     reviendrait à son point de départ : on aurait juré que le zoom ne
+     marche pas. La grille a son propre compteur, plus bas, parce qu'elle
+     doit aussi arbitrer avec la création d'un rendez-vous. Ici on ne
+     s'occupe donc que du reste : la colonne des heures, les marges. */
   var dernierTap = 0;
   sc.addEventListener('touchend', function(e){
     if (e.touches.length || e.changedTouches.length !== 1) return;
-    if (e.target.closest('.ev, .gap, .route')) { dernierTap = 0; return; }
+    if (e.target.closest('.ev, .gap, .route, .hitbox')) { dernierTap = 0; return; }
     var t = Date.now();
     if (t - dernierTap < 320){ basculer(e.changedTouches[0].clientY); dernierTap = 0; }
     else dernierTap = t;
@@ -8144,11 +8228,40 @@ $('viewSeg').addEventListener('click', function(e){
    se retrouver au milieu de la soirée avec la journée au-dessus ne dit
    rien de ce qu'on a à faire. Si la journée entière tient à l'écran, il
    n'y a rien à faire défiler du tout. */
+/* Cette fonction se contentait d'aller au début de la fenêtre utile,
+   c'est-à-dire à deux heures du matin. Ouvrir Cura à midi et tomber sur
+   une nuit vide, en croyant que la journée est vide : c'était un mensonge
+   par cadrage. Elle va maintenant là où quelque chose se passe, dans cet
+   ordre — l'heure qu'il est si le jour affiché est aujourd'hui, sinon le
+   premier rendez-vous, sinon huit heures. Et elle place ce point au tiers
+   de la hauteur, pas tout en haut : on voit aussi ce qui vient juste
+   avant, qui est souvent ce qu'on cherchait. */
 function scrollToNow(){
   if (state.view === 'mois'){ $('scroller').scrollTop = 0; return; }
   var sc = $('scroller'), tr = $('track');
-  var y = ((VUE_DEBUT - DAY_START)/SPAN) * tr.offsetHeight;
-  sc.scrollTop = Math.max(0, Math.min(y, tr.offsetHeight - sc.clientHeight));
+  var h = tr.offsetHeight, vue = sc.clientHeight;
+  if (h <= vue + 1){ sc.scrollTop = 0; return; }   /* tout tient : rien à chercher */
+
+  var maintenant = new Date(), ajd = iso(maintenant), cible = null;
+  var jours = [];
+  if (state.view === 'semaine'){
+    for (var i = 0; i < 7; i++) jours.push(iso(addDays(state.week, i)));
+  } else jours.push(state.date);
+
+  if (jours.indexOf(ajd) >= 0){
+    cible = maintenant.getHours() * 60 + maintenant.getMinutes();
+  } else {
+    jours.forEach(function(j){
+      eventsOf(j).forEach(function(e){
+        var d = Number(e.start);
+        if (isFinite(d) && (cible == null || d < cible)) cible = d;
+      });
+    });
+  }
+  if (cible == null) cible = 8 * 60;
+
+  var y = ((clamp(cible, DAY_START, DAY_END) - DAY_START) / SPAN) * h - vue / 3;
+  sc.scrollTop = clamp(y, 0, h - vue);
 }
 
 var rsz;
