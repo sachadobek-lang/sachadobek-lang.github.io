@@ -1456,6 +1456,24 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .dayview{flex:1 1 auto; min-height:0; margin-bottom:6px; display:flex; flex-direction:column}
 #majournee .dayview .card-head{justify-content:center; padding:8px 22px 6px}
 #majournee .seg{display:inline-flex; background:var(--surface-2); border:1px solid var(--line-soft); border-radius:13px; padding:3px; gap:3px}
+/* Les deux touches de hauteur vivent dans la même pilule que la vue. Un
+   trait les en sépare : c'est un autre réglage, pas une quatrième vue. */
+#majournee .seg-sep{width:1px; align-self:stretch; margin:4px 2px;
+  background:var(--line-soft); flex:0 0 auto}
+#majournee .seg .seg-z{
+  width:36px; padding:0; border-radius:10px;
+  color:var(--ink-2); display:grid; place-items:center;
+  transition:background .16s, color .16s, opacity .16s;
+}
+#majournee .seg .seg-z:hover{background:var(--surface); color:var(--ink)}
+#majournee .seg .seg-z:active{transform:scale(.94)}
+/* Au bout de la course, la touche s'efface au lieu de disparaître : on
+   voit qu'elle existe, et qu'il n'y a plus rien au-delà. */
+#majournee .seg .seg-z[aria-disabled="true"]{opacity:.28; pointer-events:none}
+/* En vue Mois il n'y a pas de hauteur à régler : les deux touches et leur
+   trait s'effacent, et la pilule se referme sur les trois vues. C'est
+   setView qui les masque — un attribut « hidden » plutôt qu'une règle de
+   plus à faire correspondre. */
 #majournee .seg button{
   font-family:var(--ui); font-size:15px; font-weight:600; color:var(--ink-3);
   padding:8px 20px; border-radius:10px; transition:color .14s ease, background-color .14s ease;
@@ -2469,10 +2487,25 @@ summary.carte-tete:hover h2{color:var(--v1)}
           <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg>
         </button>
       </div>
-      <div class="seg" id="viewSeg" role="group" aria-label="Vue">
+      <!-- Les deux réglages du calendrier tiennent dans une seule pilule :
+           quel jour on regarde, et de combien près. Séparés, ils formaient
+           deux objets et une ligne de plus. Ensemble, c'est la commande
+           qu'on avait déjà, avec deux touches au bout.
+           Le pincement et le double-appui ont été retirés : ils réglaient
+           une valeur continue qu'on ne retrouvait jamais deux fois, et un
+           doigt posé de travers pendant qu'on faisait défiler changeait la
+           vue sans qu'on l'ait demandé. -->
+      <div class="seg" id="viewSeg" role="group" aria-label="Vue et hauteur">
         <button data-v="jour">Jour</button>
         <button data-v="semaine">Semaine</button>
         <button data-v="mois">Mois</button>
+        <span class="seg-sep" id="zoomSep" aria-hidden="true"></span>
+        <button class="seg-z" id="zoomMoins" aria-label="Voir plus d'heures">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 12h12"/></svg>
+        </button>
+        <button class="seg-z" id="zoomPlus" aria-label="Voir moins d'heures, en plus grand">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 6v12M6 12h12"/></svg>
+        </button>
       </div>
     </div>
     <div class="wkhead" id="wkhead" hidden></div>
@@ -6537,7 +6570,7 @@ var today = iso(new Date());
 var state = {
   date: today, week: mondayOf(new Date()),
   events: [], repeats: [], notes: [], demoOff:false,
-  zoomPx:76, view:'jour', editing:null, draft:null
+  niveau:0, view:'jour', editing:null, draft:null
 };
 var HOUR_PX = 86;
 
@@ -6547,15 +6580,22 @@ var LS_EV = 'ma-journee-v1', LS_TD = 'ma-journee-todos-v1',
 var db = null, unsubEv = null, unsubRep = null, unsubTd = null;
 try {
   state.demoOff = localStorage.getItem(LS_DEMO) === '1';
-  /* Le zoom n'est plus qu'un nombre de pixels par heure. Les réglages
-     enregistrés par les versions précédentes — des mots, ou « libre:72 » —
-     sont relus pour que personne ne retrouve son agenda à une autre taille. */
+  /* Le réglage n'est plus qu'un numéro de niveau : 0 la journée entière,
+     1 huit heures, 2 quatre heures. Les versions précédentes enregistraient
+     des pixels par heure, ou des mots — on les relit et on les range dans
+     le niveau le plus proche, pour que personne ne retrouve son agenda à
+     une taille qu'il n'a pas choisie. */
   var z0 = localStorage.getItem(LS_ZOOM);
   if (z0){
     if (z0.indexOf('libre:') === 0) z0 = z0.slice(6);
-    var px = {tout: 34, normal: 86, detail: 156}[z0];
-    if (px == null) px = parseFloat(z0);
-    if (!isNaN(px) && px > 0){ state.zoomPx = clamp(px, 12, 240); state.zoomChoisi = true; }
+    var n = parseFloat(z0);
+    if (z0 === '0' || z0 === '1' || z0 === '2') state.niveau = +z0;
+    else {
+      var px = {tout: 34, normal: 86, detail: 156}[z0];
+      if (px == null) px = n;
+      /* Un grand nombre de pixels par heure, c'est peu d'heures à l'écran. */
+      if (!isNaN(px) && px > 0) state.niveau = px >= 120 ? 2 : (px >= 55 ? 1 : 0);
+    }
   }
   var v0 = localStorage.getItem(LS_VIEW);
   if (v0 === 'jour' || v0 === 'semaine' || v0 === 'mois') state.view = v0;
@@ -6987,7 +7027,6 @@ function parsePhrase(text, baseDate){
 
 /* Partagée avec la zone de création, plus bas : c'est le même
    aller-retour entre la journée entière et une heure confortable. */
-var basculerZoom = null;
 
 /* ---------- placement ---------- */
 function layout(list){
@@ -7026,7 +7065,6 @@ function fitHour(){
    fait tenir minuit à minuit dans l'écran — dézoomer à fond montre la nuit,
    et il n'y a rien en dessous. Un double-clic fait l'aller-retour entre la
    journée entière et une heure confortable, pour qui ne connaît pas le geste. */
-var ZOOM_MAX = 240;
 /* Le scroller n'avait pas de hauteur : il prenait celle de ses 24 heures,
    soit près de 1 900 pixels, et poussait tout ce qui suit hors de l'écran.
    C'est ce qui donnait l'impression que le calendrier « s'agrandit et se
@@ -7044,47 +7082,54 @@ function cadrerCalendrier(){
   sc.style.height = Math.max(280, dispo) + 'px';
 }
 
-function zoomPlancher(){
-  var sc = $('scroller');
-  return Math.max(12, (sc.clientHeight - 10) / HOURS);
-}
+/* ═══ trois hauteurs, et rien entre les deux ═══
+   Le zoom était une valeur continue qu'on réglait au pincement. Deux
+   défauts, et le second est le vrai : on ne retombait jamais deux fois
+   sur la même vue, et un doigt posé de travers pendant qu'on faisait
+   défiler la changeait sans qu'on l'ait demandé.
+   Trois hauteurs suffisent à tout ce qu'on fait d'un agenda : la journée
+   entière pour savoir où l'on en est, huit heures pour une matinée et un
+   après-midi, quatre pour poser un rendez-vous à la demi-heure près.
+   La journée entière est la vue par défaut — minuit à minuit, rien à
+   faire défiler pour voir sa journée. */
+var NIVEAUX = [24, 8, 4];   /* heures visibles d'un coup */
 
-/* La plage qu'on veut voir d'un coup en ouvrant : 02:00 → 22:00. Le
-   dézoom continue de descendre jusqu'à la journée entière, minuit à
-   minuit. */
-var VUE_DEBUT = 120, VUE_FIN = 1320;
-function zoomParDefaut(){
+function niveauValide(i){ return clamp(Math.round(Number(i) || 0), 0, NIVEAUX.length - 1); }
+
+function applyZoom(){
   var sc = $('scroller');
   /* clientHeight comprend le rembourrage haut et bas : sans le retirer,
      la dernière heure de la plage passait sous le bord. */
-  var h = sc.clientHeight - 22;
-  return clamp(h / ((VUE_FIN - VUE_DEBUT) / 60), 12, 240);
-}
-function applyZoom(){
-  /* Tant qu'il n'a pas zoomé lui-même, la taille d'une heure se déduit de
-     la plage qu'on veut lui montrer, et suit donc la hauteur de l'écran. */
-  if (!state.zoomChoisi) state.zoomPx = zoomParDefaut();
-  HOUR_PX = clamp(state.zoomPx, zoomPlancher(), ZOOM_MAX);
+  var h = Math.max(120, sc.clientHeight - 22);
+  state.niveau = niveauValide(state.niveau);
+  HOUR_PX = h / NIVEAUX[state.niveau];
   /* C'est #majournee qui déclare --hour, pas :root. Écrire la valeur sur
      :root ne changeait rien : la règle du bloc l'emportait. */
   $('majournee').style.setProperty('--hour', HOUR_PX.toFixed(2) + 'px');
+  majBoutonsZoom();
 }
-/* Zoomer en gardant sous le doigt l'heure qu'on regardait : c'est ce qui
-   distingue un zoom d'un simple changement de taille. */
-function zoomVers(px, yEcran){
+
+function majBoutonsZoom(){
+  var moins = $('zoomMoins'), plus = $('zoomPlus');
+  if (moins) moins.setAttribute('aria-disabled', String(state.niveau === 0));
+  if (plus)  plus.setAttribute('aria-disabled', String(state.niveau === NIVEAUX.length - 1));
+}
+
+/* On garde au milieu de l'écran l'heure qu'on y avait : c'est ce qui
+   distingue un changement de hauteur d'un saut ailleurs dans la journée. */
+function allerAuNiveau(i){
   var sc = $('scroller'), tr = $('track');
+  i = niveauValide(i);
+  if (i === state.niveau) return;
   var avant = tr.offsetHeight;
-  if (!avant) return;
-  var r = sc.getBoundingClientRect();
-  var y = (yEcran == null) ? sc.clientHeight / 2 : (yEcran - r.top);
-  var part = (sc.scrollTop + y) / avant;
-  state.zoomPx = clamp(px, zoomPlancher(), ZOOM_MAX);
-  state.zoomChoisi = true;
-  try { localStorage.setItem(LS_ZOOM, state.zoomPx.toFixed(1)); } catch(e){}
+  var part = avant ? (sc.scrollTop + sc.clientHeight / 2) / avant : 0;
+  state.niveau = i;
+  try { localStorage.setItem(LS_ZOOM, String(i)); } catch(e){}
   applyZoom(); renderTrack();
-  sc.scrollTop = Math.max(0, part * tr.offsetHeight - y);
+  sc.scrollTop = clamp(part * tr.offsetHeight - sc.clientHeight / 2, 0,
+                       Math.max(0, tr.offsetHeight - sc.clientHeight));
 }
-function zoomPas(facteur, yEcran){ zoomVers(HOUR_PX * facteur, yEcran); }
+function zoomPas(sens){ allerAuNiveau(state.niveau + (sens > 0 ? 1 : -1)); }
 
 /* ---------- glisser / étirer ---------- */
 var drag = null;
@@ -7386,36 +7431,20 @@ function renderTrack(){
   var hit = document.createElement('button');
   hit.className = 'hitbox';
   hit.setAttribute('aria-label','Ajouter une activité à cette heure');
-  /* Cette zone couvre toute la grille et ouvrait la création dès le
-     premier appui. Le double-appui pour changer de taille était donc
-     impossible partout, sauf sur l'étroite colonne des heures : « il y a
-     un endroit où tu peux zoomer, un endroit où tu ne peux pas ».
-     On laisse passer le temps d'un second appui avant de créer. Trois
-     centièmes de seconde de plus pour poser un rendez-vous en touchant la
-     grille — ce n'est pas le geste principal, la phrase du haut l'est —
-     et le zoom devient possible sur toute la surface. */
-  var attenteCreation = null, dernierAppui = 0;
+  /* Cette zone attendait trois dixièmes de seconde avant d'ouvrir la
+     création, pour laisser passer un éventuel second appui destiné au
+     zoom. Le double-appui n'existe plus : l'attente non plus. Toucher la
+     grille ouvre la création tout de suite, comme avant qu'on ne demande
+     à ce geste de servir à deux choses. */
   hit.addEventListener('click', function(e){
-    var y = e.clientY, x = e.clientX, maintenant = Date.now();
-    if (maintenant - dernierAppui < 320){
-      if (attenteCreation){ clearTimeout(attenteCreation); attenteCreation = null; }
-      dernierAppui = 0;
-      if (basculerZoom) basculerZoom(y);
-      return;
+    var r = track.getBoundingClientRect();
+    var mins = DAY_START + ((e.clientY - r.top) / r.height) * SPAN;
+    var d = state.date;
+    if (week){
+      var idx = clamp(Math.floor((e.clientX - r.left) / (r.width/7)), 0, 6);
+      d = iso(addDays(state.week, idx));
     }
-    dernierAppui = maintenant;
-    if (attenteCreation) clearTimeout(attenteCreation);
-    attenteCreation = setTimeout(function(){
-      attenteCreation = null;
-      var r = track.getBoundingClientRect();
-      var mins = DAY_START + ((y - r.top) / r.height) * SPAN;
-      var d = state.date;
-      if (week){
-        var idx = clamp(Math.floor((x - r.left) / (r.width/7)), 0, 6);
-        d = iso(addDays(state.week, idx));
-      }
-      openSheet(null, {start: Math.round(clamp(mins, DAY_START, DAY_END-60)/30)*30, date: d});
-    }, 300);
+    openSheet(null, {start: Math.round(clamp(mins, DAY_START, DAY_END-60)/30)*30, date: d});
   });
   track.appendChild(hit);
 
@@ -7494,8 +7523,12 @@ function setView(v){
   var avant = state.view;
   state.view = v;
   try { localStorage.setItem(LS_VIEW, v); } catch(e){}
-  document.querySelectorAll('#viewSeg button').forEach(function(b){
+  document.querySelectorAll('#viewSeg button[data-v]').forEach(function(b){
     b.setAttribute('aria-pressed', String(b.dataset.v === v));
+  });
+  /* Le mois n'a pas de hauteur : ses cases font la taille qu'il faut. */
+  ['zoomSep', 'zoomMoins', 'zoomPlus'].forEach(function(id){
+    var el = $(id); if (el) el.hidden = (v === 'mois');
   });
   /* Entrer dans le mois ou en sortir change la fenêtre de chargement. */
   if ((v === 'mois') !== (avant === 'mois')){
@@ -8167,72 +8200,37 @@ document.addEventListener('keydown', function(e){
   if (e.key === 'Escape' && !$('sheetWrap').hidden) closeSheet();
 });
 
-/* ═══ les gestes d'Outlook ═══
-   Ctrl (ou ⌘) + molette pour zoomer, deux doigts pour pincer, les flèches
-   pour changer de semaine. Aucun bouton n'est ajouté : ces gestes doublent
-   ce que les trois réglages font déjà, ils ne les remplacent pas. */
+/* ═══ deux boutons, et plus un seul geste à deux doigts ═══
+   Ce bloc contenait le pincement, le double-appui et le double-clic. Tous
+   réglaient une valeur continue. Sacha : « tu pourras plus zoomer juste
+   avec tes doigts, ça fait bugger, c'est pas pratique ». Il a raison, et
+   la raison est mécanique : la grille est une surface qu'on fait défiler
+   d'un doigt. Tout geste de zoom posé dessus entre en concurrence avec ce
+   défilement, et le navigateur doit trancher — parfois à tort. Un bouton
+   ne se trompe jamais sur ce qu'on lui demande.
+   On garde Ctrl + molette et Ctrl + / −, qui n'existent que sur un
+   ordinateur et ne peuvent pas être déclenchés par mégarde : ils changent
+   de niveau, comme les boutons. */
 (function(){
   var sc = $('scroller');
 
   sc.addEventListener('wheel', function(e){
     if (!(e.ctrlKey || e.metaKey)) return;
     e.preventDefault();
-    zoomPas(e.deltaY < 0 ? 1.12 : 1/1.12, e.clientY);
+    zoomPas(e.deltaY < 0 ? 1 : -1);
   }, {passive: false});
 
-  var pince = 0;
-  function ecart(t){
-    var dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY;
-    return Math.sqrt(dx*dx + dy*dy);
-  }
-  sc.addEventListener('touchstart', function(e){
-    if (e.touches.length === 2) pince = ecart(e.touches);
-  }, {passive: true});
-  sc.addEventListener('touchmove', function(e){
-    if (e.touches.length !== 2 || !pince) return;
-    e.preventDefault();
-    var d = ecart(e.touches);
-    var milieu = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-    zoomVers(HOUR_PX * (d / pince), milieu);
-    pince = d;
-  }, {passive: false});
-  sc.addEventListener('touchend', function(){ pince = 0; }, {passive: true});
-
-  /* Safari sur iPhone n'envoie pas que des touches : il envoie aussi ses
-     propres événements de geste, et c'est eux qui agrandissent la page.
-     touch-action les empêche déjà sur la grille ; on le redit ici pour
-     les versions qui ne l'écoutent pas, sinon un pincement un peu large
-     déborde sur le cadre et fait sauter toute l'application. */
+  /* Safari sur iPhone envoie ses propres événements de geste, et c'est eux
+     qui agrandissent la page entière. touch-action les empêche déjà sur la
+     grille ; on le redit ici pour les versions qui ne l'écoutent pas. Cura
+     n'utilise plus le pincement — raison de plus pour qu'il ne fasse rien
+     du tout plutôt que de sortir l'application de l'écran. */
   ['gesturestart', 'gesturechange', 'gestureend'].forEach(function(nom){
     sc.addEventListener(nom, function(e){ e.preventDefault(); }, {passive: false});
   });
 
-  /* Pour qui ne connaît pas le pincement : deux clics font l'aller-retour
-     entre la journée entière et une heure confortable. C'est le seul geste
-     à découvrir, et il ne coûte aucun bouton. */
-  function basculer(y){
-    var plancher = zoomPlancher();
-    zoomVers(HOUR_PX <= plancher + 2 ? 76 : plancher, y);
-  }
-  basculerZoom = basculer;   /* la grille s'en sert aussi */
-  sc.addEventListener('dblclick', function(e){
-    if (e.target.closest('.ev, .gap, .route')) return;
-    basculer(e.clientY);
-  });
-  /* Un doigt sur la grille produit un touchend PUIS un click. Si les deux
-     comptaient les appuis, un double-appui basculerait deux fois et
-     reviendrait à son point de départ : on aurait juré que le zoom ne
-     marche pas. La grille a son propre compteur, plus bas, parce qu'elle
-     doit aussi arbitrer avec la création d'un rendez-vous. Ici on ne
-     s'occupe donc que du reste : la colonne des heures, les marges. */
-  var dernierTap = 0;
-  sc.addEventListener('touchend', function(e){
-    if (e.touches.length || e.changedTouches.length !== 1) return;
-    if (e.target.closest('.ev, .gap, .route, .hitbox')) { dernierTap = 0; return; }
-    var t = Date.now();
-    if (t - dernierTap < 320){ basculer(e.changedTouches[0].clientY); dernierTap = 0; }
-    else dernierTap = t;
-  }, {passive: true});
+  $('zoomMoins').addEventListener('click', function(){ zoomPas(-1); });
+  $('zoomPlus').addEventListener('click', function(){ zoomPas(1); });
 
   /* On ne vole jamais une touche à quelqu'un qui écrit. */
   function occupe(){
@@ -8246,7 +8244,7 @@ document.addEventListener('keydown', function(e){
     if (vue !== 'afaire' || occupe() || e.altKey) return;
     if ((e.ctrlKey || e.metaKey) && (e.key === '+' || e.key === '=' || e.key === '-')){
       e.preventDefault();
-      zoomPas(e.key === '-' ? 1/1.18 : 1.18, null);
+      zoomPas(e.key === '-' ? -1 : 1);
       return;
     }
     if (e.ctrlKey || e.metaKey) return;
