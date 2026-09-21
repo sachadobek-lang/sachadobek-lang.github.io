@@ -1580,28 +1580,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .ev:hover .ev-rz::after{opacity:.5}
 #majournee .ev.tiny .ev-rz{display:none}
 
-/* ═══ le bloc trop étroit pour un nom ═══
-   Sept colonnes de semaine dans 375 pixels, ou cinq rendez-vous qui se
-   chevauchent le même matin : dans les deux cas il reste une trentaine de
-   pixels de large, et le nom s'écrit une lettre par ligne. C'est le seul
-   endroit de l'application qui donnait l'impression d'être cassé.
-   Le bloc devient alors sa couleur, pleine — on voit l'occupation d'un
-   regard, ce qui est la seule question qu'on pose à ces vues-là — et le
-   nom reste à un doigt. La classe est posée par makeBlock, qui mesure la
-   largeur réelle : la règle vaut donc à toutes les tailles d'écran, en
-   semaine comme en jour, sans seuil deviné.
-   Elle est posée ici, après les règles de .tiny et de .wk : à spécificité
-   égale c'est la dernière écrite qui gagne, et celle-ci doit gagner. */
-#majournee .ev.etroit{
-  padding:0; border-radius:7px;
-  background:color-mix(in oklab, var(--c) 58%, var(--surface));
-  border-color:color-mix(in oklab, var(--c) 72%, var(--surface));
-}
-#majournee .ev.etroit::before,
-#majournee .ev.etroit .txt,
-#majournee .ev.etroit .ico,
-#majournee .ev.etroit .rep{display:none}
-#majournee .ev.etroit:hover{background:color-mix(in oklab, var(--c) 70%, var(--surface))}
+
 
 @media (hover:none){#majournee .ev-rz{display:none} }
 /* Le trait de l'heure barrait le nom du rendez-vous en cours et le rendait
@@ -6943,52 +6922,13 @@ function makeBlock(ev, opts){
   b.style.setProperty('--c', 'var(--c-' + cat.c + ')');
   b.style.top = ((start - DAY_START)/SPAN*100) + '%';
   b.style.height = ((end - start)/SPAN*100) + '%';
-  var band = opts.band, w = band.w / (ev._cols || 1);
-  var gauche = band.left + w * (ev._col || 0);
-
-  /* ═══ quand découper ne sert plus ═══
-     Six rendez-vous qui se chevauchent dans une colonne de semaine de
-     quarante-trois pixels donnent six traits de trois pixels : ni
-     lisibles, ni touchables — un doigt fait sept millimètres. En dessous
-     de quatorze pixels on cesse donc de découper : les blocs reprennent
-     toute la largeur de la colonne et se superposent.
-     On perd de pouvoir compter combien ils sont ; on gagne de voir que la
-     journée est prise, et d'en ouvrir un d'un doigt. La vue Jour, elle,
-     a la place de les séparer, et continue de le faire. */
-  if ((opts.largeur || 320) * (w / 100) - 4 < 14){
-    w = band.w;
-    gauche = band.left;
-  }
-
-  b.style.left = 'calc(' + gauche + '% + 2px)';
-  b.style.width = 'calc(' + w + '% - 4px)';
-
-  /* ═══ trop étroit pour un nom ═══
-     Deux situations donnent la même image, et c'est la plus laide de
-     l'application : sept colonnes de semaine sur un téléphone, ou cinq
-     rendez-vous qui se chevauchent le même matin. Le bloc tombe à trente
-     pixels, et « Devis Martin » s'écrit une lettre par ligne.
-     On ne devine plus avec un seuil d'écran : on calcule la largeur que
-     le bloc aura vraiment. En dessous de soixante-seize pixels — il en
-     faut environ vingt-sept pour les marges et cinquante pour deux
-     syllabes lisibles — le texte ne rentre pas, donc on ne l'écrit pas.
-     Le bloc devient sa couleur, pleine. On voit l'occupation, on touche
-     pour lire le reste. Une écriture illisible n'informe personne ; elle
-     donne seulement l'impression que quelque chose s'est cassé. */
-  var largeurPx = (opts.largeur || 320) * (w / 100) - 4;
-  var etroit = largeurPx < 76;
-  if (etroit) b.classList.add('etroit');
-
   /* Sous 26 px un nom n'est plus lisible : le bloc garde cette hauteur même
      quand la durée réelle en demanderait moins. Mieux vaut un quart d'heure
-     qui paraît un peu long qu'un rendez-vous qu'on ne peut pas lire.
-     Sauf quand le bloc est déjà trop étroit pour un nom : il n'y a plus
-     rien à lire, et lui imposer 26 px ferait passer un quart d'heure pour
-     une heure — la seule chose que ces vues servent à montrer serait
-     fausse. Neuf pixels suffisent à le voir. */
-  b.style.minHeight = etroit ? '9px'
-    : Math.max(26, Math.min(34, HOUR_PX * 0.34)).toFixed(0) + 'px';
-
+     qui paraît un peu long qu'un rendez-vous qu'on ne peut pas lire. */
+  b.style.minHeight = Math.max(26, Math.min(34, HOUR_PX * 0.34)).toFixed(0) + 'px';
+  var band = opts.band, w = band.w / (ev._cols || 1);
+  b.style.left = 'calc(' + (band.left + w * (ev._col || 0)) + '% + 2px)';
+  b.style.width = 'calc(' + w + '% - 4px)';
   b.innerHTML = icon(cat.k, px < 52 ? 14 : 15) + '<span class="txt"></span>'
     + (ev.rep && ev.rep !== 'none' ? '<span class="rep">' + svg(I_REPEAT, 12, 1.8) + '</span>' : '')
     + '<span class="ev-rz"></span>';
@@ -7169,11 +7109,6 @@ function renderTrack(){
   });
   track.appendChild(hit);
 
-  /* Mesurée une seule fois par rendu, et transmise à chaque bloc : c'est
-     elle qui décide si un nom tiendra. La mesurer bloc par bloc coûterait
-     un recalcul de mise en page à chaque appel. */
-  var largeurPiste = track.clientWidth || 320;
-
   var total = 0;
   if (week){
     for (var j = 0; j < 7; j++){
@@ -7181,7 +7116,7 @@ function renderTrack(){
       var evs = layout(eventsOf(dk));
       total += evs.length;
       var band = {left: j * 100/7, w: 100/7};
-      evs.forEach(function(ev){ track.appendChild(makeBlock(ev, {band: band, week: true, largeur: largeurPiste})); });
+      evs.forEach(function(ev){ track.appendChild(makeBlock(ev, {band: band, week: true})); });
     }
   } else {
     var list = layout(eventsOf(state.date));
@@ -7213,7 +7148,7 @@ function renderTrack(){
       });
     }
     list.forEach(function(ev){
-      track.appendChild(makeBlock(ev, {band: {left:0, w:100}, largeur: largeurPiste}));
+      track.appendChild(makeBlock(ev, {band: {left:0, w:100}}));
     });
     bandes.forEach(function(p){ track.appendChild(makeRoute(p)); });
   }
