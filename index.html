@@ -183,7 +183,21 @@ body.sur-agenda .page{max-width:none;padding:0}
      lignes de la grille du jour la montrent toute la journée. Seule la
      teinte bouge — saturation et clarté sont reprises au point près, donc
      le contraste du texte et des traits est inchangé. */
-  --fond:linear-gradient(180deg,#FBF6F0 0%,#F1EAE1 100%);
+  /* Puis : « un peu moins chaud », et enfin « un dégradé très clair de
+     blanc jusqu'à chaud, mais encore très peu ».
+     Le papier partait de beige en haut pour aller au beige en bas. Il
+     part maintenant du blanc pur et n'arrive au chaud qu'en bas, à 30 %
+     de saturation — la moitié de ce qu'il portait ce matin.
+
+     Une étape intermédiaire a été écartée au passage : en baissant
+     seulement la saturation, l'Agenda tombait à 1,4 unité du fond de la
+     Comptabilité. Les deux onglets devenaient indiscernables et le
+     système des trois températures se réduisait à deux. Le blanc en haut
+     règle ça mieux qu'un décalage de teinte : il donne à l'Agenda une
+     identité que les deux autres n'ont pas, sans lui donner de couleur.
+     Écart mesuré au bas du dégradé : 15,3 de la Comptabilité, 14,0 des
+     Clients. */
+  --fond:linear-gradient(180deg,#FFFFFF 0%,#F7F4F0 100%);
   --line:#F0E7DF; --line-fort:#E0D4C6; --surface-2:#FCF8F5; --surface-3:#F6EFE9;
   --cad-line:#F0E7DF; --cad-line-fort:#E0D4C6; --cad-surface-2:#FCF8F5;
   --cad-deg-pale:#F6F1EE;
@@ -2078,7 +2092,8 @@ summary.carte-tete:hover h2{color:var(--v1)}
    défile à l'intérieur. Le tableau reste en dessous, on y descend. */
 #majournee .app{min-height:calc(100dvh - 104px)}
 #majournee{padding-bottom:104px;background:transparent!important}
-#majournee{--bg:#F7F4F0}
+/* Le milieu du dégradé : ce que la grille voit derrière elle. */
+#majournee{--bg:#FBF9F6}
 @media (prefers-color-scheme:dark){ #majournee:not([data-theme="light"]){--bg:#110D0B} }
 
 /* ══════════ IL TE RESTE COMBIEN ? — greffée telle quelle ══════════ */
