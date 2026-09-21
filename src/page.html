@@ -1726,6 +1726,11 @@ summary.carte-tete:hover h2{color:var(--v1)}
   padding:14px 22px; border-top:1px solid var(--line-soft);
   font-size:12.5px; color:var(--ink-3);
 }
+/* Le « + » ne veut rien dire quand on cherche : il ajoutait le terme
+   cherché comme s'il s'agissait d'une phrase. Il s'efface — et rend au
+   champ les onze pixels qui manquaient à « Chercher un rendez-vous »
+   pour s'écrire en entier. */
+#majournee #quickBar.en-recherche #qmore{display:none}
 #majournee .quick{
   display:flex; align-items:center; gap:12px; margin-bottom:16px;
   background:var(--surface); border:1px solid var(--line-soft); border-radius:16px;
@@ -1786,7 +1791,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   #majournee .wk-arrow::after{content:""; position:absolute; top:0; bottom:0; width:44px}
   #majournee #prevWeek::after{right:0}
   #majournee #nextWeek::after{left:0}
-  #majournee .days{touch-action:pan-y}
+#majournee .days{touch-action:pan-y}
   #majournee .day-pill{min-height:52px; justify-content:center}
   #majournee .day-pill .num{width:min(40px,100%); aspect-ratio:1; height:auto}
   #majournee .seg button{padding:12px 14px; font-size:14.5px}
@@ -8125,10 +8130,27 @@ $('quick').addEventListener('input', function(e){
 });
 
 $('quick').addEventListener('keydown', function(e){
-  if (e.key === 'Enter'){ e.preventDefault(); quickAdd(); }
-  if (e.key === 'Escape'){ e.target.value = ''; quickPreview(); e.target.blur(); }
+  /* Le même champ sert à écrire une phrase et à chercher. Entrée valait
+     « ajoute » dans les deux cas : on cherchait « Dupont », on appuyait
+     sur Entrée — qui est le geste naturel après avoir tapé, et la seule
+     touche visible sur le clavier d'un téléphone — et un rendez-vous
+     « Dupont » était créé. En recherche, Entrée ne crée rien : elle
+     referme le clavier pour découvrir les résultats qu'il cachait. */
+  if (e.key === 'Enter'){
+    e.preventDefault();
+    if (enRecherche) e.target.blur(); else quickAdd();
+  }
+  if (e.key === 'Escape'){
+    if (enRecherche){ fermerRecherche(); e.target.blur(); return; }
+    e.target.value = ''; quickPreview(); e.target.blur();
+  }
 });
+/* Et le « + » ne veut rien dire quand on cherche : il ajoutait lui aussi
+   le terme cherché. Il s'efface — ce qui rend au passage au champ les
+   onze pixels qui manquaient à « Chercher un rendez-vous » pour s'écrire
+   en entier. */
 $('qmore').addEventListener('click', function(){
+  if (enRecherche) return;
   /* une phrase écrite : on l'ajoute tout de suite, comme la touche Entrée.
      Champ vide : on ouvre la fiche pour choisir le jour et la durée. */
   if ($('quick').value.trim()) { quickAdd(); return; }
