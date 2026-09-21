@@ -1959,31 +1959,6 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .rc > span{display:block;height:1.15em;line-height:1.15em;text-align:center}
 #ilreste .rs{display:inline-block;white-space:pre}
 @media (prefers-reduced-motion:reduce){#ilreste .rc{transition:none}}
-#ilreste .gros{
-  width:100%;min-height:62px;border:0;border-radius:18px;
-  background:var(--moi);color:var(--on-moi);font:inherit;font-size:18.5px;font-weight:600;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;
-  transition:transform .08s,background .15s;
-}
-/* Les deux gestes restent côte à côte à toutes les largeurs : empilés et
-   pleins, ils mangeaient le premier écran à eux seuls. Ce sont des
-   raccourcis, pas la réponse — ils prennent la place de raccourcis, et
-   portent le blanc des cartes du reste de l'application. */
-/* Seul, il reprend toute la largeur — mais il garde le blanc des cartes :
-   c'est un raccourci, pas la réponse de l'écran. Le fond sombre de .gros
-   est réservé au cas où il serait la seule chose à faire. */
-#ilreste .gros.seul{
-  background:var(--surface);color:var(--ink);box-shadow:var(--o1);
-  font-size:16.5px;min-height:56px}
-#ilreste .gros.seul:hover{background:var(--sunken);color:var(--moi)}
-#ilreste .deux-gros{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-#ilreste .deux-gros .gros{
-  width:100%;min-height:0;padding:15px 8px;
-  background:var(--surface);color:var(--ink);border:0;box-shadow:var(--o1);
-  font-size:15.5px;gap:7px}
-#ilreste .deux-gros .gros:hover{background:var(--sunken);color:var(--moi)}
-#ilreste .gros:hover{background:var(--ink);color:var(--paper)}
-#ilreste .gros:active{transform:scale(.985)}
 #ilreste .bloc-disque{display:flex;flex-direction:column;align-items:center;gap:14px}
 #ilreste .disc{position:relative;width:min(290px,78vw);aspect-ratio:1}
 #ilreste .disc svg{width:100%;height:100%;display:block}
@@ -2112,12 +2087,6 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .cadre,#ilreste .card,#ilreste .echeance{
   border:0;border-radius:var(--rl);background:var(--surface);box-shadow:var(--o1);padding:21px 22px}
 #ilreste .cadre .v{font-size:38px;letter-spacing:-.03em;line-height:1.1}
-#ilreste .gros{border-radius:var(--rm);font-family:var(--num);font-size:17.5px;font-weight:600}
-/* les deux libellés doivent tenir sur une ligne chacun, sinon l'un des
-   deux boutons paraît plus lourd que l'autre */
-#ilreste .deux-gros .gros{font-size:15px;white-space:nowrap;letter-spacing:-.01em}
-@media(max-width:400px){#ilreste .deux-gros{gap:8px}
-  #ilreste .deux-gros .gros{font-size:13.5px;padding:14px 4px;gap:5px}}
 #ilreste .repli{border:0;border-radius:var(--rm);background:var(--surface);box-shadow:var(--o1)}
 #ilreste details.repli > summary{padding:16px 19px;font-size:15.5px}
 #ilreste details.repli > summary .titre{flex:none;font-weight:700;color:var(--ink)}
