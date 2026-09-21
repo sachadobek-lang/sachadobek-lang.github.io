@@ -637,12 +637,17 @@ summary.groupe:hover{background:var(--line)}
 .reponse-c span{display:block;margin-top:4px;font-size:14.5px;color:var(--ink-2)}
 
 /* ═══ le geste principal de l'écran Factures ═══ */
+/* Il portait le dégradé profond et criait plus fort que les factures
+   elles-mêmes — comme « Nouveau client » avant qu'on ne le calme. C'est
+   un raccourci, pas la réponse de l'écran : il prend le blanc des cartes,
+   comme tout le reste. Même place, même taille, même geste. */
 .faire-facture{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
-  border:0;border-radius:var(--rl);padding:19px 22px;background:var(--deg);color:#fff;
-  font-family:var(--num);font-weight:600;font-size:18.5px;letter-spacing:-.01em;
-  box-shadow:var(--o2);transition:transform .16s var(--ressort),filter .2s}
-.faire-facture svg{width:21px;height:21px;stroke-width:2.6;fill:none}
-.faire-facture:hover{filter:brightness(1.08)}
+  border:1px solid var(--line);border-radius:var(--rl);padding:18px 22px;
+  background:var(--surface);color:var(--ink);
+  font-family:var(--num);font-weight:600;font-size:17.5px;letter-spacing:-.01em;
+  box-shadow:var(--o1);transition:transform .16s var(--ressort),background .2s}
+.faire-facture svg{width:20px;height:20px;stroke-width:2.6;fill:none}
+.faire-facture:hover{background:var(--surface-2)}
 .faire-facture:active{transform:scale(.982)}
 
 /* ═══ la relance proposée ═══
@@ -1964,6 +1969,13 @@ summary.carte-tete:hover h2{color:var(--v1)}
    pleins, ils mangeaient le premier écran à eux seuls. Ce sont des
    raccourcis, pas la réponse — ils prennent la place de raccourcis, et
    portent le blanc des cartes du reste de l'application. */
+/* Seul, il reprend toute la largeur — mais il garde le blanc des cartes :
+   c'est un raccourci, pas la réponse de l'écran. Le fond sombre de .gros
+   est réservé au cas où il serait la seule chose à faire. */
+#ilreste .gros.seul{
+  background:var(--surface);color:var(--ink);box-shadow:var(--o1);
+  font-size:16.5px;min-height:56px}
+#ilreste .gros.seul:hover{background:var(--sunken);color:var(--moi)}
 #ilreste .deux-gros{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 #ilreste .deux-gros .gros{
   width:100%;min-height:0;padding:15px 8px;
@@ -2249,10 +2261,12 @@ summary.carte-tete:hover h2{color:var(--v1)}
     <!-- L'ordre voulu par Sacha : ce qu'on vient faire, puis l'argent,
          puis ce que l'État prendra, puis ce qu'il faut mettre de côté.
          On agit d'abord, on regarde ensuite, on provisionne en dernier. -->
-    <div class="deux-gros">
-      <button class="gros" id="gros-1">＋ J'ai été payé</button>
-      <button class="gros doux" id="gros-fact">＋ Faire une facture</button>
-    </div>
+    <!-- « J'ai été payé » est parti : Sacha ne s'en servait pas, et le
+         geste existe là où il a du sens — sur la facture qu'on encaisse,
+         pas sur un écran qui ne sait pas encore de quelle facture il
+         s'agit. Faire une facture reprend toute la largeur, en blanc,
+         comme avant qu'ils ne soient deux. -->
+    <button class="gros doux seul" id="gros-fact">＋ Faire une facture</button>
 
     <div class="bloc-disque">
       <div class="disc">
@@ -2339,7 +2353,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   <!-- ============ MES RENTRÉES ============ -->
   <div class="panel" id="p-livre" role="tabpanel" hidden>
 
-    <button class="gros noprint" id="gros-2">＋ J'ai été payé</button>
+
 
     <!-- Encaisser commence par la question qu'on se pose vraiment :
          laquelle de mes factures vient d'être réglée. Retaper le nom, le
@@ -4143,9 +4157,14 @@ function rangeeFacture(f, chezLui){
     + '<button class="pdf" data-pdf="' + h(f.id) + '" title="Télécharger la facture en PDF">'
     + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
     + '<path d="M12 3.5v11"/><path d="m7.8 10.5 4.2 4.2 4.2-4.2"/><path d="M4.5 18.5h15"/></svg>PDF</button>'
+    /* « Payée » solde tout. Mais l'acompte de 30 % à la commande est la
+       règle du métier : il lui faut son propre geste, et il n'en avait
+       plus depuis que « J'ai été payé » a disparu de Mon argent. Ici il
+       sait de quelle facture on parle, ce que l'ancien bouton ignorait. */
     + (st === "payee"
         ? '<button class="mini" data-regle="' + h(f.id) + '" title="Appuyez pour changer">' + h(f.regle || "Virement") + "</button>"
-        : '<button class="mini" data-paye="' + h(f.id) + '">Payée</button>')
+        : '<button class="mini" data-acompte="' + h(f.id) + '" title="Il a versé une partie">Acompte</button>'
+          + '<button class="mini" data-paye="' + h(f.id) + '">Payée</button>')
     + '<button class="sup" data-sup="factures" data-id="' + h(f.id) + '"><span class="mot">Supprimer</span></button></div>';
 }
 function vueArgent(){
@@ -5959,6 +5978,19 @@ $("#vue").addEventListener("click", e => {
   if(b.dataset.forme){ state.moi.forme = b.dataset.forme; sauver(); memoire.clear(); rendre(); return; }
   if(b.dataset.ff){ filtreF = b.dataset.ff; rendre(); return; }
   if(b.dataset.fb){ filtreB = b.dataset.fb; rendre(); return; }
+  if(b.dataset.acompte){
+    const f = state.factures[b.dataset.acompte];
+    if(!f) return;
+    /* Le formulaire vit dans « Mon argent », qui est masqué tant qu'on
+       est sur le sous-onglet Factures : l'ouvrir d'ici sans changer
+       d'écran l'aurait ouvert derrière un rideau. On y va d'abord, on
+       ouvre ensuite — et la facture est déjà choisie, ce que l'ancien
+       bouton ne pouvait pas savoir. */
+    const id = b.dataset.acompte;
+    filtreC = "argent"; memoire.clear(); rendre();
+    if(window.ouvrirRentree) window.ouvrirRentree({facture: id, client: f.client});
+    return;
+  }
   if(b.dataset.paye){
     const f = state.factures[b.dataset.paye];
     if(!f) return;
@@ -8812,6 +8844,12 @@ function sauver(){ try{ localStorage.setItem("itrc5",JSON.stringify(etat)); }cat
    sans facture — une vente réglée sur place. */
 var rentreePour = null;
 
+/* Le formulaire des rentrées vit dans « Mon argent », qui est un bloc de
+   script à part. La ligne de facture, elle, est dans l'autre. On l'expose
+   donc, comme le reste du pont — sans quoi l'appel partirait dans le vide
+   sans rien dire, ce qui est déjà arrivé une fois sur ce projet. */
+window.ouvrirRentree = function(pre){ return ouvrirRentree(pre); };
+
 function ouvrirRentree(pre){
   onglet("livre");
   $("form-rentree").hidden=false;
@@ -8875,8 +8913,10 @@ $("n-dues").addEventListener("click",function(e){
   if(d) saisirPour(d);
 });
 $("n-sans").addEventListener("click",function(){ saisirPour(null, null); });
-$("gros-1").addEventListener("click",function(){ ouvrirRentree(); });
-$("gros-2").addEventListener("click",function(){ ouvrirRentree(); });
+/* Les deux boutons « J'ai été payé » ont disparu. On garde ouvrirRentree :
+   c'est elle qui enregistre un acompte, et la ligne de facture l'appelle
+   désormais avec la facture concernée — ce que ces deux-là ne pouvaient
+   pas faire, puisqu'ils ne savaient pas de qui on parlait. */
 $("annuler-rentree").addEventListener("click",function(){ $("form-rentree").hidden=true; onglet("argent"); });
 $("valider-rentree").addEventListener("click",function(){
   var m=num($("n-montant").value);
