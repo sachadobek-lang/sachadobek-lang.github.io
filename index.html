@@ -1300,11 +1300,24 @@ summary.carte-tete:hover h2{color:var(--v1)}
   box-shadow:var(--shadow-1); max-width:100%;
 }
 #majournee .upnext .dot{width:8px; height:8px; border-radius:999px; background:var(--c); flex:0 0 auto}
+/* ═══ qui a le droit de rétrécir ═══
+   Mesuré à 320 px : « MAINTENANT » gardait ses 86 pixels, « jusqu'à
+   18:00 » ses 79, et le nom du rendez-vous — la seule chose que cette
+   pastille existe pour dire — était écrasé à UN pixel. On lisait
+   « MAINTENANT · jusqu'à 18:00 » sans savoir de quoi.
+   Les deux décorations étaient rigides et le contenu seul souple : c'est
+   la priorité inverse de ce qu'il faut. Le nom prend la place en premier
+   et ne descend pas sous six caractères ; l'heure de fin cède avant lui,
+   et disparaît sur les écrans les plus étroits. Elle se relit d'un
+   regard sur la grille, le nom non. */
 #majournee .upnext .when{font-size:12.5px; font-weight:600; color:var(--ink-3); letter-spacing:.02em;
-  text-transform:uppercase; flex:0 0 auto}
-#majournee .upnext .what{font-family:var(--display); font-weight:600; font-size:14.5px; letter-spacing:-.01em;
+  text-transform:uppercase; flex:0 1 auto; min-width:0;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
-#majournee .upnext .till{font-size:13px; color:var(--ink-3); font-variant-numeric:tabular-nums; flex:0 0 auto}
+#majournee .upnext .what{font-family:var(--display); font-weight:600; font-size:14.5px; letter-spacing:-.01em;
+  flex:1 1 auto; min-width:6em;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+#majournee .upnext .till{font-size:13px; color:var(--ink-3); font-variant-numeric:tabular-nums;
+  flex:0 1 auto; min-width:0; overflow:hidden; white-space:nowrap}
 #majournee .week{display:flex; align-items:center; gap:6px}
 #majournee .mois-nav{display:flex; align-items:center; gap:10px; width:100%;
   justify-content:space-between; padding-bottom:10px}
@@ -1847,6 +1860,23 @@ summary.carte-tete:hover h2{color:var(--v1)}
   #majournee .day-pill .num{width:min(40px,100%); aspect-ratio:1; height:auto}
   #majournee .seg button{padding:12px 14px; font-size:14.5px}
   #majournee .qmore{width:44px; height:44px}
+}
+/* ═══ les très petits écrans ═══
+   Mesuré à 320 px : la pilule « Jour · Semaine · Mois · − · + » demandait
+   vingt-sept pixels de plus que sa carte et sortait par la droite. Le
+   motif est le même que partout ailleurs — une rangée dont les libellés
+   refusent d'être coupés ne peut pas rétrécir, alors elle déborde. Et
+   elle déborde en silence : la page, elle, ne déborde pas, donc aucun
+   contrôle de défilement ne la voit.
+   On ne coupe pas les mots et on n'empile pas : on reprend les trente-
+   huit pixels sur les marges intérieures, qui n'en avaient pas besoin. */
+@media (max-width:360px){
+  #majournee .seg button{padding:12px 8px; font-size:13.5px}
+  #majournee .seg .seg-z{width:32px}
+  #majournee .seg-sep{margin:4px 1px}
+  /* L'heure de fin cède la place au nom : elle est écrite sur la grille
+     juste en dessous, le nom ne l'est pas toujours. */
+  #majournee .upnext .till{display:none}
 }
 /* Le retrait de 30 px alignait l'aperçu sous le texte du champ, du temps où
    un seul bouton l'accompagnait. La loupe en a ajouté un second : les deux ne
