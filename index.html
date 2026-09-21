@@ -33,7 +33,6 @@
 <link rel="icon" href="icone.svg" type="image/svg+xml">
 <meta name="theme-color" content="#F5F7FB">
 <link rel="preload" href="polices/nunito-var.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="preload" href="polices/outfit-var.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 /* Les deux familles étaient demandées à Google, une graisse par fichier :
    sept fichiers, 317 kilo-octets, précédés d'une résolution DNS et d'une
@@ -46,11 +45,6 @@
   font-family:"Nunito";
   src:url("polices/nunito-var.woff2") format("woff2");
   font-weight:200 1000; font-style:normal; font-display:swap;
-}
-@font-face{
-  font-family:"Outfit";
-  src:url("polices/outfit-var.woff2") format("woff2");
-  font-weight:100 900; font-style:normal; font-display:swap;
 }
 :root{
   --ground:#EFF3F8; --surface:#FFFFFF; --surface-2:#F5F8FC; --surface-3:#E9EFF6;
@@ -90,7 +84,16 @@
   --o3:0 18px 46px -14px rgba(20,32,46,.30);
   --ui:"Nunito",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
   --ui-cadence:"Nunito",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  --num:"Outfit","Nunito",-apple-system,sans-serif;
+  /* Sacha : « j'aime pas la police des numéros, là comme partout ». Les
+     chiffres — et les titres qui partagent cette famille — passent de
+     Outfit à Nunito, qui est déjà la police de tout le reste du texte.
+     L'application parle donc d'une seule voix au lieu de deux.
+     Conséquence mesurée : plus rien n'appelait Outfit, ni son
+     préchargement ni sa déclaration. Vingt-neuf kilo-octets de police
+     cessent d'être téléchargés à chaque première visite — la moitié de
+     ce que les polices coûtaient. Le fichier reste sur le disque : on ne
+     supprime rien sans le lui dire. */
+  --num:"Nunito",-apple-system,BlinkMacSystemFont,sans-serif;
   --ressort:cubic-bezier(.34,1.46,.44,1);
   --doux:cubic-bezier(.22,.61,.36,1);
   /* relais pour l'agenda greffé */
@@ -7558,24 +7561,21 @@ function makeBlock(ev, opts){
   var band = opts.band, w = band.w / (ev._cols || 1);
   var gauche = band.left + w * (ev._col || 0);
 
-  /* ═══ cesser de découper quand il n'y a plus la place d'écrire ═══
-     Six rendez-vous qui se chevauchent dans une colonne de semaine de
-     quarante-deux pixels donnent six blocs de seize : mesuré, le nom y
-     dispose de zéro pixel, et on ne voit que des traits. Or un trait ne
-     dit pas qu'il y a un rendez-vous.
-     Le plancher était à quarante pixels, fixé à l'époque où un bloc
-     étroit n'écrivait rien du tout. Depuis qu'il écrit, il est trop
-     haut : six rendez-vous qui se chevauchent sur un téléphone donnent
-     des colonnes de trente-huit pixels et demi, et tout s'empilait —
-     cinq des six devenaient invisibles pour épargner un pixel et demi.
-     Mesuré : à vingt-huit pixels il reste dix-neuf pixels de texte,
-     soit trois lettres à neuf pixels. C'est peu, mais c'est lisible, et
-     surtout les six rendez-vous existent. En dessous seulement, on cesse
-     de découper : mieux vaut un seul nom lisible que dix traits muets. */
-  if ((opts.largeur || 320) * (w / 100) - 4 < 28){
-    w = band.w;
-    gauche = band.left;
-  }
+  /* ═══ jamais l'un derrière l'autre ═══
+     Il y avait ici une règle : sous vingt-huit pixels de large, on
+     cessait de découper la colonne et les blocs se superposaient. Elle
+     partait d'une bonne intention — mieux vaut un nom lisible que dix
+     traits muets — et elle était fausse.
+     Sacha : « quand il y a deux trucs en même temps sur un même jour, ça
+     se cache. Il faut que ce soit sur le côté, pas que ça se cache. »
+     Il a raison, et la raison tient en une phrase : un rendez-vous caché
+     n'existe pas. On ne sait pas qu'il est là, donc on ne va pas le
+     chercher, et on le découvre le jour où on l'a manqué. Un rendez-vous
+     étroit, lui, existe : on le voit, on peut le toucher, et les règles
+     de « serre » lui tirent tout ce que sa largeur permet — deux ou trois
+     lettres à vingt-huit pixels, davantage dès qu'il y a la place.
+     Une journée réelle en aligne deux ou trois, rarement plus.
+     Donc plus de plancher : ils se partagent la largeur, toujours. */
 
   b.style.left = 'calc(' + gauche + '% + 2px)';
   b.style.width = 'calc(' + w + '% - 4px)';
