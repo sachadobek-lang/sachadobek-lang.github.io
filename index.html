@@ -1570,13 +1570,13 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .slot:hover{border-color:var(--ink-3); color:var(--ink)}
 #majournee .dayview{flex:1 1 auto; min-height:0; margin-bottom:6px; display:flex; flex-direction:column}
 #majournee .dayview .card-head{justify-content:center; padding:8px 22px 6px}
-#majournee .seg{display:inline-flex; background:var(--surface-2); border:1px solid var(--line-soft); border-radius:var(--rs); padding:3px; gap:3px}
+#majournee .seg{display:inline-flex; background:var(--surface-2); border:1px solid var(--line-soft); border-radius:999px; padding:3px; gap:3px}
 /* Les deux touches de hauteur vivent dans la même pilule que la vue. Un
    trait les en sépare : c'est un autre réglage, pas une quatrième vue. */
 #majournee .seg-sep{width:1px; align-self:stretch; margin:4px 2px;
   background:var(--line-soft); flex:0 0 auto}
 #majournee .seg .seg-z{
-  width:36px; padding:0; border-radius:10px;
+  width:36px; padding:0; border-radius:999px;
   color:var(--ink-2); display:grid; place-items:center;
   transition:background .16s, color .16s, opacity .16s;
 }
@@ -1591,7 +1591,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
    plus à faire correspondre. */
 #majournee .seg button{
   font-family:var(--ui); font-size:15px; font-weight:600; color:var(--ink-3);
-  padding:8px 20px; border-radius:10px; transition:color .14s ease, background-color .14s ease;
+  padding:8px 20px; border-radius:999px; transition:color .14s ease, background-color .14s ease;
 }
 #majournee .seg button:hover{color:var(--ink)}
 #majournee .seg button[aria-pressed="true"]{background:var(--surface); color:var(--ink); font-weight:700; box-shadow:var(--shadow-1)}
@@ -1876,10 +1876,16 @@ summary.carte-tete:hover h2{color:var(--v1)}
    couleur du rendez-vous, pleine, à sa place exacte dans la journée.
    Elle dit « il y a quelque chose ici », ce qui est tout ce qu'on peut
    dire à cette taille — le reste s'obtient en zoomant ou en touchant. */
-#majournee .ev.filet{padding:0; gap:0; border-radius:3px; border-color:transparent}
+#majournee .ev.filet{padding:0; gap:0; border-radius:3px}
 #majournee .ev.filet > *{display:none}
+/* Le filet garde le fond pâle du bloc et son trait de couleur à gauche :
+   c'est une miniature du rendez-vous, pas une dalle. Peint en plein, à
+   quatre pixels sur toute la largeur, il ressemblait à une barre de
+   progression posée au bas de la carte — mesuré à l'écran, quatre
+   rendez-vous d'avant minuit et quatre traits pleins qu'on ne lisait
+   plus comme du contenu. */
 #majournee .ev.filet::before{
-  left:0; right:0; top:0; bottom:0; width:auto; border-radius:3px; opacity:.85;
+  left:0; top:0; bottom:0; width:3px; border-radius:3px 0 0 3px;
 }
 
 
