@@ -2391,93 +2391,92 @@ summary.carte-tete:hover h2{color:var(--v1)}
    Tout est en dur ici : aucune police extérieure, aucune image, rien qui
    puisse arriver en retard. Ce voile doit être le premier pixel affiché,
    sinon il ne sert à rien. */
-/* L'écran d'ouverture. Le noir n'est pas un effet : il ne demande rien à
-   l'œil, et une application qui s'ouvre sur du noir paraît plus rapide
-   qu'une autre qui s'ouvre sur du contenu à déchiffrer. Le halo au
-   centre évite le noir plat, qui ferait écran éteint.
+/* ═══ l'écran d'ouverture ═══
+   Du noir, et une barre. Rien d'autre.
 
-   La lueur part vive et décroît — pas l'inverse. À l'ouverture on la
-   prend en pleine intensité, et le plancher de 480 millisecondes suffit
-   à en voir la retombée. Une pulsation qui démarrerait en bas ne se
-   verrait jamais. */
+   Il y avait un logo au centre, et il ne servait à rien : on sait déjà
+   quelle application on vient d'ouvrir, on l'a touchée une seconde plus
+   tôt. Ce qu'on veut savoir à cet instant, c'est que ça charge.
+
+   Donc une seule chose à regarder — un bout de lumière qui monte et qui
+   grandit. Il part petit et sourd en bas, il gagne en longueur et en
+   éclat à mesure qu'il s'élève, et le néon qui l'entoure grossit avec
+   lui. C'est la charge qu'on voit, pas une décoration.
+
+   Tout est en dur ici : aucune police, aucune image, rien qui puisse
+   arriver en retard. Ce voile doit être le premier pixel affiché, sinon
+   il ne sert à rien. */
 #demarrage{position:fixed;inset:0;z-index:200;
-  background:
-    radial-gradient(130% 95% at 50% 42%, #121B2B 0%, #080C14 52%, #04060A 100%);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;
+  background:#000;
+  display:flex;align-items:center;justify-content:center;
   opacity:1;transition:opacity .42s var(--doux)}
 #demarrage.parti{opacity:0;pointer-events:none}
-#demarrage .marque{width:112px;height:112px;border-radius:0;background:none;
-  display:grid;place-content:center;
-  animation:phare 1.7s ease-in-out infinite}
-#demarrage .marque svg{width:112px;height:112px}
-#demarrage .nom{font-family:var(--num);font-weight:600;font-size:27px;
-  letter-spacing:-.02em;color:#EDF3FC;
-  animation:phareMot 1.7s ease-in-out infinite}
-#demarrage .trait{width:150px;height:2px;border-radius:999px;
-  background:rgba(150,196,255,.13);overflow:hidden}
-#demarrage .trait i{display:block;height:100%;width:42%;border-radius:999px;
-  background:linear-gradient(90deg,transparent,#BDD8FF,transparent);
-  box-shadow:0 0 12px rgba(150,196,255,.85);
-  animation:glisse 1.15s var(--doux) infinite}
 
-/* vif, puis moins vif : c'est le mouvement demandé, et il commence en haut */
-@keyframes phare{
-  0%  {filter:drop-shadow(0 0 22px rgba(176,212,255,.80)) drop-shadow(0 0 62px rgba(120,176,255,.42));
-       transform:scale(1.03)}
-  55% {filter:drop-shadow(0 0 9px rgba(150,196,255,.24))  drop-shadow(0 0 30px rgba(110,170,255,.10));
-       transform:scale(1)}
-  100%{filter:drop-shadow(0 0 22px rgba(176,212,255,.80)) drop-shadow(0 0 62px rgba(120,176,255,.42));
-       transform:scale(1.03)}
+/* La glissière : presque invisible, juste assez pour qu'on devine où la
+   lumière va monter. Sans elle, le bout de lumière semble flotter. */
+#demarrage .jauge{position:relative;
+  width:5px;height:min(46vh,264px);
+  border-radius:999px;background:rgba(122,204,255,.06)}
+
+/* Le bout de lumière. Il pousse par le haut — « bottom » fixé, « height »
+   qui croît — et c'est ce qui donne la montée. Le blanc est au sommet :
+   la tête est plus chaude que la traîne, comme une charge qui progresse. */
+#demarrage .jauge i{position:absolute;left:0;right:0;bottom:0;
+  border-radius:999px;
+  background:linear-gradient(0deg,#2E9BFF 0%,#7FD3FF 40%,#DFF4FF 76%,#FFFFFF 100%);
+  animation:monteCharge 1.15s cubic-bezier(.32,0,.24,1) infinite;
+  transition:height .34s cubic-bezier(.2,0,0,1)}
+
+/* ═══ la sortie ═══
+   Mesuré sur un vrai chargement : l'écran commence à s'effacer sur 420
+   millisecondes, et la charge rebouclait pendant ce temps — la barre
+   retombait à un point alors que le noir était encore visible aux deux
+   tiers. On voyait un hoquet à l'instant précis où l'application
+   s'ouvre.
+   Au départ, la charge se termine donc au lieu de repartir : elle monte
+   jusqu'en haut, à pleine lumière, et c'est tout l'écran qui se dissout
+   ensuite. Ce qui est juste aussi sur le fond — à cet instant,
+   l'application est prête. */
+#demarrage.parti .jauge i{
+  animation:none; height:100%; opacity:1;
+  box-shadow:0 0 18px rgba(225,247,255,1), 0 0 60px rgba(110,205,255,.72),
+             0 0 150px rgba(60,165,255,.40)}
+
+/* Il ne part pas de zéro : à cinq pour cent on voit déjà un point de
+   lumière, et l'écran de démarrage dure parfois moins d'une demi-seconde.
+   Une animation qui commencerait dans le noir ne se verrait jamais.
+   Elle finit pleine et éclatante, puis s'éteint d'un coup — la reprise
+   se fait dans le noir, sans saut visible. */
+/* Trois cercles de lumière à chaque étape, et non un : un noyau serré
+   qui fait le tube de néon, une aura moyenne qui le décolle du noir, et
+   une floraison très large qui n'apparaît qu'à la fin. C'est elle qui
+   donne le « de plus en plus » — une seule ombre qui grossit paraît
+   floue, trois qui s'allument l'une après l'autre paraissent électriques. */
+@keyframes monteCharge{
+  0%   {height:5%;   opacity:.6;
+        box-shadow:0 0 6px rgba(120,205,255,.55)}
+  55%  {height:62%;  opacity:1;
+        box-shadow:0 0 12px rgba(200,240,255,.9), 0 0 40px rgba(80,185,255,.48),
+                   0 0 90px rgba(50,150,255,.16)}
+  86%  {height:100%; opacity:1;
+        box-shadow:0 0 18px rgba(225,247,255,1), 0 0 60px rgba(110,205,255,.72),
+                   0 0 150px rgba(60,165,255,.40)}
+  100% {height:100%; opacity:0;
+        box-shadow:0 0 18px rgba(225,247,255,0), 0 0 60px rgba(110,205,255,0),
+                   0 0 150px rgba(60,165,255,0)}
 }
-@keyframes phareMot{
-  0%  {text-shadow:0 0 12px rgba(176,212,255,.72), 0 0 34px rgba(120,176,255,.36)}
-  55% {text-shadow:0 0 7px rgba(150,196,255,.26),  0 0 20px rgba(110,170,255,.12)}
-  100%{text-shadow:0 0 12px rgba(176,212,255,.72), 0 0 34px rgba(120,176,255,.36)}
-}
-@keyframes respire{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
-@keyframes glisse{0%{transform:translateX(-110%)}100%{transform:translateX(360%)}}
+
 @media (prefers-reduced-motion:reduce){
-  /* la lueur reste, à mi-intensité : c'est le mouvement qu'on retire,
-     pas la lumière */
-  #demarrage .marque{animation:none;
-    filter:drop-shadow(0 0 16px rgba(160,202,255,.5)) drop-shadow(0 0 44px rgba(120,176,255,.24))}
-  #demarrage .nom{animation:none;text-shadow:0 0 10px rgba(160,202,255,.45)}
-  #demarrage .trait i{animation:none;width:100%}
+  /* On retire la montée, pas la lumière : la barre reste allumée aux
+     deux tiers, à l'éclat qu'elle aurait à cet instant-là. */
+  #demarrage .jauge i{animation:none;height:66%;opacity:1;
+    box-shadow:0 0 14px rgba(205,242,255,.9), 0 0 44px rgba(85,188,255,.46),
+               0 0 100px rgba(55,155,255,.18)}
 }
 </style>
 
 <div id="demarrage" aria-hidden="true">
-  <span class="marque">
-    <svg viewBox="0 0 100 100" aria-hidden="true">
-      <defs>
-        <linearGradient id="dem-fond" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#20272F"/><stop offset="100%" stop-color="#05070A"/>
-        </linearGradient>
-        <linearGradient id="dem-aire" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#FFFFFF" stop-opacity=".330"/>
-          <stop offset="100%" stop-color="#FFFFFF" stop-opacity=".022"/>
-        </linearGradient>
-        <clipPath id="dem-forme">
-          <path d="M0 50 C0 10.2 10.2 0 50 0 C89.8 0 100 10.2 100 50
-                   C100 89.8 89.8 100 50 100 C10.2 100 0 89.8 0 50 Z"/>
-        </clipPath>
-        <filter id="dem-neon" x="-60%" y="-60%" width="220%" height="220%">
-          <feGaussianBlur stdDeviation="10.0" result="flou"/>
-          <feMerge><feMergeNode in="flou"/><feMergeNode in="flou"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-      </defs>
-      <g clip-path="url(#dem-forme)">
-        <rect width="100" height="100" fill="url(#dem-fond)"/>
-        <g transform="translate(50 50) scale(0.875) translate(-50 -50)" filter="url(#dem-neon)">
-          <path d="M22 62 L40 46 L52 55 L78 30 L78 70 L22 70 Z" fill="url(#dem-aire)"/>
-          <path d="M22 62 L40 46 L52 55 L78 30" fill="none" stroke="#fff" stroke-width="3.20"
-                stroke-linecap="round" stroke-linejoin="round"/>
-        </g>
-      </g>
-    </svg>
-  </span>
-  <span class="nom">Cura</span>
-  <span class="trait"><i></i></span>
+  <span class="jauge"><i></i></span>
 </div>
 
 <button class="profil-btn" id="profil-btn" aria-label="Mon profil" title="Mon profil"></button>
@@ -6998,12 +6997,21 @@ window.addEventListener("resize", () => {
      voile, et on lui rend sa couleur quand il s'efface. */
   const meta = document.querySelector('meta[name="theme-color"]');
   const couleurApp = meta ? meta.getAttribute('content') : null;
-  if(meta) meta.setAttribute('content', '#070A10');
+  if(meta) meta.setAttribute('content', '#000000');
   const rendreLaCouleur = () => { if(meta && couleurApp) meta.setAttribute('content', couleurApp); };
 
+  /* Le plancher était à 480 millisecondes, pour une charge qui en dure
+     1 150 : sur une page qui se peint vite, on n'en voyait que le premier
+     tiers — le point de lumière grandissait un peu, et l'écran partait
+     avant que la barre ne s'allume. Le geste n'existait que pour celui
+     qui avait un téléphone lent.
+     À 780 on en voit les deux tiers, jusqu'à la floraison. C'est un tiers
+     de seconde de plus à l'ouverture, et c'est le prix de ce qu'on a
+     demandé à voir. Au-delà, ce ne serait plus un écran de chargement
+     mais une vitrine. */
   const depart = Date.now();
   window.__finDuDemarrage__ = () => {
-    const reste = Math.max(0, 480 - (Date.now() - depart));
+    const reste = Math.max(0, 780 - (Date.now() - depart));
     setTimeout(effacer, reste);
   };
   setTimeout(effacer, 3000);
