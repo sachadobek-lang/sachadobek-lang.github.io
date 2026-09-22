@@ -714,7 +714,7 @@ summary.groupe:hover{background:var(--line)}
 .action-client button.doux:hover{filter:none;background:var(--surface-2)}
 .relance{padding:4px 22px 22px;display:flex;flex-direction:column;gap:12px}
 .relance .aide{margin:0}
-.relance textarea{width:100%;border:1px solid var(--line);border-radius:18px;padding:16px;
+.relance textarea{width:100%;border:1px solid var(--line);border-radius:var(--rs);padding:16px;
   background:var(--surface-2);color:var(--ink);font:inherit;font-size:15.5px;line-height:1.55;resize:vertical}
 .relance textarea:focus-visible{outline:2px solid var(--v1);outline-offset:1px}
 .relance-actions{display:flex;gap:10px;flex-wrap:wrap}
@@ -723,7 +723,7 @@ summary.groupe:hover{background:var(--line)}
 .relance-actions button.doux{background:var(--surface-3);color:var(--v1)}
 
 /* ═══ la réponse de Calculs, juste sous le nombre saisi ═══ */
-.reponse-c{margin:2px 24px 18px;padding:16px 18px;border-radius:20px;background:var(--surface-3);text-align:center}
+.reponse-c{margin:2px 24px 18px;padding:16px 18px;border-radius:var(--rm);background:var(--surface-3);text-align:center}
 .reponse-c .heros-val{margin:0;line-height:1.05}
 .reponse-c span{display:block;margin-top:4px;font-size:14.5px;color:var(--ink-2)}
 
@@ -1089,7 +1089,7 @@ button.tuile:active{transform:scale(.985)}
   border-radius:var(--rxl) var(--rxl) 0 0;box-shadow:var(--o3);transition:transform .38s var(--doux);max-height:92vh;overflow-y:auto}
 .feuille.on{transform:translate(-50%,0)}
 @media(min-width:560px){ .feuille{bottom:26px;border-radius:var(--rxl)} }
-.poignee{width:44px;height:5px;border-radius:99px;background:var(--line-fort);margin:12px auto 0}
+.poignee{width:44px;height:5px;border-radius:999px;background:var(--line-fort);margin:12px auto 0}
 .feuille-tete{display:flex;align-items:center;gap:12px;padding:18px 24px 6px}
 .feuille-tete h2{font-family:var(--num);font-weight:600;font-size:22px;letter-spacing:-.02em}
 .fermer{margin-left:auto;border:0;background:var(--surface-3);color:var(--ink-2);width:36px;height:36px;border-radius:50%;display:grid;place-content:center;font-size:21px;line-height:1;transition:background .2s}
@@ -1132,7 +1132,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 .bienvenue p{font-size:16px;color:var(--ink-2);max-width:38ch}
 .etapes{display:flex;flex-direction:column;gap:15px;margin:16px 0 4px;text-align:left;width:100%;max-width:400px}
 .etape{display:flex;gap:14px;align-items:flex-start;font-size:15px;color:var(--ink-2)}
-.etape .rondi{width:40px;height:40px;border-radius:14px;flex:none;background:var(--deg-pale);display:grid;place-content:center;color:var(--v1)}
+.etape .rondi{width:40px;height:40px;border-radius:var(--rs);flex:none;background:var(--deg-pale);display:grid;place-content:center;color:var(--v1)}
 .etape .rondi svg{width:21px;height:21px;stroke-width:2.1;fill:none}
 .etape b{display:block;color:var(--ink);font-weight:700;font-size:16px}
 .bienvenue .valider{padding:17px 34px;margin-top:10px}
@@ -1241,7 +1241,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
      s'appliquaient pas. */
   .r{padding:14px 40px 14px 16px;gap:9px 12px;flex-wrap:wrap;position:relative}
   .r + .r::before{left:16px;right:16px}
-  .r .pastille{width:42px;height:42px;border-radius:14px;font-size:14px}
+  .r .pastille{width:42px;height:42px;border-radius:var(--rs);font-size:14px}
   .r .r-corps{flex:1 1 52%;min-width:8.5rem}
   .r .r-som{margin-left:auto}
   .r .mini{margin-left:auto}
@@ -1378,7 +1378,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   letter-spacing:0; color:var(--ink-3)}
 #majournee .today-btn{
   font-family:var(--ui); font-weight:500; font-size:14px; color:var(--ink-2);
-  border:1px solid var(--line); border-radius:11px; padding:9px 15px; background:var(--surface);
+  border:1px solid var(--line); border-radius:10px; padding:9px 15px; background:var(--surface);
 }
 #majournee .today-btn:hover{color:var(--ink); border-color:var(--ink-3)}
 #majournee .upnext{
@@ -1425,17 +1425,17 @@ summary.carte-tete:hover h2{color:var(--v1)}
   align-items:flex-end; justify-content:center}
 #majournee .pick-wrap .backdrop{position:absolute; inset:0; background:rgba(12,16,22,.44)}
 #majournee .pick{position:relative; width:min(520px,100%); background:var(--surface);
-  border-radius:24px 24px 0 0; padding:20px 20px calc(20px + env(safe-area-inset-bottom));
+  border-radius:var(--rxl) var(--rxl) 0 0; padding:20px 20px calc(20px + env(safe-area-inset-bottom));
   box-shadow:0 -10px 40px rgba(20,22,27,.2)}
 #majournee .pick-an{display:flex; align-items:center; justify-content:space-between; gap:10px; padding-bottom:14px}
 #majournee .pick-an span{flex:1; text-align:center; font-family:var(--display);
   font-weight:600; font-size:22px; font-variant-numeric:tabular-nums; color:var(--ink)}
 #majournee .pick-mois{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
 #majournee .pick-mois button{padding:14px 6px; border:1px solid var(--line); background:var(--surface);
-  border-radius:14px; font:inherit; font-weight:600; color:var(--ink); cursor:pointer}
+  border-radius:var(--rs); font:inherit; font-weight:600; color:var(--ink); cursor:pointer}
 #majournee .pick-mois button[aria-current="true"]{background:var(--ink); color:var(--surface); border-color:var(--ink)}
 #majournee .pick-mois button:active{transform:scale(.97)}
-#majournee .pick-auj{margin-top:14px; width:100%; padding:13px; border:0; border-radius:14px;
+#majournee .pick-auj{margin-top:14px; width:100%; padding:13px; border:0; border-radius:var(--rs);
   background:var(--surface-2); color:var(--ink-2); font:inherit; font-weight:600; cursor:pointer}
 
 /* En vue Mois, ces deux-là encadrent le titre : on change de mois là où
@@ -1476,7 +1476,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .day-pill[aria-pressed="true"] .num{background:var(--ink); color:var(--bg)}
 #majournee .day-pill[aria-pressed="true"]:hover .num{background:var(--ink)}
 #majournee .day-pill .marks{display:flex; gap:3.5px; height:4px; align-items:center}
-#majournee .day-pill .marks i{width:4px; height:4px; border-radius:99px; background:var(--m)}
+#majournee .day-pill .marks i{width:4px; height:4px; border-radius:999px; background:var(--m)}
 #majournee .card{
   /* La carte du calendrier portait --shadow-1, l'ombre propre à l'Agenda :
      un seul plan à 4 % d'opacité. Celles de Clients portent --o1, qui en
@@ -1485,7 +1485,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
      sans cette seconde ombre, rien ne les soulève et l'écran paraît
      plat. Même élévation pour les trois écrans. */
   background:var(--surface); border:1px solid var(--line-soft);
-  border-radius:22px; box-shadow:var(--o1); overflow:hidden;
+  border-radius:var(--rl); box-shadow:var(--o1); overflow:hidden;
 }
 #majournee .card-head{
   display:flex; align-items:center; justify-content:space-between; gap:12px;
@@ -1504,7 +1504,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   background-size:20px 20px; background-position:10px 10px;
 }
 #majournee .note{
-  position:relative; min-height:76px; border-radius:14px; padding:13px 13px 11px;
+  position:relative; min-height:76px; border-radius:var(--rs); padding:13px 13px 11px;
   background:var(--surface); border:1px solid var(--line-soft); box-shadow:var(--shadow-1);
   display:flex; flex-direction:column; gap:9px; overflow:hidden;
   transition:transform .16s ease, box-shadow .16s ease;
@@ -1563,14 +1563,14 @@ summary.carte-tete:hover h2{color:var(--v1)}
 }
 #majournee .note.add textarea::placeholder{color:var(--ink-3)}
 #majournee .slot{
-  min-height:92px; border-radius:14px; border:1.5px dashed var(--line);
+  min-height:92px; border-radius:var(--rs); border:1.5px dashed var(--line);
   background:transparent; box-shadow:none; color:var(--ink-3);
   display:grid; place-items:center; transition:border-color .16s ease, color .16s ease;
 }
 #majournee .slot:hover{border-color:var(--ink-3); color:var(--ink)}
 #majournee .dayview{flex:1 1 auto; min-height:0; margin-bottom:6px; display:flex; flex-direction:column}
 #majournee .dayview .card-head{justify-content:center; padding:8px 22px 6px}
-#majournee .seg{display:inline-flex; background:var(--surface-2); border:1px solid var(--line-soft); border-radius:13px; padding:3px; gap:3px}
+#majournee .seg{display:inline-flex; background:var(--surface-2); border:1px solid var(--line-soft); border-radius:var(--rs); padding:3px; gap:3px}
 /* Les deux touches de hauteur vivent dans la même pilule que la vue. Un
    trait les en sépare : c'est un autre réglage, pas une quatrième vue. */
 #majournee .seg-sep{width:1px; align-self:stretch; margin:4px 2px;
@@ -1659,7 +1659,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
    disque suffit à dire les deux. */
 #majournee .m-case.today[aria-current="true"] .n{box-shadow:none}
 #majournee .m-pts{display:flex; flex-wrap:wrap; justify-content:center; gap:3px; max-width:100%}
-#majournee .m-pts i{width:5px; height:5px; border-radius:99px; background:var(--m); flex:0 0 auto}
+#majournee .m-pts i{width:5px; height:5px; border-radius:999px; background:var(--m); flex:0 0 auto}
 #majournee .m-plus{font-size:10.5px; color:var(--ink-3); line-height:1; font-variant-numeric:tabular-nums}
 @media (max-width:480px){
   #majournee .m-case{padding:7px 1px 5px}
@@ -1745,7 +1745,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   left:calc(5px + var(--t,1) * 1px);
   top:calc(3px + var(--t,1) * 5px); bottom:calc(3px + var(--t,1) * 5px);
   width:calc(2px + var(--t,1) * .5px);
-  border-radius:99px; background:var(--c);
+  border-radius:999px; background:var(--c);
 }
 #majournee .ev:hover{background:color-mix(in oklab, var(--c) 20%, var(--surface)); transform:translateY(-1px)}
 #majournee .ev .ico{
@@ -1823,7 +1823,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 }
 #majournee .ev-rz::after{
   content:""; position:absolute; left:50%; bottom:3px; transform:translateX(-50%);
-  width:22px; height:2px; border-radius:99px; background:var(--c); opacity:0; transition:opacity .14s ease;
+  width:22px; height:2px; border-radius:999px; background:var(--c); opacity:0; transition:opacity .14s ease;
 }
 #majournee .ev:hover .ev-rz::after{opacity:.5}
 #majournee .ev.tiny .ev-rz{display:none}
@@ -1889,7 +1889,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
    illisible. Il passe derrière : on le voit dépasser de chaque côté, et
    c'est suffisant pour situer l'heure. */
 #majournee .now{position:absolute; left:-5px; right:0; height:1.5px; background:var(--accent); pointer-events:none; z-index:1}
-#majournee .now::before{content:""; position:absolute; left:0; top:-3.5px; width:8px; height:8px; border-radius:99px; background:var(--accent)}
+#majournee .now::before{content:""; position:absolute; left:0; top:-3.5px; width:8px; height:8px; border-radius:999px; background:var(--accent)}
 #majournee .empty{position:absolute; inset:0; display:grid; place-content:center; text-align:center;
   pointer-events:none; padding:16px; z-index:3}
 #majournee .empty .bul{
@@ -1940,7 +1940,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
    ne bouge pas — elle est portée par le rembourrage de la barre, qui fait
    les 44 px réglementaires autour de chacun des deux. */
 #majournee .qmore{
-  width:35px; height:35px; flex:0 0 auto; border-radius:11px; color:var(--ink-3);
+  width:35px; height:35px; flex:0 0 auto; border-radius:10px; color:var(--ink-3);
   display:grid; place-items:center; transition:color .14s ease, background-color .14s ease;
 }
 #majournee .qmore:hover{color:var(--ink); background:var(--surface-2)}
@@ -2010,12 +2010,12 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .backdrop{position:absolute; inset:0; background:rgba(11,12,15,.45)}
 #majournee .sheet{
   position:relative; width:min(540px,100%); max-height:94dvh;
-  background:var(--surface); border-radius:26px 26px 0 0;
+  background:var(--surface); border-radius:var(--rxl) var(--rxl) 0 0;
   box-shadow:var(--shadow-2); display:flex; flex-direction:column;
   animation:rise .2s cubic-bezier(.2,.8,.3,1);
 }
 @keyframes rise{from{transform:translateY(20px)}to{transform:translateY(0)}}
-@media (min-width:640px){#majournee .sheet-wrap{place-items:center}#majournee .sheet{border-radius:24px; max-height:88dvh}
+@media (min-width:640px){#majournee .sheet-wrap{place-items:center}#majournee .sheet{border-radius:var(--rxl); max-height:88dvh}
 }
 #majournee .sheet-head{display:flex; align-items:center; justify-content:space-between; gap:12px; padding:24px 24px 16px}
 #majournee .sheet-head h2{font-family:var(--display); font-weight:700; font-size:20px; letter-spacing:-.018em; margin:0}
@@ -2034,7 +2034,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 }
 #majournee .trouve button:last-child{border-bottom:0}
 #majournee .trouve button:hover{background:var(--surface-2)}
-#majournee .trouve .t-pt{width:8px; height:8px; border-radius:99px; background:var(--m); flex:0 0 auto}
+#majournee .trouve .t-pt{width:8px; height:8px; border-radius:999px; background:var(--m); flex:0 0 auto}
 #majournee .trouve .t-quoi{
   flex:1; min-width:0; font-family:var(--display); font-weight:600; font-size:15px;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
@@ -2061,7 +2061,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .plus-detail[open] > summary::before{content:"\2212"}
 #majournee .note-input{
   width:100%; background:var(--surface-2); border:1px solid var(--line);
-  border-radius:12px; padding:12px 14px; font:inherit; font-size:15px;
+  border-radius:var(--rs); padding:12px 14px; font:inherit; font-size:15px;
   color:var(--ink); resize:vertical; min-height:74px;
 }
 #majournee .note-input:focus{outline:0; border-color:var(--ink-3); background:var(--surface)}
@@ -2072,7 +2072,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); margin:0 0 12px;
 }
 #majournee .name-input{
-  width:100%; padding:14px 16px; border-radius:13px;
+  width:100%; padding:14px 16px; border-radius:var(--rs);
   border:1px solid var(--line); background:var(--surface); color:var(--ink);
   font-weight:600; font-size:16px;
 }
@@ -2082,7 +2082,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .cats{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:14px}
 @media (min-width:520px){#majournee .cats{grid-template-columns:repeat(6,1fr)}}
 #majournee .cat{
-  border:1px solid var(--line); border-radius:14px; background:var(--surface);
+  border:1px solid var(--line); border-radius:var(--rs); background:var(--surface);
   padding:13px 3px 10px; display:flex; flex-direction:column; align-items:center; gap:7px;
   color:var(--ink-2); transition:border-color .14s ease, background-color .14s ease;
 }
@@ -2095,7 +2095,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .cat[aria-pressed="true"] .ico{color:var(--c)}
 #majournee .cat[aria-pressed="true"] .l{font-weight:600}
 #majournee .time-input{
-  width:100%; padding:13px 15px; border-radius:13px;
+  width:100%; padding:13px 15px; border-radius:var(--rs);
   border:1px solid var(--line); background:var(--surface); color:var(--ink);
   font-weight:700; font-size:17px;
   font-variant-numeric:tabular-nums;
@@ -2104,7 +2104,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .chiprow{display:flex; flex-wrap:wrap; gap:7px; margin-top:9px}
 #majournee .chiprow.first{margin-top:0}
 #majournee .chip{
-  border:1px solid var(--line); background:var(--surface); border-radius:11px;
+  border:1px solid var(--line); background:var(--surface); border-radius:10px;
   padding:10px 4px; font-weight:600; font-size:15px;
   font-variant-numeric:tabular-nums; text-align:center; color:var(--ink-2);
   transition:border-color .12s ease, background-color .12s ease, color .12s ease;
@@ -2128,11 +2128,11 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .ok{
   flex:1; background:var(--ink); color:var(--bg);
   font-family:var(--display); font-weight:600; font-size:16px; letter-spacing:-.005em;
-  padding:15px; border-radius:14px;
+  padding:15px; border-radius:var(--rs);
 }
 #majournee .ok:hover{opacity:.9}
 #majournee .iconbtn{
-  width:52px; height:52px; flex:0 0 auto; border-radius:14px; border:1px solid var(--line);
+  width:52px; height:52px; flex:0 0 auto; border-radius:var(--rs); border:1px solid var(--line);
   color:var(--ink-3); display:grid; place-items:center;
   transition:border-color .14s ease, color .14s ease;
 }
@@ -2247,7 +2247,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .jauge{display:flex;flex-direction:column;gap:6px}
 #ilreste .jauge .haut{display:flex;align-items:baseline;gap:10px;font-size:14.5px;color:var(--ink-soft)}
 #ilreste .jauge .haut .n{margin-left:auto;font-family:var(--num);color:var(--ink);font-weight:500}
-#ilreste .jauge .barre{height:12px;border-radius:99px;background:var(--sunken);overflow:hidden}
+#ilreste .jauge .barre{height:12px;border-radius:999px;background:var(--sunken);overflow:hidden}
 #ilreste .jauge .barre i{display:block;height:100%;background:var(--moi);transition:width .5s cubic-bezier(.16,1,.3,1),background .3s}
 #ilreste .jauge.chaud .barre i{background:var(--chaud)}
 #ilreste .jauge .bas{font-size:13.5px;color:var(--ink-soft)}
@@ -2259,13 +2259,13 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .f > span{font-size:12.5px;color:var(--ink-faint)}
 #ilreste .f input,#ilreste .f textarea,#ilreste .f select{
   font:inherit;font-size:16px;color:var(--ink);background:var(--paper);
-  border:1px solid var(--rule);border-radius:12px;padding:11px 13px;min-height:48px;width:100%;
+  border:1px solid var(--rule);border-radius:var(--rs);padding:11px 13px;min-height:48px;width:100%;
 }
 #ilreste .f textarea{min-height:72px;resize:vertical;line-height:1.4}
 #ilreste .f input[inputmode=decimal],#ilreste .f input[inputmode=numeric]{font-family:var(--num);text-align:right}
 #ilreste .f input::placeholder,#ilreste .f textarea::placeholder{color:var(--ink-faint)}
 #ilreste .btn{
-  min-height:48px;padding:0 16px;border-radius:14px;font:inherit;font-size:15.5px;font-weight:500;
+  min-height:48px;padding:0 16px;border-radius:var(--rs);font:inherit;font-size:15.5px;font-weight:500;
   border:1px solid var(--rule);background:var(--surface);color:var(--ink);cursor:pointer;
   display:inline-flex;align-items:center;justify-content:center;gap:8px;
   transition:background .12s,border-color .12s,color .12s,transform .08s;
@@ -2288,7 +2288,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .ligne .sup:hover{background:var(--chaud-bg);color:var(--chaud);border-color:var(--chaud)}
 #ilreste .ligne.exemple{background:var(--sunken)}
 #ilreste .vide{padding:26px 18px;text-align:center;color:var(--ink-faint);font-size:15px}
-#ilreste .etiq{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.04em;padding:2px 7px;border-radius:99px;background:var(--sunken);color:var(--ink-faint);text-transform:uppercase}
+#ilreste .etiq{display:inline-block;font-size:11px;font-weight:600;letter-spacing:.04em;padding:2px 7px;border-radius:999px;background:var(--sunken);color:var(--ink-faint);text-transform:uppercase}
 #ilreste details.repli{border:1px solid var(--rule);border-radius:16px;overflow:hidden}
 #ilreste details.repli > summary{
   list-style:none;cursor:pointer;padding:14px 17px;display:flex;align-items:center;gap:10px;font-size:15px;
@@ -2307,7 +2307,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 }
 #ilreste .repli-corps{padding:4px 17px 17px;display:flex;flex-direction:column;gap:13px;border-top:1px solid var(--rule)}
 #ilreste .choix{display:flex;flex-direction:column;gap:8px}
-#ilreste .choix button{display:flex;align-items:center;gap:12px;text-align:left;min-height:54px;padding:9px 14px;border:2px solid var(--rule);border-radius:15px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;transition:border-color .15s,background .15s}
+#ilreste .choix button{display:flex;align-items:center;gap:12px;text-align:left;min-height:54px;padding:9px 14px;border:2px solid var(--rule);border-radius:16px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;transition:border-color .15s,background .15s}
 #ilreste .choix button:hover{border-color:var(--moi)}
 #ilreste .choix button[aria-pressed=true]{border-color:var(--moi);background:var(--moi-bg)}
 #ilreste .choix .mark{flex:none;width:23px;height:23px;border-radius:50%;border:2px solid var(--rule);background:var(--paper);display:flex;align-items:center;justify-content:center}
@@ -2398,9 +2398,9 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #demarrage .nom{font-family:var(--num);font-weight:600;font-size:27px;
   letter-spacing:-.02em;color:#EDF3FC;
   animation:phareMot 1.7s ease-in-out infinite}
-#demarrage .trait{width:150px;height:2px;border-radius:99px;
+#demarrage .trait{width:150px;height:2px;border-radius:999px;
   background:rgba(150,196,255,.13);overflow:hidden}
-#demarrage .trait i{display:block;height:100%;width:42%;border-radius:99px;
+#demarrage .trait i{display:block;height:100%;width:42%;border-radius:999px;
   background:linear-gradient(90deg,transparent,#BDD8FF,transparent);
   box-shadow:0 0 12px rgba(150,196,255,.85);
   animation:glisse 1.15s var(--doux) infinite}
@@ -7446,6 +7446,25 @@ function parsePhrase(text, baseDate){
    aller-retour entre la journée entière et une heure confortable. */
 
 /* ---------- placement ---------- */
+/* ═══ ce qu'un rendez-vous occupe vraiment ═══
+   Deux rendez-vous d'une heure, l'un à 9 h, l'autre à 10 h, ne se
+   chevauchent pas : ils devraient s'afficher l'un sous l'autre, sur
+   toute la largeur. À plein dézoom, mesuré, ils se recouvraient de huit
+   pixels et « Point rapide » disparaissait entièrement derrière
+   « Livraison ».
+   La cause : un bloc ne descend jamais sous vingt-six pixels, alors
+   qu'une heure n'en vaut que dix-huit à ce niveau. Chaque bloc déborde
+   donc de huit pixels sur le suivant, et le calcul des colonnes ne le
+   voit pas — il raisonne en minutes, sur la durée déclarée.
+   Il doit raisonner sur la place réellement prise. Vingt-six pixels, à
+   ce zoom, valent quatre-vingt-sept minutes : c'est cette durée-là qui
+   décide du chevauchement. Les vingt minutes en dur n'étaient justes
+   qu'au niveau « quatre heures », par coïncidence. */
+function placePrise(ev){
+  var minMin = HOUR_PX > 0 ? Math.max(26, Math.min(34, HOUR_PX * 0.34)) / HOUR_PX * 60 : 20;
+  return Math.max(ev.dur, Math.max(20, minMin));
+}
+
 function layout(list){
   var evs = list.slice().sort(function(a,b){ return a.start - b.start || a.dur - b.dur; });
   var out = [], cluster = [], clusterEnd = -1;
@@ -7455,7 +7474,7 @@ function layout(list){
     cluster.forEach(function(ev){
       var i = 0;
       while (cols[i] !== undefined && cols[i] > ev.start) i++;
-      cols[i] = ev.start + Math.max(ev.dur, 20);
+      cols[i] = ev.start + placePrise(ev);
       ev._col = i;
     });
     var n = cols.length;
@@ -7465,7 +7484,7 @@ function layout(list){
   evs.forEach(function(ev){
     if (cluster.length && ev.start >= clusterEnd) { flush(); clusterEnd = -1; }
     cluster.push(ev);
-    clusterEnd = Math.max(clusterEnd, ev.start + Math.max(ev.dur, 20));
+    clusterEnd = Math.max(clusterEnd, ev.start + placePrise(ev));
   });
   flush();
   return out;
