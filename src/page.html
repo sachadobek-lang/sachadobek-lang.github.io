@@ -7400,11 +7400,37 @@ function parsePhrase(text, baseDate){
     return m;
   }
 
-  var m = cut(/\bde\s*(\d{1,2})\s*[h:](\d{2})?\s*(?:[àa]|au|-|–|jusqu'[àa])\s*(\d{1,2})\s*[h:]?(\d{2})?/);
-  if (m){
-    out.start = (+m[1])*60 + (+(m[2] || 0));
-    var end = (+m[3])*60 + (+(m[4] || 0));
-    if (end > out.start) out.dur = end - out.start;
+  /* ═══ une plage horaire ═══
+     Le mot « de » était obligatoire. « Pose de 9h à 11h » donnait bien
+     deux heures ; « Pose 9h-11h » et « Pose 9h à 17h » donnaient dix
+     heures — la seconde heure était prise pour une durée, puis
+     plafonnée à la journée. Silencieusement faux, et sur la forme que
+     l'on tape le plus : un artisan écrit « 8h-17h », pas « de 8h à
+     17h ».
+     On ne coupe qu'après avoir vérifié que la plage tient debout. Sans
+     cela « réunion 14h - 2 personnes » aurait fait disparaître le 14h
+     de la phrase pour n'en rien tirer : la seconde valeur est plus
+     petite que la première, il n'y a pas de plage, et l'heure de début
+     doit rester. */
+  var PLAGE = /\b(?:de\s+)?(\d{1,2})\s*[h:](\d{2})?\s*(?:[àa]|au|-|–|—|jusqu'[àa])\s*(\d{1,2})\s*[h:]?(\d{2})?/;
+  var mp = s.match(PLAGE);
+  if (mp){
+    var p1 = (+mp[1])*60 + (+(mp[2] || 0));
+    var p2 = (+mp[3])*60 + (+(mp[4] || 0));
+    if (p2 > p1 && p1 < 1440 && p2 <= 1440){
+      cut(PLAGE); out.start = p1; out.dur = p2 - p1;
+    }
+  }
+
+  /* ═══ « toute la journée » ═══
+     La pastille « La journée » existe dans la feuille depuis toujours —
+     huit heures du matin à six heures du soir, pas minuit à minuit. La
+     phrase, elle, ne la connaissait pas : « Pose demain toute la
+     journée » donnait neuf heures et une heure de durée. Les deux
+     disent maintenant la même chose. */
+  if (cut(/\b(?:toute\s+la\s+|la\s+)?journ[ée]e\s+(?:enti[èe]re|compl[èe]te)\b|\btoute\s+la\s+journ[ée]e\b/)){
+    out.dur = JOURNEE;
+    if (out.start == null) out.start = JOURNEE_DEBUT;
   }
   if (out.dur == null){
     m = cut(/\b(?:pendant|durant|pour|dur[ée]e\s*:?)\s*(\d{1,2})\s*h\s*(\d{1,2})?/);
@@ -7413,6 +7439,16 @@ function parsePhrase(text, baseDate){
   if (out.dur == null){
     m = cut(/\b(?:pendant|durant|pour)\s*(\d{1,3})\s*(?:min|minutes?|mn)\b/);
     if (m) out.dur = +m[1];
+  }
+  if (out.start == null){
+    /* ═══ midi, minuit ═══
+       Un artisan dit « à midi » plus souvent qu'il n'écrit « à 12h ».
+       La phrase tombait alors sur l'heure par défaut, sans rien
+       signaler. « Midi et demi » d'abord, sinon « midi » l'emporterait
+       et le « et demi » resterait dans le titre. */
+    if (cut(/\b(?:vers\s+|[àa]\s+)?midi\s+et\s+demie?\b/)) out.start = 12*60 + 30;
+    else if (cut(/\b(?:vers\s+|[àa]\s+)?midi\b/)) out.start = 12*60;
+    else if (cut(/\b(?:vers\s+|[àa]\s+)?minuit\b/)) out.start = 0;
   }
   if (out.start == null){
     /* « à 16h » est une préposition ; « A 16h » est une désignation — Lot A,
@@ -7462,7 +7498,10 @@ function parsePhrase(text, baseDate){
        et qu'on ne découvre qu'au rendez-vous manqué. On lit donc le chiffre
        d'abord, et le nom du jour n'est plus retiré que du titre. */
     var aujourd = new Date(ref.getFullYear(), ref.getMonth(), ref.getDate());
-    var dm = cut(/\b(\d{1,2})\s+(janvier|f[ée]vrier|mars|avril|mai|juin|juillet|ao[ûu]t|septembre|octobre|novembre|d[ée]cembre)\b/);
+    /* « 1er octobre » ne se lisait pas : le « \\d{1,2}\\s+ » butait sur
+       le « er ». C'est pourtant la seule façon d'écrire le premier du
+       mois en français. */
+    var dm = cut(/\b(\d{1,2})(?:\s*(?:er|ER))?\s+(janvier|f[ée]vrier|mars|avril|mai|juin|juillet|ao[ûu]t|septembre|octobre|novembre|d[ée]cembre)\b/);
     if (dm){
       var mo = MONTHS[dm[2]];
       var y = ref.getFullYear();
@@ -7477,6 +7516,22 @@ function parsePhrase(text, baseDate){
         var dn = new Date(yy, (+nd[2]) - 1, +nd[1]);
         if (!nd[3] && dn < aujourd) dn = new Date(yy + 1, (+nd[2]) - 1, +nd[1]);
         out.date = iso(dn);
+        cut(/\b(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b/);
+      } else if (/\ble\s+\d{1,2}(?:\s*er)?(?![a-zàâéèêîïôûù0-9])/.test(s)){
+        /* ═══ « le 25 » ═══
+           Un jour du mois tout seul, sans mois : c'est le prochain 25 à
+           venir, ce mois-ci s'il n'est pas passé, le mois suivant
+           sinon. On exige le mot « le » — sans lui, « pose 25 tasseaux »
+           deviendrait un rendez-vous le 25. Et on refuse que le chiffre
+           soit collé à une lettre : « le 2e étage » n'est pas une date. */
+        var jm = cut(/\ble\s+(\d{1,2})(?:\s*er)?(?![a-zàâéèêîïôûù0-9])/);
+        var jour = +jm[1];
+        if (jour >= 1 && jour <= 31){
+          var c1 = new Date(ref.getFullYear(), ref.getMonth(), jour);
+          if (c1 < aujourd || c1.getDate() !== jour)
+            c1 = new Date(ref.getFullYear(), ref.getMonth() + 1, jour);
+          out.date = iso(c1);
+        }
         cut(/\b(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b/);
       } else {
         var wdm = cut(/\b(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b/);

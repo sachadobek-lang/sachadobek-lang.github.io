@@ -14,7 +14,15 @@ paires = {')': '(', ']': '[', '}': '{'}
 while i < n:
     c = js[i]
     if c == '\n': ligne += 1; i += 1; continue
-    if not c.isspace(): pass
+    # Une espace ne doit pas devenir « le caractère précédent ». Sans cette
+    # ligne, « var P = /jusqu'[àa]/ » était refusé : le caractère d'avant le
+    # « / » était l'espace, pas le « = », donc on y voyait une division, on
+    # lisait le corps de l'expression comme du texte ordinaire, et
+    # l'apostrophe de « jusqu' » y ouvrait une chaîne qui ne se refermait
+    # jamais. Le saut de ligne était déjà traité ainsi ; l'espace non.
+    # Refuser du code juste est plus coûteux qu'un contrôle un peu large :
+    # on apprend à ne plus croire le contrôle.
+    if c.isspace(): i += 1; continue
     if c == '/' and i+1 < n and js[i+1] == '/':
         while i < n and js[i] != '\n': i += 1
         continue
