@@ -9220,7 +9220,8 @@ function nomFichier(t){
 /* Tout l'agenda dans un fichier : ce que l'autre bloc appellera pour
    l'export complet, et ce qui permet de vérifier le format produit
    sans avoir à télécharger quoi que ce soit. */
-window.__AGENDA__ = {
+window.__AGENDA__ = window.__AGENDA__ || {};
+Object.assign(window.__AGENDA__, {
   ics: function(depuis, jusqua){
     var d0 = depuis || iso(addDays(new Date(), -30));
     var d1 = jusqua || iso(addDays(new Date(), 400));
@@ -9232,9 +9233,8 @@ window.__AGENDA__ = {
       d = addDays(d, 1);
     }
     return icsDe(tout);
-  },
-  combien: function(){ return state.events.length + state.repeats.length; }
-};
+  }
+});
 
 /* ---------- choisir un mois, n'importe quelle année ---------- */
 var pickAn = null;
@@ -9381,14 +9381,61 @@ requestAnimationFrame(function(){ cadrerCalendrier(); applyZoom(); renderTrack()
    les clients et les factures, et resterait muet pour qui ne se sert que
    du calendrier. Les exemples ne comptent pas : on n'inquiète personne
    pour des fiches qu'on lui a données. */
-window.__AGENDA__ = {
+/* ═══ un seul pont, assemblé morceau par morceau ═══
+   Il y avait deux « window.__AGENDA__ = {…} » dans ce bloc, à cent
+   soixante lignes d'écart. Le second écrasait le premier, et avec lui
+   « ics » — la fonction que l'autre bloc doit appeler pour sortir tout
+   le calendrier dans un fichier. Elle n'a jamais existé au moment où il
+   la cherchait. On assemble maintenant au lieu de remplacer : deux
+   morceaux qui se complètent ne doivent pas se recouvrir. */
+Object.assign(window.__AGENDA__, {
   combien: function(){
     try{
       return state.events.filter(function(e){ return !e.demo; }).length
            + state.repeats.filter(function(e){ return !e.demo; }).length;
     }catch(e){ return 0; }
+  },
+
+  /* ═══ l'agenda dans la copie de sauvegarde ═══
+     Mesuré : « Enregistrer une copie » produisait 642 octets contenant
+     les cinq collections de Cura et ZÉRO rendez-vous, alors que
+     l'agenda en portait vingt-cinq. La copie ne perd rien tant qu'on
+     reste sur le même téléphone — le calendrier vit dans son propre
+     tiroir, que la restauration ne touche pas. Mais sur un téléphone
+     neuf, restaurer sa copie rend un agenda vide. L'application promet
+     qu'un téléphone perdu n'est plus une comptabilité perdue ; le
+     calendrier en est la moitié.
+     Ces deux fonctions ouvrent le passage côté agenda. C'est à l'autre
+     bloc de les appeler : c'est lui qui sait fusionner deux copies sans
+     en détruire une, et cette prudence-là ne se réécrit pas deux fois. */
+  tout: function(){
+    try{
+      return {
+        events:  state.events.filter(function(e){ return !e.demo; }),
+        repeats: state.repeats.filter(function(e){ return !e.demo; }),
+        todos:   JSON.parse(localStorage.getItem(LS_TD) || '[]') || []
+      };
+    }catch(e){ return {events: [], repeats: [], todos: []}; }
+  },
+
+  /* On ne remplace jamais un agenda plein par un agenda vide : c'est le
+     seul cas où « la copie gagne » détruit du travail sans retour. La
+     même règle que le coffre applique déjà aux fiches. */
+  restaurer: function(paquet){
+    if (!paquet) return false;
+    var ev = Array.isArray(paquet.events) ? paquet.events : null;
+    if (!ev) return false;
+    if (ev.length === 0 && state.events.filter(function(e){ return !e.demo; }).length > 0) return false;
+    try{
+      state.events = ev;
+      state.repeats = Array.isArray(paquet.repeats) ? paquet.repeats : [];
+      localStorage.setItem(LS_EV, JSON.stringify(state.events));
+      if (Array.isArray(paquet.todos)) localStorage.setItem(LS_TD, JSON.stringify(paquet.todos));
+      render();
+      return true;
+    }catch(e){ return false; }
   }
-};
+});
 
 /* Cura prévient quand on revient sur l'onglet */
 window.majourneeReveil = function(){
