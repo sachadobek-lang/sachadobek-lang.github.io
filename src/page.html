@@ -1783,8 +1783,15 @@ summary.carte-tete:hover h2{color:var(--v1)}
    par-dessus cette zone au lieu de la traverser. Les deux partent
    maintenant du même curseur : à pleine taille 13,5 px comme avant, et
    plus bas la boîte reste toujours plus haute que la ligne. */
+/* « 06:00–16:00 » demande soixante-dix pixels. Dans un bloc partagé en
+   trois colonnes, la boîte en fait exactement soixante-dix : la plage
+   passait à la ligne et sa seconde moitié disparaissait sous le bord —
+   on lisait « 06:00– » et rien d'autre. Une plage horaire est une valeur
+   unique : elle tient sur une ligne ou elle se coupe par des points de
+   suspension, jamais en deux morceaux dont un invisible. */
 #majournee .ev .when{
   display:block; color:var(--ink-2); font-variant-numeric:tabular-nums;
+  white-space:nowrap; text-overflow:ellipsis;
   font-size:calc(var(--tH,1) * 13.5px);
   line-height:1.25;
   height:calc(var(--tH,1) * 17px);
@@ -1858,6 +1865,21 @@ summary.carte-tete:hover h2{color:var(--v1)}
    couper le français depuis que la page déclare sa langue. */
 #majournee .ev.serre .name{
   font-size:var(--nom, 11px); font-weight:600; line-height:1.15;
+}
+
+/* ═══ le filet ═══
+   Un rendez-vous de quinze minutes commencé à 23 h 45 n'a, à plein
+   dézoom et coupé à minuit, que quatre pixels de haut. Un nom en
+   réclame quinze : on n'en voyait que le sommet des lettres, un bruit
+   gris qui ne se lit pas et qui salit le bas de la journée. Sous
+   quatorze pixels on renonce donc à écrire, et on assume la barre : la
+   couleur du rendez-vous, pleine, à sa place exacte dans la journée.
+   Elle dit « il y a quelque chose ici », ce qui est tout ce qu'on peut
+   dire à cette taille — le reste s'obtient en zoomant ou en touchant. */
+#majournee .ev.filet{padding:0; gap:0; border-radius:3px; border-color:transparent}
+#majournee .ev.filet > *{display:none}
+#majournee .ev.filet::before{
+  left:0; right:0; top:0; bottom:0; width:auto; border-radius:3px; opacity:.85;
 }
 
 
@@ -5721,7 +5743,23 @@ window.__CADENCE__ = {
      sait pas, et la seule qu'il ne faut surtout pas deviner. */
   factureDepuisRdv: o => {
     const brut = String((o && o.title) || "").trim();
-    const client = brut.replace(/^(rendez-?vous|rdv|r\.?-?v\.?|devis|visite|appel|point|réunion|reunion)\s*(avec|chez|pour)?\s*[:\-—]?\s*/i, "").trim() || brut;
+    const reste = brut.replace(/^(rendez-?vous|rdv|r\.?-?v\.?|devis|visite|appel|point|réunion|reunion)\s*(avec|chez|pour)?\s*[:\-—]?\s*/i, "").trim();
+    /* ═══ ce que le titre dit vraiment ═══
+       Le titre d'un rendez-vous est de deux natures, et l'expression
+       ci-dessus les sépare sans le savoir.
+       « RDV chez Mme Rossignol » : elle retire quelque chose, donc ce
+       qui reste est un NOM. L'objet, lui, est inconnu — et il ne faut
+       surtout pas y mettre le titre brut : « Pour quoi ? » finit imprimé
+       sur la facture, colonne Désignation, sous les yeux du client. Il y
+       lirait « RDV chez Mme Rossignol » comme description de la
+       prestation qu'il paie. Une note d'agenda sur un document légal.
+       « Pose du comptoir » : elle ne retire rien, donc le titre décrit un
+       TRAVAIL. C'est l'objet ; le client, lui, est inconnu.
+       On ne remplit donc jamais les deux, et jamais au hasard : chaque
+       champ n'est pré-rempli que lorsqu'on sait ce qu'il contient. */
+    const aRetire = reste !== brut && reste !== "";
+    const client = aRetire ? reste : "";
+    const objet  = aRetire ? "" : brut;
     vue = "budget"; filtreC = "factures"; animer = true; memoire.clear();
     const tous = document.querySelectorAll("#nav button[data-vue]");
     for(let i = 0; i < tous.length; i++){
@@ -5730,7 +5768,7 @@ window.__CADENCE__ = {
     }
     rendre();
     window.scrollTo({top: 0});
-    ouvrir("facture", {client: client, objet: brut});
+    ouvrir("facture", {client: client, objet: objet});
   },
   monVfl: () => calcLib(),
   choisirActivite: id => { if(ACTIVITES[id]){ state.moi.regime = id; sauver(); memoire.clear(); } },
@@ -7588,11 +7626,36 @@ function makeBlock(ev, opts){
   b.style.setProperty('--c', 'var(--c-' + cat.c + ')');
   b.style.top = ((start - DAY_START)/SPAN*100) + '%';
   b.style.height = ((end - start)/SPAN*100) + '%';
+
   /* Sous 26 px un nom n'est plus lisible : le bloc garde cette hauteur même
      quand la durée réelle en demanderait moins. Mieux vaut un quart d'heure
      qui paraît un peu long qu'un rendez-vous qu'on ne peut pas lire. */
   var minH = Math.max(26, Math.min(34, HOUR_PX * 0.34));
-  b.style.minHeight = minH.toFixed(0) + 'px';
+
+  /* ═══ le bas de la journée ═══
+     Mesuré : « Garde de nuit 23h30 » s'affichait de 97,9 % à 105,2 % de
+     la hauteur de la grille — le bloc sortait sous le dernier trait. La
+     cause n'est pas la durée, qui est déjà coupée à minuit : c'est cette
+     hauteur minimale, qui pousse dehors tout rendez-vous commencé trop
+     près de la fin.
+     On ne remonte pas le bloc — à plein dézoom, vingt-six pixels valent
+     une heure et demie, et un rendez-vous de 23 h 45 se retrouverait
+     affiché vers 22 h. On coupe au bord. Il reste à sa place, il est
+     seulement plus court que le minimum, ce qui est la vérité : cette
+     journée-là s'arrête à minuit. Quatre pixels au plancher, pour qu'il
+     reste visible et touchable. */
+  var pisteH = HOUR_PX * HOURS;
+  var hautPx = ((start - DAY_START) / SPAN) * pisteH;
+  var restePx = Math.max(4, pisteH - hautPx);
+  b.style.minHeight = Math.min(minH, restePx).toFixed(0) + 'px';
+  b.style.maxHeight = restePx.toFixed(0) + 'px';
+
+  /* La hauteur que le bloc aura vraiment, une fois le minimum appliqué
+     et la coupe de minuit imposée. Sous quatorze pixels il n'y a plus
+     de place pour une ligne de texte : on bascule sur le filet plutôt
+     que de montrer le haut des lettres. */
+  var hRendu = Math.min(restePx, Math.max(px, Math.min(minH, restePx)));
+  if (hRendu < 14) b.classList.add('filet');
 
   /* ═══ les trois curseurs du rétrécissement ═══
      C'est la hauteur qu'aura vraiment le bloc — celle du rendez-vous, ou
@@ -7620,6 +7683,16 @@ function makeBlock(ev, opts){
   var hNom    = (11.5 + 4.5 * t) * 1.3;
   var hHeure  = tH > 0 ? (17 + 2) * tH : 0;
   var py      = clamp((hEff - hNom - hHeure) / 2, 3, 9);
+  /* Le rembourrage est un plancher que « max-height » ne peut pas
+     franchir : cinq pixels et demi en haut, autant en bas, plus deux de
+     bordure font treize pixels qu'aucune contrainte de hauteur ne
+     comprime. C'est pour ça qu'un rendez-vous de 23 h 30 sortait encore
+     du bas après avoir été coupé — il n'y avait plus que huit pixels de
+     place et il en réclamait treize.
+     Tout en bas de la journée il n'y a de toute façon rien à aérer : le
+     rembourrage cède à son tour, et le bloc devient un trait de couleur
+     à sa vraie heure. */
+  py = Math.min(py, Math.max(0, (restePx - 2) / 2));
   b.style.setProperty('--py', py.toFixed(1) + 'px');
 
   var band = opts.band, w = band.w / (ev._cols || 1);
