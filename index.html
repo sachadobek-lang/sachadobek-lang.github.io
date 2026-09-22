@@ -2814,6 +2814,9 @@ summary.carte-tete:hover h2{color:var(--v1)}
       <button class="iconbtn" id="versCal" aria-label="Mettre dans mon calendrier" title="Mettre dans mon calendrier" hidden>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="5" width="17.6" height="15.8" rx="3.4"/><path d="M3.2 10h17.6M8.2 2.6v3.6M15.8 2.6v3.6"/><path d="M12 13v4.4M9.8 15.2h4.4"/></svg>
       </button>
+      <button class="iconbtn" id="prevenir" aria-label="Prévenir le client" title="Prévenir le client" hidden>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 11.6a7.6 7.6 0 0 1-8.2 7.6c-.9 0-1.8-.1-2.6-.4L4.2 20.4l1.7-4.8a7.3 7.3 0 0 1-1.1-4 7.6 7.6 0 0 1 8.2-7.6 7.7 7.7 0 0 1 7.5 7.6Z"/></svg>
+      </button>
       <button class="signe" id="signe" hidden>Il a signé</button>
       <button class="ok" id="save">Enregistrer</button>
     </div>
@@ -5905,6 +5908,34 @@ window.__CADENCE__ = {
     rendre();
     window.scrollTo({top: 0});
     ouvrir("client", {nom: nom, projet: ""});
+  },
+
+  /* ═══ retrouver le client d'un rendez-vous ═══
+     L'Agenda ne connaît qu'un titre libre. Pour proposer de prévenir
+     quelqu'un, il faut savoir qui — et surtout à quel numéro. On retire
+     les mots d'agenda comme pour « Il a signé », puis on cherche parmi
+     les fiches : le nom exact d'abord, un nom contenu dans le titre
+     ensuite, et jamais un nom de moins de trois lettres, qui
+     s'accrocherait à n'importe quoi.
+     Lecture seule : rien n'est créé, rien n'est modifié. Et quand on ne
+     trouve pas, on répond franchement null plutôt qu'un demi-client —
+     l'Agenda sait quoi faire d'un null, il ne saurait pas quoi faire
+     d'un nom inventé. */
+  clientPour: o => {
+    const brut = String((o && o.title) || "").trim();
+    if(!brut) return null;
+    const reste = brut.replace(/^(rendez-?vous|rdv|r\.?-?v\.?|devis|visite|appel|point|réunion|reunion)\s*(avec|chez|pour)?\s*[:\-—]?\s*/i, "").trim();
+    const cible = sansAccent(reste || brut);
+    if(!cible) return null;
+    const fiches = Object.keys(state.clients).map(k => state.clients[k]).filter(c => c && c.nom);
+    let trouve = fiches.find(c => sansAccent(c.nom) === cible);
+    if(!trouve) trouve = fiches.find(c => {
+      const n = sansAccent(c.nom);
+      return n.length >= 3 && (cible.indexOf(n) >= 0 || n.indexOf(cible) >= 0);
+    });
+    if(!trouve) return null;
+    const j = joindre(trouve.contact);
+    return {nom: trouve.nom, tel: j.tel, mail: j.mail};
   }
 };
 
@@ -8354,7 +8385,13 @@ function buildPickers(){
       syncSheet(true);
     }
   });
-  $('evLieu').addEventListener('input', function(e){ var d = br(); if (d) d.lieu = e.target.value; });
+  $('evLieu').addEventListener('input', function(e){
+    var d = br(); if (d) d.lieu = e.target.value;
+    /* Le lieu entre dans le message de confirmation : sans cet appel, on
+       tapait l'adresse, on pressait « Prévenir », et le message partait
+       sans elle. Ce champ ne passait par aucun rafraîchissement. */
+    majPrevenir();
+  });
   $('evNote').addEventListener('input', function(e){ var d = br(); if (d) d.note = e.target.value; });
   var dp = $('durPick');
   DURATIONS.forEach(function(m){
@@ -8382,6 +8419,33 @@ function buildPickers(){
   });
 }
 
+/* ═══ ce que dira le bouton « Prévenir », et ce qu'il enverra ═══
+   Recalculé à chaque fois que quelque chose change, jamais une seule
+   fois à l'ouverture : on changeait 14 h en 16 h, on pressait
+   « Prévenir », et le client recevait l'ancienne heure. Un message faux
+   à un client est pire qu'un message absent.
+   L'adresse reste déposée sur le bouton plutôt que construite au clic :
+   ce qui partira dans Messages est alors lisible dans la page, donc
+   vérifiable. Un geste qui quitte l'application doit pouvoir être
+   inspecté avant de partir. */
+function majPrevenir(){
+  var d = state.draft; if (!d) return;
+  var b = $('prevenir'); if (b.hidden) return;
+  var C = window.__CADENCE__;
+  var qui = (C && C.clientPour) ? C.clientPour({title: d.title}) : null;
+  var tel = (qui && qui.tel) ? String(qui.tel).replace(/[^\d+]/g, '') : '';
+  /* L'infobulle et l'étiquette disent la même chose : sans quoi celui qui
+     voit la page lit « Prévenir Mme Rossignol » et celui qui l'écoute
+     entend « Prévenir le client ». */
+  var dit = (qui && qui.tel)
+    ? 'Prévenir ' + qui.nom + ' par message'
+    : 'Préparer le message de confirmation';
+  b.title = dit;
+  b.setAttribute('aria-label', dit);
+  b.dataset.sms = 'sms:' + tel + '?&body='
+    + encodeURIComponent(messageDeConfirmation(d, qui));
+}
+
 function syncSheet(skipTime){
   /* Le dernier verrou, et le seul qui les couvre tous : tout ce qui
      rafraîchit la feuille passe ici. Sans brouillon, il n'y a rien à
@@ -8392,6 +8456,8 @@ function syncSheet(skipTime){
   document.querySelectorAll('#cats .cat').forEach(function(b){
     b.setAttribute('aria-pressed', String(b.dataset.k === d.cat)); });
   if (!skipTime) $('timePick').value = hhmm(d.start);
+  majPrevenir();
+
   if ($('evLieu').value !== (d.lieu || '')) $('evLieu').value = d.lieu || '';
   if ($('evNote').value !== (d.note || '')) $('evNote').value = d.note || '';
   /* Le repli s'ouvre tout seul quand il y a quelque chose dedans : sinon on
@@ -8502,6 +8568,21 @@ function openSheet(ev, seed){
      travail l'est. */
   var C = window.__CADENCE__;
   var passe = !isNew && state.draft.date < today;
+  /* ═══ prévenir le client ═══
+     Tous les agendas de métier vendent le rappel au client, et le
+     vendent au crédit de message. Cura ne peut rien envoyer — aucun
+     serveur — mais il peut tout écrire : le nom, le jour, l'heure,
+     l'adresse. Il reste un bouton à presser dans Messages, et c'est
+     Sacha qui l'envoie, depuis son propre numéro.
+     On ne le propose que pour un rendez-vous à venir et déjà
+     enregistré : prévenir quelqu'un d'un rendez-vous passé n'a pas de
+     sens, et prévenir avant d'avoir enregistré non plus. */
+  var bPrev = $('prevenir');
+  var aVenir = !isNew && !passe && !!String(state.draft.title || '').trim();
+  bPrev.hidden = !aVenir;
+  /* Ce qu'il dira et ce qu'il enverra sont posés par syncSheet, plus bas :
+     ici on décide seulement s'il a lieu d'être. */
+
   var bSigne = $('signe');
   var peut = !isNew && !!String(state.draft.title || '').trim();
   bSigne.hidden = !peut || !C || !(passe ? C.factureDepuisRdv : C.clientDepuisRdv);
@@ -8829,6 +8910,39 @@ $('evName').addEventListener('input', function(e){
 });
 $('evName').addEventListener('keydown', function(e){
   if (e.key === 'Enter'){ e.preventDefault(); $('save').click(); }
+});
+
+/* ═══ le message de confirmation ═══
+   Écrit en entier, pour qu'il n'y ait plus qu'à envoyer. Le nom quand
+   on le connaît, sinon « Bonjour » tout court — mieux vaut un message
+   sans nom qu'un message au mauvais nom. L'adresse seulement si le
+   rendez-vous en porte une : la répéter au client qui l'a donnée ne
+   sert à rien, l'oublier quand c'est un chantier nouveau coûte un
+   appel. */
+var JOURS_L = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+var MOIS_L  = ['janvier','février','mars','avril','mai','juin','juillet',
+               'août','septembre','octobre','novembre','décembre'];
+function messageDeConfirmation(d, qui){
+  var dt = new Date(d.date + 'T00:00:00');
+  var quand = JOURS_L[dt.getDay()] + ' ' + dt.getDate() + ' ' + MOIS_L[dt.getMonth()];
+  /* « 14 h » et non « 14:00 » : c'est un message à un client, pas une
+     ligne d'agenda. Et « 14 h 30 » quand il y a des minutes. */
+  var h = Math.floor(d.start / 60), m = d.start % 60;
+  var heure = h + ' h' + (m ? ' ' + pad(m) : '');
+  var t = (qui && qui.nom) ? 'Bonjour ' + qui.nom + ',' : 'Bonjour,';
+  t += ' je vous confirme notre rendez-vous ' + quand + ' à ' + heure;
+  var lieu = String(d.lieu || '').trim();
+  if (lieu) t += ', ' + lieu;
+  return t + '. Bonne journée.';
+}
+
+/* « sms:NUMÉRO?&body=… » est la seule forme que lisent à la fois iOS et
+   Android : iOS attend un « & » devant body, Android un « ? ». Le « ?& »
+   contente les deux, et sans numéro il ouvre Messages avec le texte prêt
+   et le destinataire à choisir. */
+$('prevenir').addEventListener('click', function(){
+  var url = this.dataset.sms;
+  if (url) location.href = url;
 });
 
 $('signe').addEventListener('click', function(e){
