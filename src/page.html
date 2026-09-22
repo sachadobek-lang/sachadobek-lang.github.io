@@ -9474,10 +9474,14 @@ requestAnimationFrame(function(){ cadrerCalendrier(); applyZoom(); renderTrack()
    la cherchait. On assemble maintenant au lieu de remplacer : deux
    morceaux qui se complètent ne doivent pas se recouvrir. */
 Object.assign(window.__AGENDA__, {
+  /* Même défaut que « tout() », et une conséquence plus sournoise : ce
+     compte décide si Cura avertit qu'on a quelque chose à perdre — la
+     règle des sept jours de Safari. Lu sur l'état affiché, il rendait
+     deux avec vingt-quatre rendez-vous au tiroir, et l'avertissement
+     pouvait rester muet chez quelqu'un qui avait tout à perdre. */
   combien: function(){
     try{
-      return state.events.filter(function(e){ return !e.demo; }).length
-           + state.repeats.filter(function(e){ return !e.demo; }).length;
+      return lsGet(LS_EV).filter(function(e){ return e && !e.demo; }).length;
     }catch(e){ return 0; }
   },
 
