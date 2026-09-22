@@ -3303,12 +3303,6 @@ function nomAppareil(){
   return "un appareil";
 }
 
-function combienDeFiches(etat){
-  return COLS.reduce(function(t, c){
-    return t + Object.keys((etat && etat[c]) || {}).length;
-  }, 0);
-}
-
 function majPastilleSync(){
   const el = document.getElementById("pf-sync");
   if(el) el.textContent = syncEtat;
@@ -3341,6 +3335,7 @@ function deconnecter(){
 function poserCoffre(la){
   COLS.forEach(function(c){ state[c] = (la.contenu && la.contenu[c]) || {}; });
   if(la.contenu && la.contenu.moi) state.moi = la.contenu.moi;
+  agendaAReposer(la.contenu && la.contenu.agenda);
   sauver();
   syncEtat = "à jour";
   rendre();
@@ -3382,7 +3377,7 @@ function tirerCoffre(){
     .then(function(r){
       if(r.error) throw r.error;
       const la = r.data;
-      const ici = combienDeFiches(state);
+      const ici = combienDeFiches();
       if(!la){ return pousserCoffre(); }
       const laBas = Number(la.fiches) || 0;
 
@@ -3391,8 +3386,16 @@ function tirerCoffre(){
          détruit du travail sans retour possible. */
       if(laBas === 0 && ici > 0) return pousserCoffre();
       if(ici === 0 && laBas > 0){ poserCoffre(la); return Promise.resolve(); }
-      if(ici > 0 && laBas > 0 && la.contenu
-         && JSON.stringify(la.contenu.clients || {}) !== JSON.stringify(state.clients)){
+      /* La divergence se cherchait sur les seuls clients. Deux appareils
+         peuvent s'accorder sur les fiches et pas sur l'agenda : on ne
+         disait alors rien, et la version la plus riche restait là où elle
+         était. Une seule question pour les deux — on ne demande pas deux
+         fois la même chose à quelqu'un qui compare deux dates. */
+      const memesClients = la.contenu
+        && JSON.stringify(la.contenu.clients || {}) === JSON.stringify(state.clients);
+      const memeAgenda = JSON.stringify((la.contenu && la.contenu.agenda) || null)
+        === JSON.stringify(agendaAEmporter());
+      if(ici > 0 && laBas > 0 && (!memesClients || !memeAgenda)){
         return demanderQuelleCopie(la, ici, laBas);
       }
       syncEtat = "à jour"; majPastilleSync();
@@ -3404,13 +3407,13 @@ function tirerCoffre(){
 /* ───────── déposer ce qu'on a ───────── */
 function pousserCoffre(){
   if(!compte || !sb) return Promise.resolve();
-  const contenu = {moi: state.moi};
+  const contenu = {moi: state.moi, agenda: agendaAEmporter()};
   COLS.forEach(function(c){ contenu[c] = state[c]; });
   syncEtat = "en cours"; majPastilleSync();
   return sb.from("coffres").upsert({
       proprietaire: compte.id,
       contenu: contenu,
-      fiches: combienDeFiches(state),
+      fiches: combienDeFiches(),
       appareil: nomAppareil()
     }, {onConflict: "proprietaire"})
     .then(function(r){
@@ -3629,6 +3632,32 @@ function combienDeFiches(){
 /* En dessous de trois fiches il n'y a rien à perdre, et avertir quelqu'un
    qui essaie l'application pour la première fois l'inquiéterait pour rien. */
 function quelqueChoseAPerdre(){ return combienDeFiches() >= 3; }
+
+/* ═══ l'agenda ne vit pas dans state ═══
+   Il a son propre tiroir, « ma-journee-v1 », que COLS ne voit pas. La
+   copie enregistrée n'en contenait donc rien : sur le même téléphone on
+   ne s'en apercevait jamais, mais restaurer sur un appareil neuf rendait
+   un agenda vide — c'est-à-dire précisément la situation que la copie est
+   censée couvrir. Mesuré avant de corriger : un rendez-vous dans
+   l'application, zéro dans le fichier.
+   Le pont est le seul chemin. Ces deux fonctions existent pour que
+   personne n'ait à s'en souvenir, et pour qu'on n'aille pas lire ce
+   tiroir à la main quelque part. */
+function agendaAEmporter(){
+  try{
+    const A = window.__AGENDA__;
+    return (A && A.tout) ? A.tout() : null;
+  }catch(e){ return null; }
+}
+/* __AGENDA__.restaurer applique déjà notre règle : elle refuse de
+   remplacer un agenda plein par un agenda vide, et refuse un paquet mal
+   formé. On lui fait confiance plutôt que de la redoubler ici. */
+function agendaAReposer(paquet){
+  try{
+    const A = window.__AGENDA__;
+    return !!(paquet && A && A.restaurer && A.restaurer(paquet));
+  }catch(e){ return false; }
+}
 
 const LOGO_G = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">'
   + '<path fill="#4285F4" d="M21.6 12.2c0-.7-.1-1.3-.2-1.9H12v3.7h5.4a4.6 4.6 0 0 1-2 3v2.5h3.2c1.9-1.7 3-4.3 3-7.3Z"/>'
@@ -5608,6 +5637,7 @@ async function exporterTout(){
   paquet.moi = state.moi;
   paquet.rituel = state.rituel;
   paquet.serie = state.serie;
+  paquet.agenda = agendaAEmporter();
   const texte = JSON.stringify(paquet, null, 1);
   /* le nom du fichier n'entre pas dans la vérification à la restauration
      — c'est le champ « application » qui fait foi — donc le changer ne
@@ -5655,6 +5685,10 @@ function importerTout(){
         return;
       }
       COLS.forEach(c => { state[c] = d[c] && typeof d[c] === "object" ? d[c] : {}; });
+      /* Les copies enregistrées avant aujourd'hui n'ont pas de clé
+         « agenda » : agendaAReposer refuse alors sans rien toucher, et le
+         calendrier déjà présent reste en place. */
+      agendaAReposer(d.agenda);
       if(d.moi) state.moi = Object.assign({nom: "", adresse: "", siret: "", email: "", tva: 0, forme: "", regime: "", liberatoire: false, parts: 1}, d.moi);
       if(d.rituel) state.rituel = d.rituel;
       if(d.serie) state.serie = d.serie;
