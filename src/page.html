@@ -5929,10 +5929,29 @@ window.__CADENCE__ = {
     if(!cible) return null;
     const fiches = Object.keys(state.clients).map(k => state.clients[k]).filter(c => c && c.nom);
     let trouve = fiches.find(c => sansAccent(c.nom) === cible);
-    if(!trouve) trouve = fiches.find(c => {
-      const n = sansAccent(c.nom);
-      return n.length >= 3 && (cible.indexOf(n) >= 0 || n.indexOf(cible) >= 0);
-    });
+    /* Le rapprochement par simple morceau de nom envoyait le message au
+       mauvais client. Trois cas mesurés sur quatre fiches :
+         « Devis Martinez »                  trouvait Martin
+         « Livraison chez Dubois et Fils »   trouvait Dubois, pas Dubois
+                                             et Fils — le premier de la
+                                             liste, pas le plus précis
+         « RDV M. Dubois-Lambert »           trouvait Dubois
+       Un message part chez un client et ne se rattrape pas. On exige donc
+       un nom entier, arrêté aux frontières de mots — « Martin » ne vit
+       plus dans « Martinez » — et quand plusieurs fiches conviennent on
+       garde la plus longue, qui est la plus précise. */
+    if(!trouve){
+      /* Le trait d'union ne sépare pas deux mots, il en soude un seul :
+         « Dubois-Lambert » n'est pas « Dubois », c'est quelqu'un d'autre.
+         Il est donc exclu des frontières, au même titre qu'une lettre. */
+      const bord = n => new RegExp("(^|[^a-z0-9-])"
+        + n.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "([^a-z0-9-]|$)");
+      const proches = fiches.filter(c => {
+        const n = sansAccent(c.nom);
+        return n.length >= 3 && (bord(n).test(cible) || bord(cible).test(n));
+      }).sort((x, y) => sansAccent(y.nom).length - sansAccent(x.nom).length);
+      trouve = proches[0];
+    }
     if(!trouve) return null;
     const j = joindre(trouve.contact);
     return {nom: trouve.nom, tel: j.tel, mail: j.mail};
