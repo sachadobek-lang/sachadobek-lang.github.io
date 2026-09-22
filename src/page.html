@@ -5701,7 +5701,31 @@ window.__CADENCE__ = {
   monActivite: () => calcStatut(),
   /* faire une facture depuis « Mon argent » : c'est le même formulaire
      que partout ailleurs, il n'y en a qu'un */
-  nouvelleFacture: () => ouvrir("facture"),
+  nouvelleFacture: prerempli => ouvrir("facture", prerempli || null),
+  /* ═══ facturer un rendez-vous ═══
+     C'est la seule chose que Cura peut faire et qu'aucun concurrent ne
+     peut : l'agenda et la facturation sont la même application, sur les
+     mêmes fiches. Indy, Abby, Tiime facturent ; Tolteck et Obat suivent
+     des chantiers ; aucun ne tient la journée ET l'argent.
+     Jusqu'ici on n'en tirait rien : le chantier fini, il fallait aller
+     dans Comptabilité et retaper un nom et un objet que le rendez-vous
+     connaissait déjà. Le même nettoyage de titre que pour créer un
+     client — « Devis Martin » donne « Martin » — sert à pré-remplir.
+     Le montant reste vide : c'est la seule chose que le rendez-vous ne
+     sait pas, et la seule qu'il ne faut surtout pas deviner. */
+  factureDepuisRdv: o => {
+    const brut = String((o && o.title) || "").trim();
+    const client = brut.replace(/^(rendez-?vous|rdv|r\.?-?v\.?|devis|visite|appel|point|réunion|reunion)\s*(avec|chez|pour)?\s*[:\-—]?\s*/i, "").trim() || brut;
+    vue = "budget"; filtreC = "factures"; animer = true; memoire.clear();
+    const tous = document.querySelectorAll("#nav button[data-vue]");
+    for(let i = 0; i < tous.length; i++){
+      tous[i].removeAttribute("aria-current");
+      if(tous[i].dataset.vue === "budget") tous[i].setAttribute("aria-current", "page");
+    }
+    rendre();
+    window.scrollTo({top: 0});
+    ouvrir("facture", {client: client, objet: brut});
+  },
   monVfl: () => calcLib(),
   choisirActivite: id => { if(ACTIVITES[id]){ state.moi.regime = id; sauver(); memoire.clear(); } },
   choisirVfl: v => { state.moi.liberatoire = !!v; sauver(); memoire.clear(); },
@@ -7304,8 +7328,19 @@ function parsePhrase(text, baseDate){
   }
 
   var base = fromIso(baseDate || today), ref = new Date();
+  /* « hier » et « avant-hier » manquaient, alors que « demain » et
+     « après-demain » étaient là depuis le début. Conséquence mesurée :
+     « Pose parquet hier 9h » posait le rendez-vous AUJOURD'HUI et
+     laissait le mot « hier » dans le titre. Personne ne s'en plaignait
+     parce qu'on note rarement un rendez-vous passé — sauf depuis que le
+     rendez-vous d'hier sert à faire la facture d'hier. C'est exactement
+     le geste de l'artisan qui rentre le soir.
+     L'ordre compte, comme pour « après-demain » : le plus long d'abord,
+     sinon « avant-hier » est mangé par « hier » et donne la veille. */
   if (cut(/\bapr[èe]s.demain\b/)) out.date = iso(addDays(ref, 2));
   else if (cut(/\bdemain\b/)) out.date = iso(addDays(ref, 1));
+  else if (cut(/\bavant.hier\b/)) out.date = iso(addDays(ref, -2));
+  else if (cut(/\bhier\b/)) out.date = iso(addDays(ref, -1));
   else if (cut(/\baujourd'hui\b/)) out.date = iso(ref);
   else {
     /* Une date précise l'emporte sur un nom de jour. « mercredi 12 novembre »
@@ -8331,9 +8366,28 @@ function openSheet(ev, seed){
   $('dup').hidden = isNew;
   /* on n'envoie dans un calendrier qu'un rendez-vous déjà posé */
   $('versCal').hidden = isNew;
-  /* on ne propose de transformer en client qu'un rendez-vous réel */
-  $('signe').hidden = isNew || !String(state.draft.title || '').trim()
-    || !(window.__CADENCE__ && window.__CADENCE__.clientDepuisRdv);
+  /* ═══ un seul bouton, l'action du moment ═══
+     « Il a signé » sert avant le chantier : le devis est accepté, on
+     crée le client. « Facturer » sert après : le travail est fait, on
+     fait la note. Ce sont deux moments d'une même affaire, jamais les
+     deux à la fois — donc un seul emplacement, et pas un bouton de plus
+     dans un pied qui en porte déjà quatre.
+     La bascule se fait sur la date : un rendez-vous d'hier se facture,
+     un rendez-vous de demain se signe. Celui d'aujourd'hui se signe
+     encore — tant que la journée n'est pas finie, rien ne dit que le
+     travail l'est. */
+  var C = window.__CADENCE__;
+  var passe = !isNew && state.draft.date < today;
+  var bSigne = $('signe');
+  var peut = !isNew && !!String(state.draft.title || '').trim();
+  bSigne.hidden = !peut || !C || !(passe ? C.factureDepuisRdv : C.clientDepuisRdv);
+  if (!bSigne.hidden){
+    bSigne.textContent = passe ? 'Facturer' : 'Il a signé';
+    bSigne.dataset.role = passe ? 'facture' : 'client';
+    bSigne.title = passe
+      ? 'Faire la facture de ce rendez-vous'
+      : 'Le devis est accepté : créer la fiche client';
+  }
   disarmDelete();
   syncSheet();
   $('sheetWrap').hidden = false;
@@ -8653,12 +8707,15 @@ $('evName').addEventListener('keydown', function(e){
   if (e.key === 'Enter'){ e.preventDefault(); $('save').click(); }
 });
 
-$('signe').addEventListener('click', function(){
-  if (!window.__CADENCE__ || !window.__CADENCE__.clientDepuisRdv) return;
-  if (!state.draft) return;
+$('signe').addEventListener('click', function(e){
+  var C = window.__CADENCE__;
+  if (!C || !state.draft) return;
   var t = state.draft.title, d = state.draft.date;
+  var versFacture = e.currentTarget.dataset.role === 'facture';
+  if (versFacture ? !C.factureDepuisRdv : !C.clientDepuisRdv) return;
   closeSheet();
-  window.__CADENCE__.clientDepuisRdv({title: t, date: d});
+  if (versFacture) C.factureDepuisRdv({title: t, date: d});
+  else C.clientDepuisRdv({title: t, date: d});
 });
 $('save').addEventListener('click', function(){
   if (!state.draft) return;   /* rien à enregistrer : aucune feuille ouverte */
