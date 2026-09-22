@@ -9493,12 +9493,21 @@ Object.assign(window.__AGENDA__, {
      Ces deux fonctions ouvrent le passage côté agenda. C'est à l'autre
      bloc de les appeler : c'est lui qui sait fusionner deux copies sans
      en détruire une, et cette prudence-là ne se réécrit pas deux fois. */
+  /* On lit le tiroir, jamais l'état affiché. « state.events » est deux
+     fois plus étroit qu'il n'en a l'air : il ne contient que les
+     rendez-vous non répétés ET compris dans la fenêtre de dates
+     affichée — c'est ce dont le calendrier a besoin pour dessiner, pas
+     ce qu'on possède. Mesuré : une copie prise ainsi contenait DEUX
+     rendez-vous sur vingt-quatre, et la restaurer en aurait détruit
+     vingt-deux. La forme rendue ne change pas, c'est le contenu qui
+     était faux. */
   tout: function(){
     try{
+      var tous = lsGet(LS_EV).filter(function(e){ return e && !e.demo; });
       return {
-        events:  state.events.filter(function(e){ return !e.demo; }),
-        repeats: state.repeats.filter(function(e){ return !e.demo; }),
-        todos:   JSON.parse(localStorage.getItem(LS_TD) || '[]') || []
+        events:  tous.filter(function(e){ return !e.rep || e.rep === 'none'; }),
+        repeats: tous.filter(function(e){ return e.rep === 'day' || e.rep === 'week'; }),
+        todos:   lsGet(LS_TD) || []
       };
     }catch(e){ return {events: [], repeats: [], todos: []}; }
   },
@@ -9506,17 +9515,26 @@ Object.assign(window.__AGENDA__, {
   /* On ne remplace jamais un agenda plein par un agenda vide : c'est le
      seul cas où « la copie gagne » détruit du travail sans retour. La
      même règle que le coffre applique déjà aux fiches. */
+  /* Et l'on repose dans le tiroir, d'un seul tenant. Les répétitions n'y
+     ont pas de rangement à part : le calendrier les sépare à la lecture,
+     en filtrant sur « rep ». Écrire les seuls « events » les effaçait
+     toutes. C'est « refreshLocal » qui refait ensuite le partage et
+     redessine — on ne repose pas l'état à la main, on repose la source
+     et on laisse l'application la relire. */
   restaurer: function(paquet){
     if (!paquet) return false;
     var ev = Array.isArray(paquet.events) ? paquet.events : null;
     if (!ev) return false;
-    if (ev.length === 0 && state.events.filter(function(e){ return !e.demo; }).length > 0) return false;
+    var rep = Array.isArray(paquet.repeats) ? paquet.repeats : [];
+    var tous = ev.concat(rep);
+    var ici = lsGet(LS_EV).filter(function(e){ return e && !e.demo; }).length;
+    /* On ne remplace jamais un agenda plein par un agenda vide : c'est le
+       seul cas où « la copie gagne » détruit du travail sans retour. */
+    if (tous.length === 0 && ici > 0) return false;
     try{
-      state.events = ev;
-      state.repeats = Array.isArray(paquet.repeats) ? paquet.repeats : [];
-      localStorage.setItem(LS_EV, JSON.stringify(state.events));
-      if (Array.isArray(paquet.todos)) localStorage.setItem(LS_TD, JSON.stringify(paquet.todos));
-      render();
+      lsSet(LS_EV, tous);
+      if (Array.isArray(paquet.todos)) lsSet(LS_TD, paquet.todos);
+      refreshLocal();
       return true;
     }catch(e){ return false; }
   }
