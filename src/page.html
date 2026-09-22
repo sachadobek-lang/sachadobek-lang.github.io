@@ -3131,7 +3131,43 @@ function charger(){
     COLS.forEach(c => { state[c] = JSON.parse(JSON.stringify(SEED[c] || {})); });
   }
 }
+/* ═══ ce qu'un montant a le droit d'être ═══
+   La seule garde contre un montant aberrant vivait dans l'attribut « min »
+   du formulaire. Elle ne protège donc que la frappe : importerTout et
+   poserCoffre recopient les fiches sans regarder une valeur, et un fichier
+   retouché à la main — ou fait par une version plus ancienne — entrait
+   sans que rien ne l'arrête. Une règle qui ne vit que dans le balisage
+   n'est pas une règle, c'est une politesse envers celui qui tape.
+   Elle descend donc dans le chemin d'écriture, là où passent tous les
+   autres. On répare plutôt que de refuser : une restauration est un
+   sauvetage, et rejeter le fichier entier pour une fiche abîmée coûterait
+   plus cher que la fiche. Mais on ne répare jamais en silence. */
+const CHAMPS_SOMME = {factures: ["montant", "verse"], depenses: ["montant"],
+  investissements: ["montant"]};
+function somme(v){
+  const n = Number(v);
+  return (isFinite(n) && n >= 0) ? n : null;
+}
+/* Rend le nombre de valeurs qu'il a fallu redresser. */
+function redresserSommes(col, obj){
+  const champs = CHAMPS_SOMME[col];
+  if(!champs || !obj) return 0;
+  let redresses = 0;
+  champs.forEach(function(c){
+    if(!(c in obj)) return;
+    const propre = somme(obj[c]);
+    if(propre === null){ obj[c] = 0; redresses++; }
+    else if(propre !== obj[c]) obj[c] = propre;
+  });
+  /* Un acompte plus grand que la facture ne vient jamais d'un client
+     généreux : c'est une saisie ou un fichier abîmé. */
+  if(col === "factures" && somme(obj.verse) !== null && somme(obj.montant) !== null
+     && obj.verse > obj.montant){ obj.verse = obj.montant; redresses++; }
+  return redresses;
+}
+
 function ecrire(col, id, obj){
+  redresserSommes(col, obj);
   state[col][id] = obj;
   /* facturer quelqu'un l'inscrit au carnet : sans ça l'argent existe
      quelque part et le client nulle part, et les écrans se contredisent */
@@ -3334,6 +3370,11 @@ function deconnecter(){
 /* ───────── récupérer ce qui est là-bas ───────── */
 function poserCoffre(la){
   COLS.forEach(function(c){ state[c] = (la.contenu && la.contenu[c]) || {}; });
+  /* même règle que la restauration depuis un fichier : la copie en ligne
+     n'est pas plus digne de confiance parce qu'elle vient du réseau */
+  COLS.forEach(function(c){
+    Object.keys(state[c]).forEach(function(k){ redresserSommes(c, state[c][k]); });
+  });
   if(la.contenu && la.contenu.moi) state.moi = la.contenu.moi;
   agendaAReposer(la.contenu && la.contenu.agenda);
   sauver();
@@ -5685,6 +5726,12 @@ function importerTout(){
         return;
       }
       COLS.forEach(c => { state[c] = d[c] && typeof d[c] === "object" ? d[c] : {}; });
+      /* Les fiches arrivent ici sans passer par ecrire : on leur applique
+         la même règle, et on compte ce qu'on a redressé pour le dire. */
+      let redresses = 0;
+      COLS.forEach(c => Object.keys(state[c]).forEach(k => {
+        redresses += redresserSommes(c, state[c][k]);
+      }));
       /* Les copies enregistrées avant aujourd'hui n'ont pas de clé
          « agenda » : agendaAReposer refuse alors sans rien toucher, et le
          calendrier déjà présent reste en place. */
@@ -5696,7 +5743,11 @@ function importerTout(){
       sauver(); memoire.clear(); animer = true; rendre();
       let total = 0;
       COLS.forEach(c => { total += Object.keys(state[c]).length; });
-      bulle(total + " fiche" + (total > 1 ? "s" : "") + " restaurée" + (total > 1 ? "s" : ""));
+      /* Une réparation silencieuse serait pire que le défaut : on saurait
+         que les chiffres ont changé sans savoir lesquels. */
+      bulle(total + " fiche" + (total > 1 ? "s" : "") + " restaurée" + (total > 1 ? "s" : "")
+        + (redresses ? " — " + redresses + " montant" + (redresses > 1 ? "s" : "")
+            + " incorrect" + (redresses > 1 ? "s" : "") + " remis à zéro, à revoir" : ""));
     };
     lecteur.readAsText(fichier);
   });

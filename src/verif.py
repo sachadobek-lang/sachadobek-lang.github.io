@@ -99,6 +99,35 @@ if _noeud:
 else:
     print("node absent : le contrôle des redéclarations est sauté")
 
+# ── Un nom déclaré deux fois au niveau supérieur ─────────────────────
+# Le 22 septembre 2026, deux défauts de cette forme ont été trouvés le
+# même jour, chacun dans sa moitié du fichier, à la main et sans se
+# douter que l'autre avait le même : « window.__AGENDA__ = {…} » deux
+# fois à cent soixante lignes d'écart, et deux « function
+# combienDeFiches ». Dans les deux cas le second écrasait le premier et
+# emportait ce qu'il contenait — une fonction d'export appelée par
+# l'autre bloc, disparue sans un mot.
+# Rien ne le signale : le code est parfaitement légal, node l'accepte,
+# la page se charge, et l'appelant croit que la fonction existe. C'est
+# la seule classe de défaut de la journée qu'aucun contrôle ne voyait.
+# On ne regarde que la colonne zéro — une fonction imbriquée peut
+# légitimement porter le nom d'une autre — et on refuse, parce qu'une
+# fonction perdue en silence ne se rattrape qu'en console.
+import re as _rd, collections as _cl
+_doubles = []
+for _k, _b in enumerate(blocs):
+    _fn = _rd.findall(r'(?m)^(?:async\s+)?function\s+([A-Za-zÀ-ÿ_$][\w$]*)\s*\(', _b)
+    _wd = _rd.findall(r'(?m)^(window\.[A-Za-z_$][\w$]*)\s*=\s*[\{\[]', _b)
+    for _genre, _lst in (("fonction", _fn), ("objet", _wd)):
+        for _nom, _n in _cl.Counter(_lst).items():
+            if _n > 1:
+                _doubles.append("bloc %d : %s « %s » déclarée %d fois — "
+                                "la dernière écrase les autres" % (_k + 1, _genre, _nom, _n))
+if _doubles:
+    print("DÉCLARÉ DEUX FOIS AU MÊME NIVEAU")
+    for _d in _doubles[:8]: print("  " + _d)
+    sys.exit(1)
+
 # ── Toute fonction appelée doit exister ──────────────────────────────
 import re
 declarees = set(re.findall(r'(?:async\s+)?function\s+([A-Za-zÀ-ÿ_$][\w$]*)\s*\(', js))
