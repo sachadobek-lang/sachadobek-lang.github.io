@@ -1942,12 +1942,20 @@ summary.carte-tete:hover h2{color:var(--v1)}
   color:var(--ink-3); border:1px solid var(--line); border-radius:5px; padding:1px 5px;
 }
 #majournee .quick.has .qprev{display:flex}
-/* « Un tout petit peu plus petit » : 38 → 35. La zone qui reçoit le doigt
-   ne bouge pas — elle est portée par le rembourrage de la barre, qui fait
-   les 44 px réglementaires autour de chacun des deux. */
+/* « Un tout petit peu plus petit » : 38 → 35. Ce qu'on voit rétrécit, ce
+   que le doigt touche non : le ::after ci-dessous garde les 44 px
+   réglementaires, centrés sur le bouton. Ils étaient auparavant censés
+   venir du rembourrage de la barre — mais ce rembourrage appartient à la
+   barre, et un doigt qui tombait à côté posait le curseur dans le champ
+   au lieu de déclencher la recherche. Mesuré : 40 sur 40. */
 #majournee .qmore{
+  position:relative;
   width:35px; height:35px; flex:0 0 auto; border-radius:10px; color:var(--ink-3);
   display:grid; place-items:center; transition:color .14s ease, background-color .14s ease;
+}
+#majournee .qmore::after{
+  content:""; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:44px; height:44px;
 }
 #majournee .qmore:hover{color:var(--ink); background:var(--surface-2)}
 /* c'est le seul geste d'ajout de l'écran : il doit se voir */
@@ -1975,7 +1983,8 @@ summary.carte-tete:hover h2{color:var(--v1)}
      30 + 14 = 44. Elle ne va que vers le bord de l'écran : mordre vers
      l'intérieur ferait changer de semaine en croyant toucher lundi. */
   #majournee .wk-arrow{width:30px; position:relative}
-  #majournee .wk-arrow::after{content:""; position:absolute; top:0; bottom:0; width:44px}
+  #majournee .wk-arrow::after{content:""; position:absolute; top:0; bottom:0;
+    left:50%; transform:translateX(-50%); width:44px}
   #majournee #prevWeek::after{right:0}
   #majournee #nextWeek::after{left:0}
 #majournee .days{touch-action:pan-y}
@@ -3178,7 +3187,11 @@ function relancesAuto(){
     auto: true,
     titre: "Relancer " + f.client + " — " + (f.ref || "facture"),
     client: f.client,
-    montant: f.montant,
+    /* le solde, pas le montant de la facture. Troisième endroit qui
+       réclamait la somme entière à un client ayant versé un acompte,
+       après la pile « à rappeler » et la lettre de relance : celui-ci
+       est celui qu'on voit en premier, en haut de l'écran Factures. */
+    montant: duSur(f),
     echeance: f.echeance,
     priorite: "haute",
     fait: false
