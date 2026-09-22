@@ -1868,7 +1868,13 @@ summary.carte-tete:hover h2{color:var(--v1)}
    c'est suffisant pour situer l'heure. */
 #majournee .now{position:absolute; left:-5px; right:0; height:1.5px; background:var(--accent); pointer-events:none; z-index:1}
 #majournee .now::before{content:""; position:absolute; left:0; top:-3.5px; width:8px; height:8px; border-radius:99px; background:var(--accent)}
-#majournee .empty{position:absolute; inset:0; display:grid; place-content:center; gap:7px; text-align:center; pointer-events:none; padding:16px}
+#majournee .empty{position:absolute; inset:0; display:grid; place-content:center; text-align:center;
+  pointer-events:none; padding:16px; z-index:3}
+#majournee .empty .bul{
+  display:grid; gap:6px; max-width:272px;
+  background:var(--surface); border:1px solid var(--line-soft);
+  border-radius:16px; padding:15px 20px; box-shadow:var(--shadow-1);
+}
 #majournee .empty strong{font-family:var(--display); font-weight:600; font-size:17px; color:var(--ink-2); letter-spacing:-.012em}
 #majournee .empty span{font-size:13.5px; color:var(--ink-3)}
 #majournee .demo-note{
@@ -7900,9 +7906,16 @@ function renderTrack(){
   if (!total){
     var e = document.createElement('div');
     e.className = 'empty';
-    e.innerHTML = week
+    /* Le message était posé à nu au centre de la piste, et le trait rouge
+       de l'heure courante le traversait — à 13 h 41 « Écrivez une phrase
+       au-dessus » était barré en son milieu. Sur une journée vide, c'est
+       le tout premier écran qu'un nouveau venu voit.
+       Il prend donc un fond, comme la pastille « 2 h 30 libre » qui vit
+       déjà sur cette grille : le trait passe derrière au lieu de rayer. */
+    var bul = week
       ? '<strong>Semaine libre</strong><span>Écrivez une phrase au-dessus, ou touchez un créneau.</span>'
       : '<strong>Journée libre</strong><span>Écrivez une phrase au-dessus, ou touchez un créneau.</span>';
+    e.innerHTML = '<div class="bul">' + bul + '</div>';
     track.appendChild(e);
   }
 
