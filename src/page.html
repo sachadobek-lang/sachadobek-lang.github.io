@@ -2097,6 +2097,25 @@ summary.carte-tete:hover h2{color:var(--v1)}
   font-size:14.5px; font-weight:600; color:var(--ink-2); padding:8px 0;
 }
 #majournee .plus-detail > summary::-webkit-details-marker{display:none}
+/* ═══ « Y aller » ═══
+   Le texte d'aide promettait ce bouton depuis toujours, et il n'existait
+   nulle part : l'itinéraire n'était accessible que depuis le bandeau de
+   trajet entre deux rendez-vous, donc seulement quand il y en avait deux
+   d'affilée avec une adresse chacun. Pour un seul rendez-vous, l'adresse
+   était du texte mort.
+   Il est posé contre le champ qui le nourrit, et non dans le pied de la
+   feuille : le pied porte déjà six commandes, et une action se lit mieux
+   à côté de la donnée sur laquelle elle agit. Il n'apparaît que quand il
+   y a une adresse. */
+#majournee .ou-ligne{display:flex; gap:9px; align-items:stretch}
+#majournee .ou-ligne .name-input{flex:1; min-width:0}
+#majournee .y-aller{
+  flex:0 0 auto; display:flex; align-items:center; padding:0 17px; min-height:44px;
+  border:1px solid var(--line-fort); border-radius:999px; background:var(--surface);
+  font-family:var(--ui); font-weight:600; font-size:14.5px; color:var(--ink);
+  text-decoration:none; white-space:nowrap;
+}
+#majournee .y-aller:hover{background:var(--surface-2); border-color:var(--ink-3)}
 #majournee .plus-detail > summary::before{
   content:"+"; font-family:var(--display); font-weight:600; font-size:17px;
   width:26px; height:26px; border-radius:50%; background:var(--surface-2);
@@ -2861,8 +2880,11 @@ summary.carte-tete:hover h2{color:var(--v1)}
         <summary>Plus de détails</summary>
         <div class="field">
           <h3>Où ?</h3>
-          <input class="name-input" id="evLieu" type="text" maxlength="120" autocomplete="off"
-                 placeholder="12 rue des Lilas, Meudon">
+          <div class="ou-ligne">
+            <input class="name-input" id="evLieu" type="text" maxlength="120" autocomplete="off"
+                   placeholder="12 rue des Lilas, Meudon">
+            <a class="y-aller" id="yAller" target="_blank" rel="noopener" hidden>Y aller</a>
+          </div>
           <p class="hint">Une adresse ici, et le bouton « Y aller » ouvre l’itinéraire.</p>
         </div>
         <div class="field">
@@ -7288,8 +7310,21 @@ function adressePour(titre){
   clientsCura().forEach(function(c){ if (c && c.nom === trouve) fiche = c; });
   return fiche ? String(fiche.adresse || '').replace(/\s+/g, ' ').trim() : '';
 }
-function lienWaze(adresse){
-  return 'https://waze.com/ul?q=' + encodeURIComponent(adresse) + '&navigate=yes';
+/* ═══ ouvrir un itinéraire ═══
+   C'était Waze, et Waze n'est pas installé chez tout le monde : le lien
+   menait alors à une page qui propose de l'installer. Quelqu'un qui
+   n'est pas à l'aise avec un téléphone s'arrête là, et il avait juste
+   besoin d'aller à un rendez-vous.
+   On passe par les cartes de l'appareil, qui y sont toujours : Plans
+   sur iPhone, Google Maps ailleurs. Et par l'adresse de DESTINATION —
+   « daddr », pas « q » —, ce qui ouvre l'itinéraire tout tracé au lieu
+   d'une simple recherche que l'on doit convertir en trajet. */
+function lienItineraire(adresse){
+  var a = encodeURIComponent(String(adresse || '').trim());
+  var pomme = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent);
+  return pomme
+    ? 'https://maps.apple.com/?daddr=' + a + '&dirflg=d'
+    : 'https://www.google.com/maps/dir/?api=1&destination=' + a + '&travelmode=driving';
 }
 
 function lsGet(k){ try { return JSON.parse(localStorage.getItem(k) || '[]'); } catch(e){ return []; } }
@@ -7498,7 +7533,7 @@ function makeRoute(p){
     if (adr){
       var go = document.createElement('a');
       go.className = 'rt-go';
-      go.href = lienWaze(adr);
+      go.href = lienItineraire(adr);
       go.target = '_blank';
       go.rel = 'noopener';
       go.textContent = 'Y aller';
@@ -8641,10 +8676,12 @@ function buildPickers(){
   });
   $('evLieu').addEventListener('input', function(e){
     var d = br(); if (d) d.lieu = e.target.value;
-    /* Le lieu entre dans le message de confirmation : sans cet appel, on
-       tapait l'adresse, on pressait « Prévenir », et le message partait
-       sans elle. Ce champ ne passait par aucun rafraîchissement. */
+    /* Le lieu entre dans le message de confirmation et nourrit « Y
+       aller » : sans ces appels, on tapait l'adresse, et ni l'un ni
+       l'autre ne le savait. Ce champ ne passait par aucun
+       rafraîchissement. */
     majPrevenir();
+    majYAller();
   });
   $('evNote').addEventListener('input', function(e){ var d = br(); if (d) d.note = e.target.value; });
   var dp = $('durPick');
@@ -8682,6 +8719,17 @@ function buildPickers(){
    ce qui partira dans Messages est alors lisible dans la page, donc
    vérifiable. Un geste qui quitte l'application doit pouvoir être
    inspecté avant de partir. */
+/* Il suit le champ, comme le message de confirmation : on tape une
+   adresse, le bouton paraît ; on l'efface, il s'en va. Sans cela il
+   aurait fallu refermer et rouvrir la feuille pour qu'il apparaisse. */
+function majYAller(){
+  var d = state.draft; if (!d) return;
+  var b = $('yAller');
+  var adr = String(d.lieu || '').trim();
+  b.hidden = !adr;
+  if (adr){ b.href = lienItineraire(adr); b.title = 'Itinéraire vers ' + adr; }
+}
+
 function majPrevenir(){
   var d = state.draft; if (!d) return;
   var b = $('prevenir'); if (b.hidden) return;
@@ -8711,6 +8759,7 @@ function syncSheet(skipTime){
     b.setAttribute('aria-pressed', String(b.dataset.k === d.cat)); });
   if (!skipTime) $('timePick').value = hhmm(d.start);
   majPrevenir();
+  majYAller();
 
   if ($('evLieu').value !== (d.lieu || '')) $('evLieu').value = d.lieu || '';
   if ($('evNote').value !== (d.note || '')) $('evNote').value = d.note || '';
