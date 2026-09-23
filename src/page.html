@@ -825,7 +825,10 @@ summary.groupe:hover{background:var(--line)}
 .pastille.ok{background:var(--ok-doux);color:var(--ok)}
 .pastille.att{background:var(--surface-3);color:var(--ink-2)}
 .pastille.amb{background:var(--attente-doux);color:var(--attente)}
-.pastille small{display:block;font-size:9.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;opacity:.8}
+/* Neuf et demi en capitales, c'est la limite de ce qu'un œil de
+   cinquante ans lit sans lunettes. Onze et demi, et l'opacité remonte :
+   ces deux mots disent l'état d'une facture. */
+.pastille small{display:block;font-size:11.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;opacity:.92}
 /* min-width:0 laisse le texte se compresser jusqu'à zéro : c'est ce qui
    permet la coupure propre, et c'est aussi ce qui autorise l'écrasement
    total. 6rem est le plancher sous lequel un nom cesse d'être lisible. */
@@ -1295,6 +1298,10 @@ summary.carte-tete:hover h2{color:var(--v1)}
   --ink-2:var(--cad-ink-2);
   --ink-3:var(--cad-ink-3);
   --accent:#DF4A45;
+  /* Le même rouge, assez sombre pour porter du texte blanc : mesuré à
+     5,93 de contraste, là où l'accent d'origine tombait à 4,04. Il ne
+     sert qu'à ça — un fond plein sous une écriture claire. */
+  --accent-fonce:#B3392F;
   --focus:#4B5BD0;
   --shadow-1:0 1px 2px rgba(20,22,27,.04);
   --shadow-2:0 4px 12px rgba(20,22,27,.08), 0 24px 56px rgba(20,22,27,.16);
@@ -1494,7 +1501,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .days{flex:1; min-width:0; display:grid; grid-template-columns:repeat(7,minmax(0,1fr))}
 #majournee .day-pill{min-width:0}
 #majournee .day-pill{display:flex; flex-direction:column; align-items:center; gap:7px; padding-block:1px; min-width:0}
-#majournee .day-pill .dow{font-size:11px; font-weight:500; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-3)}
+#majournee .day-pill .dow{font-size:12px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-2)}
 #majournee .day-pill .num{
   font-family:var(--display); font-weight:600; font-size:16.5px; letter-spacing:-.01em;
   font-variant-numeric:tabular-nums; width:min(38px,100%); aspect-ratio:1; height:auto; border-radius:999px;
@@ -1698,12 +1705,22 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .hours{position:relative; height:calc(var(--hour) * 24)}
 #majournee .hours .h{
   position:absolute; right:14px; transform:translateY(-50%);
-  font-size:11.5px; font-weight:500; color:var(--ink-3); font-variant-numeric:tabular-nums;
+  /* Onze et demi, c'était la plus petite écriture de l'écran, et c'est
+     celle qu'on lit le plus souvent : l'heure. Douze et demi, et la
+     couleur d'un cran plus sombre. L'application vise des gens qui ne
+     sont pas tous jeunes et qui la tiennent parfois à bout de bras sur
+     un chantier. */
+  font-size:12.5px; font-weight:500; color:var(--ink-2); font-variant-numeric:tabular-nums;
 }
 #majournee .hours .nowlab{
   position:absolute; right:10px; transform:translateY(-50%);
-  font-size:11px; font-weight:600; color:#fff; background:var(--accent);
-  border-radius:6px; padding:2px 6px; font-variant-numeric:tabular-nums; z-index:4;
+  /* Mesuré à 4,04 de contraste sur le rouge, là où il en faut 4,5 pour
+     un texte de cette taille. Le blanc était déjà au maximum : c'est
+     donc le rouge qui descend d'un cran, et la police qui monte à 12
+     px et en gras. Le badge dit l'heure qu'il est — c'est le repère du
+     regard sur toute la journée. */
+  font-size:12px; font-weight:700; color:#fff; background:var(--accent-fonce, #B3392F);
+  border-radius:6px; padding:2.5px 7px; font-variant-numeric:tabular-nums; z-index:4;
 }
 #majournee .track{position:relative; height:calc(var(--hour) * 24)}
 #majournee .track .rule{position:absolute; left:0; right:0; height:1px; background:var(--line-soft)}
@@ -2423,8 +2440,8 @@ summary.carte-tete:hover h2{color:var(--v1)}
   background:var(--moi-bg);display:flex;flex-direction:column;align-items:center;
   justify-content:center;line-height:1}
 #ilreste .echeance .compte b{font-family:var(--num);font-weight:600;font-size:21px;color:var(--moi)}
-#ilreste .echeance .compte span{font-size:9.5px;font-weight:700;color:var(--moi);
-  text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+#ilreste .echeance .compte span{font-size:11.5px;font-weight:700;color:var(--moi);
+  text-transform:uppercase;letter-spacing:.03em;margin-top:2px}
 #ilreste .echeance .txt{min-width:0}
 #ilreste .echeance .txt > b{display:block;font-size:15.5px;font-weight:700}
 #ilreste .echeance .txt > span b{font-weight:700;color:var(--ink)}
