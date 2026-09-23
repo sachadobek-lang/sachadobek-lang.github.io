@@ -139,6 +139,22 @@ for bloc in re.findall(r'(?:var|let|const)\s+([^;\n]+)', js):
             declarees.add(nom)
 declarees |= set(re.findall(r'(?:const|let|var)\s+([A-Za-zÀ-ÿ_$][\w$]*)\s*=\s*(?:async\s*)?(?:\([^)]*\)|[\w$]+)\s*=>', js))
 declarees |= set(re.findall(r'(?:const|let|var)\s+([A-Za-zÀ-ÿ_$][\w$]*)\s*=', js))
+
+# Les PARAMÈTRES sont des noms déclarés, eux aussi. Sans cette ligne, un
+# rappel reçu en paramètre — « proposerRetour(texte, refaire) », puis
+# « refaire() » dans le corps — était annoncé comme une fonction appelée
+# mais absente, et la publication refusée. Le code était juste : node
+# l'acceptait, et c'est la façon la plus ordinaire d'écrire un rappel.
+# On relève donc les listes de paramètres, des fonctions nommées comme
+# des fonctions fléchées. Un contrôle qui refuse du code juste coûte
+# plus cher qu'un contrôle un peu large : on apprend à ne plus le croire.
+for _liste in re.findall(r'(?:function\s*[A-Za-zÀ-ÿ_$][\w$]*\s*|function\s*|\)\s*=>|^\s*)\(([^()]{0,300})\)\s*(?:\{|=>)', js, re.M):
+    for _p in _liste.split(','):
+        _p = _p.strip().split('=')[0].strip().lstrip('.')
+        if re.match(r'^[A-Za-zÀ-ÿ_$][\w$]*$', _p):
+            declarees.add(_p)
+# Une flèche à paramètre unique et sans parenthèses : « x => … »
+declarees |= set(re.findall(r'(?:^|[(,=;{}\s])([A-Za-zÀ-ÿ_$][\w$]*)\s*=>', js))
 connues = {
     'if','for','while','switch','catch','return','typeof','function','await','new','do','else',
     'Math','Number','String','Object','Array','JSON','Date','Intl','Boolean','Set','Map','parseInt',

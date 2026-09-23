@@ -1146,6 +1146,35 @@ summary.carte-tete:hover h2{color:var(--v1)}
    factures restent en comptabilité » recouvrait les trois onglets et sa
    dernière ligne finissait sous le trait de l'iPhone. Elle passe au-dessus
    de la barre, et on lui donne une largeur de lecture. */
+/* ═══ revenir en arrière ═══
+   Mesuré : supprimer un rendez-vous était définitif. Pas de corbeille,
+   pas d'annulation, pas même un message — le seul « Annuler » de toute
+   l'application était dans Comptabilité, pour une rentrée d'argent. Il y
+   avait bien une confirmation en deux touchers, mais deux touchers au
+   même endroit, sur un téléphone, c'est un geste qu'on fait sans le
+   vouloir.
+   La barre est la forme universelle de ce pardon : un mot, un bouton,
+   quelques secondes. Sept plutôt que trois — le temps de comprendre ce
+   qui vient de se passer, puis de tendre le doigt. Elle se pose
+   au-dessus de la barre de navigation et laisse passer les touchers
+   partout ailleurs. */
+.repentir{
+  position:fixed; z-index:61; left:50%; transform:translateX(-50%);
+  bottom:calc(env(safe-area-inset-bottom) + 104px);
+  display:flex; align-items:center; gap:14px;
+  max-width:calc(100vw - 32px);
+  padding:10px 10px 10px 20px; border-radius:999px;
+  background:var(--deg-fonce); color:#EEF3FA; box-shadow:var(--o3);
+  font-family:var(--ui); font-size:14.5px; font-weight:500;
+}
+.repentir > span{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.repentir button{
+  flex:0 0 auto; min-height:44px; padding:0 18px; border:0; border-radius:999px;
+  background:rgba(255,255,255,.16); color:#fff;
+  font-family:var(--ui); font-weight:700; font-size:14.5px;
+}
+.repentir button:hover{background:rgba(255,255,255,.26)}
+
 .bulle{position:fixed;z-index:60;left:50%;bottom:calc(env(safe-area-inset-bottom) + 104px);transform:translate(-50%,16px);opacity:0;pointer-events:none;
   display:flex;align-items:center;gap:10px;background:var(--ink);color:var(--ground);padding:14px 20px;border-radius:999px;
   font-size:15px;font-weight:700;box-shadow:var(--o3);transition:opacity .26s var(--doux),transform .34s var(--ressort);
@@ -2973,6 +3002,13 @@ summary.carte-tete:hover h2{color:var(--v1)}
   <button data-vue="argent"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.4"/><path d="M2.8 20c0-3.4 2.8-5.6 6.2-5.6s6.2 2.2 6.2 5.6"/><path d="M16.2 5.2a3.4 3.4 0 0 1 0 6.4M18 14.8c2 .7 3.2 2.5 3.2 5.2"/></svg><span class="nom">Clients</span><span class="compte" id="n-argent" hidden></span></button>
   <button data-vue="budget"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3.2 17.2 9 11.4l3.6 3.6 8-8"/><path d="M15.8 7h4.8v4.8"/></svg><span class="nom">Comptabilité</span></button>
 </nav>
+
+<!-- Ce qu'on vient de défaire, et le moyen de le refaire. Elle vit hors
+     de la feuille : la feuille se referme au moment de la suppression. -->
+<div class="repentir" id="repentir" hidden>
+  <span id="repentirTxt"></span>
+  <button type="button" id="repentirBtn">Annuler</button>
+</div>
 
 <div class="voile" id="voile" hidden></div>
 <div class="feuille" id="feuille" hidden role="dialog" aria-modal="true" aria-labelledby="feuille-titre"></div>
@@ -9411,13 +9447,42 @@ function serieOuverte(){
   return state.repeats.filter(function(x){ return x.id === id; })[0] || null;
 }
 
+/* ═══ le repentir ═══
+   On garde ce qu'on vient de défaire et le geste qui le refait. Sept
+   secondes, puis on oublie : au-delà, la barre n'est plus un pardon,
+   c'est un encombrement. */
+var repentirMinuteur = null;
+function proposerRetour(texte, refaire){
+  var bar = $('repentir');
+  $('repentirTxt').textContent = texte;
+  bar.hidden = false;
+  clearTimeout(repentirMinuteur);
+  var btn = $('repentirBtn');
+  btn.onclick = function(){
+    clearTimeout(repentirMinuteur);
+    bar.hidden = true;
+    try{ refaire(); }catch(e){}
+  };
+  repentirMinuteur = setTimeout(function(){ bar.hidden = true; btn.onclick = null; }, 7000);
+}
+
 function supprimerToutDeSuite(id){
   closeSheet();
   if (!id) return;
+  /* On relit la fiche AVANT de l'effacer : c'est elle qu'on remettra.
+     On la prend dans le tiroir et non dans l'état affiché, qui ne
+     contient que la fenêtre en cours. */
+  var fiche = null;
+  try{ fiche = lsGet(LS_EV).filter(function(x){ return x && x.id === id; })[0] || null; }catch(e){}
   state.events = state.events.filter(function(x){ return x.id !== id; });
   state.repeats = state.repeats.filter(function(x){ return x.id !== id; });
   render();
   removeEvent(id);
+  if (fiche) proposerRetour('Supprimé', function(){
+    putEvent(fiche);
+    state.date = fiche.date; state.week = mondayOf(fromIso(fiche.date));
+    refreshLocal();
+  });
 }
 
 $('del').addEventListener('click', function(){
@@ -9450,7 +9515,13 @@ $('supprUne').addEventListener('click', function(){
   state.repeats = state.repeats.map(function(x){ return x.id === serie.id ? neuf : x; });
   render();
   putEvent(neuf);
-  bulle('Décommandé pour ce jour-là');
+  proposerRetour('Décommandé ce jour-là', function(){
+    var remis = Object.assign({}, neuf, {sauf: (neuf.sauf || []).filter(function(x){ return x !== jour; })});
+    state.repeats = state.repeats.map(function(x){ return x.id === serie.id ? remis : x; });
+    putEvent(remis);
+    state.date = jour; state.week = mondayOf(fromIso(jour));
+    refreshLocal();
+  });
 });
 
 $('supprTout').addEventListener('click', function(){
