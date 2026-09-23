@@ -2289,10 +2289,32 @@ summary.carte-tete:hover h2{color:var(--v1)}
   padding:15px; border-radius:var(--rs);
 }
 #majournee .ok:hover{opacity:.9}
+/* ═══ quatre icônes muettes ═══
+   La grille des catégories, dans la même feuille, dit « icône + mot » :
+   une mallette et « Travail ». Le pied l'oubliait — une corbeille, deux
+   rectangles, un calendrier et une bulle, sans un mot. Quatre inconnues
+   juste à côté d'« Enregistrer », pour quelqu'un qui ne connaît pas
+   l'application. On lui rend sa propre langue.
+   Le mot va SOUS l'icône et jamais à côté : le code avertit que cinq
+   boutons faisaient déborder la feuille et que quatre tiennent à neuf
+   pixels près. La largeur ne bouge donc pas d'un pixel ; seule la
+   hauteur gagne les quatorze pixels du mot. */
 #majournee .iconbtn{
-  width:52px; height:52px; flex:0 0 auto; border-radius:var(--rs); border:1px solid var(--line);
-  color:var(--ink-3); display:grid; place-items:center;
+  width:52px; min-height:52px; flex:0 0 auto; border-radius:var(--rs); border:1px solid var(--line);
+  color:var(--ink-3); display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:4px; padding:7px 2px 6px;
   transition:border-color .14s ease, color .14s ease;
+}
+#majournee .iconbtn .mot{
+  font-family:var(--ui); font-size:10px; font-weight:600; line-height:1;
+  letter-spacing:-.01em; white-space:nowrap;
+}
+/* Sur les écrans les plus étroits, le mot le plus long ne tient plus
+   dans cinquante-deux pixels : on le laisse rétrécir plutôt que
+   déborder, et l'étiquette de lecture d'écran reste entière. */
+@media (max-width:359px){
+  #majournee .iconbtn{width:48px}
+  #majournee .iconbtn .mot{font-size:9px}
 }
 #majournee .iconbtn:hover{border-color:var(--ink-3); color:var(--ink)}
 #majournee .trash:hover{border-color:var(--c-rouge); color:var(--c-rouge)}
@@ -2999,7 +3021,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
     <p class="chevauche dans-feuille" id="sheetChevauche" hidden></p>
     <p class="recap" id="recap"></p>
     <div class="sheet-foot">
-      <button class="iconbtn trash" id="del" aria-label="Supprimer" hidden></button>
+      <button class="iconbtn trash" id="del" aria-label="Supprimer" hidden><span class="mot">Supprimer</span></button>
       <!-- Pour un rendez-vous qui se répète, « Confirmer » ne suffit pas :
            il ne dit pas ce qu'on confirme. Une question, deux réponses. -->
       <div class="choix-suppr" id="choixSuppr" hidden role="group" aria-label="Supprimer ce rendez-vous">
@@ -3009,12 +3031,15 @@ summary.carte-tete:hover h2{color:var(--v1)}
       </div>
       <button class="iconbtn" id="dup" aria-label="Copier vers demain" title="Copier vers demain" hidden>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="8.5" width="11.5" height="11.5" rx="2.6"/><path d="M15.5 8.5v-2a2.5 2.5 0 0 0-2.5-2.5H6.5A2.5 2.5 0 0 0 4 6.5V13a2.5 2.5 0 0 0 2.5 2.5h2"/></svg>
+        <span class="mot">Copier</span>
       </button>
       <button class="iconbtn" id="versCal" aria-label="Mettre dans mon calendrier" title="Mettre dans mon calendrier" hidden>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3.2" y="5" width="17.6" height="15.8" rx="3.4"/><path d="M3.2 10h17.6M8.2 2.6v3.6M15.8 2.6v3.6"/><path d="M12 13v4.4M9.8 15.2h4.4"/></svg>
+        <span class="mot">Calendrier</span>
       </button>
       <button class="iconbtn" id="prevenir" aria-label="Prévenir le client" title="Prévenir le client" hidden>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 11.6a7.6 7.6 0 0 1-8.2 7.6c-.9 0-1.8-.1-2.6-.4L4.2 20.4l1.7-4.8a7.3 7.3 0 0 1-1.1-4 7.6 7.6 0 0 1 8.2-7.6 7.7 7.7 0 0 1 7.5 7.6Z"/></svg>
+        <span class="mot">Prévenir</span>
       </button>
       <button class="signe" id="signe" hidden>Il a signé</button>
       <button class="ok" id="save">Enregistrer</button>
@@ -9134,10 +9159,14 @@ function closeSheet(){
 }
 /* le bouton + de la barre, quand Sacha est sur l'Agenda */
 window.__AGENDA_NOUVELLE__ = function(){ openSheet(); };
+/* La corbeille se redessine à chaque désarmement : il faut donc lui
+   remettre son mot, sinon il disparaît au premier toucher annulé. Et
+   c'est le MOT qui devient « Confirmer », pas le bouton entier —
+   remplacer tout le contenu effaçait l'icône avec le libellé. */
 function disarmDelete(){
   var t = $('del');
   t.classList.remove('armed'); t.dataset.armed = '';
-  t.innerHTML = svg(I_TRASH, 18, 1.6);
+  t.innerHTML = svg(I_TRASH, 18, 1.6) + '<span class="mot">Supprimer</span>';
 }
 
 function commitDraft(){
@@ -9596,7 +9625,8 @@ $('del').addEventListener('click', function(){
     return;
   }
   if (t.dataset.armed !== '1'){
-    t.dataset.armed = '1'; t.classList.add('armed'); t.textContent = 'Confirmer';
+    t.dataset.armed = '1'; t.classList.add('armed');
+    var mot = t.querySelector('.mot'); if (mot) mot.textContent = 'Confirmer';
     setTimeout(disarmDelete, 4000);
     return;
   }
