@@ -8271,15 +8271,57 @@ function makeBlock(ev, opts){
      l'avais posé plus haut, et makeBlock levait sur chaque bloc. */
   var nomPx  = etroit ? clamp((largeurPx - 9) / 3.4, 9, 15) : (11.5 + 4.5 * t);
   var hLigne = nomPx * (etroit ? 1.15 : 1.3);
-  b.style.setProperty('--lignes',
-    String(clamp(Math.floor((hEff - 2 * py - hHeure) / hLigne), 1, 4)));
+
+  /* ═══ combien de lignes, et où les poser ═══
+     Mesuré : « Chantier Bernard » dans un bloc de 124 sur 67 s'affichait
+     « Chantie… » sur UNE ligne, avec quarante-six pixels de hauteur
+     inutilisés. Le rembourrage se fixait d'abord à son maximum de neuf
+     pixels, et le compte de lignes se faisait sur ce qui restait : deux
+     fois neuf plus l'heure mangeaient la deuxième ligne.
+     On inverse l'ordre. D'abord ce que le bloc PEUT contenir, rembourrage
+     au minimum. Ensuite ce que le titre DEMANDE vraiment, estimé sur sa
+     longueur et la largeur disponible. On garde le plus petit des deux —
+     un titre court dans un bloc haut reste sur une ligne, et le
+     rembourrage le recentre comme avant. Puis le rembourrage se calcule
+     sur ce qu'on affiche réellement.
+     L'estimation de largeur vaut ce qu'elle vaut : la moitié de la
+     hauteur de police par caractère est une moyenne qui tient pour du
+     français. Elle ne sert qu'à choisir entre une et quatre lignes, et
+     « -webkit-line-clamp » coupe proprement si elle se trompe. */
+  /* Un pixel et demi de tolérance, et il n'est pas décoratif. Mesuré sur
+     « Chantier Bernard » dans un bloc de 66,5 : deux lignes réclament
+     41,6 px et il en restait 41,5. Un demi-pixel, et le titre passait de
+     « Chantier Bernard » à « Chantie… » avec quarante pixels de hauteur
+     inutilisés.
+     L'interligne de 1,3 comprend du blanc au-dessus et en dessous des
+     lettres : la dernière ligne peut mordre sur le rembourrage sans que
+     rien ne se voie, et le bloc coupe de toute façon ce qui dépasse. */
+  var lignesMax = clamp(Math.floor((hEff - 6 - hHeure + 1.5) / hLigne), 1, 4);
+  var dispo = Math.max(24, largeurPx - 26 - tI * 25);
+  var lignesVoulues = Math.max(1,
+    Math.ceil(String(ev.title || cat.l).length * nomPx * 0.5 / dispo));
+  var lignes = clamp(Math.min(lignesVoulues, lignesMax), 1, 4);
+  b.style.setProperty('--lignes', String(lignes));
+
+  /* Le rembourrage suit le texte, et non l'inverse. */
+  py = clamp((hEff - (lignes * hLigne + hHeure)) / 2, 3, 9);
+  py = Math.min(py, Math.max(0, (restePx - 2) / 2));
+  b.style.setProperty('--py', py.toFixed(1) + 'px');
   b.innerHTML = icon(cat.k, px < 52 ? 14 : 15) + '<span class="txt"></span>'
     + (ev.rep && ev.rep !== 'none' ? '<span class="rep">' + svg(I_REPEAT, 12, 1.8) + '</span>' : '')
     + '<span class="ev-rz"></span>';
   var txt = b.querySelector('.txt');
   var nm = document.createElement('span'); nm.className = 'name'; nm.textContent = ev.title || cat.l;
   var wh = document.createElement('span'); wh.className = 'when';
-  wh.textContent = hhmm(ev.start) + '–' + hhmm(Math.min(ev.start + ev.dur, DAY_END));
+  /* « 09:00–13… » ne dit rien qu'on ne sache : la grille donne déjà
+     l'heure approximative, et une plage coupée en son milieu est pire
+     qu'une plage absente. Dans une colonne étroite on n'écrit donc que
+     l'heure de DÉBUT, qui est la seule information que la grille ne
+     donne pas au demi-quart d'heure près.
+     Onze caractères de chiffres à 0,55 de la hauteur de police : c'est
+     ce que réclame « 09:00–13:00 ». En dessous, on abrège. */
+  var plage = hhmm(ev.start) + '–' + hhmm(Math.min(ev.start + ev.dur, DAY_END));
+  wh.textContent = (plage.length * (13.5 * tH) * 0.55 > dispo) ? hhmm(ev.start) : plage;
   txt.appendChild(nm); txt.appendChild(wh);
   b.title = (ev.title || cat.l) + ' · ' + hhmm(ev.start) + '–' + hhmm(Math.min(ev.start+ev.dur, DAY_END));
   /* La queue d'un rendez-vous de la veille ne se déplace pas et ne
