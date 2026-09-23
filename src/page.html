@@ -2230,6 +2230,25 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .chiprow .chip{padding-inline:15px; flex:0 0 auto}
 #majournee .chip:hover{border-color:var(--ink-3); color:var(--ink)}
 #majournee .chip[aria-pressed="true"]{background:var(--ink); border-color:var(--ink); color:var(--bg); font-weight:600}
+/* ═══ « en même temps que… » ═══
+   Mesuré : créer « banque 14h30 » alors que « Chantier Dupont » occupe
+   14 h–16 h ne disait rien. On ne s'en apercevait qu'en regardant la
+   journée, où les deux se mettent côte à côte — et seulement si on
+   pensait à regarder.
+   Ce n'est pas une erreur : on se double parfois volontairement. Donc
+   on prévient, on ne bloque pas. Ambre et non rouge, et jamais de
+   bouton à presser pour faire taire l'avertissement : il disparaît
+   quand l'heure change. */
+/* « --attente » est BLEU dans ce thème, pas ambre : un avertissement
+   bleu ne se lit pas comme un avertissement. C'est « --tard » qui porte
+   l'ocre de l'application. */
+#majournee .chevauche{
+  margin:-6px 4px 0; padding:9px 14px;
+  background:var(--tard-doux); border-radius:var(--rs);
+  font-family:var(--ui); font-size:12.5px; line-height:1.35;
+  color:var(--tard);
+}
+#majournee .chevauche.dans-feuille{padding:14px 24px 0; text-align:center; margin:0}
 #majournee .recap{padding:16px 24px 0; margin:0; font-size:13px; color:var(--ink-3); text-align:center; font-variant-numeric:tabular-nums}
 /* ═══ supprimer une fois, ou toutes ═══
    Mesuré : supprimer l'exemplaire du mardi prochain effaçait TOUTE la
@@ -2836,6 +2855,13 @@ summary.carte-tete:hover h2{color:var(--v1)}
       </svg>
     </button>
   </div>
+
+  <!-- Dire le chevauchement AVANT de créer, pas après : à ce moment-là on
+       tape encore, et corriger coûte un chiffre.
+       Elle vit DEHORS de la barre : posée dedans, elle forçait un retour
+       à la ligne dans une boîte en ligne, et les deux boutons tombaient
+       sur une quatrième ligne. Mesuré à la capture. -->
+  <p class="chevauche" id="quickChevauche" hidden></p>
   <div class="trouve" id="trouve" hidden></div>
 
   <section class="card dayview">
@@ -2970,6 +2996,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
         </div>
       </details>
     </div>
+    <p class="chevauche dans-feuille" id="sheetChevauche" hidden></p>
     <p class="recap" id="recap"></p>
     <div class="sheet-foot">
       <button class="iconbtn trash" id="del" aria-label="Supprimer" hidden></button>
@@ -8919,6 +8946,7 @@ function syncSheet(skipTime){
   var rep = d.rep === 'day' ? ' · chaque jour' : (d.rep === 'week' ? ' · chaque semaine' : '');
   $('recap').textContent = (d.title || cat.l) + ' · ' + day + ' · ' + hhmm(d.start) + '–'
     + hhmm(Math.min(d.start + d.dur, DAY_END)) + rep;
+  direChevauchement($('sheetChevauche'), state.jourOuvert || d.date, d.start, d.dur, state.editing);
 }
 
 function defaultStart(){
@@ -9126,14 +9154,42 @@ function quickDefaults(g){
   if (dur == null) dur = 60;
   return {date: date, start: clamp(start, DAY_START, DAY_END - 15), dur: clamp(dur, 15, 600)};
 }
+/* ═══ ce que ce créneau croise déjà ═══
+   On compare au quart d'heure près, sur le jour visé, en ignorant le
+   rendez-vous qu'on est en train de modifier — sinon il se signalerait
+   lui-même. Deux qui se touchent bout à bout ne se chevauchent pas :
+   finir à 16 h et commencer à 16 h est une journée normale. */
+function chevauchements(date, debut, duree, sauf){
+  var fin = debut + duree;
+  try{
+    return eventsOf(date).filter(function(e){
+      if (!e || e.suite) return false;
+      if (sauf && (e.id === sauf || e.base === sauf)) return false;
+      return debut < e.start + e.dur && e.start < fin;
+    });
+  }catch(err){ return []; }
+}
+
+function direChevauchement(el, date, debut, duree, sauf){
+  var c = chevauchements(date, debut, duree, sauf);
+  if (!c.length){ el.hidden = true; el.textContent = ''; return; }
+  var n = c[0];
+  var titre = (n.title || (CAT[n.cat] || CAT.autre).l);
+  el.textContent = c.length === 1
+    ? 'En même temps que « ' + titre + ' » (' + hhmm(n.start) + '–' + hhmm(n.start + n.dur) + ')'
+    : 'En même temps que « ' + titre + ' » et ' + (c.length - 1) + ' autre'
+      + (c.length > 2 ? 's' : '');
+  el.hidden = false;
+}
+
 function quickPreview(){
   var bar = $('quickBar'), inp = $('quick'), prev = $('qprev');
   /* Pendant une recherche, la barre ne prépare rien : afficher « aujourd'hui,
      17:45, 1 h » pendant qu'on cherche ferait croire qu'on est en train de
      créer quelque chose. */
-  if (enRecherche){ bar.classList.remove('has'); prev.innerHTML = ''; return null; }
+  if (enRecherche){ bar.classList.remove('has'); prev.innerHTML = ''; $('quickChevauche').hidden = true; return null; }
   var text = inp.value.trim();
-  if (!text){ bar.classList.remove('has'); prev.innerHTML = ''; return null; }
+  if (!text){ bar.classList.remove('has'); prev.innerHTML = ''; $('quickChevauche').hidden = true; return null; }
   var g = parsePhrase(text, state.date);
   var v = quickDefaults(g);
   var dd = fromIso(v.date);
@@ -9145,6 +9201,7 @@ function quickPreview(){
   var k = document.createElement('kbd'); k.textContent = 'Entrée';
   prev.appendChild(k);
   bar.classList.add('has');
+  direChevauchement($('quickChevauche'), v.date, v.start, v.dur, null);
   return {g: g, v: v, text: text};
 }
 function quickAdd(){
@@ -9158,6 +9215,7 @@ function quickAdd(){
   $('quick').value = '';
   $('quickBar').classList.remove('has');
   $('qprev').innerHTML = '';
+  $('quickChevauche').hidden = true;
   state.date = ev.date;
   if (fromIso(ev.date) < state.week || fromIso(ev.date) > addDays(state.week,6)){
     state.week = mondayOf(fromIso(ev.date));
