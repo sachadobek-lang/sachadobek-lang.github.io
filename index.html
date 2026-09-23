@@ -2392,91 +2392,70 @@ summary.carte-tete:hover h2{color:var(--v1)}
    puisse arriver en retard. Ce voile doit être le premier pixel affiché,
    sinon il ne sert à rien. */
 /* ═══ l'écran d'ouverture ═══
-   Du noir, et une barre. Rien d'autre.
+   Du noir, la flèche, et la lumière qui la remonte. Rien d'autre.
 
-   Il y avait un logo au centre, et il ne servait à rien : on sait déjà
-   quelle application on vient d'ouvrir, on l'a touchée une seconde plus
-   tôt. Ce qu'on veut savoir à cet instant, c'est que ça charge.
+   Pas la tuile du logo, pas la surface pleine sous la ligne, pas le
+   nom : la flèche seule. Le dessin est recadré sur elle — la boîte
+   d'origine fait cent sur cent et la flèche n'en occupe qu'un tiers,
+   si bien qu'à trois cents pixels de large elle en aurait fait cent
+   soixante. Recadrée, elle prend toute la place qu'on lui donne.
 
-   Donc une seule chose à regarder — un bout de lumière qui monte et qui
-   grandit. Il part petit et sourd en bas, il gagne en longueur et en
-   éclat à mesure qu'il s'élève, et le néon qui l'entoure grossit avec
-   lui. C'est la charge qu'on voit, pas une décoration.
-
-   Tout est en dur ici : aucune police, aucune image, rien qui puisse
-   arriver en retard. Ce voile doit être le premier pixel affiché, sinon
-   il ne sert à rien. */
+   Le trait est posé en permanence à quarante pour cent : c'est le fil.
+   Une bande blanche le remonte du bas vers le haut, en boucle. Sans le
+   fil, il n'y aurait qu'une lueur qui traverse le vide ; sans la
+   bande, la flèche serait une image fixe. */
 #demarrage{position:fixed;inset:0;z-index:200;
   background:#000;
   display:flex;align-items:center;justify-content:center;
   opacity:1;transition:opacity .42s var(--doux)}
 #demarrage.parti{opacity:0;pointer-events:none}
 
-/* La glissière : presque invisible, juste assez pour qu'on devine où la
-   lumière va monter. Sans elle, le bout de lumière semble flotter. */
-#demarrage .jauge{position:relative;
-  width:5px;height:min(46vh,264px);
-  border-radius:999px;background:rgba(122,204,255,.06)}
-
-/* Le bout de lumière. Il pousse par le haut — « bottom » fixé, « height »
-   qui croît — et c'est ce qui donne la montée. Le blanc est au sommet :
-   la tête est plus chaude que la traîne, comme une charge qui progresse. */
-#demarrage .jauge i{position:absolute;left:0;right:0;bottom:0;
-  border-radius:999px;
-  background:linear-gradient(0deg,#2E9BFF 0%,#7FD3FF 40%,#DFF4FF 76%,#FFFFFF 100%);
-  animation:monteCharge 1.15s cubic-bezier(.32,0,.24,1) infinite;
-  transition:height .34s cubic-bezier(.2,0,0,1)}
-
-/* ═══ la sortie ═══
-   Mesuré sur un vrai chargement : l'écran commence à s'effacer sur 420
-   millisecondes, et la charge rebouclait pendant ce temps — la barre
-   retombait à un point alors que le noir était encore visible aux deux
-   tiers. On voyait un hoquet à l'instant précis où l'application
-   s'ouvre.
-   Au départ, la charge se termine donc au lieu de repartir : elle monte
-   jusqu'en haut, à pleine lumière, et c'est tout l'écran qui se dissout
-   ensuite. Ce qui est juste aussi sur le fond — à cet instant,
-   l'application est prête. */
-#demarrage.parti .jauge i{
-  animation:none; height:100%; opacity:1;
-  box-shadow:0 0 18px rgba(225,247,255,1), 0 0 60px rgba(110,205,255,.72),
-             0 0 150px rgba(60,165,255,.40)}
-
-/* Il ne part pas de zéro : à cinq pour cent on voit déjà un point de
-   lumière, et l'écran de démarrage dure parfois moins d'une demi-seconde.
-   Une animation qui commencerait dans le noir ne se verrait jamais.
-   Elle finit pleine et éclatante, puis s'éteint d'un coup — la reprise
-   se fait dans le noir, sans saut visible. */
-/* Trois cercles de lumière à chaque étape, et non un : un noyau serré
-   qui fait le tube de néon, une aura moyenne qui le décolle du noir, et
-   une floraison très large qui n'apparaît qu'à la fin. C'est elle qui
-   donne le « de plus en plus » — une seule ombre qui grossit paraît
-   floue, trois qui s'allument l'une après l'autre paraissent électriques. */
-@keyframes monteCharge{
-  0%   {height:5%;   opacity:.6;
-        box-shadow:0 0 6px rgba(120,205,255,.55)}
-  55%  {height:62%;  opacity:1;
-        box-shadow:0 0 12px rgba(200,240,255,.9), 0 0 40px rgba(80,185,255,.48),
-                   0 0 90px rgba(50,150,255,.16)}
-  86%  {height:100%; opacity:1;
-        box-shadow:0 0 18px rgba(225,247,255,1), 0 0 60px rgba(110,205,255,.72),
-                   0 0 150px rgba(60,165,255,.40)}
-  100% {height:100%; opacity:0;
-        box-shadow:0 0 18px rgba(225,247,255,0), 0 0 60px rgba(110,205,255,0),
-                   0 0 150px rgba(60,165,255,0)}
-}
+/* Le halo est porté ici, sur le conteneur, et non dans le SVG : un
+   filtre CSS déborde de la boîte, un filtre SVG serait coupé par le
+   cadre du dessin. Trois cercles et non un — un noyau serré, une aura,
+   une floraison large : une seule ombre qui grossit paraît floue,
+   trois qui se superposent paraissent électriques. */
+#demarrage .marque{display:grid;place-content:center;
+  filter:drop-shadow(0 0 9px rgba(255,255,255,.60))
+         drop-shadow(0 0 30px rgba(255,255,255,.32))
+         drop-shadow(0 0 80px rgba(225,242,255,.17))}
+#demarrage .marque svg{width:min(78vw,300px);height:auto;display:block;overflow:visible}
 
 @media (prefers-reduced-motion:reduce){
-  /* On retire la montée, pas la lumière : la barre reste allumée aux
-     deux tiers, à l'éclat qu'elle aurait à cet instant-là. */
-  #demarrage .jauge i{animation:none;height:66%;opacity:1;
-    box-shadow:0 0 14px rgba(205,242,255,.9), 0 0 44px rgba(85,188,255,.46),
-               0 0 100px rgba(55,155,255,.18)}
+  /* On retire la montée, pas la lumière : le fil s'allume en plein et
+     la bande qui le parcourt cesse de bouger. */
+  #demarrage .courant{display:none}
+  #demarrage .fil{opacity:1}
 }
 </style>
 
 <div id="demarrage" aria-hidden="true">
-  <span class="jauge"><i></i></span>
+  <span class="marque">
+    <svg viewBox="17 25 66 42" aria-hidden="true">
+      <defs>
+        <!-- La bande de lumière qui remonte la flèche. L'axe du dégradé
+             est donné en coordonnées du dessin, et ce sont ses deux
+             extrémités qu'on anime : elle entre par le bas et sort par
+             le haut. La flèche vit entre 30 et 62 ; on va de 104 à -48
+             pour qu'elle la traverse entièrement au lieu d'apparaître
+             et de disparaître à l'intérieur. -->
+        <linearGradient id="dem-courant" gradientUnits="userSpaceOnUse" x1="50" y1="104" x2="50" y2="72">
+          <stop offset="0"   stop-color="#FFFFFF" stop-opacity="0"/>
+          <stop offset=".40" stop-color="#FFFFFF" stop-opacity=".85"/>
+          <stop offset=".5"  stop-color="#FFFFFF" stop-opacity="1"/>
+          <stop offset=".60" stop-color="#FFFFFF" stop-opacity=".85"/>
+          <stop offset="1"   stop-color="#FFFFFF" stop-opacity="0"/>
+          <animate attributeName="y1" values="104;-16" dur="2.2s" repeatCount="indefinite"/>
+          <animate attributeName="y2" values="72;-48" dur="2.2s" repeatCount="indefinite"/>
+        </linearGradient>
+      </defs>
+      <path class="fil" d="M22 62 L40 46 L52 55 L78 30" fill="none" stroke="#FFFFFF"
+            stroke-width="3.20" stroke-linecap="round" stroke-linejoin="round" opacity=".4"/>
+      <path class="courant" d="M22 62 L40 46 L52 55 L78 30" fill="none"
+            stroke="url(#dem-courant)" stroke-width="4.80"
+            stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </span>
 </div>
 
 <button class="profil-btn" id="profil-btn" aria-label="Mon profil" title="Mon profil"></button>
