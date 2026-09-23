@@ -306,7 +306,10 @@ h1,h2,h3,p{margin:0}
 /* l'en-tête lui laisse la place plutôt que de passer dessous */
 .entete{padding-right:56px}
 
-.pf-tete{display:flex;align-items:center;gap:16px;padding:4px 4px 22px}
+/* Le bouton de profil flotte au-dessus du coin : sans réserve à droite,
+   « Votre entreprise » passait dessous dès que le texte grandissait —
+   mesuré, huit pixels de recouvrement. */
+.pf-tete{display:flex;align-items:center;gap:16px;padding:4px 56px 22px 4px}
 .pf-rond{
   width:64px;height:64px;border-radius:999px;background:var(--deg);color:#fff;
   display:grid;place-items:center;font-family:var(--num);font-weight:700;font-size:25px;
@@ -1042,11 +1045,47 @@ button.tuile:active{transform:scale(.985)}
   .nav{background:var(--deg-barre);backdrop-filter:blur(22px) saturate(1.6);-webkit-backdrop-filter:blur(22px) saturate(1.6)}
 }
 .nav button{display:flex;align-items:center;justify-content:center;gap:8px;border:0;background:none;color:var(--ink-2);
-  flex:1 1 0;min-width:0;min-height:52px;padding:12px 14px;border-radius:999px;
+  /* « flex:1 1 0 » donnait à chaque onglet un tiers exact, quel que soit
+     son mot : « Comptabilité » réclamait 73 px et n'en recevait que 64,
+     donc « Comptab… ». Mesuré à texte agrandi. La base devient le
+     contenu — chacun garde son mot entier, et le reste de la place se
+     partage. */
+  flex:1 1 auto;min-width:0;min-height:52px;padding:12px 11px;border-radius:999px;
   font-size:15px;font-weight:700;white-space:nowrap;transition:color .2s var(--doux),background .25s var(--doux),transform .15s}
 /* l'onglet ouvert porte son nom : il lui faut un peu plus de place */
-.nav button[aria-current="page"]{flex:1.7 1 0}
+.nav button[aria-current="page"]{flex:1.7 1 auto}
+/* ═══ quand on agrandit, les mots passent avant les dessins ═══
+   Mesuré à 130 % : les trois mots, leurs dessins, les écarts et les
+   rembourrages réclament 310 pixels pour 276 disponibles. Quelque chose
+   doit céder, et ce n'est pas le mot : « Comptabilité » devenait
+   « Comptab… » précisément pour la personne qui avait demandé à mieux
+   lire. Les dessins s'en vont, les mots restent entiers. */
 .nav button svg{width:21px;height:21px;flex:none;stroke-width:2.1;fill:none}
+:root[data-taille="grand"] .nav button svg,
+:root[data-taille="max"] .nav button svg{display:none}
+/* Et surtout : aucun onglet ne descend sous la largeur de son mot.
+   Sans cette ligne, les trois se serraient proportionnellement et c'est
+   le plus long qui perdait — mesuré, « Comptabilité » réclamait 73 px et
+   n'en recevait que 68. Sans les dessins, les trois mots et leurs
+   rembourrages tiennent en 211 px pour 272 disponibles. */
+:root[data-taille="grand"] .nav button,
+:root[data-taille="max"] .nav button{padding:12px 9px; min-width:max-content}
+
+/* Le segmenté de l'Agenda porte cinq commandes : trois vues et deux
+   hauteurs. À 130 % il sortait de l'écran. Il s'enroule sur deux lignes
+   plutôt que de déborder — on perd de la hauteur, jamais une commande. */
+:root[data-taille="max"] #majournee .seg{flex-wrap:wrap; justify-content:center; row-gap:3px}
+
+/* ═══ les barres à trois mots, à la plus grande taille ═══
+   Une barre qui porte trois mots côte à côte — Agenda / Clients /
+   Comptabilité, Mon argent / Factures / Calculs — n'a plus la place à
+   130 %. Mesuré : « Calculs » sortait de dix-huit pixels.
+   On leur rend deux points de finesse. À 130 %, treize pixels en valent
+   dix-sept à l'écran : c'est toujours plus grand que les quinze de la
+   taille normale. On perd un peu de ce qu'on a gagné, sur ces deux
+   barres seulement, et jamais un mot. */
+:root[data-taille="max"] .nav button{font-size:13px}
+:root[data-taille="max"] .segments button{font-size:13px; padding-left:10px; padding-right:10px}
 .nav button:hover{color:var(--ink)}
 /* l'onglet ouvert prend le dégradé profond et se détache du voile : c'est
    le seul endroit de la barre qui porte la signature à pleine force */
@@ -1244,7 +1283,12 @@ summary.carte-tete:hover h2{color:var(--v1)}
 }
 
 @media(max-width:520px){
-  .nav{width:calc(100vw - 16px);max-width:none;justify-content:space-between;padding:6px;gap:0}
+  /* « 100vw » est la largeur de la FENÊTRE, que l'agrandissement du
+     texte ne suit pas : à 120 %, la barre devenait un cinquième trop
+     large et sortait de vingt-huit pixels de chaque côté. Mesuré. La
+     largeur se prend maintenant sur le parent, qui est agrandi comme
+     tout le reste. */
+  .nav{width:calc(100% - 16px);max-width:none;justify-content:space-between;padding:6px;gap:0}
   .nav button{padding:13px 8px;gap:6px;font-size:14px;min-height:56px}
   .nav button svg{width:19px;height:19px}
   .nav .plus{margin-left:0;padding:10px 12px}
@@ -1512,7 +1556,11 @@ summary.carte-tete:hover h2{color:var(--v1)}
    téléphone en plein jour : Sacha a dit trois fois qu'il ne pouvait pas
    changer de semaine, alors que le clic fonctionnait. Ce sont des
    boutons, ils en ont l'air. */
-#majournee .per-fl{flex:0 0 auto; width:42px; height:42px; border:1px solid var(--line);
+/* Quarante-deux, mesuré, pour un minimum admis de quarante-quatre.
+   Deux pixels, et c'est la flèche qui fait changer d'année dans le
+   sélecteur de mois — une cible qu'on vise rarement et qu'on rate donc
+   plus facilement que les autres. */
+#majournee .per-fl{flex:0 0 auto; width:44px; height:44px; border:1px solid var(--line);
   background:var(--surface); color:var(--ink); display:grid; place-items:center;
   border-radius:999px; cursor:pointer; box-shadow:0 1px 2px rgba(20,22,27,.06)}
 #majournee .per-fl svg{stroke-width:2.4}
@@ -3575,6 +3623,55 @@ function majPastilleSync(){
   if(el) el.textContent = syncEtat;
 }
 
+/* ═══ la taille du texte ═══
+   Mesuré : deux cent soixante-six tailles de police en pixels fixes
+   contre onze relatives. Agrandir le texte dans les réglages du
+   téléphone ne changeait donc RIEN dans Cura — et beaucoup de gens qui
+   ne sont pas à l'aise avec un téléphone commencent justement par là.
+   On ne convertit pas deux cent soixante-six déclarations, on agrandit
+   la page entière : le dessin garde exactement ses proportions, rien ne
+   se décale, et ça marche sur tous les écrans de l'application d'un
+   seul coup. C'est le réglage de l'application et non celui du
+   téléphone, donc il est visible, il se touche, et il reste. */
+const TAILLES = [
+  {cle: "normal", mot: "Normal",     z: 1},
+  {cle: "grand",  mot: "Grand",      z: 1.15},
+  {cle: "max",    mot: "Très grand", z: 1.3}
+];
+const LS_TAILLE = "cura.taille";
+
+function tailleChoisie(){
+  let c = "normal";
+  try{ c = localStorage.getItem(LS_TAILLE) || "normal"; }catch(e){}
+  return TAILLES.some(t => t.cle === c) ? c : "normal";
+}
+
+function poserTaille(cle){
+  const t = TAILLES.filter(x => x.cle === cle)[0] || TAILLES[0];
+  /* « zoom » et non « transform » : transform déplacerait tout ce qui est
+     fixé au bord — la barre du bas, le bouton de profil — alors que zoom
+     remet la page en page. */
+  document.documentElement.style.zoom = t.z === 1 ? "" : String(t.z);
+  /* La feuille de style a besoin de savoir qu'on a agrandi : certaines
+     choses ne tiennent plus et doivent céder dans un ordre choisi. */
+  document.documentElement.dataset.taille = t.cle;
+  try{ localStorage.setItem(LS_TAILLE, t.cle); }catch(e){}
+}
+
+function carteTaille(){
+  const a = tailleChoisie();
+  return '<section class="carte anim" style="animation-delay:.02s">'
+    + '<div class="carte-tete"><h2>La taille du texte</h2></div>'
+    + '<div class="pf-gestes" role="group" aria-label="Taille du texte">'
+    + TAILLES.map(t => '<button data-taille="' + t.cle + '"'
+        + (t.cle === a ? ' aria-current="true"' : '')
+        + ' style="font-size:' + (t.z === 1 ? 15 : Math.round(15 * t.z)) + 'px">'
+        + t.mot + '</button>').join("")
+    + '</div>'
+    + '<p class="pf-note">Tout grandit d\u2019un coup — les rendez-vous, les montants, les boutons.</p>'
+    + '</section>';
+}
+
 /* ───────── se connecter ───────── */
 function connecterGoogle(){
   if(!serveurPret()){ bulle("Le serveur n'est pas encore branché"); return; }
@@ -3825,6 +3922,10 @@ function vueProfil(){
     /* En tête, et non en bas : c'est la seule carte du profil qui réponde
        à une question qu'on ne se pose qu'une fois trop tard. */
     + carteAbri()
+
+    /* Juste après : quelqu'un qui cherche à mieux lire ouvre son profil
+       et ne doit pas avoir à faire défiler cinq cartes pour trouver. */
+    + carteTaille()
 
     + '<section class="carte anim" style="animation-delay:.04s">'
       + '<div class="carte-tete"><h2>Vos coordonnées</h2></div>'
@@ -6690,6 +6791,8 @@ function armer(b){
 
 $("#vue").addEventListener("click", e => {
   if(e.target.closest("a")) return;   /* appeler, ce n'est pas ouvrir la fiche */
+  const t = e.target.closest("[data-taille]");
+  if(t){ poserTaille(t.dataset.taille); rendre(); return; }
   const b = e.target.closest("button");
   if(!b){
     const bloc = e.target.closest("[data-bloc]");
@@ -7249,6 +7352,7 @@ window.addEventListener("resize", () => {
   setTimeout(effacer, 3000);
 })();
 
+poserTaille(tailleChoisie());
 charger();
 
 /* S'il s'est déjà connecté, on retrouve sa session et sa copie en ligne.
