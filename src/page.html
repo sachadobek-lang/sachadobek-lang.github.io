@@ -2392,42 +2392,62 @@ summary.carte-tete:hover h2{color:var(--v1)}
    puisse arriver en retard. Ce voile doit être le premier pixel affiché,
    sinon il ne sert à rien. */
 /* ═══ l'écran d'ouverture ═══
-   Du noir, la flèche, et la lumière qui la remonte. Rien d'autre.
+   Du noir, et la flèche en tube de néon.
 
-   Pas la tuile du logo, pas la surface pleine sous la ligne, pas le
-   nom : la flèche seule. Le dessin est recadré sur elle — la boîte
-   d'origine fait cent sur cent et la flèche n'en occupe qu'un tiers,
-   si bien qu'à trois cents pixels de large elle en aurait fait cent
-   soixante. Recadrée, elle prend toute la place qu'on lui donne.
+   Un néon n'est pas un trait blanc. C'est un tube de verre dont le cœur
+   est presque blanc — à peine bleuté, jamais #FFF, qui rend une image
+   plate — entouré du halo coloré du gaz, large et faible. Trois
+   épaisseurs superposées le font : le gaz au loin, la lueur proche, et
+   le tube lui-même, plus fin que les deux autres. C'est cet écart
+   d'épaisseur qui donne le volume ; un seul trait épais et flou ne fait
+   qu'une tache.
 
-   Le trait est blanc plein : c'est le fil, et il est allumé. Une bande
-   le remonte du bas vers le haut, en boucle. Elle est blanche elle
-   aussi — sur un fil déjà blanc, elle ne se verrait pas par sa
-   couleur : ce qui la distingue est d'être plus épaisse et de fleurir
-   autour d'elle. C'est ce que fait le filtre « dem-floraison », qui ne
-   porte que sur elle. Une lumière qui passe sur un fil allumé, pas une
-   lumière qui allume un fil éteint. */
+   Et un néon vit. Il tremble par à-coups, et l'électricité s'échappe
+   aux coudes — là où le tube est plié, donc fragile. Le tremblement et
+   les étincelles partagent la même horloge de six secondes : la
+   décharge se voit au moment même où le tube faiblit, sinon ce sont
+   deux accidents sans rapport. */
 #demarrage{position:fixed;inset:0;z-index:200;
   background:#000;
   display:flex;align-items:center;justify-content:center;
   opacity:1;transition:opacity .42s var(--doux)}
 #demarrage.parti{opacity:0;pointer-events:none}
 
-/* Le halo est porté ici, sur le conteneur, et non dans le SVG : un
-   filtre CSS déborde de la boîte, un filtre SVG serait coupé par le
-   cadre du dessin. Trois cercles et non un — un noyau serré, une aura,
-   une floraison large : une seule ombre qui grossit paraît floue,
-   trois qui se superposent paraissent électriques. */
+/* Le halo le plus large est porté ici, en CSS : un filtre SVG est coupé
+   par le cadre du dessin, un filtre CSS en déborde. Teinté, jamais
+   blanc — c'est la couleur du gaz qui donne l'impression de néon. */
 #demarrage .marque{display:grid;place-content:center;
-  filter:drop-shadow(0 0 9px rgba(255,255,255,.60))
-         drop-shadow(0 0 30px rgba(255,255,255,.32))
-         drop-shadow(0 0 80px rgba(225,242,255,.17))}
+  filter:drop-shadow(0 0 14px rgba(150,200,255,.42))
+         drop-shadow(0 0 46px rgba(100,170,255,.26))
+         drop-shadow(0 0 110px rgba(70,150,255,.14))}
 #demarrage .marque svg{width:min(90vw,360px);height:auto;display:block;overflow:visible}
 
+/* Le tremblement d'un néon n'est pas régulier : deux à-coups rapprochés,
+   un silence, un troisième. Six secondes entre deux séries, sinon le
+   défaut devient le sujet. */
+#demarrage .tube{animation:neonTremble 6s linear infinite}
+#demarrage .etincelle{opacity:0;animation:neonEtincelle 6s linear infinite}
+@keyframes neonTremble{
+  0%,40.8%{opacity:1}
+  41.1%{opacity:.62} 41.5%{opacity:1}
+  45.6%{opacity:1}   45.9%{opacity:.78} 46.3%{opacity:1}
+  72.4%{opacity:1}   72.7%{opacity:.58} 73.2%{opacity:1}
+  100%{opacity:1}
+}
+@keyframes neonEtincelle{
+  0%,40.7%{opacity:0}
+  41.1%{opacity:.95} 41.9%{opacity:0}
+  45.5%{opacity:0}   45.9%{opacity:.55} 46.5%{opacity:0}
+  72.3%{opacity:0}   72.7%{opacity:.9}  73.5%{opacity:0}
+  100%{opacity:0}
+}
+
 @media (prefers-reduced-motion:reduce){
-  /* On retire la montée, pas la lumière : le fil s'allume en plein et
-     la bande qui le parcourt cesse de bouger. */
-  #demarrage .courant{display:none}
+  /* Le tube reste allumé, le gaz reste coloré : on ne retire que ce qui
+     bouge — la montée, le tremblement et les décharges. */
+  #demarrage .courant,
+  #demarrage .etincelle{display:none}
+  #demarrage .tube{animation:none}
 }
 </style>
 
@@ -2435,33 +2455,65 @@ summary.carte-tete:hover h2{color:var(--v1)}
   <span class="marque">
     <svg viewBox="17 25 66 42" aria-hidden="true">
       <defs>
-        <!-- La floraison ne porte que sur la bande : c'est elle qui la
-             distingue du fil, puisque les deux sont blanches. -->
+        <filter id="dem-gaz" x="-80%" y="-80%" width="260%" height="260%">
+          <feGaussianBlur stdDeviation="3.1"/>
+        </filter>
+        <filter id="dem-lueur" x="-70%" y="-70%" width="240%" height="240%">
+          <feGaussianBlur stdDeviation="1.25"/>
+        </filter>
         <filter id="dem-floraison" x="-70%" y="-70%" width="240%" height="240%">
-          <feGaussianBlur stdDeviation="1.6" result="f"/>
+          <feGaussianBlur stdDeviation="1.5" result="f"/>
           <feMerge><feMergeNode in="f"/><feMergeNode in="f"/><feMergeNode in="SourceGraphic"/></feMerge>
         </filter>
-        <!-- La bande de lumière qui remonte la flèche. L'axe du dégradé
-             est donné en coordonnées du dessin, et ce sont ses deux
-             extrémités qu'on anime : elle entre par le bas et sort par
-             le haut. La flèche vit entre 30 et 62 ; on va de 104 à -48
-             pour qu'elle la traverse entièrement au lieu d'apparaître
-             et de disparaître à l'intérieur. -->
+        <!-- La décharge qui remonte le tube. L'axe du dégradé est donné
+             en coordonnées du dessin, et ce sont ses deux extrémités
+             qu'on anime : elle entre par le bas et sort par le haut. La
+             flèche vit entre 30 et 62 ; on va de 104 à -48 pour qu'elle
+             la traverse entièrement au lieu d'apparaître et de
+             disparaître à l'intérieur. -->
         <linearGradient id="dem-courant" gradientUnits="userSpaceOnUse" x1="50" y1="104" x2="50" y2="72">
-          <stop offset="0"   stop-color="#FFFFFF" stop-opacity="0"/>
-          <stop offset=".40" stop-color="#FFFFFF" stop-opacity=".85"/>
+          <stop offset="0"   stop-color="#CFE6FF" stop-opacity="0"/>
+          <stop offset=".40" stop-color="#EAF4FF" stop-opacity=".85"/>
           <stop offset=".5"  stop-color="#FFFFFF" stop-opacity="1"/>
-          <stop offset=".60" stop-color="#FFFFFF" stop-opacity=".85"/>
-          <stop offset="1"   stop-color="#FFFFFF" stop-opacity="0"/>
+          <stop offset=".60" stop-color="#EAF4FF" stop-opacity=".85"/>
+          <stop offset="1"   stop-color="#CFE6FF" stop-opacity="0"/>
           <animate attributeName="y1" values="104;-16" dur="2.2s" repeatCount="indefinite"/>
           <animate attributeName="y2" values="72;-48" dur="2.2s" repeatCount="indefinite"/>
         </linearGradient>
       </defs>
-      <path class="fil" d="M22 62 L40 46 L52 55 L78 30" fill="none" stroke="#FFFFFF"
-            stroke-width="3.20" stroke-linecap="round" stroke-linejoin="round"/>
-      <path class="courant" d="M22 62 L40 46 L52 55 L78 30" fill="none"
-            stroke="url(#dem-courant)" stroke-width="4.80"
-            stroke-linecap="round" stroke-linejoin="round" filter="url(#dem-floraison)"/>
+
+      <g class="tube" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <!-- le gaz, au loin -->
+        <path d="M22 62 L40 46 L52 55 L78 30" stroke="#5AA6FF" stroke-width="8.6" opacity=".40" filter="url(#dem-gaz)"/>
+        <!-- la lueur, contre le verre -->
+        <path d="M22 62 L40 46 L52 55 L78 30" stroke="#AFD6FF" stroke-width="4.8" opacity=".85" filter="url(#dem-lueur)"/>
+        <!-- le tube : plus fin que les deux autres, et à peine bleuté -->
+        <path class="fil" d="M22 62 L40 46 L52 55 L78 30" stroke="#ECF4FF" stroke-width="2.5"/>
+        <!-- la décharge qui le remonte -->
+        <path class="courant" d="M22 62 L40 46 L52 55 L78 30" stroke="url(#dem-courant)" stroke-width="3.9"
+              filter="url(#dem-floraison)"/>
+      </g>
+
+      <!-- Les coudes sont les points faibles d'un tube plié : c'est là
+           que l'électricité s'échappe. Trois décharges, jamais
+           symétriques — deux au premier coude, une au second.
+           Chacune est dessinée deux fois. Un arc électrique a un cœur
+           NET et une lueur autour, pas l'inverse : flouté d'un seul
+           trait, il devenait une tache blanche et ne se lisait plus
+           comme une décharge. La lueur passe dessous, large et
+           tremblée ; le cœur passe dessus, fin et sans filtre. -->
+      <g class="etincelle" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <g stroke="#9FD0FF" stroke-width="1.9" opacity=".7" filter="url(#dem-gaz)">
+        <path d="M40 46 l-2.4 -3.6 l2.3 .7 l-1.6 -3.9 l2.9 2.2"/>
+        <path d="M40 46 l3.0 -2.4 l-.5 1.8 l3.4 -2.3"/>
+        <path d="M52 55 l3.3 2.6 l-2.2 .3 l3.6 2.9"/>
+        </g>
+        <g stroke="#FFFFFF" stroke-width="0.62">
+        <path d="M40 46 l-2.4 -3.6 l2.3 .7 l-1.6 -3.9 l2.9 2.2"/>
+        <path d="M40 46 l3.0 -2.4 l-.5 1.8 l3.4 -2.3"/>
+        <path d="M52 55 l3.3 2.6 l-2.2 .3 l3.6 2.9"/>
+        </g>
+      </g>
     </svg>
   </span>
 </div>
