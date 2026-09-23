@@ -1922,6 +1922,15 @@ summary.carte-tete:hover h2{color:var(--v1)}
    couleur du rendez-vous, pleine, à sa place exacte dans la journée.
    Elle dit « il y a quelque chose ici », ce qui est tout ce qu'on peut
    dire à cette taille — le reste s'obtient en zoomant ou en touchant. */
+/* ═══ la suite d'hier ═══
+   Elle se lit comme un rendez-vous, mais en retrait : c'est la fin de
+   quelque chose, pas une nouvelle chose. Le trait de gauche est tireté —
+   le même signe que sur un billet coupé. */
+#majournee .ev.suite{opacity:.78}
+#majournee .ev.suite::before{
+  background:repeating-linear-gradient(180deg, var(--c) 0 3px, transparent 3px 6px)}
+#majournee .ev.suite .when{font-style:italic}
+
 #majournee .ev.filet{padding:0; gap:0; border-radius:3px}
 #majournee .ev.filet > *{display:none}
 /* Le filet garde le fond pâle du bloc et son trait de couleur à gauche :
@@ -7454,6 +7463,38 @@ function occursOn(base, date){
   if (base.rep === 'week') return daysBetween(base.date, date) % 7 === 0;
   return false;
 }
+/* ═══ ce qui déborde de la veille ═══
+   Une garde de nuit de 22 h à 2 h du matin appartient au 24. L'agenda du
+   25 n'en montrait rien : mesuré, deux heures de travail invisibles le
+   matin même où on les fait. Pour une astreinte, c'est la moitié du
+   rendez-vous qui manque.
+   On rapporte donc la queue sur le jour d'après, comme un bloc qui
+   commence à minuit. Il porte « suiteDe » : le toucher ouvre le vrai
+   rendez-vous, celui de la veille, celui qu'on peut modifier. Il n'est
+   ni déplaçable ni étirable — on ne déplace pas la fin de quelque chose
+   sans sa tête.
+   On lit le tiroir et non « state.events », qui ne contient que la
+   fenêtre affichée : le premier jour de la fenêtre n'aurait pas eu de
+   veille à interroger. */
+function queuesDeLaVeille(date){
+  var veille = iso(addDays(fromIso(date), -1));
+  var out = [];
+  function ajoute(e){
+    var fin = e.start + e.dur;
+    if (fin <= 1440) return;
+    out.push({id: e.id + '~suite', suiteDe: e.id, date: date, cat: e.cat, title: e.title,
+              start: 0, dur: Math.min(fin - 1440, 1440), rep: 'none', suite: true});
+  }
+  try{
+    lsGet(LS_EV).forEach(function(e){
+      if (!e || e.demo) return;
+      if (e.rep === 'day' || e.rep === 'week'){ if (occursOn(e, veille)) ajoute(e); }
+      else if (e.date === veille) ajoute(e);
+    });
+  }catch(err){}
+  return out;
+}
+
 function eventsOf(date){
   var out = state.events.filter(function(e){ return e.date === date; });
   state.repeats.forEach(function(b){
@@ -7463,7 +7504,7 @@ function eventsOf(date){
     }
   });
   if (!out.length && demoActive() && date === today) return demoEvents();
-  return out;
+  return out.concat(queuesDeLaVeille(date));
 }
 function notesShown(){
   if (demoActive()) return demoNotes();
@@ -8147,6 +8188,24 @@ function makeBlock(ev, opts){
   wh.textContent = hhmm(ev.start) + '–' + hhmm(Math.min(ev.start + ev.dur, DAY_END));
   txt.appendChild(nm); txt.appendChild(wh);
   b.title = (ev.title || cat.l) + ' · ' + hhmm(ev.start) + '–' + hhmm(Math.min(ev.start+ev.dur, DAY_END));
+  /* La queue d'un rendez-vous de la veille ne se déplace pas et ne
+     s'étire pas : on ne déplace pas la fin de quelque chose sans sa
+     tête. La toucher ouvre le vrai rendez-vous, là où il vit. */
+  if (ev.suite){
+    b.classList.add('suite');
+    var rzs = b.querySelector('.ev-rz'); if (rzs) rzs.remove();
+    wh.textContent = 'depuis la veille · finit à ' + hhmm(ev.dur);
+    b.title = (ev.title || cat.l) + ' — commencé la veille, finit à ' + hhmm(ev.dur);
+    b.addEventListener('click', function(){
+      if (drag) return;
+      var vrai = lsGet(LS_EV).filter(function(x){ return x && x.id === ev.suiteDe; })[0];
+      if (!vrai) return;
+      state.date = vrai.date; state.week = mondayOf(fromIso(vrai.date));
+      refreshLocal();
+      openSheet(vrai);
+    });
+    return b;
+  }
   b.addEventListener('click', function(){ if (!drag) openSheet(ev); });
   attachDrag(b, ev, 'move', b);
   var rz = b.querySelector('.ev-rz');
