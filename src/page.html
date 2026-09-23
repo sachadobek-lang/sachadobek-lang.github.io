@@ -2202,6 +2202,27 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .chip:hover{border-color:var(--ink-3); color:var(--ink)}
 #majournee .chip[aria-pressed="true"]{background:var(--ink); border-color:var(--ink); color:var(--bg); font-weight:600}
 #majournee .recap{padding:16px 24px 0; margin:0; font-size:13px; color:var(--ink-3); text-align:center; font-variant-numeric:tabular-nums}
+/* ═══ supprimer une fois, ou toutes ═══
+   Mesuré : supprimer l'exemplaire du mardi prochain effaçait TOUTE la
+   série, sans rien demander et sans retour possible. Google propose
+   trois choix, Apple deux ; deux suffisent et se lisent d'un coup
+   d'œil. La barre recouvre le pied plutôt que de s'y ajouter : au
+   moment où l'on répond à cette question, aucun autre bouton ne sert. */
+#majournee .choix-suppr{
+  position:absolute; left:0; right:0; bottom:0; z-index:3;
+  display:flex; align-items:center; gap:9px; flex-wrap:wrap;
+  padding:14px 24px calc(20px + env(safe-area-inset-bottom));
+  background:var(--surface); border-top:1px solid var(--line-soft);
+}
+#majournee .choix-suppr > span{font-family:var(--ui); font-weight:600; font-size:14.5px; color:var(--ink)}
+#majournee .choix-suppr button{
+  min-height:44px; padding:0 16px; border-radius:999px;
+  border:1px solid var(--line-fort); background:var(--surface);
+  font-family:var(--ui); font-weight:600; font-size:14.5px; color:var(--ink);
+}
+#majournee .choix-suppr button:last-child{
+  border-color:var(--tard); color:var(--tard); margin-left:auto}
+#majournee .sheet-foot{position:relative}
 #majournee .sheet-foot .signe{border:0;border-radius:999px;padding:12px 18px;margin-left:auto;
   background:var(--surface-3);color:var(--ink);font:inherit;font-size:15px;font-weight:650;cursor:pointer}
 #majournee .sheet-foot .signe:hover{filter:brightness(1.06)}
@@ -2923,6 +2944,13 @@ summary.carte-tete:hover h2{color:var(--v1)}
     <p class="recap" id="recap"></p>
     <div class="sheet-foot">
       <button class="iconbtn trash" id="del" aria-label="Supprimer" hidden></button>
+      <!-- Pour un rendez-vous qui se répète, « Confirmer » ne suffit pas :
+           il ne dit pas ce qu'on confirme. Une question, deux réponses. -->
+      <div class="choix-suppr" id="choixSuppr" hidden role="group" aria-label="Supprimer ce rendez-vous">
+        <span>Supprimer&nbsp;:</span>
+        <button type="button" id="supprUne">Cette fois</button>
+        <button type="button" id="supprTout">Toutes les fois</button>
+      </div>
       <button class="iconbtn" id="dup" aria-label="Copier vers demain" title="Copier vers demain" hidden>
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="8.5" y="8.5" width="11.5" height="11.5" rx="2.6"/><path d="M15.5 8.5v-2a2.5 2.5 0 0 0-2.5-2.5H6.5A2.5 2.5 0 0 0 4 6.5V13a2.5 2.5 0 0 0 2.5 2.5h2"/></svg>
       </button>
@@ -7459,6 +7487,9 @@ function dismissDemo(){
 /* ---------- occurrences (répétitions comprises) ---------- */
 function occursOn(base, date){
   if (date < base.date) return false;
+  /* Les dates qu'on a décommandées une fois. Sans elles, annuler la
+     réunion d'un mardi obligeait à supprimer toutes les réunions. */
+  if (base.sauf && base.sauf.indexOf(date) >= 0) return false;
   if (base.rep === 'day') return true;
   if (base.rep === 'week') return daysBetween(base.date, date) % 7 === 0;
   return false;
@@ -8895,6 +8926,12 @@ function openSheet(ev, seed){
   focusAvantFeuille = document.activeElement;
   var isNew = !ev || !!ev.demo;
   state.editing = null;
+  /* Le jour de l'EXEMPLAIRE qu'on vient d'ouvrir, qui n'est pas celui de
+     la série. Le brouillon porte « src.date », c'est-à-dire le premier
+     jour de la répétition : décommander « cette fois » aurait effacé la
+     toute première réunion au lieu de celle qu'on regarde. Mesuré —
+     ouvert le 30, sauté le 23. */
+  state.jourOuvert = (ev && ev.date) || (seed && seed.date) || state.date;
   if (ev && !ev.demo){
     var id = ev.base || ev.id;
     var src = ev.base
@@ -8980,6 +9017,7 @@ function openSheet(ev, seed){
   setTimeout(function(){ $('evName').focus({preventScroll:true}); }, 60);
 }
 function closeSheet(){
+  $('choixSuppr').hidden = true;
   $('sheetWrap').hidden = true;
   document.body.style.overflow = '';
   isoler($('sheetWrap'), false);
@@ -9365,21 +9403,59 @@ $('dup').addEventListener('click', function(){
   putEvent(copy);
 });
 
+/* La série à laquelle appartient le rendez-vous ouvert, ou null. On la
+   cherche dans le tiroir et non dans le brouillon : le brouillon porte
+   ce que l'on vient de taper, pas ce qui est enregistré. */
+function serieOuverte(){
+  var id = state.editing; if (!id) return null;
+  return state.repeats.filter(function(x){ return x.id === id; })[0] || null;
+}
+
+function supprimerToutDeSuite(id){
+  closeSheet();
+  if (!id) return;
+  state.events = state.events.filter(function(x){ return x.id !== id; });
+  state.repeats = state.repeats.filter(function(x){ return x.id !== id; });
+  render();
+  removeEvent(id);
+}
+
 $('del').addEventListener('click', function(){
   var t = $('del');
+  /* Un rendez-vous qui se répète ne pose pas la même question qu'un
+     rendez-vous unique : « Confirmer » ne dit pas ce qu'on confirme. */
+  var serie = serieOuverte();
+  if (serie){
+    disarmDelete();
+    $('choixSuppr').hidden = false;
+    return;
+  }
   if (t.dataset.armed !== '1'){
     t.dataset.armed = '1'; t.classList.add('armed'); t.textContent = 'Confirmer';
     setTimeout(disarmDelete, 4000);
     return;
   }
-  var id = state.editing;
+  supprimerToutDeSuite(state.editing);
+});
+
+$('supprUne').addEventListener('click', function(){
+  var serie = serieOuverte();
+  var jour = state.jourOuvert || (state.draft && state.draft.date);
+  $('choixSuppr').hidden = true;
+  if (!serie || !jour) return;
+  var sauf = Array.isArray(serie.sauf) ? serie.sauf.slice() : [];
+  if (sauf.indexOf(jour) < 0) sauf.push(jour);
+  var neuf = Object.assign({}, serie, {sauf: sauf});
   closeSheet();
-  if (id){
-    state.events = state.events.filter(function(x){ return x.id !== id; });
-    state.repeats = state.repeats.filter(function(x){ return x.id !== id; });
-    render();
-    removeEvent(id);
-  }
+  state.repeats = state.repeats.map(function(x){ return x.id === serie.id ? neuf : x; });
+  render();
+  putEvent(neuf);
+  bulle('Décommandé pour ce jour-là');
+});
+
+$('supprTout').addEventListener('click', function(){
+  $('choixSuppr').hidden = true;
+  supprimerToutDeSuite(state.editing);
 });
 
 $('clearDone').addEventListener('click', function(){
