@@ -2400,10 +2400,13 @@ summary.carte-tete:hover h2{color:var(--v1)}
    si bien qu'à trois cents pixels de large elle en aurait fait cent
    soixante. Recadrée, elle prend toute la place qu'on lui donne.
 
-   Le trait est posé en permanence à quarante pour cent : c'est le fil.
-   Une bande blanche le remonte du bas vers le haut, en boucle. Sans le
-   fil, il n'y aurait qu'une lueur qui traverse le vide ; sans la
-   bande, la flèche serait une image fixe. */
+   Le trait est blanc plein : c'est le fil, et il est allumé. Une bande
+   le remonte du bas vers le haut, en boucle. Elle est blanche elle
+   aussi — sur un fil déjà blanc, elle ne se verrait pas par sa
+   couleur : ce qui la distingue est d'être plus épaisse et de fleurir
+   autour d'elle. C'est ce que fait le filtre « dem-floraison », qui ne
+   porte que sur elle. Une lumière qui passe sur un fil allumé, pas une
+   lumière qui allume un fil éteint. */
 #demarrage{position:fixed;inset:0;z-index:200;
   background:#000;
   display:flex;align-items:center;justify-content:center;
@@ -2419,13 +2422,12 @@ summary.carte-tete:hover h2{color:var(--v1)}
   filter:drop-shadow(0 0 9px rgba(255,255,255,.60))
          drop-shadow(0 0 30px rgba(255,255,255,.32))
          drop-shadow(0 0 80px rgba(225,242,255,.17))}
-#demarrage .marque svg{width:min(78vw,300px);height:auto;display:block;overflow:visible}
+#demarrage .marque svg{width:min(90vw,360px);height:auto;display:block;overflow:visible}
 
 @media (prefers-reduced-motion:reduce){
   /* On retire la montée, pas la lumière : le fil s'allume en plein et
      la bande qui le parcourt cesse de bouger. */
   #demarrage .courant{display:none}
-  #demarrage .fil{opacity:1}
 }
 </style>
 
@@ -2433,6 +2435,12 @@ summary.carte-tete:hover h2{color:var(--v1)}
   <span class="marque">
     <svg viewBox="17 25 66 42" aria-hidden="true">
       <defs>
+        <!-- La floraison ne porte que sur la bande : c'est elle qui la
+             distingue du fil, puisque les deux sont blanches. -->
+        <filter id="dem-floraison" x="-70%" y="-70%" width="240%" height="240%">
+          <feGaussianBlur stdDeviation="1.6" result="f"/>
+          <feMerge><feMergeNode in="f"/><feMergeNode in="f"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
         <!-- La bande de lumière qui remonte la flèche. L'axe du dégradé
              est donné en coordonnées du dessin, et ce sont ses deux
              extrémités qu'on anime : elle entre par le bas et sort par
@@ -2450,10 +2458,10 @@ summary.carte-tete:hover h2{color:var(--v1)}
         </linearGradient>
       </defs>
       <path class="fil" d="M22 62 L40 46 L52 55 L78 30" fill="none" stroke="#FFFFFF"
-            stroke-width="3.20" stroke-linecap="round" stroke-linejoin="round" opacity=".4"/>
+            stroke-width="3.20" stroke-linecap="round" stroke-linejoin="round"/>
       <path class="courant" d="M22 62 L40 46 L52 55 L78 30" fill="none"
             stroke="url(#dem-courant)" stroke-width="4.80"
-            stroke-linecap="round" stroke-linejoin="round"/>
+            stroke-linecap="round" stroke-linejoin="round" filter="url(#dem-floraison)"/>
     </svg>
   </span>
 </div>
