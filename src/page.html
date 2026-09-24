@@ -1085,6 +1085,21 @@ button.tuile:active{transform:scale(.985)}
    taille normale. On perd un peu de ce qu'on a gagné, sur ces deux
    barres seulement, et jamais un mot. */
 :root[data-taille="max"] .nav button{font-size:13px}
+
+/* La bande des sept jours ne s'élargit pas, elle : à 130 % les libellés
+   faisaient 35 pixels dans des colonnes de 35 et se touchaient — on
+   lisait « LUNMARMERJEUVENSAMDIM ». Ils reprennent de l'air : moins
+   d'interlettrage, et deux points de finesse qui leur laissent quinze
+   pixels de blanc entre eux. */
+:root[data-taille="max"] #majournee .day-pill .dow{font-size:10.5px; letter-spacing:0}
+
+/* La barre de saisie porte un champ et deux boutons. À 130 % ils
+   réclament plus que la largeur disponible, et le second bouton tombait
+   seul sur une TROISIÈME ligne — mesuré. Le champ prend donc toute la
+   première ligne, et les deux boutons se retrouvent ensemble sur la
+   seconde. Deux lignes voulues valent mieux que trois subies. */
+:root[data-taille="max"] #majournee .quick{flex-wrap:wrap; row-gap:8px}
+:root[data-taille="max"] #majournee .quick input{flex:1 0 100%}
 :root[data-taille="max"] .segments button{font-size:13px; padding-left:10px; padding-right:10px}
 .nav button:hover{color:var(--ink)}
 /* l'onglet ouvert prend le dégradé profond et se détache du voile : c'est
@@ -1999,6 +2014,13 @@ summary.carte-tete:hover h2{color:var(--v1)}
    couleur du rendez-vous, pleine, à sa place exacte dans la journée.
    Elle dit « il y a quelque chose ici », ce qui est tout ce qu'on peut
    dire à cette taille — le reste s'obtient en zoomant ou en touchant. */
+/* Sept dixièmes et pas deux tiers : à 0,66 le nom d'un rendez-vous
+   passé tombe à 4,75 de contraste pour un seuil de 4,5 — ça passe, de
+   justesse. À 0,7 il remonte à 5,4, et l'effacement se voit tout aussi
+   bien. Un rendez-vous qui a eu lieu doit reculer, pas devenir illisible. */
+#majournee .ev.passe{opacity:.7}
+#majournee .ev.passe::before{opacity:.72}
+
 /* ═══ la suite d'hier ═══
    Elle se lit comme un rendez-vous, mais en retrait : c'est la fin de
    quelque chose, pas une nouvelle chose. Le trait de gauche est tireté —
@@ -8453,6 +8475,22 @@ function makeBlock(ev, opts){
   wh.textContent = (plage.length * (13.5 * tH) * 0.55 > dispo) ? hhmm(ev.start) : plage;
   txt.appendChild(nm); txt.appendChild(wh);
   b.title = (ev.title || cat.l) + ' · ' + hhmm(ev.start) + '–' + hhmm(Math.min(ev.start+ev.dur, DAY_END));
+  /* ═══ ce qui est fait recule ═══
+     Mesuré : un rendez-vous terminé à 7 h était peint exactement comme
+     un rendez-vous de 18 h — même opacité, même fond, même encre. Pour
+     lire sa journée il fallait comparer chaque heure à celle qu'il est.
+     Quelqu'un qui n'est pas organisé ne fait pas ce calcul : il ouvre
+     son agenda pour savoir ce qui reste.
+     Ce qui est passé s'efface donc d'un tiers. Pas davantage : c'est un
+     rendez-vous qui a eu lieu, pas un rendez-vous annulé, et on doit
+     encore pouvoir le lire et le toucher. Le trait de couleur recule
+     avec lui. La grille se redessine chaque minute quand on regarde
+     aujourd'hui : un rendez-vous passe donc tout seul, sous les yeux. */
+  var finEv = ev.start + ev.dur;
+  var mnt = new Date();
+  if (ev.date < today || (ev.date === today && finEv <= mnt.getHours() * 60 + mnt.getMinutes()))
+    b.classList.add('passe');
+
   /* La queue d'un rendez-vous de la veille ne se déplace pas et ne
      s'étire pas : on ne déplace pas la fin de quelque chose sans sa
      tête. La toucher ouvre le vrai rendez-vous, là où il vit. */
