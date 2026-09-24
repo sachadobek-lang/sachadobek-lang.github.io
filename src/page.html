@@ -10220,11 +10220,65 @@ Object.assign(window.__AGENDA__, {
 
 /* Cura prévient quand on revient sur l'onglet */
 window.majourneeReveil = function(){
+  /* On revient sur l'onglet Agenda : c'est le moment où un jour qui a
+     tourné se voit le plus. */
+  verifierLeJour();
   requestAnimationFrame(function(){ cadrerCalendrier(); applyZoom(); renderTrack(); scrollToNow(); });
 };
+/* ═══ le jour qui tourne ═══
+   « today » était calculé UNE FOIS, au chargement. Une application posée
+   sur l'écran d'accueil reste ouverte des jours : passé minuit elle
+   croyait encore être la veille. Le cercle rouge restait sur le mauvais
+   jour, « ce qui est passé » se calculait contre hier, et « demain 14h »
+   créait le rendez-vous la veille de ce qu'on croyait.
+   On regarde donc l'heure à chaque battement, et au retour dans
+   l'application — un téléphone met les minuteurs en sommeil quand il
+   s'éteint, le battement seul ne suffit pas.
+   Et on ne déplace la personne que si elle regardait aujourd'hui : si
+   elle consultait le 12 novembre, elle reste au 12 novembre. */
+function verifierLeJour(){
+  var vrai = iso(new Date());
+  if (vrai === today) return false;
+  var suivait = (state.date === today);
+  today = vrai;
+  if (suivait){ state.date = today; state.week = mondayOf(new Date()); }
+  refreshLocal();
+  return true;
+}
+
 setInterval(function(){
+  if (verifierLeJour()) return;
   if (state.date === today){ renderTrack(); renderUpNext(true); }
 }, 60000);
+
+/* ═══ se remettre à jour toute seule ═══
+   Deux choses au retour dans l'application. D'abord l'heure : c'est le
+   cas le plus fréquent, on rouvre le lendemain matin.
+   Ensuite la version. La page ne vient jamais du cache tant qu'il y a du
+   réseau — elle est donc à jour à CHAQUE ouverture. Mais une application
+   qu'on n'a jamais fermée ne se recharge jamais, et les corrections ne
+   l'atteignent pas. Au bout d'une heure passée en sommeil, on la
+   recharge, à deux conditions : qu'aucune feuille ne soit ouverte, et
+   que personne ne soit en train d'écrire. On ne coupe jamais quelqu'un
+   au milieu d'un mot pour lui apporter une nouveauté. */
+var endormiDepuis = 0;
+function personneNEcrit(){
+  var a = document.activeElement;
+  if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return false;
+  if (!$('sheetWrap').hidden) return false;
+  var q = $('quick');
+  if (q && String(q.value || '').trim()) return false;
+  return true;
+}
+document.addEventListener('visibilitychange', function(){
+  if (document.hidden){ endormiDepuis = Date.now(); return; }
+  verifierLeJour();
+  var dormi = endormiDepuis ? Date.now() - endormiDepuis : 0;
+  endormiDepuis = 0;
+  if (dormi > 3600000 && personneNEcrit() && navigator.onLine){
+    location.reload();
+  }
+});
 
 (function(){
   try {
