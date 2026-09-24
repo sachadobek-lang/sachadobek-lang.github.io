@@ -12,7 +12,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <!-- color-scheme : sans cette ligne, le mode sombre automatique de Safari et de
      Chrome repeint les contrôles natifs en blanc sur blanc. -->
-<meta name="color-scheme" content="light dark">
+<!-- Cura est une application claire, décidée telle par Sacha. Tant que
+     ce document annonçait « light dark », le navigateur gardait le droit
+     de peindre lui-même ce qu'il dessine : un champ date, une case à
+     cocher, une liste déroulante, la barre de défilement, le curseur de
+     saisie. Sur un téléphone réglé en sombre, ces morceaux-là sortaient
+     en gris foncé au milieu d'une page blanche — un champ vierge mesuré
+     à rgb(59,59,59) sous un texte presque noir. On l'annonce clair. -->
+<meta name="color-scheme" content="light">
 <!-- Ce que la page a le droit de faire.
      connect-src n'autorisait rien d'autre que l'appareil lui-même. Depuis que
      Cura sait garder une copie en ligne, il ouvre une seule porte : notre
@@ -47,6 +54,7 @@
   font-weight:200 1000; font-style:normal; font-display:swap;
 }
 :root{
+  color-scheme:light;
   --ground:#EFF3F8; --surface:#FFFFFF; --surface-2:#F5F8FC; --surface-3:#E9EFF6;
   --line:#DFE7F0; --line-fort:#C6D2E0;
   --ink:#14202E; --ink-2:#4F5B70; --ink-3:#646E85;
