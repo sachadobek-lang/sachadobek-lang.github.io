@@ -4920,6 +4920,23 @@ function vueArgent(){
   return carnetClients();
 }
 
+/* « Aucune facture ici · changez de filtre » était exact et inutile : il
+   décrit l'état d'un filtre, pas la situation de celui qui regarde. Or les
+   trois situations qui mènent à une liste vide n'ont rien à voir entre
+   elles — on n'a pas encore facturé, tout est encaissé, ou rien n'est
+   encore rentré. La première demande un premier geste, la deuxième est une
+   bonne nouvelle, la troisième n'est qu'une attente. */
+function videFactures(combienEnTout){
+  if(!combienEnTout)
+    return '<p class="vide"><b>Aucune facture pour l\'instant</b>'
+      + 'Le bouton « Faire une facture », en haut, en crée une en trois champs.</p>';
+  if(filtreF === "encaisser")
+    return '<p class="vide"><b>Tout est encaissé</b>'
+      + 'Personne ne vous doit d\'argent. Vos factures réglées sont dans « Payées ».</p>';
+  return '<p class="vide"><b>Rien d\'encaissé pour l\'instant</b>'
+    + 'Une facture vient ici le jour où vous la marquez réglée.</p>';
+}
+
 function ecranFactures(){
   const c = calculs();
   const tout = c.fact.slice().sort((x, y) => String(y.emise).localeCompare(String(x.emise)));
@@ -4963,8 +4980,7 @@ function ecranFactures(){
     + '<span class="appoint">' + vis.length + " ligne" + (vis.length > 1 ? "s" : "") + "</span></div>"
     + '<div class="segments">' + libs.map(kv =>
         '<button data-ff="' + kv[0] + '" aria-pressed="' + (filtreF === kv[0]) + '">' + kv[1] + "</button>").join("") + "</div>"
-    + (vis.length ? vis.map(f => rangeeFacture(f)).join("")
-       : '<p class="vide"><b>Aucune facture ici</b>Changez de filtre, ou utilisez « Faire une facture » au-dessus.</p>')
+    + (vis.length ? vis.map(f => rangeeFacture(f)).join("") : videFactures(tout.length))
     + '<button class="ajout-ligne" data-moi="1"><span class="rond" style="border-style:solid">'
     + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;stroke-width:2.2;fill:none">'
     + '<circle cx="12" cy="8.4" r="3.6"/><path d="M4.8 20c0-3.6 3.2-5.8 7.2-5.8s7.2 2.2 7.2 5.8"/></svg></span>'
@@ -6996,6 +7012,17 @@ $("#vue").addEventListener("click", e => {
     if(!f) return;
     ecrire("factures", b.dataset.paye, Object.assign({}, f, {statut: "payee",
       regle: f.regle || "Virement", regleLe: f.regleLe || auj()}));
+    /* Le filtre par défaut est « À encaisser ». Marquer réglée la dernière
+       facture due vidait donc la liste sous les doigts : l'écran répondait
+       « aucune facture ici » à quelqu'un qui venait d'en encaisser une. On
+       le suit là où elle est partie — mais seulement quand il ne reste rien
+       à encaisser, sinon on lui retirerait les autres des yeux. */
+    if(filtreF === "encaisser"
+       && !liste("factures").some(x => x.statut !== "brouillon" && statut(x) !== "payee")){
+      filtreF = "payee"; memoire.clear(); rendre();
+      bulle("Encaissée · elle passe dans « Payées »");
+      return;
+    }
     bulle("Encaissement noté");
     return;
   }
