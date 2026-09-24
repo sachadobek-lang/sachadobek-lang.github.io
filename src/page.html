@@ -2491,6 +2491,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .rs{display:inline-block;white-space:pre}
 @media (prefers-reduced-motion:reduce){#ilreste .rc{transition:none}}
 #ilreste .bloc-disque{display:flex;flex-direction:column;align-items:center;gap:14px}
+#ilreste .bloc-disque[hidden]{display:none}
 #ilreste .disc{position:relative;width:min(290px,78vw);aspect-ratio:1}
 #ilreste .disc svg{width:100%;height:100%;display:block}
 #ilreste .disc .seg{fill:none;transition:stroke-dasharray .5s cubic-bezier(.16,1,.3,1),stroke-dashoffset .5s cubic-bezier(.16,1,.3,1)}
@@ -2512,6 +2513,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .legende .urssaf .d{background:var(--urssaf)}
 #ilreste .legende .urssaf .v{color:var(--urssaf)}
 #ilreste .cadre{border:2px solid var(--ink);border-radius:18px;padding:16px 18px;display:flex;flex-direction:column;gap:4px}
+#ilreste .cadre[hidden]{display:none}
 #ilreste .cadre .t{font-size:14.5px;color:var(--ink-soft)}
 #ilreste .cadre .v{font-family:var(--num);font-size:31px;font-weight:600;line-height:1.15}
 #ilreste .cadre .s{font-size:13.5px;color:var(--ink-soft)}
@@ -2618,6 +2620,17 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .cadre,#ilreste .card,#ilreste .echeance{
   border:0;border-radius:var(--rl);background:var(--surface);box-shadow:var(--o1);padding:21px 22px}
 #ilreste .cadre .v{font-size:38px;letter-spacing:-.03em;line-height:1.1}
+#ilreste .vierge-argent{border-radius:var(--rl);background:var(--surface);box-shadow:var(--o1);
+  padding:30px 24px 26px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:9px}
+#ilreste .vierge-argent .rond{width:54px;height:54px;border-radius:999px;background:var(--moi-bg);
+  color:var(--moi);display:grid;place-items:center;margin-bottom:3px}
+#ilreste .vierge-argent .rond svg{width:25px;height:25px}
+#ilreste .vierge-argent h3{margin:0;font-size:18.5px;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
+#ilreste .vierge-argent p{margin:0;font-size:14.5px;line-height:1.5;color:var(--ink-soft);max-width:31ch}
+#ilreste .vierge-argent button{margin-top:9px;border:0;border-radius:999px;cursor:pointer;
+  background:var(--ink);color:var(--surface);font:inherit;font-size:15.5px;font-weight:700;
+  padding:13px 26px;min-height:46px;transition:transform .14s var(--doux),opacity .14s}
+#ilreste .vierge-argent button:active{transform:scale(.97)}
 #ilreste .repli{border:0;border-radius:var(--rm);background:var(--surface);box-shadow:var(--o1)}
 #ilreste details.repli > summary{padding:16px 19px;font-size:15.5px}
 #ilreste details.repli > summary .titre{flex:none;font-weight:700;color:var(--ink)}
@@ -2806,6 +2819,23 @@ summary.carte-tete:hover h2{color:var(--v1)}
          Factures, et sur la fiche d'un client. Le troisième exemplaire ne
          faisait que retarder le disque, qui est la réponse de cet écran.
          Mon argent commence donc par ce qu'on vient y chercher. -->
+
+    <!-- Au premier lancement, cet écran était un anneau gris de 430 px
+         qui affichait « 0 € » cinq fois. C'est la première chose qu'un
+         artisan voit en ouvrant Comptabilité : elle ne disait ni ce que
+         l'écran fait, ni comment le remplir. -->
+    <section class="vierge-argent" id="vierge-argent" hidden>
+      <span class="rond" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 17.5 9.5 11l4 4L21 7"/><path d="M15.5 7H21v5.5"/>
+        </svg>
+      </span>
+      <h3 id="vierge-titre">Votre argent apparaîtra ici</h3>
+      <p id="vierge-texte">Dès votre première facture encaissée, vous verrez ce qui
+         vous reste vraiment, une fois les cotisations mises de côté.</p>
+      <button type="button" id="vierge-faire">Faire une facture</button>
+    </section>
 
     <div class="bloc-disque">
       <div class="disc">
@@ -6241,6 +6271,14 @@ window.__CADENCE__ = {
   /* faire une facture depuis « Mon argent » : c'est le même formulaire
      que partout ailleurs, il n'y en a qu'un */
   nouvelleFacture: prerempli => ouvrir("facture", prerempli || null),
+  /* Le formulaire vit dans l'écran Comptabilité, sur le sous-onglet
+     Factures. Ouvert depuis le disque de « Mon argent », il s'ouvrirait
+     derrière un rideau : on change d'abord d'onglet, on ouvre ensuite. */
+  allerAuxFactures: neuve => {
+    filtreC = "factures"; animer = true; memoire.clear(); rendre();
+    window.scrollTo({top: 0});
+    if(neuve) ouvrir("facture");
+  },
   /* ═══ facturer un rendez-vous ═══
      C'est la seule chose que Cura peut faire et qu'aucun concurrent ne
      peut : l'agenda et la facturation sont la même application, sur les
@@ -10503,6 +10541,33 @@ function rendreArgent(){
   var du = (etat.creances||[]).reduce(function(t,c){ return t+num(c.montant); },0);
   $("en-attente").hidden = !(du>0);
   if(du>0) $("en-attente").innerHTML = "<b>"+eur.format(du)+"</b> facturés, pas encore encaissés.";
+
+  /* ═══ tant que rien n'est rentré, le disque n'a rien à partager ═══
+     Un anneau gris et cinq « 0 € » ne sont pas une information : c'est un
+     écran qui a l'air en panne. On dit à la place ce que cet écran fera,
+     et on montre le seul geste qui le remplit. Les deux situations n'ont
+     pas la même réponse : n'avoir rien facturé demande un premier geste,
+     attendre un paiement ne demande que de la patience. */
+  var vierge = !(b.encaisse > 0);
+  var bloc = $("vierge-argent");
+  if(bloc){
+    bloc.hidden = !vierge;
+    var disque = document.querySelector("#p-argent .bloc-disque");
+    var garde  = document.querySelector("#p-argent .cadre");
+    if(disque) disque.hidden = vierge;
+    if(garde)  garde.hidden  = vierge;
+    if(vierge){
+      $("vierge-titre").textContent = du > 0 ? "Rien n'est encore rentré"
+                                             : "Votre argent apparaîtra ici";
+      $("vierge-texte").innerHTML = du > 0
+        ? "<b>" + eur.format(du) + "</b> sont facturés et attendent d'être payés. "
+          + "Le partage s'affiche le jour où l'argent arrive sur votre compte."
+        : "Dès votre première facture encaissée, vous verrez ce qui vous reste "
+          + "vraiment, une fois les cotisations mises de côté.";
+      $("vierge-faire").textContent = du > 0 ? "Voir mes factures" : "Faire une facture";
+      $("vierge-faire").dataset.neuve = du > 0 ? "" : "1";
+    }
+  }
   roule("v-moi",eur.format(b.moi));
   roule("v-tva",eur.format(b.tva));
   roule("v-urssaf",eur.format(b.urssaf));
@@ -10733,6 +10798,10 @@ $("n-dues").addEventListener("click",function(e){
   if(d) saisirPour(d);
 });
 $("n-sans").addEventListener("click",function(){ saisirPour(null, null); });
+$("vierge-faire").addEventListener("click",function(){
+  var C = window.__CADENCE__;
+  if(C && C.allerAuxFactures) C.allerAuxFactures(this.dataset.neuve === "1");
+});
 /* Les deux boutons « J'ai été payé » ont disparu. On garde ouvrirRentree :
    c'est elle qui enregistre un acompte, et la ligne de facture l'appelle
    désormais avec la facture concernée — ce que ces deux-là ne pouvaient
