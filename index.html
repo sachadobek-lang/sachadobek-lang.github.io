@@ -5716,10 +5716,54 @@ function dateTxt(iso){
   return String(d.getDate()).padStart(2, "0") + "/" + String(d.getMonth() + 1).padStart(2, "0") + "/" + d.getFullYear();
 }
 
+/* ═══ ce que le PDF sait écrire, et ce qu'il jetait en silence ═══
+   Les polices d'origine d'un PDF n'écrivent que du Latin-1. Tout ce qui
+   sort de cette table ne provoque pas d'erreur : le caractère disparaît,
+   et personne ne le voit avant que le client ait la facture en main.
+   Ce n'est pas un cas rare. Un iPhone remplace d'office l'apostrophe
+   droite par l'apostrophe typographique — « L'Atelier du Bois » tapé sur
+   un téléphone s'imprimait « LAtelier du Bois ». Le signe €, les tirets
+   longs, les points de suspension, le œ et les guillemets courbes
+   subissaient le même sort, jusque dans le nom du client.
+   On traduit donc avant d'écrire, sur toutes les pages de tous les PDF.
+   Ce qui resterait hors table perd ses accents plutôt que sa lettre, et
+   ce qui ne peut vraiment pas s'écrire laisse une marque visible : une
+   facture doit trahir ce qu'elle n'a pas pu imprimer. */
+var PDF_TABLE = [
+  [/[\u2018\u2019\u201A\u201B\u2032]/g, "'"],
+  [/[\u201C\u201D\u201E\u201F\u2033]/g, '"'],
+  [/[\u2010-\u2015\u2212]/g, "-"],
+  [/\u2026/g, "..."],
+  [/\u0152/g, "OE"], [/\u0153/g, "oe"],
+  [/\s*\u20AC/g, " EUR"],
+  [/\u2022/g, "-"],   /* la puce ronde n'existe pas en Latin-1 ; le point median \u00B7 si, on le garde */
+  [/[\u00A0\u202F\u2009\u200A\u2007]/g, " "]
+];
+function texteLatin(v){
+  var t = String(v == null ? "" : v);
+  for(var i = 0; i < PDF_TABLE.length; i++) t = t.replace(PDF_TABLE[i][0], PDF_TABLE[i][1]);
+  if(/[^\u0000-\u00FF]/.test(t)){
+    t = t.normalize("NFD").replace(/[\u0300-\u036F]/g, "");
+    t = t.replace(/[^\u0000-\u00FF]/g, "?");
+  }
+  return t;
+}
+/* Un seul endroit décide : on habille la méthode d'écriture du document,
+   et plus personne n'a à y penser en ajoutant une ligne. */
+function pdfLatin(doc){
+  var brut = doc.text.bind(doc);
+  doc.text = function(t){
+    var a = Array.prototype.slice.call(arguments);
+    a[0] = Array.isArray(t) ? t.map(texteLatin) : texteLatin(t);
+    return brut.apply(null, a);
+  };
+  return doc;
+}
+
 function pdfFacture(f){
   if(!window.jspdf || !window.jspdf.jsPDF){ bulle("PDF indisponible ici"); return; }
   const moi = state.moi || {};
-  const doc = new window.jspdf.jsPDF({unit: "mm", format: "a4"});
+  const doc = pdfLatin(new window.jspdf.jsPDF({unit: "mm", format: "a4"}));
   const G = 20, D = 190;
   let y = 24;
 
@@ -5794,6 +5838,10 @@ function pdfFacture(f){
   doc.text("À régler avant le " + dateTxt(f.echeance) + ".", G, y); y += 5.5;
   if(taux === 0){ doc.text("TVA non applicable, article 293 B du CGI.", G, y); y += 5.5; }
   doc.text("Pénalités de retard : 3 fois le taux d'intérêt légal. Indemnité forfaitaire pour frais de recouvrement : 40 EUR.", G, y, {maxWidth: D - G});
+  y += 10;
+  if(moi.decennale){
+    doc.text("Assurance décennale : " + moi.decennale, G, y, {maxWidth: D - G});
+  }
 
   return doc;
 }
@@ -5908,7 +5956,7 @@ async function feuilleDeclaration(){
   const an = new Date().getFullYear();
   const c = CASES[calcStatut()] || CASES.services;
 
-  const doc = new window.jspdf.jsPDF({unit: "mm", format: "a4"});
+  const doc = pdfLatin(new window.jspdf.jsPDF({unit: "mm", format: "a4"}));
   const G = 18, D = 192;
   let y = 24;
 
@@ -5986,7 +6034,7 @@ async function livreRecettes(){
   const moi = state.moi || {};
   const lignes = recettesDeLAn(k.an);
 
-  const doc = new window.jspdf.jsPDF({unit: "mm", format: "a4"});
+  const doc = pdfLatin(new window.jspdf.jsPDF({unit: "mm", format: "a4"}));
   const G = 18, D = 192;
   let y = 22;
 
@@ -6617,6 +6665,17 @@ const CHAMPS = {
     + '<option value="20"' + (Number(state.moi.tva) === 20 ? " selected" : "") + '>20 %</option>'
     + '<option value="10"' + (Number(state.moi.tva) === 10 ? " selected" : "") + '>10 %</option>'
     + "</select></div></div>"
+    /* Depuis 2016, un artisan du bâtiment doit faire figurer sur chaque
+       facture son assurance décennale : l'assureur, son adresse, et la
+       zone couverte. Une facture sans cette mention est irrégulière, et
+       c'est la première chose qu'un client vérifie avant un chantier.
+       Elle ne concerne pas tous les métiers : le champ est facultatif,
+       rangé dans les détails, et ne s'imprime que s'il est rempli. */
+    + '<div class="champ"><label for="f6">Assurance décennale</label>'
+    + '<input id="f6" name="decennale" maxlength="120" placeholder="facultatif — bâtiment uniquement" value="'
+    + h(state.moi.decennale || "") + '">'
+    + '<p class="aide" style="margin:5px 0 0">Obligatoire sur vos factures si vous travaillez dans le bâtiment. '
+    + 'Nom de l\'assureur, son adresse, et la zone couverte.</p></div>'
     + "</details>"}),
 
   facture: () => ({titre: "Nouvelle facture", html:
@@ -7319,6 +7378,7 @@ $("#feuille").addEventListener("submit", e => {
   }else if(typeActif === "moi"){
     state.moi = Object.assign({}, state.moi, {nom: String(d.nom).trim(), adresse: String(d.adresse || "").trim(),
       siret: String(d.siret || "").trim(), email: String(d.email || "").trim(), tva: Number(d.tva) || 0,
+      decennale: String(d.decennale || "").trim(),
       /* activité, versement libératoire et foyer se règlent dans
          « Calculs » : on ne les écrase pas depuis ce formulaire. */
       forme: state.moi.forme, regime: state.moi.regime,
