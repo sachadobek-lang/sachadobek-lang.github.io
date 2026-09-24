@@ -5778,6 +5778,11 @@ function pdfFacture(f){
   y += 10;
 
   /* émetteur à gauche, client à droite */
+  /* Chaque bloc n'a que la moitié de la page. Rien ne coupait les lignes :
+     une adresse un peu longue — « Résidence Les Hauts de Bellevue,
+     bâtiment C, 12 avenue du Maréchal Leclerc, 92190 Meudon » — partait
+     en travers et venait s'écrire par-dessus le bloc d'en face. */
+  const LARGE = (D - G) / 2 - 6;
   const bloc = (x, titre, lignes, align) => {
     let yy = y;
     doc.setFont("helvetica", "bold").setFontSize(8.5).setTextColor(130, 142, 160);
@@ -5787,14 +5792,23 @@ function pdfFacture(f){
     lignes.filter(Boolean).forEach((l, i) => {
       doc.setFont("helvetica", i === 0 ? "bold" : "normal");
       String(l).split("\n").forEach(part => {
-        doc.text(part, x, yy, {align: align});
-        yy += 5.2;
+        doc.splitTextToSize(part, LARGE).forEach(morceau => {
+          doc.text(morceau, x, yy, {align: align});
+          yy += 5.2;
+        });
       });
     });
     return yy;
   };
   const gauche = bloc(G, "Émetteur", [moi.nom || "Votre entreprise", moi.adresse, moi.siret ? "SIRET " + moi.siret : "", moi.email], "left");
-  const droite = bloc(D, "Facturé à", [f.client], "right");
+  /* La loi demande le nom ET l'adresse du client (article 242 nonies A du
+     CGI). La facture ne portait que le nom, alors que la fiche client
+     contient souvent l'adresse : on l'y prend quand elle existe, sans
+     rien demander de plus. Quand elle manque, rien ne s'imprime — mieux
+     vaut une ligne absente qu'une ligne inventée. */
+  const fiche = liste("clients").find(x => x.nom === f.client);
+  const adrClient = fiche ? String(fiche.adresse || "").trim() : "";
+  const droite = bloc(D, "Facturé à", [f.client].concat(adrClient ? [adrClient] : []), "right");
 
   y = Math.max(gauche, droite) + 12;
 
@@ -6658,13 +6672,17 @@ const CHAMPS = {
     + '<div class="champ"><label for="f3">SIRET</label>'
     + '<input id="f3" name="siret" required maxlength="20" placeholder="123 456 789 00012" value="' + h(state.moi.siret) + '"></div>'
     + '<details class="detail"><summary>Plus de détails</summary>'
-    + '<div class="paire"><div class="champ"><label for="f4">E-mail</label>'
+    + '<div class="champ"><label for="f4">E-mail</label>'
     + '<input id="f4" name="email" type="email" maxlength="80" placeholder="facultatif" value="' + h(state.moi.email) + '"></div>'
+    /* Ces deux champs vivaient côte à côte. Sur un téléphone de 375 px,
+       la liste déroulante n'avait plus que 150 px et affichait « Je ne
+       facture p » : la seule ligne de ce formulaire qui demande une
+       décision était la seule illisible. Chacun prend la largeur. */
     + '<div class="champ"><label for="f5">TVA</label><select id="f5" name="tva">'
     + '<option value="0"' + (Number(state.moi.tva) === 0 ? " selected" : "") + '>Je ne facture pas la TVA</option>'
     + '<option value="20"' + (Number(state.moi.tva) === 20 ? " selected" : "") + '>20 %</option>'
     + '<option value="10"' + (Number(state.moi.tva) === 10 ? " selected" : "") + '>10 %</option>'
-    + "</select></div></div>"
+    + "</select></div>"
     /* Depuis 2016, un artisan du bâtiment doit faire figurer sur chaque
        facture son assurance décennale : l'assureur, son adresse, et la
        zone couverte. Une facture sans cette mention est irrégulière, et
