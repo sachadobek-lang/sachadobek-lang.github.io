@@ -6836,7 +6836,13 @@ function armer(b){
 
 $("#vue").addEventListener("click", e => {
   if(e.target.closest("a")) return;   /* appeler, ce n'est pas ouvrir la fiche */
-  const t = e.target.closest("[data-taille]");
+  /* « button[data-taille] » et non « [data-taille] » : le réglage de
+     taille pose cet attribut sur la RACINE de la page, et « closest »
+     remonte les parents jusqu'à elle. Chaque clic dans cet écran la
+     trouvait donc, appelait poserTaille et sortait — plus aucun bouton
+     ne répondait dans Clients ni dans Comptabilité. Un sélecteur trop
+     large sur un attribut posé haut coupe tout ce qui est en dessous. */
+  const t = e.target.closest("button[data-taille]");
   if(t){ poserTaille(t.dataset.taille); rendre(); return; }
   const b = e.target.closest("button");
   if(!b){
