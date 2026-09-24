@@ -971,9 +971,13 @@ button.tuile:active{transform:scale(.985)}
 .joindre-nu a:hover{color:var(--v-txt);background:var(--surface-3)}
 .joindre-nu svg{width:16px;height:16px;stroke-width:2.1;fill:none}
 
-/* au doigt, la cible doit faire 44 px : on ne rate pas un appel */
+/* au doigt, la cible doit faire 44 px : on ne rate pas un appel.
+   Le commentaire disait 44 et la règle posait 38 — mesuré sur la fiche
+   d'un client, trois boutons à 38 sur 38. Appeler, écrire et y aller
+   sont les trois gestes qu'on fait d'une main, en marchant, sur un
+   chantier : ce sont les derniers qu'il faut rétrécir. */
 @media (pointer:coarse){.joindre a,.joindre button{padding:13px 17px}
-  .joindre-nu a{width:38px;height:38px}}
+  .joindre-nu a{width:44px;height:44px}}
 .dues{display:flex;flex-direction:column;gap:8px;margin:4px 0 10px}
 .dues .due{display:flex;align-items:center;gap:12px;width:100%;text-align:left;
   border:1px solid var(--line);background:var(--surface);border-radius:var(--rl);
@@ -4511,11 +4515,18 @@ function joindre(texte){
   return r;
 }
 
-/* le GPS de la maison : Plans chez Apple, Google ailleurs */
+/* Le GPS de la maison : Plans chez Apple, Google ailleurs.
+   Le bouton dit « M'y conduire » et ouvrait une RECHERCHE — une épingle
+   sur une carte, qu'il fallait ensuite convertir en trajet soi-même.
+   « daddr » et « destination » ouvrent l'itinéraire déjà tracé. Même
+   règle que « Y aller » dans l'Agenda : deux boutons qui promettent la
+   même chose doivent faire la même chose. */
 function lienCarte(adr){
+  const a = encodeURIComponent(adr);
   const pomme = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent || "");
-  return (pomme ? "https://maps.apple.com/?q=" : "https://www.google.com/maps/search/?api=1&query=")
-    + encodeURIComponent(adr);
+  return pomme
+    ? "https://maps.apple.com/?daddr=" + a + "&dirflg=d"
+    : "https://www.google.com/maps/dir/?api=1&destination=" + a + "&travelmode=driving";
 }
 
 const ICO_JOINDRE = {
