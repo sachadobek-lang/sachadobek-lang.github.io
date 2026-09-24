@@ -1459,18 +1459,27 @@ summary.carte-tete:hover h2{color:var(--v1)}
    ou non. */
 #majournee .dateline{display:flex; align-items:center; justify-content:space-between;
   gap:20px; flex-wrap:wrap; min-height:44px}
+/* ═══ le titre du jour ═══
+   « Samedi 26 septembre2026 » tombait sur TROIS lignes et 83 pixels de
+   haut, l'année seule sur la dernière — mesuré. Le bouton « Aujourd'hui »
+   occupe 132 pixels à côté : il n'en reste que 128 pour écrire.
+   Une seule forme pour tous les jours, sur deux lignes : le nom du jour
+   en grand, la date en petit dessous. « Aujourd'hui » et « Demain »
+   restent seuls sur leur ligne — Sacha l'a demandé, et la bande des sept
+   jours dit déjà la date trois centimètres plus bas. L'année ne s'écrit
+   plus quand c'est l'année en cours : elle ne disait rien.
+   Les deux lignes tiennent dans les 44 pixels que la ligne réservait
+   déjà : rien ne saute quand on passe d'un jour à l'autre. */
 #majournee .dateline h1{
-  /* Le tableau retiré, toute la hauteur doit aller au calendrier : le
-     titre tient sur une ligne, la date à sa suite plutôt qu'en dessous.
-     Une quarantaine de pixels rendus, soit près de deux heures de plus
-     à l'écran. */
   font-family:var(--display); font-weight:600;
-  font-size:clamp(21px,5.2vw,27px); line-height:1.15; margin:0;
+  font-size:clamp(21px,5.2vw,27px); line-height:1.12; margin:0;
   letter-spacing:-.02em;
-  display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;
+  display:flex; flex-direction:column; align-items:flex-start; gap:1px;
+  min-width:0; max-width:100%;
 }
-#majournee .dateline h1 .dim{font-family:var(--ui); font-weight:400; font-size:13.5px;
-  letter-spacing:0; color:var(--ink-3)}
+#majournee .dateline h1 .dim{font-family:var(--ui); font-weight:500; font-size:13.5px;
+  letter-spacing:0; color:var(--ink-2); line-height:1.25; white-space:nowrap;
+  overflow:hidden; text-overflow:ellipsis; max-width:100%}
 /* ═══ le retour à aujourd'hui ═══
    Il était gris clair sur fond blanc, ce qui se lit comme un bouton
    éteint, et haut de 41 px. Il est maintenant à l'encre et à 44,
@@ -1600,9 +1609,23 @@ summary.carte-tete:hover h2{color:var(--v1)}
   display:grid; place-items:center; transition:background-color .14s ease, color .14s ease;
 }
 #majournee .day-pill:hover .num{background:var(--surface-2)}
+/* ═══ aujourd'hui, et le jour qu'on regarde ═══
+   Deux choses différentes qui se confondaient : le jour choisi prend un
+   cercle sombre, et ce cercle effaçait le rouge d'aujourd'hui. Toucher
+   aujourd'hui revenait donc à le perdre de vue — on ne savait plus
+   lequel des sept était le vrai.
+   Trois états, jamais ambigus, c'est le modèle d'Apple :
+     aujourd'hui, pas choisi  → le chiffre en rouge
+     un autre jour, choisi    → cercle d'encre
+     aujourd'hui, choisi      → cercle ROUGE
+   Le rouge dit toujours « aujourd'hui », le cercle dit toujours « c'est
+   ce jour-là que tu regardes ». Aucun des deux ne ment plus. */
 #majournee .day-pill.is-today .num{color:var(--accent)}
 #majournee .day-pill[aria-pressed="true"] .num{background:var(--ink); color:var(--bg)}
 #majournee .day-pill[aria-pressed="true"]:hover .num{background:var(--ink)}
+#majournee .day-pill.is-today[aria-pressed="true"] .num,
+#majournee .day-pill.is-today[aria-pressed="true"]:hover .num{
+  background:var(--accent-fonce, #B3392F); color:#fff}
 #majournee .day-pill .marks{display:flex; gap:3.5px; height:4px; align-items:center}
 #majournee .day-pill .marks i{width:4px; height:4px; border-radius:999px; background:var(--m)}
 #majournee .card{
@@ -8823,7 +8846,21 @@ function renderHeader(){
      part ailleurs. Ce n'est donc pas la même information. */
   else if (state.date === today){ title = 'Aujourd’hui'; sub = ''; }
   else if (state.date === iso(addDays(new Date(),1))){ title = 'Demain'; sub = ''; }
-  else { title = label.charAt(0).toUpperCase() + label.slice(1); sub = String(d.getFullYear()); }
+  else if (state.date === iso(addDays(new Date(),-1))){ title = 'Hier'; sub = ''; }
+  else {
+    /* ═══ le nom du jour en grand, la date dessous ═══
+       « Samedi 26 septembre 2026 » sur une seule ligne tombait sur trois
+       lignes et 83 pixels de haut, l'année seule sur la dernière.
+       Le nom du jour est ce qu'on cherche d'abord — on se repère à
+       « samedi », pas à « 26 ». Il prend donc la grande ligne, seul, et
+       ne peut plus être coupé par rien. La date passe en dessous, en
+       petit, et l'année ne s'y écrit que lorsqu'elle n'est pas l'année
+       en cours : le reste du temps elle n'apprenait rien à personne. */
+    title = d.toLocaleDateString('fr-FR', {weekday: 'long'});
+    title = title.charAt(0).toUpperCase() + title.slice(1);
+    sub = d.toLocaleDateString('fr-FR', {day: 'numeric', month: 'long'});
+    if (d.getFullYear() !== new Date().getFullYear()) sub += ' ' + d.getFullYear();
+  }
   var h1 = $('bigdate');
   h1.innerHTML = '';
   h1.appendChild(document.createTextNode(title));
