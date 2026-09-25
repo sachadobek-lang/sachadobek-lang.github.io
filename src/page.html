@@ -1019,7 +1019,10 @@ button.tuile:active{transform:scale(.985)}
 .ecrire textarea:focus{outline:0;border-color:var(--v1);background:var(--surface)}
 .ecrire textarea::placeholder{color:var(--ink-3);font-weight:400}
 .ecrire .go{border:0;border-radius:999px;padding:13px 19px;background:var(--deg);color:#fff;font-weight:700;font-size:14.5px;
-  opacity:0;transform:scale(.9);transition:opacity .18s,transform .18s var(--ressort);pointer-events:none;flex:none}
+  opacity:0;transform:scale(.9);transition:opacity .18s,transform .18s var(--ressort),max-width .18s,padding .18s,margin .18s;pointer-events:none;flex:none;
+  max-width:140px;white-space:nowrap;overflow:hidden}
+/* Caché, le bouton rend sa place : sinon le champ vide, réduit aux deux tiers, coupe sa propre phrase d'exemple. */
+.ecrire textarea:placeholder-shown ~ .go{max-width:0;padding-left:0;padding-right:0;margin-left:-11px}
 .ecrire textarea:not(:placeholder-shown) ~ .go{opacity:1;transform:none;pointer-events:auto}
 
 /* ═══ clients ═══ */
