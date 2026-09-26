@@ -1793,7 +1793,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
    sur la grille agrandissaient la page entière de Safari — l'application
    sortait de l'écran — au lieu d'agrandir le calendrier. On ne peut pas
    annuler ce geste après coup sur iPhone : il faut le déclarer avant. */
-#majournee .scroller{flex:1 1 auto; min-height:300px; overflow-y:auto; overflow-x:hidden;
+#majournee .scroller{flex:1 1 auto; min-height:0; overflow-y:auto; overflow-x:hidden;
   padding:10px 20px 12px 0; touch-action:pan-y; overscroll-behavior:contain}
 /* ═══ le mois ═══
    Sept colonnes, cinq ou six rangées, et rien d'autre : le numéro du jour, et
@@ -2444,7 +2444,27 @@ summary.carte-tete:hover h2{color:var(--v1)}
    bougeant sous lui : d'où l'impression qu'il « s'agrandit et se
    dégrandit ». Il prend maintenant l'écran, et c'est son contenu qui
    défile à l'intérieur. Le tableau reste en dessous, on y descend. */
-#majournee .app{min-height:calc(100dvh - 104px)}
+/* ═══ l'Agenda est une page, et rien en dessous ═══
+   Elle tenait « presque » sur un écran : trois pixels de trop, et surtout
+   une hauteur MINIMALE. Tout ce qui pouvait apparaître au-dessus du
+   calendrier — le résultat d'une recherche, l'avertissement de
+   chevauchement, le prochain rendez-vous — poussait le reste vers le bas
+   et rendait la page défilante. On y descendait pour retomber sur un
+   morceau de calendrier coupé, sans savoir si c'était le même.
+   La hauteur est désormais exacte. Ce qui s'ajoute prend sa place sur
+   l'écran au lieu de l'agrandir : c'est le calendrier qui se resserre. */
+#majournee .app{height:calc(100dvh - 104px); min-height:0; overflow:hidden}
+#majournee .app > header.top,
+#majournee .app > .quick,
+#majournee .app > .chevauche,
+#majournee .app > .trouve{flex:0 0 auto}
+/* Une recherche est une autre question que « à quoi ressemble ma
+   journée ». Partagé entre les deux, l'écran donnait huit résultats et
+   un ruban de calendrier de 99 px, qui ne servait plus à rien et
+   brouillait la lecture. La recherche prend donc la page, et la rend
+   dès qu'on efface le mot. */
+#majournee .trouve{flex:0 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain}
+#majournee .trouve:not([hidden]) ~ .dayview{display:none}
 #majournee{padding-bottom:104px;background:transparent!important}
 /* Le milieu du dégradé : ce que la grille voit derrière elle. */
 #majournee{--bg:#FBF9F6}
@@ -8352,13 +8372,16 @@ function fitHour(){
 /* La barre du bas ne touche pas le bord : elle flotte. Le calendrier
    peut descendre jusqu'à elle, pas jusqu'au bas de l'écran. */
 var BARRE_BAS = 94;
+/* Cette fonction calculait une hauteur à la main, avec un plancher de
+   280 px : sur un écran court, ou dès qu'un panneau s'ouvrait au-dessus,
+   ce plancher dépassait la place réellement disponible et la page se
+   mettait à défiler. La mise en page s'en charge maintenant — le
+   défileur prend ce qui reste, ni plus ni moins. On ne garde que
+   l'effacement de l'ancienne valeur, pour les pages déjà ouvertes. */
 function cadrerCalendrier(){
   var sc = $('scroller');
   if (!sc || $('majournee').hidden) return;
-  sc.style.height = 'auto';
-  var haut = sc.getBoundingClientRect().top;
-  var dispo = Math.round(window.innerHeight - haut - BARRE_BAS - 14);
-  sc.style.height = Math.max(280, dispo) + 'px';
+  if (sc.style.height) sc.style.height = '';
 }
 
 /* ═══ trois hauteurs, et rien entre les deux ═══
