@@ -998,7 +998,10 @@ button.tuile:active{transform:scale(.985)}
 .btn.lien{border:0;background:none;color:var(--ink-3);text-decoration:underline;padding:6px 2px}
 .en-attente{margin:14px 0 0;text-align:center;font-size:14.5px;color:var(--ink-2)}
 .en-attente b{font-family:var(--num);font-weight:600;color:var(--tard)}
-.paye{padding:16px 22px 22px}
+/* div. : le montant d'une facture réglée porte aussi la classe « paye ».
+   Il en héritait 44 px de marge, ne tenait plus sur la ligne, et la
+   rangée se défaisait en trois étages dès qu'on la marquait payée. */
+div.paye{padding:16px 22px 22px}
 .paye .gros{font-family:var(--num);font-weight:600;font-size:38px;letter-spacing:-.03em;font-variant-numeric:tabular-nums;line-height:1.1;color:var(--ok)}
 .paye .gros.du{color:var(--tard)}
 .paye .lab{font-size:14px;font-weight:600;color:var(--ink-3)}
@@ -1352,6 +1355,10 @@ summary.carte-tete:hover h2{color:var(--v1)}
   .r .r-som{margin-left:auto}
   .r .mini{margin-left:auto}
   .r .sup{position:absolute;top:10px;right:4px;opacity:.45}
+  /* « Jean-Baptiste Marchand-Delacroix Plomberie » tenait sur quatre
+     lignes espacées d'un interligne de paragraphe, à côté de la
+     pastille d'état : 144 px de nom avant le moindre bouton. */
+  .tete-client h2{font-size:21px;line-height:1.22;text-wrap:pretty}
 }
 /* Sur les écrans les plus étroits — un iPhone SE fait 320 points —
    « Comptabilité » se coupait. Entre le mot et le pictogramme, c'est le
