@@ -264,7 +264,29 @@ body.sur-agenda .page{max-width:none;padding:0}
 }
 :root[data-theme="dark"][data-onglet="budget"]{--fond:linear-gradient(180deg,#12110E 0%,#0A0906 100%)}
 
-body{margin:0;background:var(--fond) fixed;color:var(--ink);font-family:var(--ui);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100vh}
+/* ⚠️ `100vh` n'est pas la hauteur de l'écran sur un iPhone : c'est la
+   hauteur que la page AURAIT si les barres de Safari étaient masquées.
+   Tant que le corps portait `min-height:100vh`, il était donc plus haut
+   que ce qu'on voit dès que les barres sont là — et la page défilait de
+   leur hauteur exacte, sans rien montrer de plus. C'est ce défilement
+   pour rien que Sacha subissait sur l'Agenda, alors que le contenu, lui,
+   tenait à l'écran. `100dvh` suit les barres. */
+body{margin:0;background:var(--fond) fixed;color:var(--ink);font-family:var(--ui);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100dvh}
+
+/* ═══ l'Agenda est une page fixe : rien ne bouge ═══
+   Le contenu y tient déjà exactement. Restaient deux façons de faire
+   bouger l'écran sans rien montrer : le débordement ci-dessus, et le
+   rebond élastique d'iOS, qui tire la page entière et la laisse revenir.
+   `overscroll-behavior` supprime le rebond ; le verrou n'est posé que sur
+   cet onglet, Clients et Comptabilité continuant de défiler normalement. */
+html{overscroll-behavior:none}
+:root[data-onglet="afaire"],
+:root[data-onglet="afaire"] body{
+  height:100%; min-height:0; overflow:hidden; overscroll-behavior:none;
+  /* iOS ignore parfois `overflow:hidden` sur le corps ; fixer sa position
+     le rend inamovible, et rien n'a besoin d'y défiler. */
+  position:fixed; inset:0; width:100%;
+}
 /* ═══ le voile sous la barre ═══
    La barre du bas flotte à dix-huit pixels du bord. Dans cette bande, et
    sur les dix pixels de chaque côté, le contenu de la page défilait à nu :
