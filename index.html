@@ -2526,6 +2526,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .rd{display:inline-block;overflow:hidden;height:1.15em;width:1ch;flex:none}
 #ilreste .rc{display:block;transition:transform .6s cubic-bezier(.16,1,.3,1)}
 #ilreste .rc > span{display:block;height:1.15em;line-height:1.15em;text-align:center}
+#ilreste .rlu{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 #ilreste .rs{display:inline-block;white-space:pre}
 @media (prefers-reduced-motion:reduce){#ilreste .rc{transition:none}}
 #ilreste .bloc-disque{display:flex;flex-direction:column;align-items:center;gap:14px}
@@ -10636,17 +10637,22 @@ function Roll(el){ this.el=el; el.classList.add("roll"); this.shape=null; this.c
 Roll.prototype.construire=function(chars,chiffres){
   var prev=this.prev,n=chiffres.length,di=0,self=this;
   this.el.textContent=""; this.cols=[];
+  /* Les rouleaux portent dix chiffres chacun : VoiceOver lisait « 0 1 2 3 4
+     5 6 7 8 9 » à la place du montant. Ils sont cachés à la lecture, le
+     montant en clair est dit par une copie invisible. */
+  this.lu=document.createElement("span"); this.lu.className="rlu";
+  this.el.appendChild(this.lu);
   var frag=document.createDocumentFragment();
   chars.forEach(function(c){
     if(c>="0"&&c<="9"){
-      var cell=document.createElement("span"); cell.className="rd";
+      var cell=document.createElement("span"); cell.className="rd"; cell.setAttribute("aria-hidden","true");
       var col=document.createElement("span"); col.className="rc";
       for(var k=0;k<10;k++){ var g=document.createElement("span"); g.textContent=String(k); col.appendChild(g); }
       cell.appendChild(col); frag.appendChild(cell);
       var dd=n-1-di, depart=self.premier?0:(parseInt(prev[prev.length-1-dd],10)||0);
       col.style.transition="none"; col.style.transform="translateY("+(-depart*10)+"%)";
       self.cols.push(col); di++;
-    } else { var s=document.createElement("span"); s.className="rs"; s.textContent=c; frag.appendChild(s); }
+    } else { var s=document.createElement("span"); s.className="rs"; s.setAttribute("aria-hidden","true"); s.textContent=c; frag.appendChild(s); }
   });
   this.el.appendChild(frag);
   void this.el.offsetHeight;
@@ -10660,6 +10666,7 @@ Roll.prototype.set=function(str){
   if(forme!==this.shape){ this.construire(chars,chiffres); this.shape=forme; }
   var di=0;
   this.cols.forEach(function(col){ col.style.transform="translateY("+(-(parseInt(chiffres[di++],10)||0)*10)+"%)"; });
+  this.lu.textContent=String(str);
   this.prev=chiffres;
 };
 var rouleaux={};
