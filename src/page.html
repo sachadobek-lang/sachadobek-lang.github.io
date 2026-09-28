@@ -39,7 +39,6 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icone.svg" type="image/svg+xml">
 <meta name="theme-color" content="#F5F7FB">
-<link rel="preload" href="polices/nunito-var.woff2" as="font" type="font/woff2" crossorigin>
 <style>
 /* Les deux familles étaient demandées à Google, une graisse par fichier :
    sept fichiers, 317 kilo-octets, précédés d'une résolution DNS et d'une
@@ -48,11 +47,15 @@
    les graisses, et réduit aux 219 caractères que cette application peut
    afficher, le tout tient en 60 kilo-octets. Servies d'ici, elles
    fonctionnent sans réseau et ne signalent plus les visites à personne. */
-@font-face{
-  font-family:"Nunito";
-  src:url("polices/nunito-var.woff2") format("woff2");
-  font-weight:200 1000; font-style:normal; font-display:swap;
-}
+/* ═══ la police du téléphone, pas une police téléchargée ═══
+   Sacha, le 28 septembre 2026 : « mets-la la même que Apple, les nombres
+   ils sont pas beaux ». C'est San Francisco, et elle est déjà sur son
+   iPhone : `-apple-system` la demande au système, qui choisit lui-même
+   entre SF Pro Text et SF Pro Display selon la taille — c'est ce réglage
+   optique qui rend les grands chiffres d'iOS aussi nets.
+   Conséquence : les soixante kilo-octets de Nunito ne sont plus
+   téléchargés du tout, ni préchargés. Le fichier reste sur le disque —
+   on ne supprime rien sans le lui dire. */
 :root{
   color-scheme:light;
   --ground:#EFF3F8; --surface:#FFFFFF; --surface-2:#F5F8FC; --surface-3:#E9EFF6;
@@ -101,18 +104,13 @@
   --o1:0 1px 2px rgba(20,32,46,.04), 0 12px 32px -20px rgba(20,32,46,.28);
   --o2:0 14px 38px -16px rgba(11,70,110,.42);
   --o3:0 18px 46px -14px rgba(20,32,46,.30);
-  --ui:"Nunito",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  --ui-cadence:"Nunito",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  /* Sacha : « j'aime pas la police des numéros, là comme partout ». Les
-     chiffres — et les titres qui partagent cette famille — passent de
-     Outfit à Nunito, qui est déjà la police de tout le reste du texte.
-     L'application parle donc d'une seule voix au lieu de deux.
-     Conséquence mesurée : plus rien n'appelait Outfit, ni son
-     préchargement ni sa déclaration. Vingt-neuf kilo-octets de police
-     cessent d'être téléchargés à chaque première visite — la moitié de
-     ce que les polices coûtaient. Le fichier reste sur le disque : on ne
-     supprime rien sans le lui dire. */
-  --num:"Nunito",-apple-system,BlinkMacSystemFont,sans-serif;
+  --ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI Variable","Segoe UI",system-ui,sans-serif;
+  --ui-cadence:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI Variable","Segoe UI",system-ui,sans-serif;
+  /* Les chiffres prennent la même famille que le texte — une seule voix
+     pour toute l'application — mais avec les chiffres à chasse fixe :
+     sans eux, un 1 est plus étroit qu'un 8 et une colonne de montants
+     danse d'une ligne à l'autre. */
+  --num:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Segoe UI Variable","Segoe UI",system-ui,sans-serif;
   --ressort:cubic-bezier(.34,1.46,.44,1);
   --doux:cubic-bezier(.22,.61,.36,1);
   /* relais pour l'agenda greffé */
@@ -271,7 +269,7 @@ body.sur-agenda .page{max-width:none;padding:0}
    leur hauteur exacte, sans rien montrer de plus. C'est ce défilement
    pour rien que Sacha subissait sur l'Agenda, alors que le contenu, lui,
    tenait à l'écran. `100dvh` suit les barres. */
-body{margin:0;background:var(--fond) fixed;color:var(--ink);font-family:var(--ui);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100dvh}
+body{margin:0;background:var(--fond) fixed;color:var(--ink);font-family:var(--ui);font-size:16px;line-height:1.5;-webkit-font-smoothing:antialiased;min-height:100dvh;font-variant-numeric:tabular-nums}
 
 /* ═══ l'Agenda est une page fixe : rien ne bouge ═══
    Le contenu y tient déjà exactement. Restaient deux façons de faire
@@ -1084,14 +1082,17 @@ div.paye{padding:16px 22px 22px}
 @supports (backdrop-filter:blur(2px)){
   .nav{background:var(--deg-barre);backdrop-filter:blur(22px) saturate(1.6);-webkit-backdrop-filter:blur(22px) saturate(1.6)}
 }
-.nav button{display:flex;align-items:center;justify-content:center;gap:8px;border:0;background:none;color:var(--ink-2);
+.nav button{display:flex;align-items:center;justify-content:center;gap:6px;border:0;background:none;color:var(--ink-2);
   /* « flex:1 1 0 » donnait à chaque onglet un tiers exact, quel que soit
      son mot : « Comptabilité » réclamait 73 px et n'en recevait que 64,
      donc « Comptab… ». Mesuré à texte agrandi. La base devient le
      contenu — chacun garde son mot entier, et le reste de la place se
      partage. */
-  flex:1 1 auto;min-width:0;min-height:52px;padding:12px 11px;border-radius:999px;
-  font-size:15px;font-weight:700;white-space:nowrap;transition:color .2s var(--doux),background .25s var(--doux),transform .15s}
+  /* Resserré le 28 septembre 2026 : la police du système est plus large
+     que celle d'avant, et « Comptabilité » redevenait « Comptabili… ».
+     Le mot passe avant le confort du rembourrage. */
+  flex:1 1 auto;min-width:0;min-height:52px;padding:12px 8px;border-radius:999px;
+  font-size:14px;font-weight:600;white-space:nowrap;transition:color .2s var(--doux),background .25s var(--doux),transform .15s}
 /* l'onglet ouvert porte son nom : il lui faut un peu plus de place */
 .nav button[aria-current="page"]{flex:1.7 1 auto}
 /* ═══ quand on agrandit, les mots passent avant les dessins ═══
@@ -1100,7 +1101,7 @@ div.paye{padding:16px 22px 22px}
    doit céder, et ce n'est pas le mot : « Comptabilité » devenait
    « Comptab… » précisément pour la personne qui avait demandé à mieux
    lire. Les dessins s'en vont, les mots restent entiers. */
-.nav button svg{width:21px;height:21px;flex:none;stroke-width:2.1;fill:none}
+.nav button svg{width:20px;height:20px;flex:none;stroke-width:2.1;fill:none}
 :root[data-taille="grand"] .nav button svg,
 :root[data-taille="max"] .nav button svg{display:none}
 /* Et surtout : aucun onglet ne descend sous la largeur de son mot.
