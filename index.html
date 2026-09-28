@@ -4185,6 +4185,8 @@ function vueProfil(){
        et ne doit pas avoir à faire défiler cinq cartes pour trouver. */
     + carteTaille()
 
+    + carteCalendrier()
+
     + '<section class="carte anim" style="animation-delay:.04s">'
       + '<div class="carte-tete"><h2>Vos coordonnées</h2></div>'
       + pfLigne("Nom", m.nom)
@@ -4333,6 +4335,37 @@ function carteAbri(){
     + '<div class="pf-gestes"><button data-sauver="1">Enregistrer une copie dans un fichier</button></div>'
     + '<p class="pf-note">Une copie dans un fichier est utile, mais elle demande un geste — '
     + "et l'effacement arrive justement quand on n'en fait plus.</p>"
+  + "</section>";
+}
+
+/* ═══ envoyer l'agenda dans le calendrier du téléphone ═══
+   Le pont qui fabrique le fichier existait depuis longtemps, mais aucun
+   bouton ne l'appelait : on ne pouvait envoyer qu'un rendez-vous à la
+   fois, depuis sa fiche. Celui-ci les envoie tous, avec leurs deux
+   rappels — un quart d'heure avant, puis à l'heure. */
+async function envoyerAuCalendrier(){
+  const A = window.__AGENDA__;
+  if(!A || !A.ics){ bulle("L'agenda n'est pas prêt"); return; }
+  const texte = A.ics();
+  if(texte.indexOf("BEGIN:VEVENT") < 0){ bulle("Aucun rendez-vous à envoyer"); return; }
+  /* livrerTexte n'est pas une fonction de ce bloc : elle vit sur le pont,
+     parce que c'est l'autre bloc qui s'en sert aussi. */
+  const ok = await window.__CADENCE__.livrerTexte(texte, "cura-agenda.ics", "text/calendar");
+  if(ok) bulle("Ouvrez le fichier : votre téléphone ajoutera tout");
+}
+
+function carteCalendrier(){
+  const A = window.__AGENDA__;
+  const combien = (A && A.combien) ? A.combien() : 0;
+  return '<section class="carte anim" style="animation-delay:.06s">'
+    + '<div class="carte-tete"><h2>Vos rendez-vous sur le téléphone</h2>'
+    + '<span class="appoint">' + combien + (combien > 1 ? " rendez-vous" : " rendez-vous") + "</span></div>"
+    + '<p class="pf-note" style="padding-top:0">Votre téléphone vous préviendra '
+    + "<b>un quart d'heure avant</b> chaque rendez-vous, puis <b>à l'heure</b> — "
+    + "même si Cura est fermée, même sans réseau.</p>"
+    + '<div class="pf-gestes"><button class="plein" data-cal="1">Envoyer dans mon calendrier</button></div>'
+    + '<p class="pf-note">Ouvrez le fichier quand il arrive : le téléphone vous '
+    + "proposera de tout ajouter. À refaire après avoir pris de nouveaux rendez-vous.</p>"
   + "</section>";
 }
 
@@ -7334,6 +7367,7 @@ $("#vue").addEventListener("click", e => {
     return;
   }
   if(b.dataset.sauver){ exporterTout(); return; }
+  if(b.dataset.cal){ envoyerAuCalendrier(); return; }
   if(b.dataset.restaurer){
     if(!armer(b)) return;
     importerTout();
@@ -10295,8 +10329,27 @@ function icsDe(evs){
     L.push('DTSTART:' + icsQuand(e.date, debut));
     L.push('DTEND:' + icsQuand(e.date, debut + duree));
     L.push(icsPlier('SUMMARY:' + icsEchap(e.title || 'Rendez-vous')));
+    var ou = String(e.lieu || '').trim();
+    if (ou) L.push(icsPlier('LOCATION:' + icsEchap(ou)));
     if (e.rep === 'week') L.push('RRULE:FREQ=WEEKLY');
     else if (e.rep === 'day') L.push('RRULE:FREQ=DAILY');
+    /* ═══ les deux rappels ═══
+       Sacha, le 28 septembre 2026 : être prévenu un quart d'heure avant,
+       puis à l'heure du rendez-vous.
+       Ils sont écrits DANS le rendez-vous, pas dans l'application, et
+       c'est tout l'intérêt : c'est le téléphone qui sonne, avec ses
+       propres notifications, même Cura fermée, même sans réseau, même
+       des mois plus tard. Une alarme portée par l'application aurait
+       demandé une permission, un service d'envoi et un serveur — et se
+       serait tue dès que le téléphone met la page en sommeil.
+       TRIGGER se compte depuis le début : négatif pour « avant ». */
+    ['-PT15M', 'PT0S'].forEach(function(quand){
+      L.push('BEGIN:VALARM');
+      L.push('ACTION:DISPLAY');
+      L.push(icsPlier('DESCRIPTION:' + icsEchap(e.title || 'Rendez-vous')));
+      L.push('TRIGGER:' + quand);
+      L.push('END:VALARM');
+    });
     L.push('END:VEVENT');
   });
   L.push('END:VCALENDAR');
@@ -10359,10 +10412,11 @@ $('versCal').addEventListener('click', function(){
   if (!C || !C.livrerTexte) return;
   var texte = icsDe([{
     id: state.editing || ('cura-' + Date.now()),
-    date: d.date, title: d.title, start: d.start, dur: d.dur, rep: d.rep
+    date: d.date, title: d.title, start: d.start, dur: d.dur, rep: d.rep,
+    lieu: d.lieu
   }]);
   C.livrerTexte(texte, nomFichier(d.title) + '.ics', 'text/calendar').then(function(ok){
-    if (ok) C.dire('Ouvrez le fichier : votre téléphone l’ajoutera');
+    if (ok) C.dire('Ouvrez le fichier : votre téléphone l’ajoutera, avec un rappel 15 min avant');
   });
 });
 
