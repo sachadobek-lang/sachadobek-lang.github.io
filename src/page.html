@@ -2684,11 +2684,24 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .cadre,#ilreste .card,#ilreste .echeance{
   border:0;border-radius:var(--rl);background:var(--surface);box-shadow:var(--o1);padding:21px 22px}
 #ilreste .cadre .v{font-size:38px;letter-spacing:-.03em;line-height:1.1}
+/* Le disque reste à l'écran tant que rien n'est encaissé, mais gris et
+   endormi : la légende dirait deux fois « 0 € », et l'attente n'a rien à
+   annoncer. */
+#ilreste .bloc-disque.dort .legende,
+#ilreste .bloc-disque.dort .en-attente{display:none}
+#ilreste .bloc-disque.dort{gap:0}
+
 #ilreste .vierge-argent{border-radius:var(--rl);background:var(--surface);box-shadow:var(--o1);
-  padding:30px 24px 26px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:9px}
+  padding:22px 24px 24px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:9px}
+
 #ilreste .vierge-argent .rond{width:54px;height:54px;border-radius:999px;background:var(--moi-bg);
   color:var(--moi);display:grid;place-items:center;margin-bottom:3px}
 #ilreste .vierge-argent .rond svg{width:25px;height:25px}
+/* Le rond faisait doublon avec le disque, désormais juste au-dessus.
+   Cette règle était posée plus haut que celle qui le dessine : à
+   spécificité égale, c'est la dernière qui l'emporte, et le rond
+   restait visible. */
+#ilreste .vierge-argent .rond{display:none}
 #ilreste .vierge-argent h3{margin:0;font-size:18.5px;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
 #ilreste .vierge-argent p{margin:0;font-size:14.5px;line-height:1.5;color:var(--ink-soft);max-width:31ch}
 #ilreste .vierge-argent button{margin-top:9px;border:0;border-radius:999px;cursor:pointer;
@@ -2988,23 +3001,6 @@ summary.carte-tete:hover h2{color:var(--v1)}
          faisait que retarder le disque, qui est la réponse de cet écran.
          Mon argent commence donc par ce qu'on vient y chercher. -->
 
-    <!-- Au premier lancement, cet écran était un anneau gris de 430 px
-         qui affichait « 0 € » cinq fois. C'est la première chose qu'un
-         artisan voit en ouvrant Comptabilité : elle ne disait ni ce que
-         l'écran fait, ni comment le remplir. -->
-    <section class="vierge-argent" id="vierge-argent" hidden>
-      <span class="rond" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
-             stroke-linecap="round" stroke-linejoin="round">
-          <path d="M3 17.5 9.5 11l4 4L21 7"/><path d="M15.5 7H21v5.5"/>
-        </svg>
-      </span>
-      <h3 id="vierge-titre">Votre argent apparaîtra ici</h3>
-      <p id="vierge-texte">Dès votre première facture encaissée, vous verrez ce qui
-         vous reste vraiment, une fois les cotisations mises de côté.</p>
-      <button type="button" id="vierge-faire">Faire une facture</button>
-    </section>
-
     <div class="bloc-disque">
       <div class="disc">
         <!-- Trois arcs de SVG jusqu'ici. C'est maintenant un nuage de
@@ -3034,6 +3030,23 @@ summary.carte-tete:hover h2{color:var(--v1)}
           <span class="v" id="v-urssaf">—</span></div>
       </div>
     </div>
+
+    <!-- Au premier lancement, cet écran était un anneau gris de 430 px
+         qui affichait « 0 € » cinq fois. C'est la première chose qu'un
+         artisan voit en ouvrant Comptabilité : elle ne disait ni ce que
+         l'écran fait, ni comment le remplir. -->
+    <section class="vierge-argent" id="vierge-argent" hidden>
+      <span class="rond" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 17.5 9.5 11l4 4L21 7"/><path d="M15.5 7H21v5.5"/>
+        </svg>
+      </span>
+      <h3 id="vierge-titre">Votre argent apparaîtra ici</h3>
+      <p id="vierge-texte">Dès votre première facture encaissée, vous verrez ce qui
+         vous reste vraiment, une fois les cotisations mises de côté.</p>
+      <button type="button" id="vierge-faire">Faire une facture</button>
+    </section>
 
     <div class="echeance">
       <span class="compte"><b id="e-nb">—</b><span id="e-unite">jours</span></span>
@@ -10824,7 +10837,7 @@ var NUAGE = (function(){
      À vrai, la boucle tourne ; tant que la toile n'a pas de surface,
      `mesurer()` échoue et l'image se termine en trois instructions. */
   var fr = 0, t0 = 0, doigt = null, appui = 0, vivant = true, tourne = false, lent = 0;
-  var f0 = 1, f1 = 0, f2 = 0;
+  var f0 = 1, f1 = 0, f2 = 0, dort = false;
   var cols = null, colFr = -99;
 
   function lire(c){
@@ -10841,7 +10854,8 @@ var NUAGE = (function(){
     var cs = window.getComputedStyle(cv);
     cols = [lire(cs.getPropertyValue("--moi")),
             lire(cs.getPropertyValue("--tva")),
-            lire(cs.getPropertyValue("--urssaf"))];
+            lire(cs.getPropertyValue("--urssaf")),
+            lire(cs.getPropertyValue("--ink-faint"))];
     return cols;
   }
 
@@ -10906,8 +10920,12 @@ var NUAGE = (function(){
     ctx.restore();
   }
 
-  /* les bandes du moment, le petit vide déjà retiré */
+  /* les bandes du moment, le petit vide déjà retiré.
+     Rien d'encaissé ne veut pas dire rien à montrer : l'anneau se lève
+     quand même, entier et gris — c'est la première chose qu'on voit en
+     ouvrant Comptabilité, et un écran vide ne dit pas ce qu'il fera. */
   function bandes(){
+    if(dort) return [{a: 0, z: 1, s: 0}];
     var f = [f0, f1, f2], b = [], u = 0, vivants = 0, j;
     for(j = 0; j < 3; j++) if(f[j] > 0.0015) vivants++;
     var g = vivants > 1 ? GAPU : 0;
@@ -11006,7 +11024,7 @@ var NUAGE = (function(){
       acc[i0 + S + 1]  += br * fxp * fyp;
     }
 
-    var c = couleurs(), c0 = c[0], c1 = c[1], c2 = c[2];
+    var c = couleurs(), c0 = dort ? c[3] : c[0], c1 = c[1], c2 = c[2];
     var n2 = S * S;
     for(var q = 0, o = 0; q < n2; q++, o += 4){
       var a0 = A0[q], a1 = A1[q], a2 = A2[q], tot = a0 + a1 + a2;
@@ -11083,6 +11101,7 @@ var NUAGE = (function(){
     /* le partage du moment ; en mouvement réduit on repeint à la main */
     parts: function(a, b2, c3){
       f0 = a || 0; f1 = b2 || 0; f2 = c3 || 0;
+      dort = (f0 + f1 + f2) < 0.001;
       if(doux && cv) peindre();
     }
   };
@@ -11114,7 +11133,11 @@ function rendreArgent(){
     bloc.hidden = !vierge;
     var disque = document.querySelector("#p-argent .bloc-disque");
     var garde  = document.querySelector("#p-argent .cadre");
-    if(disque) disque.hidden = vierge;
+    /* Le disque était retiré tant que rien n'était encaissé, et on
+       n'avait donc jamais l'objet sous les yeux en ouvrant l'écran. Il
+       reste : gris, entier, endormi. Seules la légende — deux fois
+       « 0 € » — et la mise de côté disparaissent. */
+    if(disque){ disque.hidden = false; disque.classList.toggle("dort", vierge); }
     if(garde)  garde.hidden  = vierge;
     if(vierge){
       $("vierge-titre").textContent = du > 0 ? "Rien n'est encore rentré"
