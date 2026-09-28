@@ -4669,8 +4669,11 @@ function fiche(c){
   const nb = (c.notes || []).length;
   return '<article class="fiche" data-client="' + h(c.id) + '"><h3>' + h(c.nom) + "</h3>"
     + (c.projet ? '<p class="projet">' + h(c.projet) + "</p>" : "")
-    + '<div class="fiche-pied"><span class="chiffres">' + eur(fx) + "<small>facturé"
-    + (nb ? " · " + nb + " note" + (nb > 1 ? "s" : "") : "") + "</small></span>"
+    /* « 0 € facturé » sous l'intitulé « Pas encore facturés » répétait la
+       même chose en chiffres, et un zéro se lit comme un total. */
+    + '<div class="fiche-pied">' + (fx || nb ? '<span class="chiffres">' + (fx ? eur(fx) : "")
+    + "<small>" + (fx ? "facturé" : "") + (fx && nb ? " · " : "")
+    + (nb ? nb + " note" + (nb > 1 ? "s" : "") : "") + "</small></span>" : "")
     + '<button class="etat-btn ' + e[1] + '" data-etat="' + h(c.id) + '" title="Appuyez pour changer">' + e[0] + "</button>"
     + joindreMenu(c)
     + '<button class="sup" data-sup="clients" data-id="' + h(c.id) + '"><span class="mot">Supprimer</span></button></div></article>';
