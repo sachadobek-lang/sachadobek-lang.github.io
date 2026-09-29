@@ -2772,12 +2772,10 @@ summary.carte-tete:hover h2{color:var(--v1)}
    éteint, la tête de lumière, les trois à-coups d'amorçage, les
    étincelles aux coudes, le halo bleu, la nappe de fond — n'était pas
    du gaspillage : c'était une autre direction, celle d'avant. */
-/* Les valeurs du fond clair sont écrites en clair, pas prises dans
-   --fond : le voile se peint AVANT que le script ne pose data-theme,
-   et sur un téléphone réglé en sombre la variable aurait rendu le
-   dégradé nocturne — flèche graphite sur fond noir, invisible. */
+/* Noir, comme Revolut. Une valeur écrite en clair et non une variable :
+   le voile se peint AVANT que le script ne pose le thème. */
 #demarrage{position:fixed;inset:0;z-index:200;
-  background:linear-gradient(180deg,#F5F7FB 0%,#EBEEF4 100%);
+  background:#000;
   display:flex;align-items:center;justify-content:center;
   opacity:1;transition:opacity .28s var(--doux)}
 #demarrage.parti{opacity:0;pointer-events:none}
@@ -2786,15 +2784,24 @@ summary.carte-tete:hover h2{color:var(--v1)}
    sixième de l'écran, pas la moitié : c'est la retenue qui fait le
    sérieux. */
 #demarrage .marque{display:grid;place-content:center;
-  animation:demPose .52s var(--doux) forwards}
+  animation:demPose .52s var(--doux) forwards;
+  filter:drop-shadow(0 0 10px rgba(150,190,255,.20))}
 @keyframes demPose{from{transform:scale(.965)} to{transform:scale(1)}}
 #demarrage .marque svg{width:min(44vw,164px);height:auto;display:block}
 
-/* Un seul geste : le trait se tire, du bas vers le haut, dans le sens de
-   la flèche. Rien d'autre ne bouge. */
-#demarrage .trait{stroke-dasharray:76;stroke-dashoffset:76;
-  animation:demTirer .44s cubic-bezier(.62,.03,.2,1) forwards}
-@keyframes demTirer{to{stroke-dashoffset:0}}
+/* ═══ la lumière comme signe de chargement ═══
+   Sacha, le 29 septembre 2026 : « le fond du chargement c'est noir et
+   il y a de la lumière en signe de chargement sur le logo, mais garde
+   l'esprit Revolut ».
+   Donc pas un néon : un rail éteint, et UNE lueur qui le parcourt en
+   boucle. C'est elle qui dit « ça travaille », et elle le dit sans
+   crépiter — pas de tremblement, pas d'étincelles, pas de halo large.
+   Le rail paraît d'abord, la lueur part ensuite : la chose existe avant
+   qu'on l'éclaire. */
+#demarrage .rail{opacity:0;animation:demRail .22s var(--doux) forwards}
+@keyframes demRail{to{opacity:1}}
+#demarrage .lueur{opacity:0;animation:demLueur .3s .18s var(--doux) forwards}
+@keyframes demLueur{to{opacity:1}}
 
 /* La sortie ne fait pas de numéro : la marque avance de trois centièmes
    pendant qu'elle s'efface, et l'application est déjà là — même fond,
@@ -2803,8 +2810,10 @@ summary.carte-tete:hover h2{color:var(--v1)}
 @keyframes demPartir{to{transform:scale(1.03)}}
 
 @media (prefers-reduced-motion:reduce){
+  /* Le rail reste allumé ; c'est la lueur qui court qu'on retire. */
   #demarrage .marque{animation:none}
-  #demarrage .trait{stroke-dasharray:none;stroke-dashoffset:0;animation:none}
+  #demarrage .rail{animation:none;opacity:1}
+  #demarrage .lueur{display:none}
   #demarrage.parti .marque{animation:none}
 }
 
@@ -2814,14 +2823,27 @@ summary.carte-tete:hover h2{color:var(--v1)}
   <span class="marque">
     <svg viewBox="17 25 66 42" aria-hidden="true">
       <defs>
-        <!-- le dégradé de l'application, du graphite au presque noir -->
-        <linearGradient id="dem-encre" gradientUnits="userSpaceOnUse" x1="22" y1="62" x2="78" y2="30">
-          <stop offset="0" stop-color="#3A465A"/>
-          <stop offset="1" stop-color="#11161E"/>
+        <!-- La lueur qui remonte le rail. L'axe du dégradé est donné en
+             coordonnées du dessin, et ce sont ses deux extrémités qu'on
+             anime : elle entre par le bas et sort par le haut. La flèche
+             vit entre 30 et 62 ; on part de 96 pour arriver à -34, afin
+             qu'elle la traverse entièrement au lieu d'apparaître et de
+             disparaître à l'intérieur. -->
+        <linearGradient id="dem-course" gradientUnits="userSpaceOnUse" x1="50" y1="96" x2="50" y2="68">
+          <stop offset="0"   stop-color="#CFE2FF" stop-opacity="0"/>
+          <stop offset=".5"  stop-color="#FFFFFF" stop-opacity=".95"/>
+          <stop offset="1"   stop-color="#CFE2FF" stop-opacity="0"/>
+          <animate attributeName="y1" values="96;-6"  dur="1.15s" repeatCount="indefinite"/>
+          <animate attributeName="y2" values="68;-34" dur="1.15s" repeatCount="indefinite"/>
         </linearGradient>
       </defs>
-      <path class="trait" d="M22 62 L40 46 L52 55 L78 30" fill="none"
-            stroke="url(#dem-encre)" stroke-width="6"
+      <!-- le rail, éteint -->
+      <path class="rail" d="M22 62 L40 46 L52 55 L78 30" fill="none"
+            stroke="#3A4757" stroke-width="6"
+            stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- la lueur, qui le parcourt -->
+      <path class="lueur" d="M22 62 L40 46 L52 55 L78 30" fill="none"
+            stroke="url(#dem-course)" stroke-width="6"
             stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   </span>
@@ -7596,27 +7618,32 @@ window.addEventListener("resize", () => {
     if(parti) return;
     parti = true;
     voile.classList.add("parti");
+    rendreLaCouleur();
     setTimeout(() => { if(voile.parentNode) voile.parentNode.removeChild(voile); }, 400);
   };
   /* Un plancher de durée. Sans lui, une page qui se peint en cinquante
      millisecondes fait clignoter le voile, ce qui est pire que pas de
      voile du tout : on croit à un défaut d'affichage. */
-  /* La barre d'état n'a plus rien à faire ici : le voile porte
-     désormais le fond même de l'application, donc la couleur déclarée
-     dans l'en-tête est déjà la bonne, du premier instant au dernier. */
+  /* Sur un téléphone, la barre d'état prend la couleur déclarée par la
+     page. Au-dessus d'un voile noir elle serait restée claire, avec un
+     liseré blanc en haut pendant toute l'ouverture. On l'accorde au
+     voile, et on lui rend sa couleur quand il s'efface. */
+  const meta = document.querySelector('meta[name="theme-color"]');
+  const couleurApp = meta ? meta.getAttribute('content') : null;
+  if(meta) meta.setAttribute('content', '#000000');
+  const rendreLaCouleur = () => { if(meta && couleurApp) meta.setAttribute('content', couleurApp); };
 
   /* Le plancher était à 480 millisecondes, pour une charge qui en dure
      1 150 : sur une page qui se peint vite, on n'en voyait que le premier
      tiers — le point de lumière grandissait un peu, et l'écran partait
      avant que la barre ne s'allume. Le geste n'existait que pour celui
      qui avait un téléphone lent.
-     La séquence dure maintenant 520 millisecondes : 440 pour tirer le
-     trait, et la pose qui l'accompagne. Le plancher tombe donc de 900 à
-     620 — un écran d'ouverture à la manière d'Apple se fait oublier, il
-     ne se regarde pas. */
+     La lueur met 1,15 s à parcourir le rail. Le plancher est à 760 :
+     assez pour en voir passer une, pas assez pour attendre. Un écran
+     d'ouverture se fait oublier, il ne se regarde pas. */
   const depart = Date.now();
   window.__finDuDemarrage__ = () => {
-    const reste = Math.max(0, 620 - (Date.now() - depart));
+    const reste = Math.max(0, 760 - (Date.now() - depart));
     setTimeout(effacer, reste);
   };
   setTimeout(effacer, 3000);
