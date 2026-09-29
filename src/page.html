@@ -2760,134 +2760,51 @@ summary.carte-tete:hover h2{color:var(--v1)}
    les étincelles partagent la même horloge de six secondes : la
    décharge se voit au moment même où le tube faiblit, sinon ce sont
    deux accidents sans rapport. */
+/* ═══ l'écran d'ouverture, à la manière d'Apple et de Revolut ═══
+   Sacha, le 29 septembre 2026 : « rends l'écran de chargement dans le
+   même style qu'Apple, Revolut ». Ces deux-là font l'inverse d'un néon
+   qui crépite, et la règle d'Apple est explicite : un écran d'ouverture
+   ressemble au premier écran de l'application, sans texte et sans
+   spectacle. Un fond noir qui s'ouvre sur une application claire est
+   précisément le clignotement qu'ils évitent.
+   Donc : le fond même de l'application, la marque à sa taille normale,
+   un seul geste, et c'est fini. Ce qui est parti avec le néon — le tube
+   éteint, la tête de lumière, les trois à-coups d'amorçage, les
+   étincelles aux coudes, le halo bleu, la nappe de fond — n'était pas
+   du gaspillage : c'était une autre direction, celle d'avant. */
+/* Les valeurs du fond clair sont écrites en clair, pas prises dans
+   --fond : le voile se peint AVANT que le script ne pose data-theme,
+   et sur un téléphone réglé en sombre la variable aurait rendu le
+   dégradé nocturne — flèche graphite sur fond noir, invisible. */
 #demarrage{position:fixed;inset:0;z-index:200;
-  background:#000;
+  background:linear-gradient(180deg,#F5F7FB 0%,#EBEEF4 100%);
   display:flex;align-items:center;justify-content:center;
-  opacity:1;transition:opacity .42s var(--doux)}
+  opacity:1;transition:opacity .28s var(--doux)}
 #demarrage.parti{opacity:0;pointer-events:none}
 
-/* Le noir n'était pas noir, il était plat : un mur, et la flèche posée
-   dessus. Une nappe bleue très basse, derrière elle, lui donne un fond
-   où exister. */
-#demarrage::before{content:"";position:absolute;inset:0;
-  background:radial-gradient(58% 42% at 50% 47%, rgba(48,104,190,.20), rgba(10,24,48,.07) 46%, transparent 72%);
-  opacity:0;animation:demNappe 1.5s var(--doux) forwards}
-@keyframes demNappe{to{opacity:1}}
-
-/* Le halo le plus large est porté ici, en CSS : un filtre SVG est coupé
-   par le cadre du dessin, un filtre CSS en déborde. Teinté, jamais
-   blanc — c'est la couleur du gaz qui donne l'impression de néon.
-   Il n'est pas là dès la première image : il enfle avec la lumière qui
-   remplit le tube, et retombe une fois le tube plein. Sans ce décalage,
-   la lueur précédait la chose qui l'émet. */
+/* Petite. Les marques d'ouverture d'Apple et de Revolut occupent un
+   sixième de l'écran, pas la moitié : c'est la retenue qui fait le
+   sérieux. */
 #demarrage .marque{display:grid;place-content:center;
-  filter:drop-shadow(0 0 10px rgba(236,244,255,.46))
-         drop-shadow(0 0 34px rgba(198,222,255,.24))
-         drop-shadow(0 0 92px rgba(120,175,255,.12));
-  animation:demSouffle 1.1s var(--doux) forwards}
-@keyframes demSouffle{
-  0%{filter:drop-shadow(0 0 3px rgba(236,244,255,.20))
-            drop-shadow(0 0 11px rgba(198,222,255,.10))
-            drop-shadow(0 0 34px rgba(120,175,255,.04))}
-  70%{filter:drop-shadow(0 0 12px rgba(236,244,255,.52))
-            drop-shadow(0 0 40px rgba(198,222,255,.28))
-            drop-shadow(0 0 102px rgba(120,175,255,.14))}
-  100%{filter:drop-shadow(0 0 10px rgba(236,244,255,.46))
-            drop-shadow(0 0 34px rgba(198,222,255,.24))
-            drop-shadow(0 0 92px rgba(120,175,255,.12))}
-}
-/* Un trait fin occupe moins l'écran qu'un trait épais : à taille égale,
-   la flèche paraissait avoir rétréci. Elle reprend les vingt pixels que
-   la finesse lui a pris. */
-#demarrage .marque svg{width:min(92vw,384px);height:auto;display:block;overflow:visible}
+  animation:demPose .52s var(--doux) forwards}
+@keyframes demPose{from{transform:scale(.965)} to{transform:scale(1)}}
+#demarrage .marque svg{width:min(44vw,164px);height:auto;display:block}
 
-/* ═══ le verre, puis la lumière dedans ═══
-   La flèche était allumée dès la première image : elle n'arrivait pas,
-   elle était déjà là. Le tube éteint paraît maintenant en premier — à
-   peine plus clair que le noir — et la lumière le remplit du bas vers le
-   haut, dans le sens de la flèche. Sans le tube éteint, la lumière
-   traçait un trait dans le vide : on ne voyait pas un néon s'allumer, on
-   voyait un crayon dessiner.
-   Le dessin fait 75,2 unités de long ; 76 couvre tout sans laisser de
-   reste visible au départ. */
-#demarrage .verre{opacity:0;animation:demVerre .34s var(--doux) forwards}
-@keyframes demVerre{to{opacity:1}}
-#demarrage .tube path{stroke-dasharray:76;stroke-dashoffset:76;
-  animation:demTrace .72s cubic-bezier(.52,.06,.28,1) forwards}
-@keyframes demTrace{to{stroke-dashoffset:0}}
-/* La courbe de cette course n'est pas une décélération : c'est une
-   charge. Lente à s'établir, rapide au milieu, elle se pose à la pointe.
-   Mesuré : 6 % à 120 ms, 29 % à 240, 69 % à 360, 98 % à 600. */
+/* Un seul geste : le trait se tire, du bas vers le haut, dans le sens de
+   la flèche. Rien d'autre ne bouge. */
+#demarrage .trait{stroke-dasharray:76;stroke-dashoffset:76;
+  animation:demTirer .44s cubic-bezier(.62,.03,.2,1) forwards}
+@keyframes demTirer{to{stroke-dashoffset:0}}
 
-/* La tête de lumière court devant, à la frontière entre le tube plein et
-   le tube vide. C'est elle qu'on suit des yeux. */
-#demarrage .tete{stroke-dasharray:0.1 76;stroke-dashoffset:76;
-  animation:demTete .72s cubic-bezier(.52,.06,.28,1) forwards}
-@keyframes demTete{
-  0%{stroke-dashoffset:76;opacity:0}
-  8%{opacity:1}
-  88%{opacity:1}
-  100%{stroke-dashoffset:0;opacity:0}
-}
-
-/* La décharge qui remonte le tube n'a de sens qu'une fois le tube plein :
-   avant, elle courrait dans un verre vide. */
-#demarrage .courant{opacity:0;animation:demCourantParait .5s .78s linear forwards}
-@keyframes demCourantParait{to{opacity:1}}
-
-/* ═══ l'amorçage, puis le tremblement ═══
-   Un néon n'atteint pas son plein d'un coup : il accroche, rate, reprend.
-   Les trois à-coups tombent juste après la fin du tracé — 10 % de 6,6 s
-   font 660 ms. Ensuite, six secondes de calme entre deux séries, sinon le
-   défaut devient le sujet. */
-#demarrage .tube{animation:demAmorce 6.6s linear forwards, demTremble 6.6s 1.1s linear infinite}
-@keyframes demAmorce{
-  0%,10%{opacity:1}
-  10.4%{opacity:.26} 11.1%{opacity:1}
-  12.2%{opacity:.46} 12.9%{opacity:1}
-  100%{opacity:1}
-}
-#demarrage .etincelle{opacity:0;animation:demEtincelle 6.6s 1.1s linear infinite}
-@keyframes demTremble{
-  0%,40.8%{opacity:1}
-  41.1%{opacity:.62} 41.5%{opacity:1}
-  45.6%{opacity:1}   45.9%{opacity:.78} 46.3%{opacity:1}
-  72.4%{opacity:1}   72.7%{opacity:.58} 73.2%{opacity:1}
-  100%{opacity:1}
-}
-@keyframes demEtincelle{
-  0%,40.7%{opacity:0}
-  41.1%{opacity:.95} 41.9%{opacity:0}
-  45.5%{opacity:0}   45.9%{opacity:.55} 46.5%{opacity:0}
-  72.3%{opacity:0}   72.7%{opacity:.9}  73.5%{opacity:0}
-  100%{opacity:0}
-}
-
-/* ═══ la sortie ═══
-   Elle s'éteignait comme on éteint un écran : l'opacité tombait, et
-   l'application apparaissait à la place. Elle s'ouvre maintenant — la
-   flèche s'éloigne d'un dixième pendant que le fond se retire, ce qui
-   donne à l'application l'air d'arriver par-derrière plutôt que de
-   remplacer un vide. */
-#demarrage.parti .marque{animation:demSortie .42s var(--doux) forwards}
-@keyframes demSortie{
-  0%{transform:scale(1)}
-  38%{transform:scale(1.045)}
-  100%{transform:scale(1.10)}
-}
-#demarrage.parti::before{opacity:0;transition:opacity .34s}
+/* La sortie ne fait pas de numéro : la marque avance de trois centièmes
+   pendant qu'elle s'efface, et l'application est déjà là — même fond,
+   donc rien ne clignote. */
+#demarrage.parti .marque{animation:demPartir .28s var(--doux) forwards}
+@keyframes demPartir{to{transform:scale(1.03)}}
 
 @media (prefers-reduced-motion:reduce){
-  /* Le tube reste allumé, le gaz reste coloré : on ne retire que ce qui
-     bouge — le tracé, la montée, le tremblement et les décharges. */
-  #demarrage .courant,
-  #demarrage .tete,
-  #demarrage .etincelle{display:none}
-  #demarrage .tube{animation:none}
-  #demarrage .tube path{stroke-dasharray:none;stroke-dashoffset:0;animation:none}
-  #demarrage .verre,
-  #demarrage::before{animation:none;opacity:1}
   #demarrage .marque{animation:none}
+  #demarrage .trait{stroke-dasharray:none;stroke-dashoffset:0;animation:none}
   #demarrage.parti .marque{animation:none}
 }
 
@@ -2897,80 +2814,15 @@ summary.carte-tete:hover h2{color:var(--v1)}
   <span class="marque">
     <svg viewBox="17 25 66 42" aria-hidden="true">
       <defs>
-        <filter id="dem-gaz" x="-80%" y="-80%" width="260%" height="260%">
-          <feGaussianBlur stdDeviation="2.4"/>
-        </filter>
-        <filter id="dem-lueur" x="-70%" y="-70%" width="240%" height="240%">
-          <feGaussianBlur stdDeviation="0.95"/>
-        </filter>
-        <filter id="dem-tete" x="-300%" y="-300%" width="700%" height="700%">
-          <feGaussianBlur stdDeviation="1.9" result="f"/>
-          <feMerge><feMergeNode in="f"/><feMergeNode in="f"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-        <filter id="dem-floraison" x="-70%" y="-70%" width="240%" height="240%">
-          <feGaussianBlur stdDeviation="1.5" result="f"/>
-          <feMerge><feMergeNode in="f"/><feMergeNode in="f"/><feMergeNode in="SourceGraphic"/></feMerge>
-        </filter>
-        <!-- La décharge qui remonte le tube. L'axe du dégradé est donné
-             en coordonnées du dessin, et ce sont ses deux extrémités
-             qu'on anime : elle entre par le bas et sort par le haut. La
-             flèche vit entre 30 et 62 ; on va de 104 à -48 pour qu'elle
-             la traverse entièrement au lieu d'apparaître et de
-             disparaître à l'intérieur. -->
-        <linearGradient id="dem-courant" gradientUnits="userSpaceOnUse" x1="50" y1="104" x2="50" y2="72">
-          <stop offset="0"   stop-color="#CFE6FF" stop-opacity="0"/>
-          <stop offset=".40" stop-color="#EAF4FF" stop-opacity=".85"/>
-          <stop offset=".5"  stop-color="#FFFFFF" stop-opacity="1"/>
-          <stop offset=".60" stop-color="#EAF4FF" stop-opacity=".85"/>
-          <stop offset="1"   stop-color="#CFE6FF" stop-opacity="0"/>
-          <animate attributeName="y1" values="104;-16" dur="2.2s" repeatCount="indefinite"/>
-          <animate attributeName="y2" values="72;-48" dur="2.2s" repeatCount="indefinite"/>
+        <!-- le dégradé de l'application, du graphite au presque noir -->
+        <linearGradient id="dem-encre" gradientUnits="userSpaceOnUse" x1="22" y1="62" x2="78" y2="30">
+          <stop offset="0" stop-color="#3A465A"/>
+          <stop offset="1" stop-color="#11161E"/>
         </linearGradient>
       </defs>
-
-      <!-- Le tube éteint : il est là dès la première image, à peine plus
-           clair que le noir. C'est le verre que la lumière va remplir. -->
-      <path class="verre" d="M22 62 L40 46 L52 55 L78 30" fill="none" stroke="#141B25"
-            stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
-
-      <g class="tube" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <!-- le gaz, au loin -->
-        <path d="M22 62 L40 46 L52 55 L78 30" stroke="#8CC2FF" stroke-width="5.4" opacity=".34" filter="url(#dem-gaz)"/>
-        <!-- la lueur, contre le verre -->
-        <path d="M22 62 L40 46 L52 55 L78 30" stroke="#E4F0FF" stroke-width="2.9" opacity=".80" filter="url(#dem-lueur)"/>
-        <!-- le tube : plus fin que les deux autres, et à peine bleuté -->
-        <path class="fil" d="M22 62 L40 46 L52 55 L78 30" stroke="#FFFFFF" stroke-width="1.35"/>
-        <!-- la décharge qui le remonte -->
-        <path class="courant" d="M22 62 L40 46 L52 55 L78 30" stroke="url(#dem-courant)" stroke-width="2.2"
-              filter="url(#dem-floraison)"/>
-      </g>
-
-      <!-- La tête de lumière, à la frontière entre le tube plein et le
-           tube vide. Un point de 0,1 unité dans un vide de 76 : ce n'est
-           pas un objet qui se déplace, c'est le bout du trait. -->
-      <path class="tete" d="M22 62 L40 46 L52 55 L78 30" fill="none" stroke="#FFFFFF"
-            stroke-width="2.1" stroke-linecap="round" filter="url(#dem-tete)"/>
-
-      <!-- Les coudes sont les points faibles d'un tube plié : c'est là
-           que l'électricité s'échappe. Trois décharges, jamais
-           symétriques — deux au premier coude, une au second.
-           Chacune est dessinée deux fois. Un arc électrique a un cœur
-           NET et une lueur autour, pas l'inverse : flouté d'un seul
-           trait, il devenait une tache blanche et ne se lisait plus
-           comme une décharge. La lueur passe dessous, large et
-           tremblée ; le cœur passe dessus, fin et sans filtre. -->
-      <g class="etincelle" fill="none" stroke-linecap="round" stroke-linejoin="round">
-        <g stroke="#CBE6FF" stroke-width="1.25" opacity=".72" filter="url(#dem-gaz)">
-        <path d="M40 46 l-2.4 -3.6 l2.3 .7 l-1.6 -3.9 l2.9 2.2"/>
-        <path d="M40 46 l3.0 -2.4 l-.5 1.8 l3.4 -2.3"/>
-        <path d="M52 55 l3.3 2.6 l-2.2 .3 l3.6 2.9"/>
-        </g>
-        <g stroke="#FFFFFF" stroke-width="0.42">
-        <path d="M40 46 l-2.4 -3.6 l2.3 .7 l-1.6 -3.9 l2.9 2.2"/>
-        <path d="M40 46 l3.0 -2.4 l-.5 1.8 l3.4 -2.3"/>
-        <path d="M52 55 l3.3 2.6 l-2.2 .3 l3.6 2.9"/>
-        </g>
-      </g>
+      <path class="trait" d="M22 62 L40 46 L52 55 L78 30" fill="none"
+            stroke="url(#dem-encre)" stroke-width="6"
+            stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   </span>
 </div>
@@ -7744,34 +7596,27 @@ window.addEventListener("resize", () => {
     if(parti) return;
     parti = true;
     voile.classList.add("parti");
-    rendreLaCouleur();
     setTimeout(() => { if(voile.parentNode) voile.parentNode.removeChild(voile); }, 400);
   };
   /* Un plancher de durée. Sans lui, une page qui se peint en cinquante
      millisecondes fait clignoter le voile, ce qui est pire que pas de
      voile du tout : on croit à un défaut d'affichage. */
-  /* Sur un téléphone, la barre d'état prend la couleur déclarée par la
-     page. Elle serait restée claire au-dessus d'un écran noir, avec un
-     liseré blanc en haut pendant toute l'ouverture. On l'accorde au
-     voile, et on lui rend sa couleur quand il s'efface. */
-  const meta = document.querySelector('meta[name="theme-color"]');
-  const couleurApp = meta ? meta.getAttribute('content') : null;
-  if(meta) meta.setAttribute('content', '#000000');
-  const rendreLaCouleur = () => { if(meta && couleurApp) meta.setAttribute('content', couleurApp); };
+  /* La barre d'état n'a plus rien à faire ici : le voile porte
+     désormais le fond même de l'application, donc la couleur déclarée
+     dans l'en-tête est déjà la bonne, du premier instant au dernier. */
 
   /* Le plancher était à 480 millisecondes, pour une charge qui en dure
      1 150 : sur une page qui se peint vite, on n'en voyait que le premier
      tiers — le point de lumière grandissait un peu, et l'écran partait
      avant que la barre ne s'allume. Le geste n'existait que pour celui
      qui avait un téléphone lent.
-     La séquence dure maintenant 860 millisecondes : 720 pour que la
-     lumière remplisse le tube, puis les trois à-coups de l'amorçage. À
-     900, on la voit entière, et le voile ne part jamais au milieu d'un
-     geste. Au-delà, ce ne serait plus un écran de chargement mais une
-     vitrine. */
+     La séquence dure maintenant 520 millisecondes : 440 pour tirer le
+     trait, et la pose qui l'accompagne. Le plancher tombe donc de 900 à
+     620 — un écran d'ouverture à la manière d'Apple se fait oublier, il
+     ne se regarde pas. */
   const depart = Date.now();
   window.__finDuDemarrage__ = () => {
-    const reste = Math.max(0, 900 - (Date.now() - depart));
+    const reste = Math.max(0, 620 - (Date.now() - depart));
     setTimeout(effacer, reste);
   };
   setTimeout(effacer, 3000);
