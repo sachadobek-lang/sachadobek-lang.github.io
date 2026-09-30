@@ -4221,8 +4221,17 @@ function carteAbri(){
 async function envoyerAuCalendrier(){
   const A = window.__AGENDA__;
   if(!A || !A.ics){ bulle("L'agenda n'est pas prêt"); return; }
-  const texte = A.ics();
-  if(texte.indexOf("BEGIN:VEVENT") < 0){ bulle("Aucun rendez-vous à envoyer"); return; }
+  /* L'échéance de déclaration part avec les rendez-vous : c'est le seul
+     rappel d'argent que le téléphone puisse donner tout seul, et c'est
+     celui qu'on oublie. Rappelée la veille à la même heure, puis le
+     matin même. */
+  const ech = window.__ECHEANCE__ ? window.__ECHEANCE__() : null;
+  const ajouts = ech ? [{
+    id: "urssaf-" + ech.date, date: ech.date, title: ech.titre,
+    start: 540, dur: 30, rep: "none", rappels: ["-P1D", "PT0S"]
+  }] : [];
+  const texte = A.ics(null, null, ajouts);
+  if(texte.indexOf("BEGIN:VEVENT") < 0){ bulle("Rien à envoyer"); return; }
   /* livrerTexte n'est pas une fonction de ce bloc : elle vit sur le pont,
      parce que c'est l'autre bloc qui s'en sert aussi. */
   const ok = await window.__CADENCE__.livrerTexte(texte, "cura-agenda.ics", "text/calendar");
@@ -4237,7 +4246,8 @@ function carteCalendrier(){
     + '<span class="appoint">' + combien + (combien > 1 ? " rendez-vous" : " rendez-vous") + "</span></div>"
     + '<p class="pf-note" style="padding-top:0">Votre téléphone vous préviendra '
     + "<b>un quart d'heure avant</b> chaque rendez-vous, puis <b>à l'heure</b> — "
-    + "même si Cura est fermée, même sans réseau.</p>"
+    + "même si Cura est fermée, même sans réseau. "
+    + "Votre prochaine déclaration part avec, rappelée la veille.</p>"
     + '<div class="pf-gestes"><button class="plein" data-cal="1">Envoyer dans mon calendrier</button></div>'
     + '<p class="pf-note">Ouvrez le fichier quand il arrive : le téléphone vous '
     + "proposera de tout ajouter. À refaire après avoir pris de nouveaux rendez-vous.</p>"
@@ -10223,8 +10233,10 @@ function icsDe(evs){
        des mois plus tard. Une alarme portée par l'application aurait
        demandé une permission, un service d'envoi et un serveur — et se
        serait tue dès que le téléphone met la page en sommeil.
-       TRIGGER se compte depuis le début : négatif pour « avant ». */
-    ['-PT15M', 'PT0S'].forEach(function(quand){
+       TRIGGER se compte depuis le début : négatif pour « avant ». Une
+       échéance de déclaration n'a pas les mêmes rappels qu'un chantier :
+       elle porte donc les siens. */
+    (e.rappels || ['-PT15M', 'PT0S']).forEach(function(quand){
       L.push('BEGIN:VALARM');
       L.push('ACTION:DISPLAY');
       L.push(icsPlier('DESCRIPTION:' + icsEchap(e.title || 'Rendez-vous')));
@@ -10244,10 +10256,10 @@ function nomFichier(t){
    sans avoir à télécharger quoi que ce soit. */
 window.__AGENDA__ = window.__AGENDA__ || {};
 Object.assign(window.__AGENDA__, {
-  ics: function(depuis, jusqua){
+  ics: function(depuis, jusqua, ajouts){
     var d0 = depuis || iso(addDays(new Date(), -30));
     var d1 = jusqua || iso(addDays(new Date(), 400));
-    var tout = [];
+    var tout = (ajouts || []).slice();
     var d = fromIso(d0), fin = fromIso(d1);
     while (d <= fin){
       var k = iso(d);
@@ -11228,6 +11240,23 @@ function synchroniser(){
 }
 function toutRendre(){ rendreReglages(); rendreLivre(); rendreObjectif(); rendreArgent(); }
 window.__MAJ_ARGENT__ = function(){ synchroniser(); toutRendre(); };
+
+/* La prochaine échéance de déclaration, pour que le calendrier du
+   téléphone puisse la rappeler lui aussi. Une société déclare après la
+   clôture de son exercice, pas tous les mois : dans ce cas il n'y a pas
+   de date à donner, et on ne l'invente pas. */
+window.__ECHEANCE__ = function(){
+  try{
+    if(estSociete()) return null;
+    var fin = finDuMoisProchain();
+    var b = bilan();
+    return {
+      date: iso(fin),
+      titre: "Déclaration URSSAF"
+            + (b && b.urssafMois > 0 ? " — environ " + eur.format(b.urssafMois) : "")
+    };
+  }catch(e){ return null; }
+};
 
 /* ---------- panneaux ----------
    Il y en avait quatre, derrière une barre d'onglets à demeure masquée :
