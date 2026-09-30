@@ -1199,6 +1199,7 @@ form{padding:12px 24px 28px;display:flex;flex-direction:column;gap:15px}
 .champ input:focus,.champ select:focus{outline:0;border-color:var(--v1);background:var(--surface)}
 .champ input::placeholder{color:var(--ink-3);font-weight:400}
 .paire{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (max-width:440px){.paire.empile{grid-template-columns:1fr}}
 .choix{display:flex;gap:8px;flex-wrap:wrap}
 .choix > label{flex:1;min-width:92px;position:relative}
 .choix input{position:absolute;opacity:0;width:0;height:0}
@@ -6788,7 +6789,7 @@ const CHAMPS = {
         ? "Sa date d'émission et son numéro ne changent pas."
         : "Elle sera notée comme envoyée aujourd'hui, à payer sous 30 jours.") + "</p>"
     + '<details class="detail"><summary>Plus de détails</summary>'
-    + '<div class="paire"><div class="champ"><label for="f3">Référence</label><input id="f3" name="ref" maxlength="24" value="' + refSuivante() + '"></div>'
+    + '<div class="paire empile"><div class="champ"><label for="f3">Référence</label><input id="f3" name="ref" maxlength="24" value="' + refSuivante() + '"></div>'
     + '<div class="champ"><label for="f4">À payer avant le</label><input id="f4" name="echeance" type="date" value="' + dans(30) + '"></div></div>'
     + '<div class="champ"><label>Où en est-elle ?</label><div class="choix">'
     + '<label><input type="radio" name="statut" value="brouillon"><span>Brouillon</span></label>'
