@@ -2020,6 +2020,8 @@ summary.carte-tete:hover h2{color:var(--v1)}
    curseurs --tH et --py font la même chose en continu, et le font mieux :
    l'heure rend sa place au lieu de disparaître en la gardant. */
 #majournee .ev.demo{opacity:.72}
+/* l'appui long ne doit ni sélectionner le nom ni ouvrir la loupe d'iOS */
+#majournee .ev{-webkit-touch-callout:none; -webkit-user-select:none; user-select:none}
 #majournee .ev.dragging{
   z-index:6; box-shadow:var(--shadow-drag); transform:none; cursor:grabbing;
   transition:none; background:color-mix(in oklab, var(--c) 22%, var(--surface));
@@ -8503,14 +8505,51 @@ function zoomPas(sens){ allerAuNiveau(state.niveau + (sens > 0 ? 1 : -1)); }
 /* ---------- glisser / étirer ---------- */
 var drag = null;
 function snapStep(){ return HOUR_PX >= 140 ? 5 : 15; }
+/* ═══ au doigt : appui long, puis on glisse ═══
+   Au doigt, un glissement fait défiler la journée : c'est pour ça que le
+   déplacement était réservé à la souris. On le distingue comme Apple le
+   fait : le doigt reste immobile un instant sur le rendez-vous, il se
+   soulève, et alors seulement il suit le doigt. Un doigt qui bouge avant
+   est un défilement, on le laisse faire ; un toucher bref ouvre la fiche. */
+var appui = null, finGlisse = 0;
+var APPUI_MS = 380, APPUI_TOL = 10;
+function annulerAppui(){ if (appui){ clearTimeout(appui.t); appui = null; } }
 function attachDrag(el, ev, mode, handle){
   handle.addEventListener('pointerdown', function(e){
-    if (ev.demo || e.button !== 0 || e.pointerType === 'touch') return;
+    if (ev.demo) return;
+    if (e.pointerType === 'touch'){
+      /* la poignée d'étirement fait dix pixels : trop fine pour un doigt,
+         l'appui long sur elle déplace le rendez-vous entier */
+      if (mode !== 'move') return;
+      annulerAppui();
+      appui = {x:e.clientX, y:e.clientY, t:setTimeout(function(){
+        var y = appui ? appui.y : e.clientY;
+        appui = null;
+        drag = {el:el, ev:ev, mode:mode, y0:y, start0:ev.start, dur0:ev.dur, moved:false, tactile:true};
+        el.classList.add('dragging');
+        try { if (navigator.vibrate) navigator.vibrate(12); } catch(_){}
+      }, APPUI_MS)};
+      return;
+    }
+    if (e.button !== 0) return;
     e.preventDefault(); e.stopPropagation();
     drag = {el:el, ev:ev, mode:mode, y0:e.clientY, start0:ev.start, dur0:ev.dur, moved:false};
     handle.setPointerCapture(e.pointerId);
   });
+  /* l'appui long ouvrirait le menu du navigateur sur Android */
+  handle.addEventListener('contextmenu', function(e){ if (drag || appui) e.preventDefault(); });
 }
+window.addEventListener('pointermove', function(e){
+  if (appui && Math.hypot(e.clientX - appui.x, e.clientY - appui.y) > APPUI_TOL) annulerAppui();
+});
+window.addEventListener('pointerup', annulerAppui);
+window.addEventListener('pointercancel', annulerAppui);
+/* Une fois soulevé, le doigt ne fait plus défiler la grille : sans ceci,
+   le navigateur reprend le geste pour lui et le rendez-vous reste en
+   plan. Il faut un écouteur non passif pour avoir le droit de refuser. */
+document.addEventListener('touchmove', function(e){
+  if (drag && drag.tactile && e.cancelable) e.preventDefault();
+}, {passive:false});
 function dragMove(e){
   if (!drag) return;
   var dy = e.clientY - drag.y0;
@@ -8542,6 +8581,9 @@ function dragEnd(){
   if (!drag) return;
   var d = drag; drag = null;
   d.el.classList.remove('dragging');
+  /* le doigt qui se relève après un appui long ne doit pas, en plus,
+     ouvrir la fiche : le « click » arrive juste après ce « pointerup » */
+  if (d.tactile) finGlisse = Date.now();
   if (!d.moved) return;
   var newDate = d.date || d.ev.date;
   if (d.start === d.start0 && d.dur === d.dur0 && newDate === d.ev.date) { renderTrack(); return; }
@@ -8800,7 +8842,7 @@ function makeBlock(ev, opts){
     });
     return b;
   }
-  b.addEventListener('click', function(){ if (!drag) openSheet(ev); });
+  b.addEventListener('click', function(){ if (!drag && Date.now() - finGlisse > 450) openSheet(ev); });
   attachDrag(b, ev, 'move', b);
   var rz = b.querySelector('.ev-rz');
   if (rz) attachDrag(b, ev, 'resize', rz);
