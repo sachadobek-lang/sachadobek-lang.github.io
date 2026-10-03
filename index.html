@@ -2542,7 +2542,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
   display:flex;flex-direction:column;gap:18px;
 }
 #ilreste h1{font-family:var(--num);font-weight:700;font-size:clamp(25px,6.6vw,32px);line-height:1.1;margin:0;letter-spacing:-.015em}
-#ilreste .chiffre{font-family:var(--num);font-variant-numeric:tabular-nums;font-size:.97em}
+#ilreste .chiffre{font-family:var(--num);font-variant-numeric:tabular-nums;font-size:.97em;white-space:nowrap}
 /* la barre d'onglets de Comptabilité suffit : deux barres l'une dans
    l'autre, avec les mêmes mots, personne ne s'y retrouve */
 #ilreste .panel{display:flex;flex-direction:column;gap:18px}
@@ -2580,7 +2580,9 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .legende .urssaf .v{color:var(--urssaf)}
 #ilreste .cadre{border:2px solid var(--ink);border-radius:18px;padding:16px 18px;display:flex;flex-direction:column;gap:4px}
 #ilreste .cadre[hidden]{display:none}
-#ilreste .cadre .t{font-size:14.5px;color:var(--ink-soft)}
+/* « .t » est aussi la ligne de tâche de l'Agenda (flex, 19px 24px) : sans
+   remise à zéro, le libellé se décalait de 24 px sur le montant. */
+#ilreste .cadre .t{display:block;padding:0;font-size:14.5px;color:var(--ink-soft)}
 #ilreste .cadre .v{font-family:var(--num);font-size:31px;font-weight:600;line-height:1.15}
 #ilreste .cadre .s{font-size:13.5px;color:var(--ink-soft)}
 #ilreste .cadre .s b{color:var(--ink);font-weight:600}
@@ -10738,6 +10740,24 @@ function creancesTriees(){
 }
 function finDuMoisProchain(){ var d=new Date(); return new Date(d.getFullYear(),d.getMonth()+2,0); }
 
+/* La déclaration qui attend, c'est celle du mois dernier : en micro, ce
+   qu'on a encaissé en septembre se déclare avant le 31 octobre. La carte
+   montrait le mois en cours et la fin du mois suivant — le 3 octobre, elle
+   annonçait « 30 novembre, 907 € » et taisait les 1 177 € de septembre à
+   déclarer sous quatre semaines. On filtre sur « AAAA-MM » et non sur
+   l'année en cours : en janvier, c'est décembre qu'on déclare. */
+function prochaineDeclaration(){
+  var d=new Date();
+  var p=new Date(d.getFullYear(), d.getMonth()-1, 1);
+  var mois=iso(p).slice(0,7);
+  var enc=(etat.rentrees||[]).filter(function(r){ return String(r.date).slice(0,7)===mois; })
+                             .reduce(function(s,r){ return s+num(r.montant); },0);
+  var ca = etat.tva ? enc/(1+TAUX_TVA) : enc;
+  return {fin: new Date(d.getFullYear(), d.getMonth()+1, 0),
+          mois: p.toLocaleDateString("fr-FR",{month:"long"}),
+          enc: enc, urssaf: ca*bilan().taux};
+}
+
 /* ---------- rendu : mon argent ---------- */
 
 /* ═══════════ le disque en poussière ═══════════
@@ -11109,7 +11129,8 @@ function rendreArgent(){
   $("nom-urssaf").textContent = estSociete() ? "Impôt sur les sociétés" : "Cotisations";
 
   roule("t-garde",eur.format(b.garde));
-  var fin=finDuMoisProchain();
+  var dec = estSociete() || estEI() ? null : prochaineDeclaration();
+  var fin = dec ? dec.fin : finDuMoisProchain();
   /* Une carte, une idée. L'encadré dit ce qu'il faut garder sur l'année ;
      l'échéance dit ce qu'il faut déclarer, et dans combien de jours. Les
      deux vivaient dans le même bloc, avec deux chiffres qui n'étaient pas
@@ -11127,9 +11148,9 @@ function rendreArgent(){
     ? "Après la clôture de votre exercice, pas tous les mois."
     : estEI()
     ? "Le " + nb(jour(iso(fin))) + ". Elle porte sur votre bénéfice de l'année."
-    : (b.encMois>0
-      ? "Le <b>" + nb(jour(iso(fin))) + "</b>, environ <b>" + nb(eur.format(b.urssafMois)) + "</b>."
-      : "Le <b>" + nb(jour(iso(fin))) + "</b>. Même à " + nb("0 €") + ", elle est obligatoire.");
+    : (dec.enc>0
+      ? "Pour " + esc(dec.mois) + " : le <b>" + nb(jour(iso(fin))) + "</b>, environ <b>" + nb(eur.format(dec.urssaf)) + "</b>."
+      : "Pour " + esc(dec.mois) + " : le <b>" + nb(jour(iso(fin))) + "</b>. Même à " + nb("0 €") + ", elle est obligatoire.");
 
   var a=b.act;
 
@@ -11248,12 +11269,12 @@ window.__MAJ_ARGENT__ = function(){ synchroniser(); toutRendre(); };
 window.__ECHEANCE__ = function(){
   try{
     if(estSociete()) return null;
-    var fin = finDuMoisProchain();
-    var b = bilan();
+    if(estEI()) return {date: iso(finDuMoisProchain()), titre: "Déclaration URSSAF"};
+    var dec = prochaineDeclaration();
     return {
-      date: iso(fin),
-      titre: "Déclaration URSSAF"
-            + (b && b.urssafMois > 0 ? " — environ " + eur.format(b.urssafMois) : "")
+      date: iso(dec.fin),
+      titre: "Déclaration URSSAF de " + dec.mois
+            + (dec.urssaf > 0 ? " — environ " + eur.format(dec.urssaf) : "")
     };
   }catch(e){ return null; }
 };
