@@ -4711,6 +4711,13 @@ function ficheClient(id){
   const e = ETIQ_C[c.statut] || ETIQ_C.prospect;
   const siennes = liste("factures").filter(f => f.client === c.nom && f.statut !== "brouillon")
                                    .sort((x, y) => String(y.emise).localeCompare(String(x.emise)));
+  /* Un brouillon ne compte pas dans l'argent, mais il existe : juste après
+     « Facture téléchargée », la fiche disait « Aucune facture pour
+     l'instant ». On le montre dans la liste, étiqueté « À envoyer »,
+     sans l'ajouter aux totaux. */
+  const brouillons = liste("factures").filter(f => f.client === c.nom && f.statut === "brouillon")
+                                      .sort((x, y) => String(y.emise).localeCompare(String(x.emise)));
+  const toutes = brouillons.concat(siennes);
   /* un acompte compte dans ce qui est payé, et le reste dans ce qui est dû :
      les deux sortent des mêmes fonctions que la comptabilité. */
   const paye = siennes.reduce((t, f) => t + encaisseDe(f), 0);
@@ -4741,7 +4748,10 @@ function ficheClient(id){
                   : '<p class="reste">Rien d\'encaissé pour l\'instant.</p>')
         : '<p class="lab">Ce client vous a payé</p>'
           + '<p class="gros" data-compte="paye-' + h(c.id) + '" data-val="' + paye + '">' + eur(paye) + "</p>"
-          + (paye ? '<p class="reste">Tout est réglé.</p>' : '<p class="reste">Aucune facture pour l\'instant.</p>'))
+          + (paye ? '<p class="reste">Tout est réglé.</p>'
+             : brouillons.length ? '<p class="reste">' + (brouillons.length > 1 ? brouillons.length + " factures" : "Une facture")
+                                 + ' à envoyer, rien d\'encaissé encore.</p>'
+             : '<p class="reste">Aucune facture pour l\'instant.</p>'))
     + "</div>"
     + '<div class="action-client"><button data-facturer="' + h(c.nom) + '">Faire une facture</button>'
     + (attente ? '<button class="doux" data-relance="' + h(c.nom) + '">Relancer</button>' : "")
@@ -4757,9 +4767,9 @@ function ficheClient(id){
             + "</span></span></span></div>").join("")
         + '<div style="height:10px"></div></section>' : "")
 
-    + (siennes.length ? '<section class="carte anim" style="animation-delay:.05s">'
-        + '<div class="carte-tete"><h2>Ses factures</h2><span class="appoint">' + siennes.length + "</span></div>"
-        + siennes.map(f => rangeeFacture(f, true)).join("") + '<div style="height:10px"></div></section>' : "")
+    + (toutes.length ? '<section class="carte anim" style="animation-delay:.05s">'
+        + '<div class="carte-tete"><h2>Ses factures</h2><span class="appoint">' + toutes.length + "</span></div>"
+        + toutes.map(f => rangeeFacture(f, true)).join("") + '<div style="height:10px"></div></section>' : "")
 
     + '<section class="carte anim" style="animation-delay:.09s"><div class="carte-tete"><h2>Vos notes</h2>'
     + '<span class="appoint">' + (notes.length ? notes.length : "aucune") + "</span></div>"
@@ -10044,6 +10054,10 @@ $('save').addEventListener('click', function(){
   localApply(ev);
   render();
   putEvent(ev);
+  /* La barre rapide le faisait déjà ; la feuille, non : on enregistrait un
+     rendez-vous à 10 h et la journée restait cadrée sur l'heure qu'il est,
+     vide en apparence. */
+  if (state.view !== 'mois') scrollTo_(ev.start);
 });
 
 $('dup').addEventListener('click', function(){
@@ -10060,6 +10074,7 @@ $('dup').addEventListener('click', function(){
   localApply(copy);
   render();
   putEvent(copy);
+  if (state.view !== 'mois') scrollTo_(copy.start);
 });
 
 /* La série à laquelle appartient le rendez-vous ouvert, ou null. On la
