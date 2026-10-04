@@ -2789,10 +2789,9 @@ summary.carte-tete:hover h2{color:var(--v1)}
    sixième de l'écran, pas la moitié : c'est la retenue qui fait le
    sérieux. */
 #demarrage .marque{display:grid;place-content:center;
-  animation:demPose .52s var(--doux) forwards;
-  filter:drop-shadow(0 0 10px rgba(150,190,255,.20))}
+  animation:demPose .52s var(--doux) forwards}
 @keyframes demPose{from{transform:scale(.965)} to{transform:scale(1)}}
-#demarrage .marque svg{width:min(44vw,164px);height:auto;display:block}
+#demarrage .marque svg{width:min(44vw,164px);height:auto;display:block;overflow:visible}
 
 /* ═══ la lumière comme signe de chargement ═══
    Sacha, le 29 septembre 2026 : « le fond du chargement c'est noir et
@@ -2828,25 +2827,59 @@ summary.carte-tete:hover h2{color:var(--v1)}
   <span class="marque">
     <svg viewBox="17 25 66 42" aria-hidden="true">
       <defs>
-        <!-- La lueur qui remonte le rail. L'axe du dégradé est donné en
-             coordonnées du dessin, et ce sont ses deux extrémités qu'on
-             anime : elle entre par le bas et sort par le haut. La flèche
-             vit entre 30 et 62 ; on part de 96 pour arriver à -34, afin
-             qu'elle la traverse entièrement au lieu d'apparaître et de
-             disparaître à l'intérieur. -->
-        <linearGradient id="dem-course" gradientUnits="userSpaceOnUse" x1="50" y1="96" x2="50" y2="68">
-          <stop offset="0"   stop-color="#CFE2FF" stop-opacity="0"/>
-          <stop offset=".5"  stop-color="#FFFFFF" stop-opacity=".95"/>
-          <stop offset="1"   stop-color="#CFE2FF" stop-opacity="0"/>
-          <animate attributeName="y1" values="96;-6"  dur="1.15s" repeatCount="indefinite"/>
-          <animate attributeName="y2" values="68;-34" dur="1.15s" repeatCount="indefinite"/>
+        <!-- ═══ le rail ═══
+             Un gris plat ne ressemble à rien. Un rail réel prend un peu
+             de lumière ambiante par le haut et s'assombrit par le bas :
+             c'est ce dégradé-là, et rien d'autre, qui lui donne de la
+             matière avant même qu'on l'éclaire. -->
+        <linearGradient id="dem-rail" gradientUnits="userSpaceOnUse" x1="50" y1="28" x2="50" y2="64">
+          <stop offset="0" stop-color="#4E5F74"/>
+          <stop offset="1" stop-color="#2A3442"/>
         </linearGradient>
+
+        <!-- ═══ l'éclat qui parcourt le rail ═══
+             Étroit, et dissymétrique : un reflet réel a un cœur chaud et
+             une traîne derrière lui, pas une tache symétrique. L'axe est
+             donné en coordonnées du dessin, et ce sont ses deux
+             extrémités qu'on anime. La flèche vit entre 30 et 62 ; on
+             part de 96 pour sortir à -28, afin que l'éclat la traverse
+             entièrement au lieu d'apparaître et de disparaître dedans. -->
+        <linearGradient id="dem-course" gradientUnits="userSpaceOnUse" x1="50" y1="96" x2="50" y2="74">
+          <stop offset="0"    stop-color="#9FC4F2" stop-opacity="0"/>
+          <stop offset=".34"  stop-color="#D8E8FF" stop-opacity=".45"/>
+          <stop offset=".52"  stop-color="#FFFFFF" stop-opacity="1"/>
+          <stop offset=".68"  stop-color="#E6F0FF" stop-opacity=".40"/>
+          <stop offset="1"    stop-color="#9FC4F2" stop-opacity="0"/>
+          <!-- La course n'est pas régulière : elle s'élance, puis se pose,
+               puis laisse un temps avant de revenir. Une boucle qui tourne
+               sans respirer donne un sentiment de machine. -->
+          <animate attributeName="y1" dur="1.7s" repeatCount="indefinite"
+                   values="96;-6;-6" keyTimes="0;0.72;1"
+                   calcMode="spline" keySplines="0.42 0 0.18 1;0 0 1 1"/>
+          <animate attributeName="y2" dur="1.7s" repeatCount="indefinite"
+                   values="74;-28;-28" keyTimes="0;0.72;1"
+                   calcMode="spline" keySplines="0.42 0 0.18 1;0 0 1 1"/>
+        </linearGradient>
+
+        <filter id="dem-bloom" x="-120%" y="-120%" width="340%" height="340%">
+          <feGaussianBlur stdDeviation="3.1"/>
+        </filter>
       </defs>
+
+      <!-- La lueur appartient à la partie ÉCLAIRÉE, pas à la marque
+           entière : un halo posé sur tout le dessin faisait rayonner le
+           rail éteint, ce qui ne se produit jamais. Elle voyage donc avec
+           l'éclat, large et floue, sous le rail. -->
+      <path class="lueur" d="M22 62 L40 46 L52 55 L78 30" fill="none"
+            stroke="url(#dem-course)" stroke-width="13" opacity=".55"
+            stroke-linecap="round" stroke-linejoin="round" filter="url(#dem-bloom)"/>
+
       <!-- le rail, éteint -->
       <path class="rail" d="M22 62 L40 46 L52 55 L78 30" fill="none"
-            stroke="#3A4757" stroke-width="6"
+            stroke="url(#dem-rail)" stroke-width="6"
             stroke-linecap="round" stroke-linejoin="round"/>
-      <!-- la lueur, qui le parcourt -->
+
+      <!-- l'éclat, net, par-dessus -->
       <path class="lueur" d="M22 62 L40 46 L52 55 L78 30" fill="none"
             stroke="url(#dem-course)" stroke-width="6"
             stroke-linecap="round" stroke-linejoin="round"/>
@@ -7681,12 +7714,14 @@ window.addEventListener("resize", () => {
      tiers — le point de lumière grandissait un peu, et l'écran partait
      avant que la barre ne s'allume. Le geste n'existait que pour celui
      qui avait un téléphone lent.
-     La lueur met 1,15 s à parcourir le rail. Le plancher est à 760 :
-     assez pour en voir passer une, pas assez pour attendre. Un écran
-     d'ouverture se fait oublier, il ne se regarde pas. */
+     L'éclat traverse la flèche entre le huitième et les deux tiers de
+     sa course de 1,7 s, soit de 200 à 790 millisecondes. Le plancher est
+     à 840 : assez pour en voir passer un en entier, pas assez pour
+     attendre. Un écran d'ouverture se fait oublier, il ne se regarde
+     pas. */
   const depart = Date.now();
   window.__finDuDemarrage__ = () => {
-    const reste = Math.max(0, 760 - (Date.now() - depart));
+    const reste = Math.max(0, 840 - (Date.now() - depart));
     setTimeout(effacer, reste);
   };
   setTimeout(effacer, 3000);
@@ -10911,12 +10946,18 @@ var NUAGE = (function(){
     for(var k = 0; k < N; k++){
       u01[k] = Math.random();                     /* sa place sur le tour */
       var phi = Math.random() * TAU;
-      var loin = Math.random() < 0.085;
-      var rr = Math.pow(Math.random(), loin ? 0.30 : 0.62) * (loin ? 1.85 : 1);
+      /* Un grain sur douze partait très loin, jusqu'à près du double du
+         tube : de près c'était du duvet, de loin c'était une bavure. Un
+         sur vingt-cinq, et moitié moins loin — le contour se tient, et
+         il reste ce qu'il faut d'irrégularité pour que ce ne soit pas un
+         trait. Le biais vers la surface se resserre aussi : plus la peau
+         est nette, plus l'anneau a l'air d'un objet. */
+      var loin = Math.random() < 0.04;
+      var rr = Math.pow(Math.random(), loin ? 0.38 : 0.72) * (loin ? 1.42 : 1);
       amp[k] = rr * Math.cos(phi);                /* écart radial */
       hz[k]  = rr * Math.sin(phi);                /* écart le long de l'axe */
       pha[k] = (Math.random() * NS) | 0;
-      chute[k] = Math.random() < 0.055 ? 0.15 + Math.random() * 0.5 : 0;
+      chute[k] = Math.random() < 0.03 ? 0.12 + Math.random() * 0.34 : 0;
     }
   }
 
@@ -10941,8 +10982,8 @@ var NUAGE = (function(){
        le fond déjà clair de l'application, il délavait la poussière au
        lieu de l'asseoir : il ne fait plus que creuser un peu de lumière
        derrière l'anneau. */
-    g.addColorStop(0, "rgba(255,255,255,.40)");
-    g.addColorStop(0.62, "rgba(255,255,255,.13)");
+    g.addColorStop(0, "rgba(255,255,255,.34)");
+    g.addColorStop(0.62, "rgba(255,255,255,.10)");
     g.addColorStop(1, "rgba(255,255,255,0)");
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, L, L);
@@ -10951,14 +10992,14 @@ var NUAGE = (function(){
     ctx.scale(1, 0.19);
     for(var k = 3; k >= 1; k--){
       ctx.beginPath();
-      ctx.arc(0, 0, L * (0.14 + k * 0.10), 0, TAU);
-      ctx.fillStyle = "rgba(255,255,255," + (0.20 + (3 - k) * 0.22).toFixed(2) + ")";
+      ctx.arc(0, 0, L * (0.16 + k * 0.095), 0, TAU);
+      ctx.fillStyle = "rgba(255,255,255," + (0.17 + (3 - k) * 0.24).toFixed(2) + ")";
       ctx.fill();
     }
     ctx.beginPath();
     ctx.arc(0, 0, L * 0.245, 0, TAU);
     ctx.strokeStyle = "rgba(255,255,255,.95)";
-    ctx.lineWidth = L * 0.028;
+    ctx.lineWidth = L * 0.020;
     ctx.stroke();
     ctx.restore();
   }
@@ -11026,8 +11067,8 @@ var NUAGE = (function(){
       var wx = Math.cos(th) * rr, wy = Math.sin(th) * rr, wz = TW0 * hz[k];
 
       if(chute[k] > 0){
-        var ch = (t * chute[k] * 0.22) % 1;
-        wy += ch * 0.30; wz += ch * 0.05;
+        var ch = (t * chute[k] * 0.18) % 1;
+        wy += ch * 0.21; wz += ch * 0.035;
       }
 
       var y1 = wy * cT - wz * sT, z1 = wy * sT + wz * cT;
@@ -11035,7 +11076,9 @@ var NUAGE = (function(){
       var sx = CXn + wx * kp * S, sy = CYn + y1 * kp * S;
 
       var ph = (pha[k] + pas) & (NS - 1);
-      var am = 0.9 + (dr < 0 ? -dr : dr) * 2.2;
+      /* Le frémissement était large : de loin, l'anneau grouillait. Il
+         respire au lieu de s'agiter. */
+      var am = 0.55 + (dr < 0 ? -dr : dr) * 1.25;
       sx += SIN[ph] * am;
       sy += SIN[(ph + 512) & (NS - 1)] * am;
 
@@ -11072,7 +11115,7 @@ var NUAGE = (function(){
     for(var q = 0, o = 0; q < n2; q++, o += 4){
       var a0 = A0[q], a1 = A1[q], a2 = A2[q], tot = a0 + a1 + a2;
       if(tot < 0.004){ dat[o + 3] = 0; continue; }
-      var qi = (tot * 64) | 0; if(qi > 255) qi = 255;
+      var qi = (tot * 76) | 0; if(qi > 255) qi = 255;
       var iv = 1 / tot;
       dat[o]     = (c0[0] * a0 + c1[0] * a1 + c2[0] * a2) * iv | 0;
       dat[o + 1] = (c0[1] * a0 + c1[1] * a1 + c2[1] * a2) * iv | 0;
@@ -11082,7 +11125,7 @@ var NUAGE = (function(){
     tctx.putImageData(img, 0, 0);
 
     ctx.save();
-    ctx.globalAlpha = 0.16;
+    ctx.globalAlpha = 0.11;
     ctx.translate(0, L * 1.66);
     ctx.scale(1, -0.28);
     ctx.drawImage(toile, 0, 0, L, L);
