@@ -6602,7 +6602,15 @@ window.__CADENCE__ = {
   clientDepuisRdv: o => {
     const brut = String((o && o.title) || "").trim();
     const nom = brut.replace(/^(rendez-?vous|rdv|r\.?-?v\.?|devis|visite|appel|point|réunion|reunion)\s*(avec|chez|pour)?\s*[:\-—]?\s*/i, "").trim() || brut;
-    vue = "argent"; clientOuvert = null; animer = true; memoire.clear();
+    /* Si la fiche existe déjà, on l'ouvre au lieu de proposer d'en
+       créer une seconde. Mesuré le 4 octobre 2026 : « Il a signé » sur
+       « Rendez-vous Salon Coiff'Elle », client déjà inscrit, ouvrait le
+       formulaire pré-rempli ; un « Ajouter » de plus et le carnet
+       comptait deux Salon Coiff'Elle — et le mois d'octobre comptait sa
+       facture deux fois (7 910 € au lieu de 7 020 €), parce que les
+       factures sont rattachées au nom. */
+    const deja = ficheDepuisTitre(brut);
+    vue = "argent"; clientOuvert = deja ? deja.id : null; animer = true; memoire.clear();
     const tous = document.querySelectorAll("#nav button[data-vue]");
     for(let i = 0; i < tous.length; i++){
       tous[i].removeAttribute("aria-current");
@@ -6610,6 +6618,7 @@ window.__CADENCE__ = {
     }
     rendre();
     window.scrollTo({top: 0});
+    if(deja){ bulle("Déjà dans vos clients"); return; }
     ouvrir("client", {nom: nom, projet: ""});
   },
 
@@ -6625,12 +6634,24 @@ window.__CADENCE__ = {
      l'Agenda sait quoi faire d'un null, il ne saurait pas quoi faire
      d'un nom inventé. */
   clientPour: o => {
-    const brut = String((o && o.title) || "").trim();
+    const trouve = ficheDepuisTitre((o && o.title) || "");
+    if(!trouve) return null;
+    const j = joindre(trouve.contact);
+    return {nom: trouve.nom, tel: j.tel, mail: j.mail};
+  }
+};
+
+/* ═══ la fiche que désigne un titre d'agenda ═══
+   Partagé par « Prévenir » et « Il a signé » : le même nettoyage, la
+   même recherche, pour que les deux boutons désignent la même personne.
+   Rend la fiche (avec son identifiant) ou null — jamais un demi-client. */
+function ficheDepuisTitre(titre){
+    const brut = String(titre || "").trim();
     if(!brut) return null;
     const reste = brut.replace(/^(rendez-?vous|rdv|r\.?-?v\.?|devis|visite|appel|point|réunion|reunion)\s*(avec|chez|pour)?\s*[:\-—]?\s*/i, "").trim();
     const cible = sansAccent(reste || brut);
     if(!cible) return null;
-    const fiches = Object.keys(state.clients).map(k => state.clients[k]).filter(c => c && c.nom);
+    const fiches = Object.keys(state.clients).map(k => Object.assign({id: k}, state.clients[k])).filter(c => c && c.nom);
     let trouve = fiches.find(c => sansAccent(c.nom) === cible);
     /* Le rapprochement par simple morceau de nom envoyait le message au
        mauvais client. Trois cas mesurés sur quatre fiches :
@@ -6655,11 +6676,8 @@ window.__CADENCE__ = {
       }).sort((x, y) => sansAccent(y.nom).length - sansAccent(x.nom).length);
       trouve = proches[0];
     }
-    if(!trouve) return null;
-    const j = joindre(trouve.contact);
-    return {nom: trouve.nom, tel: j.tel, mail: j.mail};
-  }
-};
+    return trouve || null;
+}
 
 function apres(){
   const j = $(".anneau .jauge");
