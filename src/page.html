@@ -850,6 +850,10 @@ summary.groupe:hover{background:var(--line)}
 .r{display:flex;align-items:center;gap:15px;padding:18px 24px;position:relative;transition:background .15s}
 .r + .r::before{content:"";position:absolute;left:24px;right:24px;top:0;height:1px;background:var(--line)}
 .r:hover{background:var(--surface-2)}
+/* une ligne qui se touche : même dessin, mais c'est un bouton */
+button.r{width:100%;border:0;background:none;text-align:left;border-radius:0;-webkit-tap-highlight-color:transparent}
+button.r:active{background:var(--surface-2)}
+.r-chev{flex:none;width:18px;height:18px;color:var(--ink-3)}
 .pastille{width:48px;height:48px;border-radius:16px;flex:none;display:grid;place-content:center;text-align:center;font-family:var(--num);font-weight:600;font-size:15px;line-height:1.05}
 .pastille svg{width:23px;height:23px;stroke-width:2.4;fill:none}
 .pastille.feu{background:var(--tard-doux);color:var(--tard)}
@@ -4792,12 +4796,18 @@ function ficheClient(id){
 
     + (rdv.length ? '<section class="carte anim" style="animation-delay:.04s">'
         + '<div class="carte-tete"><h2>Vos rendez-vous</h2><span class="appoint">' + rdv.length + "</span></div>"
-        + rdv.map(e => '<div class="r"><span class="pastille att">'
+        /* Un bouton par rendez-vous : le toucher ouvre le rendez-vous dans
+           l'Agenda. Ces lignes étaient inertes — on appuyait, rien ne
+           venait (Sacha, 4 octobre 2026). */
+        + rdv.map(e => '<button type="button" class="r rdv" data-rdv="' + h(e.id) + '" data-jour="' + h(e.date) + '" title="Voir dans l\'agenda">'
+            + '<span class="pastille att">'
             + '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round">'
             + '<rect x="3.2" y="5" width="17.6" height="15.8" rx="3.4"/><path d="M3.2 10h17.6M8.2 2.6v3.6M15.8 2.6v3.6"/></svg></span>'
             + '<span class="r-corps"><span class="r-titre">' + h(e.title) + "</span>"
             + '<span class="r-meta"><span>' + jour(e.date) + (e.start != null ? " à " + heureMin(e.start) : "")
-            + "</span></span></span></div>").join("")
+            + "</span></span></span>"
+            + '<svg class="r-chev" viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>'
+            + "</button>").join("")
         + '<div style="height:10px"></div></section>' : "")
 
     + (toutes.length ? '<section class="carte anim" style="animation-delay:.05s">'
@@ -7167,6 +7177,15 @@ $("#vue").addEventListener("click", e => {
     }
     return;
   }
+  if(b.dataset.rdv){
+    /* on passe par le bouton de la barre : c'est lui qui sait changer de
+       section proprement (état, animation, défilement) */
+    const nav = document.querySelector('#nav button[data-vue="afaire"]');
+    if(nav) nav.click();
+    const A = window.__AGENDA__;
+    if(A && A.ouvrir) A.ouvrir(b.dataset.rdv, b.dataset.jour);
+    return;
+  }
   if(b.dataset.aller){
     const cible = document.querySelector('#nav button[data-vue="' + b.dataset.aller + '"]');
     if(cible) cible.click();
@@ -7852,6 +7871,18 @@ var state = {
   niveau:0, view:'jour', editing:null, draft:null
 };
 var HOUR_PX = 86;
+/* ═══ la taille d'un doigt ═══
+   Un bloc ne descend jamais sous quarante-quatre pixels, quelle que soit
+   sa durée ou le zoom. Demandé par Sacha le 4 octobre 2026 : « que ce
+   soit plus gros pour que ce soit plus facile et que ça bugue moins ».
+   Mesuré avant : à la journée entière, une heure vaut 49,5 px et un
+   rendez-vous d'une demi-heure n'en faisait que 26 — le doigt le
+   manquait une fois sur deux et tombait sur la grille, qui ouvrait une
+   création à la place. Quarante-quatre points, c'est la plus petite zone
+   qu'Apple juge touchable. Le placement en colonnes raisonne sur cette
+   même hauteur, donc deux demi-heures qui se suivent se mettent côte à
+   côte au lieu de se recouvrir. */
+var MIN_BLOC_PX = 44;
 
 /* ---------- stockage ---------- */
 var LS_EV = 'ma-journee-v1', LS_TD = 'ma-journee-todos-v1',
@@ -8456,7 +8487,7 @@ function parsePhrase(text, baseDate){
    décide du chevauchement. Les vingt minutes en dur n'étaient justes
    qu'au niveau « quatre heures », par coïncidence. */
 function placePrise(ev){
-  var minMin = HOUR_PX > 0 ? Math.max(26, Math.min(34, HOUR_PX * 0.34)) / HOUR_PX * 60 : 20;
+  var minMin = HOUR_PX > 0 ? MIN_BLOC_PX / HOUR_PX * 60 : 20;
   return Math.max(ev.dur, Math.max(20, minMin));
 }
 
@@ -8684,10 +8715,11 @@ function makeBlock(ev, opts){
   b.style.top = ((start - DAY_START)/SPAN*100) + '%';
   b.style.height = ((end - start)/SPAN*100) + '%';
 
-  /* Sous 26 px un nom n'est plus lisible : le bloc garde cette hauteur même
-     quand la durée réelle en demanderait moins. Mieux vaut un quart d'heure
-     qui paraît un peu long qu'un rendez-vous qu'on ne peut pas lire. */
-  var minH = Math.max(26, Math.min(34, HOUR_PX * 0.34));
+  /* Sous MIN_BLOC_PX un bloc n'est plus ni lisible ni touchable : il garde
+     cette hauteur même quand la durée réelle en demanderait moins. Mieux
+     vaut un quart d'heure qui paraît un peu long qu'un rendez-vous qu'on
+     ne peut pas ouvrir. */
+  var minH = MIN_BLOC_PX;
 
   /* ═══ le bas de la journée ═══
      Mesuré : « Garde de nuit 23h30 » s'affichait de 97,9 % à 105,2 % de
@@ -10368,6 +10400,26 @@ function nomFichier(t){
    sans avoir à télécharger quoi que ce soit. */
 window.__AGENDA__ = window.__AGENDA__ || {};
 Object.assign(window.__AGENDA__, {
+  /* ═══ depuis la fiche client ═══
+     La fiche liste les rendez-vous pris avec ce client ; les toucher
+     doit mener au rendez-vous lui-même, jour affiché et fiche ouverte.
+     S'il a été supprimé entre-temps, on montre au moins le jour. */
+  ouvrir: function(id, date){
+    /* On lit le rendez-vous à la source et non dans state.events, qui
+       ne contient que la semaine affichée : mesuré, un rendez-vous d'une
+       autre semaine n'était pas trouvé et la journée s'ouvrait vide. */
+    var ev = lsGet(LS_EV).filter(function(x){ return x.id === id; })[0];
+    var jour = (ev && ev.date) || date;
+    if (jour){ state.date = jour; state.week = mondayOf(fromIso(jour)); }
+    /* la même recharge que les flèches de semaine */
+    if (db) subscribeWeek(); else refreshLocal();
+    setView('jour');
+    var sc = $('scroller'), tr = $('track');
+    if (ev && sc && tr){
+      sc.scrollTop = Math.max(0, ((ev.start - DAY_START) / SPAN) * tr.offsetHeight - sc.clientHeight / 3);
+    }
+    if (ev) openSheet(ev);
+  },
   ics: function(depuis, jusqua, ajouts){
     var d0 = depuis || iso(addDays(new Date(), -30));
     var d1 = jusqua || iso(addDays(new Date(), 400));
