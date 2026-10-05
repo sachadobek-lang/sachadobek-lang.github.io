@@ -26,6 +26,16 @@ dis-le en une ligne et propose de continuer depuis l'application Claude Desktop 
 - À chaque réponse, **dire comment la question aurait pu être mieux posée**, et quel
   contexte aurait donné une meilleure réponse.
 
+## Crédits Higgsfield — règle permanente
+
+Les crédits Higgsfield sont de l'argent. Deux règles, à chaque fois :
+
+- **Toujours optimiser.** Choisir le modèle et la qualité les moins chers qui suffisent,
+  ne pas générer de variantes inutiles, réutiliser ce qui existe déjà.
+- **Toujours demander avant de dépenser.** Avant toute génération payante, vérifier le
+  prix exact avec `get_cost: true`, annoncer le nombre de crédits (et le solde actuel),
+  puis attendre son accord. Un accord vaut pour la dépense annoncée, pas pour la suivante.
+
 ## Projet en cours — boutique Shopify
 
 Le travail Shopify **ne vit pas dans ce dépôt**. Ce dépôt est son site personnel
