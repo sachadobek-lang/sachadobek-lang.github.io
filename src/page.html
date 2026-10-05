@@ -3507,8 +3507,8 @@ const duSur      = f => statut(f) === "payee" ? 0 : Math.max(0, montantDe(f) - v
    facturé : une facture de décembre payée en janvier appartient à
    l'année suivante. L'application datait tout de l'émission. */
 const dateReglement = f => (f && f.regleLe) || (f && f.emise) || auj();
-const ETIQ_F = {brouillon: ["À envoyer", "att"], payee: ["Payé", "ok"], retard: ["Pas payé", "feu"], envoyee: ["En attente", "amb"]};
-const COURT_F = {brouillon: "brln", payee: "payé", retard: "retard", envoyee: "env."};
+const ETIQ_F = {brouillon: ["À envoyer", "att"], payee: ["Payé", "ok"], retard: ["Pas payé", "feu"], envoyee: ["En attente", "amb"], devis: ["Devis", "att"]};
+const COURT_F = {brouillon: "brln", payee: "payé", retard: "retard", envoyee: "env.", devis: "devis"};
 const ETIQ_C = {actif: ["En cours", "amb"], prospect: ["Prospect", "att"], termine: ["Terminé", "ok"]};
 
 /* ───────── mémoire du navigateur ───────── */
@@ -5082,11 +5082,13 @@ function rangeeFacture(f, chezLui){
   /* la ligne annonçait « Pas payé » juste au-dessus de « acompte de 32 €
      reçu ». Quand une part est versée, le mot juste est « En retard ». */
   const e = (st === "retard" && verse(f) > 0) ? ["En retard", "feu"] : ETIQ_F[st];
-  const quand = st === "payee" ? "réglée le " + jour(dateReglement(f))
+  const quand = st === "devis" ? "valable jusqu'au " + jour(f.echeance)
+    : st === "payee" ? "réglée le " + jour(dateReglement(f))
     : verse(f) > 0 ? "acompte de " + eur(verse(f)) + " reçu — reste " + eur(duSur(f))
     : st === "retard" ? "à relancer depuis " + (-j) + " jour" + (j < -1 ? "s" : "")
     : "à payer le " + jour(f.echeance);
   const ico = {
+    devis: '<path d="M7 4.5h7l4 4V19a1.6 1.6 0 0 1-1.6 1.6H7A1.6 1.6 0 0 1 5.4 19V6.1A1.6 1.6 0 0 1 7 4.5Z"/><path d="M13.6 4.6v4.2h4.2"/>',
     payee: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
     retard: '<path d="M12 7v6.5"/><circle cx="12" cy="17" r="1.1" fill="currentColor"/>',
     envoyee: '<circle cx="12" cy="12" r="8.6"/><path d="M12 7.4V12l3 1.9"/>',
@@ -5094,7 +5096,7 @@ function rangeeFacture(f, chezLui){
   }[st];
   return '<div class="r"><span class="pastille ' + e[1] + '">'
     + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">' + ico + "</svg></span>"
-    + '<span class="r-corps" data-modif="facture" data-id="' + h(f.id) + '" role="button" tabindex="0">'
+    + '<span class="r-corps" data-modif="' + (st === "devis" ? "devis" : "facture") + '" data-id="' + h(f.id) + '" role="button" tabindex="0">'
     + '<span class="r-titre">' + (chezLui ? h(f.ref || "Facture") : h(f.client)) + "</span>"
     + '<span class="r-meta">' + (chezLui ? "" : '<span class="ref">' + h(f.ref || "") + "</span>")
     + '<span class="etiq ' + e[1] + '">' + e[0] + "</span>"
@@ -5108,7 +5110,9 @@ function rangeeFacture(f, chezLui){
        règle du métier : il lui faut son propre geste, et il n'en avait
        plus depuis que « J'ai été payé » a disparu de Mon argent. Ici il
        sait de quelle facture on parle, ce que l'ancien bouton ignorait. */
-    + (st === "payee"
+    + (st === "devis"
+        ? '<button class="mini" data-signe="' + h(f.id) + '" title="Le client a accepté le devis">Il a signé</button>'
+        : st === "payee"
         ? '<button class="mini" data-regle="' + h(f.id) + '" title="Appuyez pour changer">' + h(f.regle || "Virement") + "</button>"
         : '<button class="mini" data-acompte="' + h(f.id) + '" title="Il a versé une partie">Acompte</button>'
           + '<button class="mini" data-paye="' + h(f.id) + '">Payée</button>')
@@ -5129,7 +5133,20 @@ function vueArgent(){
    elles — on n'a pas encore facturé, tout est encaissé, ou rien n'est
    encore rentré. La première demande un premier geste, la deuxième est une
    bonne nouvelle, la troisième n'est qu'une attente. */
+/* Un devis accepté veut dire qu'un chantier est à poser. L'application
+   le sait ; elle ne doit pas laisser l'artisan le retaper. */
+function proposerRetour2(f, A){
+  setTimeout(function(){
+    const quoi = String(f.objet || f.client || "Chantier").slice(0, 80);
+    A.poser({titre: quoi, client: f.client || ""});
+  }, 700);
+}
+
 function videFactures(combienEnTout){
+  if(filtreF === "devis")
+    return '<p class="vide"><b>Aucun devis en cours</b>'
+      + 'Un devis part daté et valable trois mois. Quand le client signe, '
+      + 'il devient la facture sans rien retaper.</p>';
   if(!combienEnTout)
     return '<p class="vide"><b>Aucune facture pour l\'instant</b>'
       + 'Le bouton « Faire une facture », en haut, en crée une en trois champs.</p>';
@@ -5143,9 +5160,16 @@ function videFactures(combienEnTout){
 function ecranFactures(){
   const c = calculs();
   const tout = c.fact.slice().sort((x, y) => String(y.emise).localeCompare(String(x.emise)));
-  const vis = filtreF === "payee" ? tout.filter(f => statut(f) === "payee")
-                                  : tout.filter(f => statut(f) !== "payee");
-  const libs = [["encaisser", "À encaisser"], ["payee", "Payées"]];
+  /* Trois segments, pas quatre : un devis, une facture qui attend, une
+     facture réglée. C'est l'état réel d'un chantier, dans l'ordre où il
+     se déroule. Et le gros bouton suit le segment ouvert, pour qu'il n'y
+     ait jamais deux boutons de création à l'écran. */
+  const estUnDevis = f => statut(f) === "devis";
+  const vis = filtreF === "devis" ? tout.filter(estUnDevis)
+            : filtreF === "payee" ? tout.filter(f => !estUnDevis(f) && statut(f) === "payee")
+                                  : tout.filter(f => !estUnDevis(f) && statut(f) !== "payee");
+  const libs = [["devis", "Devis"], ["encaisser", "À encaisser"], ["payee", "Payées"]];
+  const surDevis = filtreF === "devis";
 
   /* La question de cet écran est « qui me doit de l'argent ? ». C'est
      donc elle qui prend le grand chiffre. Ce qui a été facturé et ce qui
@@ -5158,9 +5182,9 @@ function ecranFactures(){
     + '<p class="heros-val" data-compte="ca" data-val="' + an.facture + '">' + eur(an.facture) + "</p>"
     + '<p class="heros-sous">depuis janvier</p></div></section>';
 
-    return '<button class="faire-facture anim" data-neuf="facture">'
+    return '<button class="faire-facture anim" data-neuf="' + (surDevis ? "devis" : "facture") + '">'
     + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
-    + '<path d="M12 5.5v13M5.5 12h13"/></svg>Faire une facture</button>'
+    + '<path d="M12 5.5v13M5.5 12h13"/></svg>' + (surDevis ? "Faire un devis" : "Faire une facture") + '</button>'
     + tete
     + '<div class="duo anim" style="animation-delay:.06s"><div class="tuile vert"><span class="lab">Déjà encaissé</span>'
     + '<span class="val" data-compte="encaisse" data-val="' + an.encaisse + '">' + eur(an.encaisse) + "</span>"
@@ -5926,6 +5950,10 @@ function pdfLatin(doc){
 }
 
 function pdfFacture(f){
+  /* Le même document sert aux deux : c'est le même travail qu'on
+     décrit, et le client doit retrouver la même page. Seuls le titre,
+     la date et le pied changent. */
+  var estDevis = (f && f.statut === "devis");
   if(!window.jspdf || !window.jspdf.jsPDF){ bulle("PDF indisponible ici"); return; }
   const moi = state.moi || {};
   const doc = pdfLatin(new window.jspdf.jsPDF({unit: "mm", format: "a4"}));
@@ -5933,10 +5961,10 @@ function pdfFacture(f){
   let y = 24;
 
   doc.setFont("helvetica", "bold").setFontSize(20).setTextColor(20, 32, 46);
-  doc.text("FACTURE", G, y);
+  doc.text(estDevis ? "DEVIS" : "FACTURE", G, y);
   doc.setFont("helvetica", "normal").setFontSize(10).setTextColor(110, 122, 140);
   doc.text(String(f.ref || ""), D, y, {align: "right"});
-  doc.text("Émise le " + dateTxt(f.emise), D, y + 5.5, {align: "right"});
+  doc.text((estDevis ? "Établi le " : "Émise le ") + dateTxt(f.emise), D, y + 5.5, {align: "right"});
 
   y += 16;
   doc.setDrawColor(222, 231, 240).setLineWidth(0.4).line(G, y, D, y);
@@ -6014,12 +6042,45 @@ function pdfFacture(f){
 
   y += 8;
   doc.setFont("helvetica", "normal").setFontSize(9.5).setTextColor(110, 122, 140);
-  doc.text("À régler avant le " + dateTxt(f.echeance) + ".", G, y); y += 5.5;
-  if(taux === 0){ doc.text("TVA non applicable, article 293 B du CGI.", G, y); y += 5.5; }
-  doc.text("Pénalités de retard : 3 fois le taux d'intérêt légal. Indemnité forfaitaire pour frais de recouvrement : 40 EUR.", G, y, {maxWidth: D - G});
+  if(estDevis){
+    /* Un devis n'engage que par sa durée de validité, et la loi veut
+       qu'elle y figure. Le reste — pénalités, indemnité de recouvrement
+       — ne concerne qu'une facture : l'écrire ici ferait croire qu'une
+       somme est due, alors que rien n'a encore été accepté. */
+    doc.text("Devis valable jusqu'au " + dateTxt(f.echeance) + ".", G, y); y += 5.5;
+    if(taux === 0){ doc.text("TVA non applicable, article 293 B du CGI.", G, y); y += 5.5; }
+    doc.text("Ce devis est gratuit et ne vaut pas facture.", G, y);
+  }else{
+    doc.text("À régler avant le " + dateTxt(f.echeance) + ".", G, y); y += 5.5;
+    if(taux === 0){ doc.text("TVA non applicable, article 293 B du CGI.", G, y); y += 5.5; }
+    doc.text("Pénalités de retard : 3 fois le taux d'intérêt légal. Indemnité forfaitaire pour frais de recouvrement : 40 EUR.", G, y, {maxWidth: D - G});
+  }
   y += 10;
   if(moi.decennale){
     doc.text("Assurance décennale : " + moi.decennale, G, y, {maxWidth: D - G});
+    y += 10;
+  }
+
+  /* ═══ le bon pour accord ═══
+     C'est ce bloc qui transforme une proposition en engagement. La
+     formule et la date écrites DE LA MAIN du client sont ce qui vaut
+     acceptation : un devis signé sans date est contestable. */
+  if(estDevis){
+    y = Math.max(y, 232);
+    doc.setDrawColor(222, 231, 240).setLineWidth(0.4).line(G, y, D, y);
+    y += 9;
+    doc.setFont("helvetica", "bold").setFontSize(10.5).setTextColor(20, 32, 46);
+    doc.text("Bon pour accord", G, y);
+    doc.setFont("helvetica", "normal").setFontSize(9.5).setTextColor(110, 122, 140);
+    y += 6;
+    doc.text("À retourner daté et signé, précédé de la mention « Bon pour accord ».", G, y, {maxWidth: D - G});
+    y += 12;
+    doc.setDrawColor(190, 203, 218);
+    doc.line(G, y + 16, G + 62, y + 16);
+    doc.line(D - 72, y + 16, D, y + 16);
+    doc.setFontSize(8.5);
+    doc.text("Date", G, y + 21);
+    doc.text("Signature du client", D - 72, y + 21);
   }
 
   return doc;
@@ -6814,9 +6875,20 @@ function confettis(){
 }
 
 /* ───────── feuille ───────── */
+/* Les numéros de facture doivent se suivre sans trou : c'est la loi.
+   Un devis n'est pas une facture et ne doit donc pas consommer un
+   numéro de la série — sinon un devis refusé laisse un trou qu'aucune
+   facture ne vient combler, et la série devient irrégulière. Chacun a
+   la sienne, et seules les factures comptent pour FA. */
 function refSuivante(){
-  const n = liste("factures").map(f => { const m = /(\d+)\s*$/.exec(String(f.ref || "")); return m ? Number(m[1]) : 0; });
+  const n = liste("factures").filter(f => f.statut !== "devis")
+    .map(f => { const m = /(\d+)\s*$/.exec(String(f.ref || "")); return m ? Number(m[1]) : 0; });
   return "FA-" + new Date().getFullYear() + "-" + String(Math.max.apply(null, n.concat([0])) + 1).padStart(3, "0");
+}
+function refDevisSuivante(){
+  const n = liste("factures").filter(f => /^DV-/.test(String(f.ref || "")))
+    .map(f => { const m = /(\d+)\s*$/.exec(String(f.ref || "")); return m ? Number(m[1]) : 0; });
+  return "DV-" + new Date().getFullYear() + "-" + String(Math.max.apply(null, n.concat([0])) + 1).padStart(3, "0");
 }
 const CHAMPS = {
   tache: () => ({titre: "Nouvelle tâche", html:
@@ -6896,6 +6968,21 @@ const CHAMPS = {
     + '<label><input type="radio" name="statut" value="brouillon"><span>Brouillon</span></label>'
     + '<label><input type="radio" name="statut" value="envoyee" checked><span>Envoyée</span></label>'
     + '<label><input type="radio" name="statut" value="payee"><span>Payée</span></label></div></div></details>'}),
+  /* Le devis emprunte le formulaire de la facture : mêmes trois
+     questions, parce que c'est le même travail qu'on décrit. Seule la
+     date change de sens — ce n'est plus une échéance de paiement mais
+     une durée de validité, et la loi veut qu'elle soit écrite. */
+  devis: () => ({titre: "Nouveau devis", html:
+    '<div class="champ"><label for="f1">Pour qui ?</label><input id="f1" name="client" required maxlength="80" list="lc" placeholder="Nom du client" autocomplete="off"></div>'
+    + '<div class="champ"><label for="f2">Combien ? (€)</label><input id="f2" name="montant" type="number" min="0.01" step="any" required placeholder="0" inputmode="decimal"></div>'
+    + '<div class="champ"><label for="f6">Pour quoi ?</label><input id="f6" name="objet" maxlength="120" placeholder="Réfection complète de la salle de bains" autocomplete="off"></div>'
+    + '<p class="aide">' + (enModif
+        ? "Sa date et son numéro ne changent pas."
+        : "Il part daté d'aujourd'hui, valable trois mois. Quand le client signe, il devient la facture.") + "</p>"
+    + '<details class="detail"><summary>Plus de détails</summary>'
+    + '<div class="paire empile"><div class="champ"><label for="f3">Numéro</label><input id="f3" name="ref" maxlength="24" value="' + refDevisSuivante() + '"></div>'
+    + '<div class="champ"><label for="f4">Valable jusqu\'au</label><input id="f4" name="echeance" type="date" value="' + dans(90) + '"></div></div>'
+    + "</details>"}),
   depense: () => ({titre: "Nouvelle dépense", html: formSortie("Loyer de l\'atelier")}),
   investissement: () => ({titre: "Nouvel investissement", html: formSortie("Camionnette")})
 };
@@ -7325,6 +7412,30 @@ $("#vue").addEventListener("click", e => {
     if(window.ouvrirRentree) window.ouvrirRentree({facture: id, client: f.client});
     return;
   }
+  /* ═══ la deuxième vie du devis ═══
+     Il ne devient pas « une facture de plus » : c'est LE MÊME objet qui
+     change d'état. Il garde son client, son objet, son montant, et son
+     numéro de devis reste écrit dans le sien — ainsi, des mois plus
+     tard, on sait de quel devis vient cette facture. Il prend en
+     revanche un numéro de facture : la série FA doit se suivre sans
+     trou, et un devis refusé ne doit pas y laisser de vide. */
+  if(b.dataset.signe){
+    const f = state.factures[b.dataset.signe];
+    if(!f) return;
+    ecrire("factures", b.dataset.signe, Object.assign({}, f, {
+      statut: "envoyee",
+      venuDuDevis: f.ref || "",
+      ref: refSuivante(),
+      emise: auj(),
+      echeance: dans(30)}));
+    filtreF = "encaisser"; memoire.clear(); rendre();
+    bulle("Accepté · c'est devenu une facture");
+    /* La troisième vie : le chantier. On ne l'impose pas — on le
+       propose, parce que la date se décide avec le client. */
+    const A = window.__AGENDA__;
+    if(A && A.poser) proposerRetour2(f, A);
+    return;
+  }
   if(b.dataset.paye){
     const f = state.factures[b.dataset.paye];
     if(!f) return;
@@ -7588,6 +7699,17 @@ $("#feuille").addEventListener("submit", e => {
     enModif = null;
     fermer();
     if(etaitModif) bulle("Modifié"); else telechargerFacture(id);
+    return;
+  }else if(typeActif === "devis"){
+    ecrire("factures", id, Object.assign(garder, {
+      ref: String(d.ref || "").trim() || refDevisSuivante(), client: String(d.client).trim(),
+      objet: String(d.objet || "").trim(), montant: Number(d.montant) || 0,
+      emise: garder.emise || auj(), echeance: d.echeance || dans(90),
+      statut: "devis"}));
+    const etaitModifD = !!enModif;
+    enModif = null;
+    fermer();
+    if(etaitModifD) bulle("Modifié"); else telechargerFacture(id);
     return;
   }else if(typeActif === "moi"){
     state.moi = Object.assign({}, state.moi, {nom: String(d.nom).trim(), adresse: String(d.adresse || "").trim(),
@@ -10463,6 +10585,26 @@ Object.assign(window.__AGENDA__, {
     }
     if (ev) openSheet(ev);
   },
+  /* ═══ poser le chantier d'un devis accepté ═══
+     Le devis connaît le travail et le client ; seule la date se décide
+     avec lui. On ouvre donc l'agenda sur aujourd'hui, la phrase déjà
+     écrite dans la barre — il n'a plus qu'à dire quand. Rien n'est
+     enregistré tant qu'il n'a pas choisi : poser un chantier à une date
+     inventée serait pire que ne rien poser. */
+  poser: function(o){
+    try{
+      var bt = document.querySelector('#nav button[data-vue="afaire"]');
+      if(bt) bt.click();
+      var q = $('quick');
+      if(!q) return false;
+      q.value = String((o && o.titre) || '').trim();
+      q.dispatchEvent(new Event('input', {bubbles: true}));
+      q.focus();
+      try{ q.setSelectionRange(q.value.length, q.value.length); }catch(e){}
+      return true;
+    }catch(e){ return false; }
+  },
+
   ics: function(depuis, jusqua, ajouts){
     var d0 = depuis || iso(addDays(new Date(), -30));
     var d1 = jusqua || iso(addDays(new Date(), 400));
