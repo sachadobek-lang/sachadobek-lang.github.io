@@ -3479,8 +3479,24 @@ function semaineIso(d){
    l'application n'a le droit de recalculer ça dans son coin. */
 const montantDe = f => Number(f && f.montant) || 0;
 const verse     = f => Number(f && f.verse) || 0;
+/* ═══ ce qui compte dans l'argent, et ce qui n'y compte pas ═══
+   Un brouillon n'est pas une créance ; un devis non plus, tant qu'il
+   n'est pas accepté. Cette règle vivait recopiée à quatorze endroits —
+   écrans, totaux, ponts, livre des recettes. Ajouter un statut voulait
+   dire les retrouver tous, et en oublier un suffit à faire mentir un
+   total sans qu'aucune erreur ne s'affiche. Elle est désormais à un seul
+   endroit, et c'est elle qu'on lit partout. */
+function compteDansLArgent(f){
+  return !!f && f.statut !== "brouillon" && f.statut !== "devis";
+}
+
 function statut(f){
   if(f.statut === "brouillon") return "brouillon";
+  /* Un devis n'est pas une facture envoyée. Sans cette ligne il tombait
+     dans « envoyée » par le défaut de fin de fonction, et « on vous
+     doit » comptait un devis non accepté comme une créance. Mesuré :
+     7 000 € réclamés à un client qui n'avait rien signé. */
+  if(f.statut === "devis") return "devis";
   if(f.statut === "payee") return "payee";
   if(verse(f) > 0 && verse(f) >= montantDe(f)) return "payee";
   return jours(f.echeance) < 0 ? "retard" : "envoyee";
@@ -3652,7 +3668,7 @@ function calculs(){
   const impayees = attente.filter(f => statut(f) === "retard");
   const moisIci = a.slice(0, 7);
   const dPrec = new Date(); dPrec.setDate(1); dPrec.setMonth(dPrec.getMonth() - 1);
-  const parMois = m => fact.filter(f => f.statut !== "brouillon" && String(f.emise || "").slice(0, 7) === m)
+  const parMois = m => fact.filter(f => compteDansLArgent(f) && String(f.emise || "").slice(0, 7) === m)
                            .reduce((s, f) => s + (Number(f.montant) || 0), 0);
   return {
     tach: tach, fact: fact,
@@ -4637,7 +4653,7 @@ function pointSemaine(){
 
 function fiche(c){
   const e = ETIQ_C[c.statut] || ETIQ_C.prospect;
-  const fx = liste("factures").filter(f => f.client === c.nom && f.statut !== "brouillon")
+  const fx = liste("factures").filter(f => f.client === c.nom && compteDansLArgent(f))
                               .reduce((s, f) => s + (Number(f.montant) || 0), 0);
   const nb = (c.notes || []).length;
   return '<article class="fiche" data-client="' + h(c.id) + '"><h3>' + h(c.nom) + "</h3>"
@@ -4746,7 +4762,7 @@ function ficheClient(id){
   if(!src) { clientOuvert = null; return carnetClients(); }
   const c = Object.assign({id: id}, src);
   const e = ETIQ_C[c.statut] || ETIQ_C.prospect;
-  const siennes = liste("factures").filter(f => f.client === c.nom && f.statut !== "brouillon")
+  const siennes = liste("factures").filter(f => f.client === c.nom && compteDansLArgent(f))
                                    .sort((x, y) => String(y.emise).localeCompare(String(x.emise)));
   /* Un brouillon ne compte pas dans l'argent, mais il existe : juste après
      « Facture téléchargée », la fiche disait « Aucune facture pour
@@ -4830,7 +4846,7 @@ function ficheClient(id){
 /* le mois où le client a signé : celui de sa première facture. Un
    prospect sans facture n'a pas encore de mois, il attend à part. */
 function moisSigne(nom, fact){
-  const f = fact.filter(x => x.client === nom && x.statut !== "brouillon" && x.emise);
+  const f = fact.filter(x => x.client === nom && compteDansLArgent(x) && x.emise);
   if(!f.length) return null;
   return f.map(x => String(x.emise).slice(0, 7)).sort()[0];
 }
@@ -4874,7 +4890,7 @@ function repousser(id, cle, jusqu){
 
 /* la dernière facture d'un client, et son plus vieil impayé */
 function sesFactures(nom, fact){
-  return fact.filter(x => x.client === nom && x.statut !== "brouillon");
+  return fact.filter(x => x.client === nom && compteDansLArgent(x));
 }
 
 function aRappeler(){
@@ -5017,7 +5033,7 @@ function carnetClients(){
   const cl = liste("clients");
   const fact = liste("factures");
   const actifs = cl.filter(c => c.statut === "actif");
-  const totalDe = nom => fact.filter(x => x.client === nom && x.statut !== "brouillon")
+  const totalDe = nom => fact.filter(x => x.client === nom && compteDansLArgent(x))
                              .reduce((t, x) => t + (Number(x.montant) || 0), 0);
 
   const groupes = {}, attente = [];
@@ -5643,7 +5659,7 @@ const heureMin = m => (m == null) ? "" : String(Math.floor(m / 60)).padStart(2, 
    dépassé. C'est la gêne qui empêche de relancer, pas l'oubli. */
 function texteRelance(nom){
   const f = liste("factures")
-    .filter(x => x.client === nom && x.statut !== "brouillon" && statut(x) !== "payee")
+    .filter(x => x.client === nom && compteDansLArgent(x) && statut(x) !== "payee")
     .sort((a, b) => String(a.echeance).localeCompare(String(b.echeance)));
   if(!f.length) return null;
 
@@ -5808,7 +5824,7 @@ function ouvrirRelance(nom){
    en janvier appartient à l'année suivante, c'est la règle du micro. */
 function bilanAn(){
   const an = String(new Date().getFullYear());
-  const tout = liste("factures").filter(x => x.statut !== "brouillon");
+  const tout = liste("factures").filter(x => compteDansLArgent(x));
   return {
     facture: tout.filter(x => String(x.emise || "").slice(0, 4) === an)
                  .reduce((t, x) => t + montantDe(x), 0),
@@ -5837,7 +5853,7 @@ function ligneLegende(cls, titre, sous, montant, pourcent){
    n’a le droit de recalculer les recettes de l’année. */
 function recettesDeLAn(an){
   return liste("factures")
-    .filter(f => f.statut !== "brouillon" && encaisseDe(f) > 0
+    .filter(f => compteDansLArgent(f) && encaisseDe(f) > 0
                  && String(dateReglement(f)).slice(0, 4) === an)
     .sort((a, b) => String(dateReglement(a)).localeCompare(String(dateReglement(b))));
 }
@@ -6546,16 +6562,16 @@ window.__CADENCE__ = {
     return b <= IS_SEUIL ? b * IS_REDUIT / 100
       : IS_SEUIL * IS_REDUIT / 100 + (b - IS_SEUIL) * IS_PLEIN / 100;
   },
-  rentrees: () => liste("factures").filter(f => f.statut !== "brouillon" && encaisseDe(f) > 0).map(f => ({
+  rentrees: () => liste("factures").filter(f => compteDansLArgent(f) && encaisseDe(f) > 0).map(f => ({
     id: f.id, date: dateReglement(f), client: f.client || "", ref: f.ref || "",
     montant: encaisseDe(f), mode: f.mode || "Virement", exemple: !!f.demo,
     partiel: statut(f) !== "payee"})),
-  creances: () => liste("factures").filter(f => f.statut !== "brouillon" && statut(f) !== "payee").map(f => ({
+  creances: () => liste("factures").filter(f => compteDansLArgent(f) && statut(f) !== "payee").map(f => ({
     id: f.id, client: f.client || "", ref: f.ref || "", montant: duSur(f),
     total: montantDe(f), deja: verse(f),
     desc: f.objet || "", emission: f.emise || auj(), echeance: f.echeance || auj(), exemple: !!f.demo})),
   encaisse: () => liste("factures")
-    .filter(f => f.statut !== "brouillon" && String(dateReglement(f)).slice(0, 4) === anIci())
+    .filter(f => compteDansLArgent(f) && String(dateReglement(f)).slice(0, 4) === anIci())
     .reduce((t, f) => t + encaisseDe(f), 0),
   /* Un encaissement se pose sur la facture qu'il règle. Il n'en crée une
      que s'il n'y en avait aucune — une vente au comptant, réglée sur
@@ -6588,7 +6604,7 @@ window.__CADENCE__ = {
   },
   /* ce qui reste dû, facture par facture, pour l'écran d'encaissement */
   duesDe: nom => liste("factures")
-    .filter(f => f.statut !== "brouillon" && statut(f) !== "payee"
+    .filter(f => compteDansLArgent(f) && statut(f) !== "payee"
                  && (!nom || f.client === nom))
     .map(f => ({id: f.id, client: f.client || "", ref: f.ref || "",
                 objet: f.objet || "", du: duSur(f), total: montantDe(f),
@@ -7320,7 +7336,7 @@ $("#vue").addEventListener("click", e => {
        le suit là où elle est partie — mais seulement quand il ne reste rien
        à encaisser, sinon on lui retirerait les autres des yeux. */
     if(filtreF === "encaisser"
-       && !liste("factures").some(x => x.statut !== "brouillon" && statut(x) !== "payee")){
+       && !liste("factures").some(x => compteDansLArgent(x) && statut(x) !== "payee")){
       filtreF = "payee"; memoire.clear(); rendre();
       bulle("Encaissée · elle passe dans « Payées »");
       return;
