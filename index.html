@@ -7680,6 +7680,29 @@ $("#feuille").addEventListener("submit", e => {
       duree: Number(d.duree) || garder.duree || DUREE_DEFAUT, fait: !!garder.fait}));
     bulle(mot || "Tâche ajoutée");
   }else if(typeActif === "client"){
+    /* Un nom déjà inscrit ne crée pas une seconde fiche. Les factures
+       sont rattachées au nom : mesuré le 5 octobre 2026, ajouter un
+       second « Salon Coiffure Léa » depuis « Nouveau client » affichait
+       sa facture de 240 € sur les deux cartes, et septembre passait de
+       3 471 € à 3 711 €. « Il a signé » depuis l'Agenda avait déjà cette
+       garde ; le formulaire, non. On ouvre la fiche existante. */
+    const cible = sansAccent(String(d.nom).trim());
+    const homonyme = Object.keys(state.clients).find(k => k !== enModif
+      && sansAccent(String(state.clients[k].nom || "").trim()) === cible);
+    if(homonyme){
+      if(enModif){ bulle("Un autre client porte déjà ce nom"); return; }
+      fermer();
+      vue = "argent"; clientOuvert = homonyme; animer = true; memoire.clear();
+      const tous = document.querySelectorAll("#nav button[data-vue]");
+      for(let i = 0; i < tous.length; i++){
+        tous[i].removeAttribute("aria-current");
+        if(tous[i].dataset.vue === "argent") tous[i].setAttribute("aria-current", "page");
+      }
+      rendre();
+      window.scrollTo({top: 0});
+      bulle("Déjà dans vos clients");
+      return;
+    }
     ecrire("clients", id, Object.assign(garder, {nom: String(d.nom).trim(),
       projet: String(d.projet || "").trim(), contact: String(d.contact || "").trim(),
       /* l'Agenda lit cette clé pour proposer « Y aller » sur un rendez-vous.
