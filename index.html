@@ -1323,6 +1323,17 @@ summary.carte-tete:hover h2{color:var(--v1)}
 }
 @keyframes monte{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 
+/* La pastille qui glisse d'un choix à l'autre — voir « le mouvement entre
+   deux choix » à la fin du premier script. Elle passe sous les mots ; la
+   vraie pastille reste transparente le temps du trajet, et son mot change
+   de couleur au rythme du déplacement plutôt que d'un coup. */
+.glisse > button{position:relative;z-index:1}
+.glissiere{position:absolute;left:0;z-index:0;pointer-events:none}
+.glisse > .glisse-cible{background:transparent!important;box-shadow:none!important;transition:color .16s var(--doux) .14s!important}
+/* l'ancien choix rend sa couleur tout de suite : un mot blanc qui reste
+   sur la piste claire après le départ de la pastille ne se lit plus */
+.glisse > button:not(.glisse-cible){transition:color .1s linear!important}
+
 /* Le rendez-vous qu'on vient de poser se pose vraiment : il arrive un
    peu trop grand et se règle, au lieu d'apparaître d'un coup. C'est le
    seul moment où l'on voit le résultat de son geste dans l'agenda, et
@@ -7940,6 +7951,223 @@ requestAnimationFrame(() => requestAnimationFrame(() => {
   majPointAbri();
   setTimeout(function(){ majPointAbri(); demanderAbri(); }, 2000);
 }));
+
+/* ═══ le mouvement entre deux choix ═══
+   Mesuré le 6 octobre 2026, iPhone simulé, processeur ralenti de moitié :
+   sur les quatre sélecteurs de l'application — la barre du bas, Mon
+   argent · Factures · Calculs, Devis · À encaisser · Payées, Jour ·
+   Semaine · Mois — la pastille sautait d'un bouton à l'autre, et le
+   contenu tombait d'un bloc dès la première image. Rien ne disait où
+   l'on était allé. Les écrans sont redessinés en entier à chaque geste :
+   on ne peut pas confier ce mouvement à une transition CSS, l'élément
+   qui la porterait n'existe plus. On note donc l'état juste avant le
+   geste, et l'on rejoue le trajet juste après, avant que l'image ne
+   soit peinte — la technique dite FLIP.
+   Trois gestes, un seul vocabulaire :
+   · la pastille glisse de l'ancien choix au nouveau ;
+   · le contenu arrive du côté où l'on va — de droite si l'on avance ;
+     pour l'Agenda, Jour → Mois s'éloigne et Mois → Jour se rapproche ;
+   · la carte des factures change de hauteur en douceur au lieu de
+     faire sauter ce qui est dessous.
+   Il n'y a rien à appeler : un seul écouteur, posé en phase de capture,
+   voit le toucher avant les deux blocs de script. */
+(function(){
+  const SEL = '.nav button[data-vue], .segments button[data-fc], .segments button[data-ff], #viewSeg button[data-v]';
+  const DUREE = 300;
+  const actif = b => b.getAttribute("aria-current") === "page" || b.getAttribute("aria-pressed") === "true";
+  const visible = e => !!e && e.getClientRects().length > 0;
+  const leGroupe = cle => {
+    const b = [...document.querySelectorAll("[data-" + cle + "]")].find(x => x.tagName === "BUTTON" && visible(x));
+    return b ? b.parentElement : null;
+  };
+  const boutons = (g, cle) => [...g.querySelectorAll(":scope > button[data-" + cle + "]")];
+
+  document.addEventListener("click", function(e){
+    const b = e.target.closest && e.target.closest(SEL);
+    if(!b || reduit()) return;
+    const cle = Object.keys(b.dataset)[0];
+    const g = b.parentElement;
+    const liste = boutons(g, cle);
+    const ancien = liste.find(actif);
+    if(!ancien || ancien === b) return;
+    const valeur = x => x.dataset[cle];
+    const avant = {
+      cle: cle, de: valeur(ancien), vers: valeur(b),
+      ordre: liste.map(valeur),
+      rect: ancien.getBoundingClientRect(),
+      groupe: g.getBoundingClientRect(),
+      centres: Object.fromEntries(liste.map(x => { const r = x.getBoundingClientRect(); return [valeur(x), r.left + r.width / 2]; })),
+      carte: cle === "ff" && g.closest("section") ? g.closest("section").getBoundingClientRect().height : 0
+    };
+    /* après les deux blocs, avant la peinture */
+    requestAnimationFrame(() => rejouer(avant));
+  }, true);
+
+  function rejouer(a){
+    const g = leGroupe(a.cle);
+    if(!g) return;
+    const liste = boutons(g, a.cle);
+    const neuf = liste.find(actif);
+    if(!neuf || neuf.dataset[a.cle] !== a.vers) return;
+    /* deux touchers rapides : la pastille encore en route s'efface, sinon
+       deux pastilles voyageraient en même temps */
+    g.querySelectorAll(".glissiere").forEach(x => x.getAnimations().forEach(an => an.cancel()));
+    const rg = g.getBoundingClientRect(), rn = neuf.getBoundingClientRect();
+
+    /* 1 · la pastille. Une copie de la pastille active part de l'ancienne
+       place ; la vraie reste transparente le temps du trajet. */
+    const cs = window.getComputedStyle(neuf);
+    const p = document.createElement("span");
+    p.className = "glissiere";
+    p.setAttribute("aria-hidden", "true");
+    p.style.background = cs.background;
+    p.style.boxShadow = cs.boxShadow;
+    p.style.borderRadius = cs.borderRadius;
+    p.style.top = (rn.top - rg.top - g.clientTop) + "px";
+    p.style.height = rn.height + "px";
+    if(window.getComputedStyle(g).position === "static") g.style.position = "relative";
+    g.classList.add("glisse");
+    g.insertBefore(p, g.firstChild);
+    neuf.classList.add("glisse-cible");
+    const de = a.rect.left - a.groupe.left - g.clientLeft, vers = rn.left - rg.left - g.clientLeft;
+    const anim = p.animate(
+      [{left: de + "px", width: a.rect.width + "px"}, {left: vers + "px", width: rn.width + "px"}],
+      {duration: DUREE, easing: "cubic-bezier(.22,.61,.36,1)", fill: "both"});
+    const fin = () => { p.remove(); neuf.classList.remove("glisse-cible"); if(!g.querySelector(".glissiere")) g.classList.remove("glisse"); };
+    anim.onfinish = fin; anim.oncancel = fin;
+
+    /* La barre du bas donne plus de place à l'onglet ouvert : ses voisins
+       se décalaient d'un coup pendant que la pastille glissait. Ils
+       suivent maintenant le même trajet. */
+    liste.forEach(x => {
+      const r = x.getBoundingClientRect();
+      const dx = a.centres[x.dataset[a.cle]] - (r.left + r.width / 2);
+      if(Math.abs(dx) > 0.5)
+        x.animate([{transform: "translateX(" + dx + "px)"}, {transform: "none"}],
+          {duration: DUREE, easing: "cubic-bezier(.22,.61,.36,1)"});
+    });
+
+    /* 2 · le contenu vient du côté où l'on va */
+    const sens = Math.sign(a.ordre.indexOf(a.vers) - a.ordre.indexOf(a.de)) || 1;
+    const entrer = (el, depart) => el.animate(
+      [Object.assign({opacity: 0}, depart), {opacity: 1, transform: "none"}],
+      {duration: DUREE, easing: "cubic-bezier(.22,.61,.36,1)", fill: "backwards"});
+    const glisse = {transform: "translateX(" + (18 * sens) + "px)"};
+
+    if(a.cle === "fc"){
+      let x = g.nextElementSibling;
+      for(; x; x = x.nextElementSibling) if(visible(x)) entrer(x, glisse);
+      const argent = document.querySelector("#ilreste:not([hidden]) > .page");
+      if(argent) entrer(argent, glisse);
+    }
+    if(a.cle === "ff"){
+      let x = g.nextElementSibling;
+      for(; x && !x.classList.contains("ajout-ligne"); x = x.nextElementSibling) entrer(x, glisse);
+      const carte = g.closest("section");
+      const h1 = carte ? carte.getBoundingClientRect().height : 0;
+      if(carte && a.carte && Math.abs(h1 - a.carte) > 1){
+        carte.style.overflow = "hidden";
+        const h = carte.animate([{height: a.carte + "px"}, {height: h1 + "px"}],
+          {duration: DUREE, easing: "cubic-bezier(.22,.61,.36,1)"});
+        h.onfinish = h.oncancel = () => { carte.style.overflow = ""; };
+      }
+    }
+    if(a.cle === "v"){
+      /* le calendrier ne glisse pas de côté : il s'éloigne ou se rapproche */
+      const zoom = {transform: "scale(" + (sens > 0 ? 1.035 : 0.965) + ")"};
+      ["wkhead", "scroller"].forEach(id => { const el = document.getElementById(id); if(visible(el)) entrer(el, zoom); });
+    }
+  }
+})();
+
+/* ═══ ce qui part, ce qui reste, ce qui arrive ═══
+   Même mesure, autre geste : « Payée » sur une facture à encaisser. La
+   ligne disparaissait d'un coup, et toute la carte remontait de 170
+   pixels dans la même image — le défilement retombait au bas d'une page
+   devenue plus courte. Le geste le plus fréquent d'un artisan était le
+   plus brutal de l'application.
+   Les lignes de facture et les fiches client portent un identifiant
+   stable : on les reconnaît d'un rendu à l'autre. Celle qui part est
+   remise un instant à sa place et se replie ; celles qui restent glissent
+   jusqu'à leur nouvelle place ; celle qui arrive monte doucement. La page
+   garde sa hauteur de défilement, et se raccourcit au rythme du repli. */
+(function(){
+  const DUREE = 300, COURBE = "cubic-bezier(.22,.61,.36,1)";
+  const GESTES = '[data-paye], [data-sup], [data-signe], [data-acompte], [data-regle]';
+  const cle = el => el.classList.contains("fiche") ? "f:" + el.dataset.client
+    : (el.querySelector("[data-id]") || {dataset: {}}).dataset.id ? "r:" + el.querySelector("[data-id]").dataset.id : "";
+  const releve = () => {
+    const m = new Map();
+    document.querySelectorAll("#vue .r, #vue .fiche").forEach(el => { const k = cle(el); if(k.length > 2) m.set(k, el); });
+    return m;
+  };
+  function noter(){
+    const vue = document.getElementById("vue");
+    if(!vue || vue.hidden || reduit()) return;
+    const avant = releve();
+    const places = new Map();
+    avant.forEach((el, k) => places.set(k, {
+      rect: el.getBoundingClientRect(), el: el,
+      suivant: el.nextElementSibling ? cle(el.nextElementSibling) : null,
+      precedent: el.previousElementSibling ? cle(el.previousElementSibling) : null}));
+    const y = window.scrollY;
+    requestAnimationFrame(() => rejouer(places, y));
+  }
+  document.addEventListener("click", e => { if(e.target.closest && e.target.closest("#vue") && e.target.closest(GESTES)) noter(); }, true);
+  document.addEventListener("submit", e => { if(e.target.closest && e.target.closest("#feuille")) noter(); }, true);
+
+  function rejouer(places, y){
+    const vue = document.getElementById("vue");
+    if(!vue || vue.hidden) return;
+    const apres = releve();
+    /* rien n'a bougé : « Confirmer ? » sur une suppression armée */
+    if(apres.size === places.size && [...places.keys()].every(k => apres.has(k))){
+      let bouge = false;
+      apres.forEach((el, k) => { if(Math.abs(el.getBoundingClientRect().top - places.get(k).rect.top) > 1) bouge = true; });
+      if(!bouge) return;
+    }
+    /* Aucune ligne commune : ce n'est plus la même liste — on est passé
+       d'une fiche client à la liste des clients. Rien à rejouer, et
+       surtout rien à replacer dans une liste qui n'est pas la sienne. */
+    if(![...places.keys()].some(k => apres.has(k))) return;
+    /* celles qui partent reviennent un instant à leur place, puis se replient */
+    places.forEach((p, k) => {
+      if(apres.has(k)) return;
+      const sous = p.suivant && apres.get(p.suivant);
+      const dessus = p.precedent && apres.get(p.precedent);
+      if(!sous && !dessus) return;
+      const fantome = p.el;
+      fantome.classList.remove("anim");
+      fantome.querySelectorAll(".anim").forEach(x => x.classList.remove("anim"));
+      fantome.style.pointerEvents = "none";
+      fantome.style.overflow = "hidden";
+      fantome.setAttribute("aria-hidden", "true");
+      if(sous) sous.before(fantome); else dessus.after(fantome);
+      const cs = window.getComputedStyle(fantome);
+      const a = fantome.animate([
+        {opacity: 1, height: p.rect.height + "px", marginTop: cs.marginTop, marginBottom: cs.marginBottom, paddingTop: cs.paddingTop, paddingBottom: cs.paddingBottom, transform: "none"},
+        {opacity: 0, height: "0px", marginTop: "0px", marginBottom: "0px", paddingTop: "0px", paddingBottom: "0px", transform: "scale(.97)"}
+      ], {duration: DUREE, easing: COURBE});
+      a.onfinish = a.oncancel = () => fantome.remove();
+    });
+    /* le défilement d'avant, que la page plus courte avait fait tomber */
+    if(Math.abs(window.scrollY - y) > 1) window.scrollTo(0, y);
+    /* celles qui restent glissent ; celles qui arrivent montent */
+    apres.forEach((el, k) => {
+      const r = el.getBoundingClientRect();
+      if(r.bottom < -40 || r.top > innerHeight + 40) return;
+      const p = places.get(k);
+      if(!p){
+        el.animate([{opacity: 0, transform: "translateY(10px) scale(.985)"}, {opacity: 1, transform: "none"}],
+          {duration: DUREE + 60, easing: COURBE, fill: "backwards", delay: 60});
+        return;
+      }
+      const dy = p.rect.top - r.top;
+      if(Math.abs(dy) > 1)
+        el.animate([{transform: "translateY(" + dy + "px)"}, {transform: "none"}], {duration: DUREE, easing: COURBE});
+    });
+  }
+})();
 
 </script>
 
