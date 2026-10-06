@@ -8101,7 +8101,7 @@ requestAnimationFrame(() => requestAnimationFrame(() => {
     document.querySelectorAll("#vue .r, #vue .fiche").forEach(el => { const k = cle(el); if(k.length > 2) m.set(k, el); });
     return m;
   };
-  function noter(){
+  function noter(ajout){
     const vue = document.getElementById("vue");
     if(!vue || vue.hidden || reduit()) return;
     const avant = releve();
@@ -8111,12 +8111,12 @@ requestAnimationFrame(() => requestAnimationFrame(() => {
       suivant: el.nextElementSibling ? cle(el.nextElementSibling) : null,
       precedent: el.previousElementSibling ? cle(el.previousElementSibling) : null}));
     const y = window.scrollY;
-    requestAnimationFrame(() => rejouer(places, y));
+    requestAnimationFrame(() => rejouer(places, y, ajout));
   }
   document.addEventListener("click", e => { if(e.target.closest && e.target.closest("#vue") && e.target.closest(GESTES)) noter(); }, true);
-  document.addEventListener("submit", e => { if(e.target.closest && e.target.closest("#feuille")) noter(); }, true);
+  document.addEventListener("submit", e => { if(e.target.closest && e.target.closest("#feuille")) noter(true); }, true);
 
-  function rejouer(places, y){
+  function rejouer(places, y, ajout){
     const vue = document.getElementById("vue");
     if(!vue || vue.hidden) return;
     const apres = releve();
@@ -8152,6 +8152,20 @@ requestAnimationFrame(() => requestAnimationFrame(() => {
     });
     /* le défilement d'avant, que la page plus courte avait fait tomber */
     if(Math.abs(window.scrollY - y) > 1) window.scrollTo(0, y);
+    /* Un client ajouté se rangeait tout en bas, hors de l'écran : la bulle
+       disait « Client ajouté » et l'on ne voyait aucun client. La page
+       descend doucement jusqu'à lui, et il arrive sous les yeux. L'ordre
+       de la liste, lui, ne change pas. */
+    const neufs = [...apres.keys()].filter(k => !places.has(k));
+    if(ajout && neufs.length === 1){
+      const el = apres.get(neufs[0]), r = el.getBoundingClientRect();
+      if(r.top < 70 || r.bottom > innerHeight - 110){
+        el.scrollIntoView({behavior: "smooth", block: "center"});
+        el.animate([{opacity: 0, transform: "translateY(14px) scale(.98)"}, {opacity: 1, transform: "none"}],
+          {duration: DUREE + 120, easing: COURBE, fill: "backwards", delay: 380});
+        return;
+      }
+    }
     /* celles qui restent glissent ; celles qui arrivent montent */
     apres.forEach((el, k) => {
       const r = el.getBoundingClientRect();
