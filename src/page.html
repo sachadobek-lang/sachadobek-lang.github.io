@@ -5103,7 +5103,7 @@ function rangeeFacture(f, chezLui){
     + (f.objet ? "<span>" + h(f.objet) + "</span>" : "")
     + "<span>" + quand + "</span></span></span>"
     + '<span class="r-som' + (st === "payee" ? " paye" : "") + '">' + eur(f.montant) + "</span>"
-    + '<button class="pdf" data-pdf="' + h(f.id) + '" title="Télécharger la facture en PDF">'
+    + '<button class="pdf" data-pdf="' + h(f.id) + '" title="Télécharger ' + (st === "devis" ? "le devis" : "la facture") + ' en PDF">'
     + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
     + '<path d="M12 3.5v11"/><path d="m7.8 10.5 4.2 4.2 4.2-4.2"/><path d="M4.5 18.5h15"/></svg>PDF</button>'
     /* « Payée » solde tout. Mais l'acompte de 30 % à la commande est la
@@ -6361,6 +6361,9 @@ async function telechargerFacture(id){
   const doc = pdfFacture(f);
   if(!doc) return;
   const nom = String(f.ref || "facture").replace(/[^A-Za-z0-9._-]/g, "-") + ".pdf";
+  /* Un devis annonçait « Facture téléchargée » : le PDF disait DEVIS, la
+     bulle disait l'inverse, juste après avoir écrit un devis. */
+  const fait = f.statut === "devis" ? "Devis téléchargé" : "Facture téléchargée";
 
   /* dans le visualiseur, seul le service de téléchargement peut livrer un fichier ;
      ouvert directement, le navigateur s'en charge lui-même */
@@ -6369,7 +6372,7 @@ async function telechargerFacture(id){
     if(!dl){ bulle("Téléchargement indisponible ici"); return; }
     try{
       await dl.save({filename: nom, data: doc.output("arraybuffer")});
-      bulle("Facture téléchargée");
+      bulle(fait);
     }catch(e){
       const c = e && e.code;
       bulle(c === "declined" ? "Téléchargement annulé"
@@ -6379,7 +6382,7 @@ async function telechargerFacture(id){
     return;
   }
   doc.save(nom);
-  bulle("Facture téléchargée");
+  bulle(fait);
 }
 
 function demo(){
