@@ -1652,6 +1652,16 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #majournee .per-fl:hover{background:var(--surface-2)}
 #majournee .per-fl:active{transform:scale(.92)}
 #majournee .dateline h1{flex:1}
+/* ═══ quand la pastille « Dans 5 min » est là ═══
+   « flex:1 » part d'une largeur nulle : la ligne croyait toujours avoir
+   la place, ne passait jamais à la ligne, et le titre était écrasé à
+   59 pixels pour en écrire 106. À 375 px on lisait « Aujourd' », la
+   pastille posée sur la fin du mot — vu à l'écran le 7 octobre 2026.
+   Le titre garde ici sa largeur réelle : s'il n'y a pas la place, c'est
+   la pastille qui descend d'une ligne. Les autres jours, rien ne change
+   (le titre long doit pouvoir rétrécir à côté du bouton « Aujourd'hui »). */
+#majournee .dateline:has(> .upnext:not([hidden])){row-gap:10px}
+#majournee .dateline:has(> .upnext:not([hidden])) > h1{flex:1 1 auto}
 /* La bande des sept jours répétait, en vue Semaine, exactement ce que
    l'en-tête des colonnes affiche juste en dessous : deux fois les mêmes
    dates, et soixante-quatre pixels de calendrier en moins. Elle ne reste
@@ -3518,7 +3528,9 @@ const duSur      = f => statut(f) === "payee" ? 0 : Math.max(0, montantDe(f) - v
    facturé : une facture de décembre payée en janvier appartient à
    l'année suivante. L'application datait tout de l'émission. */
 const dateReglement = f => (f && f.regleLe) || (f && f.emise) || auj();
-const ETIQ_F = {brouillon: ["À envoyer", "att"], payee: ["Payé", "ok"], retard: ["Pas payé", "feu"], envoyee: ["En attente", "amb"], devis: ["Devis", "att"]};
+/* L'étiquette est posée sur une facture : « Payée », comme l'onglet
+   « Payées » et le message « elle passe dans Payées » juste à côté. */
+const ETIQ_F = {brouillon: ["À envoyer", "att"], payee: ["Payée", "ok"], retard: ["Pas payée", "feu"], envoyee: ["En attente", "amb"], devis: ["Devis", "att"]};
 const COURT_F = {brouillon: "brln", payee: "payé", retard: "retard", envoyee: "env.", devis: "devis"};
 const ETIQ_C = {actif: ["En cours", "amb"], prospect: ["Prospect", "att"], termine: ["Terminé", "ok"]};
 
