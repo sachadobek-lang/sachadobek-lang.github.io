@@ -1613,6 +1613,21 @@ summary.carte-tete:hover h2{color:var(--v1)}
    la barre de saisie remonte et son « + » passe sous le rond. */
 #majournee[data-vue="mois"] .quick,
 #majournee[data-vue="semaine"] .quick{margin-right:52px}
+/* ═══ le retour à aujourd'hui ne doit rien pousser ═══
+   En Semaine et en Mois, la ligne qui le porte est repliée tant qu'on
+   est sur aujourd'hui. Au premier toucher sur « › », le bouton
+   apparaissait, la ligne se dépliait, et tout l'écran descendait de
+   44 pixels — flèches comprises. Mesuré le 8 octobre 2026 à 375 px :
+   « Période suivante » passait de 106 à 150, et le second toucher au
+   même endroit ne tombait plus sur rien. Deux touchers pour avancer de
+   deux semaines n'en avançaient qu'une.
+   Il flotte donc au-dessus de la barre du bas, sous le pouce, là où
+   les bulles s'affichent déjà : rien ne bouge quand il arrive. */
+#majournee[data-vue="mois"] .today-btn,
+#majournee[data-vue="semaine"] .today-btn{
+  position:fixed; z-index:41; left:50%; transform:translateX(-50%);
+  bottom:calc(env(safe-area-inset-bottom) + 104px);
+  box-shadow:var(--shadow-1)}
 #majournee .dateline h1[role="button"]{cursor:pointer; border-radius:12px}
 #majournee .dateline h1[role="button"]:active{transform:scale(.99)}
 #majournee .pick-wrap{position:fixed; inset:0; z-index:120; display:flex;
