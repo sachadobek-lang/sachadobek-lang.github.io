@@ -6049,12 +6049,39 @@ function pdfFacture(f){
   doc.setFillColor(243, 247, 251).rect(G, y, D - G, 11, "F");
   doc.setFont("helvetica", "bold").setFontSize(9).setTextColor(90, 102, 120);
   doc.text("DÉSIGNATION", G + 4, y + 7);
+  const detail = (f.lignes && f.lignes.length) ? f.lignes : null;
+  if(detail){
+    doc.text("QTÉ", D - 62, y + 7, {align: "right"});
+    doc.text("P.U.", D - 34, y + 7, {align: "right"});
+  }
   doc.text("MONTANT", D - 4, y + 7, {align: "right"});
   y += 18;
   doc.setFont("helvetica", "normal").setFontSize(11).setTextColor(20, 32, 46);
-  const objet = f.objet || "Prestation";
-  doc.splitTextToSize(objet, 120).forEach(l => { doc.text(l, G + 4, y); y += 5.6; });
-  doc.text(euroTxt(f.montant), D - 4, y - 5.6, {align: "right"});
+  if(detail){
+    /* ═══ le détail, ligne par ligne ═══
+       Un devis de dépannage, de réparation ou d'entretien du bâtiment
+       au-dessus de 150 € doit être détaillé — arrêté du 2 mars 1990. Un
+       montant unique y est irrégulier. C'est aussi, tout simplement, ce
+       que le client regarde pour comparer deux artisans.
+       La désignation se replie sur la largeur qui lui reste ; les trois
+       colonnes de chiffres restent alignées sur la première ligne du
+       repli, sinon elles flottent au milieu d'un paragraphe. */
+    detail.forEach(function(l){
+      const q = Number(l.q) || 0, pu = Number(l.pu) || 0;
+      const bouts = doc.splitTextToSize(String(l.d || ""), 96);
+      const y0 = y;
+      bouts.forEach(function(b){ doc.text(b, G + 4, y); y += 5.6; });
+      doc.text(String(q).replace(".", ","), D - 62, y0, {align: "right"});
+      doc.text(euroTxt(pu), D - 34, y0, {align: "right"});
+      doc.text(euroTxt(q * pu), D - 4, y0, {align: "right"});
+      y = Math.max(y, y0 + 5.6) + 2.2;
+    });
+    y -= 2.2;
+  }else{
+    const objet = f.objet || "Prestation";
+    doc.splitTextToSize(objet, 120).forEach(l => { doc.text(l, G + 4, y); y += 5.6; });
+    doc.text(euroTxt(f.montant), D - 4, y - 5.6, {align: "right"});
+  }
 
   y += 6;
   doc.setDrawColor(222, 231, 240).line(G, y, D, y);
@@ -6923,6 +6950,114 @@ function confettis(){
    numéro de la série — sinon un devis refusé laisse un trou qu'aucune
    facture ne vient combler, et la série devient irrégulière. Chacun a
    la sienne, et seules les factures comptent pour FA. */
+/* on pose le style du détail au plus près du code qui le dessine */
+(function(){
+  var css = document.createElement("style");
+  css.textContent = [
+    "#feuille .lg-tete,#feuille .lg{display:grid;grid-template-columns:1fr 52px 74px 30px;gap:6px;align-items:center}",
+    "#feuille .lg-tete{margin:0 0 5px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}",
+    "#feuille .lg-tete span:nth-child(2),#feuille .lg-tete span:nth-child(3){text-align:center}",
+    "#feuille .lg{margin-bottom:6px}",
+    "#feuille .lg input{width:100%;min-width:0;min-height:46px;padding:11px 12px;border:1px solid var(--line);",
+    "  border-radius:13px;background:var(--surface-2);color:var(--ink);font:inherit;font-size:15.5px}",
+    "#feuille .lg input:focus{outline:none;border-color:var(--v2);background:var(--surface)}",
+    "#feuille .lg .lg-q,#feuille .lg .lg-pu{text-align:center;padding-inline:4px;font-variant-numeric:tabular-nums}",
+    "#feuille .lg-x{min-height:46px;border:0;background:none;color:var(--ink-3);font-size:20px;line-height:1;border-radius:11px;cursor:pointer}",
+    "#feuille .lg-x:active{background:var(--surface-3)}",
+    "#feuille .lg-plus{margin-top:2px;border:1px dashed var(--line-fort);background:none;color:var(--ink-2);",
+    "  border-radius:13px;padding:11px 14px;width:100%;min-height:46px;font:inherit;font-size:15px;font-weight:600;cursor:pointer}",
+    "#feuille .lg-plus:active{background:var(--surface-2)}",
+    "#feuille .lg-total{display:flex;align-items:baseline;justify-content:space-between;margin-top:12px;",
+    "  padding-top:12px;border-top:1px solid var(--line)}",
+    "#feuille .lg-total span{font-size:15px;color:var(--ink-2)}",
+    "#feuille .lg-total b{font-family:var(--num);font-size:26px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}"
+  ].join("");
+  document.head.appendChild(css);
+})();
+
+/* ═══ le tarif qui s'apprend tout seul ═══
+   Les concurrents demandent une demi-journée assise à construire un
+   catalogue avant le premier devis. C'est exactement la demi-journée que
+   l'artisan ne fera jamais. Ici il n'y a rien à régler : chaque ligne
+   écrite une fois devient une proposition la fois suivante, au prix
+   pratiqué la dernière fois. Le catalogue est une conséquence du
+   travail, pas un préalable. */
+function catalogue(){
+  const vu = {};
+  liste("factures")
+    .slice()
+    .sort((a, b) => String(a.emise || "").localeCompare(String(b.emise || "")))
+    .forEach(f => (f.lignes || []).forEach(l => {
+      const d = String(l.d || "").trim();
+      if(d) vu[d.toLowerCase()] = {d: d, pu: Number(l.pu) || 0};
+    }));
+  return Object.keys(vu).map(k => vu[k]).sort((a, b) => a.d.localeCompare(b.d, "fr"));
+}
+
+function ligneDevis(l){
+  l = l || {};
+  return '<div class="lg">'
+    + '<input class="lg-d" name="lg_d" list="lcat" maxlength="90" placeholder="Désignation" autocomplete="off" value="' + h(l.d || "") + '">'
+    /* Ces deux champs sont en « texte », pas en « nombre », et c'est
+       voulu. Un champ de type nombre REJETTE la virgule : sur un iPhone
+       le clavier décimal français en propose une, l'artisan tape « 6,5 »,
+       le champ se vide sans un mot et le total devient faux en silence.
+       Mesuré. On lit donc le nombre nous-mêmes, virgule comprise. */
+    + '<input class="lg-q" name="lg_q" type="text" inputmode="decimal" aria-label="Quantité" placeholder="1" value="' + (l.q != null ? h(String(l.q).replace(".", ",")) : "") + '">'
+    + '<input class="lg-pu" name="lg_pu" type="text" inputmode="decimal" aria-label="Prix unitaire en euros" placeholder="0" value="' + (l.pu != null ? h(String(l.pu).replace(".", ",")) : "") + '">'
+    + '<button type="button" class="lg-x" data-ligne-x="1" aria-label="Retirer cette ligne">\u00d7</button>'
+  + "</div>";
+}
+
+function blocLignes(lignes){
+  const L = (lignes && lignes.length) ? lignes : [{}];
+  return '<datalist id="lcat">'
+    + catalogue().map(c => '<option value="' + h(c.d) + '" data-pu="' + c.pu + '"></option>').join("")
+    + "</datalist>"
+    + '<div class="champ"><label>Le détail</label>'
+    + '<div class="lg-tete"><span>Désignation</span><span>Qté</span><span>Prix</span><span></span></div>'
+    + '<div id="lignes">' + L.map(ligneDevis).join("") + "</div>"
+    + '<button type="button" class="lg-plus" data-ligne-plus="1">+ Ajouter une ligne</button>'
+    + '<div class="lg-total"><span>Total</span><b id="lgTotal">0 €</b></div>'
+    + '<p class="aide" style="margin-top:6px">Un devis de dépannage, de réparation ou d\'entretien au-dessus de 150 € doit être détaillé : c\'est la loi, et c\'est ce que le client regarde.</p>'
+  + "</div>";
+}
+
+/* Les champs répétés ne peuvent pas être lus comme les autres : la
+   boucle qui construit le formulaire écrase les doublons. On les relit
+   donc par leur nom, dans l'ordre où ils sont à l'écran. */
+function lireLignes(fd){
+  const D = fd.getAll("lg_d"), Q = fd.getAll("lg_q"), P = fd.getAll("lg_pu");
+  const out = [];
+  for(let i = 0; i < D.length; i++){
+    const d = String(D[i] || "").trim();
+    const q = Number(String(Q[i] || "").replace(",", ".")) || 0;
+    const pu = Number(String(P[i] || "").replace(",", ".")) || 0;
+    /* une ligne sans désignation n'est pas une ligne : c'est une ligne
+       qu'on a ajoutée et qu'on n'a pas remplie. */
+    if(!d) continue;
+    out.push({d: d, q: q > 0 ? q : 1, pu: pu});
+  }
+  return out;
+}
+function totalLignes(lignes){
+  return (lignes || []).reduce((t, l) => t + (Number(l.q) || 0) * (Number(l.pu) || 0), 0);
+}
+/* Le total se réécrit à chaque frappe : sans lui on tape un devis à
+   l'aveugle et on découvre son prix en l'envoyant. */
+function majTotalLignes(){
+  const box = $("#lignes");
+  if(!box) return;
+  let t = 0;
+  box.querySelectorAll(".lg").forEach(function(r){
+    const q = Number(String((r.querySelector(".lg-q") || {}).value || "").replace(",", ".")) || 1;
+    const pu = Number(String((r.querySelector(".lg-pu") || {}).value || "").replace(",", ".")) || 0;
+    t += q * pu;
+  });
+  const el = $("#lgTotal");
+  if(el) el.textContent = eur(t);
+}
+
 function refSuivante(){
   const n = liste("factures").filter(f => f.statut !== "devis")
     .map(f => { const m = /(\d+)\s*$/.exec(String(f.ref || "")); return m ? Number(m[1]) : 0; });
@@ -7017,8 +7152,10 @@ const CHAMPS = {
      une durée de validité, et la loi veut qu'elle soit écrite. */
   devis: () => ({titre: "Nouveau devis", html:
     '<div class="champ"><label for="f1">Pour qui ?</label><input id="f1" name="client" required maxlength="80" list="lc" placeholder="Nom du client" autocomplete="off"></div>'
-    + '<div class="champ"><label for="f2">Combien ? (€)</label><input id="f2" name="montant" type="number" min="0.01" step="any" required placeholder="0" inputmode="decimal"></div>'
     + '<div class="champ"><label for="f6">Pour quoi ?</label><input id="f6" name="objet" maxlength="120" placeholder="Réfection complète de la salle de bains" autocomplete="off"></div>'
+    /* « Combien ? » a disparu : le total est la somme des lignes. Une
+       question en moins, pas une de plus. */
+    + blocLignes(enModif && state.factures[enModif] ? state.factures[enModif].lignes : null)
     + '<p class="aide">' + (enModif
         ? "Sa date et son numéro ne changent pas."
         : "Il part daté d'aujourd'hui, valable trois mois. Quand le client signe, il devient la facture.") + "</p>"
@@ -7655,8 +7792,51 @@ $("#vue").addEventListener("change", e => {
   }
 });
 
+/* Le prix se remplit tout seul quand on choisit une désignation déjà
+   pratiquée — mais jamais par-dessus un prix écrit à la main : le tarif
+   propose, il ne décide pas. */
+$("#feuille").addEventListener("input", e => {
+  const t = e.target;
+  if(!t.closest || !t.closest("#lignes")) return;
+  if(t.classList.contains("lg-d")){
+    const opt = document.querySelector('#lcat option[value="' + String(t.value).replace(/"/g, '\\"') + '"]');
+    if(opt){
+      const r = t.closest(".lg");
+      const pu = r && r.querySelector(".lg-pu");
+      /* le prix proposé s'écrit comme on l'écrit en France */
+      if(pu && !String(pu.value).trim()) pu.value = String(opt.dataset.pu || "").replace(".", ",");
+      const q = r && r.querySelector(".lg-q");
+      if(q && !String(q.value).trim()) q.value = "1";
+    }
+  }
+  majTotalLignes();
+});
+
 $("#feuille").addEventListener("click", e => {
   if(e.target.closest("#x")){ fermer(); return; }
+  const plus = e.target.closest("[data-ligne-plus]");
+  if(plus){
+    const box = $("#lignes");
+    if(box){
+      box.insertAdjacentHTML("beforeend", ligneDevis(null));
+      const neuve = box.lastElementChild.querySelector(".lg-d");
+      if(neuve) neuve.focus();
+    }
+    return;
+  }
+  const croix = e.target.closest("[data-ligne-x]");
+  if(croix){
+    const box = $("#lignes");
+    const r = croix.closest(".lg");
+    /* on ne retire jamais la dernière : un devis sans ligne n'a pas de
+       formulaire où revenir. On la vide. */
+    if(box && r){
+      if(box.querySelectorAll(".lg").length > 1) r.remove();
+      else r.querySelectorAll("input").forEach(function(i){ i.value = ""; });
+      majTotalLignes();
+    }
+    return;
+  }
   const b = e.target.closest("button");
   /* La feuille « à l'abri » n'est pas un formulaire : ses trois boutons
      appellent directement ce que le profil appelle déjà. */
@@ -7767,9 +7947,16 @@ $("#feuille").addEventListener("submit", e => {
     if(etaitModif) bulle("Modifié"); else telechargerFacture(id);
     return;
   }else if(typeActif === "devis"){
+    const lignes = lireLignes(fd);
+    if(!lignes.length){ bulle("Ajoutez au moins une ligne"); return; }
+    const total = totalLignes(lignes);
+    if(!(total > 0)){ bulle("Mettez un prix sur au moins une ligne"); return; }
     ecrire("factures", id, Object.assign(garder, {
       ref: String(d.ref || "").trim() || refDevisSuivante(), client: String(d.client).trim(),
-      objet: String(d.objet || "").trim(), montant: Number(d.montant) || 0,
+      /* « Pour quoi ? » reste le titre du devis ; s'il est vide, la
+         première ligne le dit déjà mieux que n'importe quel résumé. */
+      objet: String(d.objet || "").trim() || lignes[0].d,
+      lignes: lignes, montant: total,
       emise: garder.emise || auj(), echeance: d.echeance || dans(90),
       statut: "devis"}));
     const etaitModifD = !!enModif;
