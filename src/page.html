@@ -2036,12 +2036,14 @@ summary.carte-tete:hover h2{color:var(--v1)}
    on lisait « 06:00– » et rien d'autre. Une plage horaire est une valeur
    unique : elle tient sur une ligne ou elle se coupe par des points de
    suspension, jamais en deux morceaux dont un invisible. */
+/* Depuis le 9 octobre 2026 la police ne suit plus --tH mais --fsH, posée
+   par makeBlock : l'heure est lisible ou absente, voir le calcul de tH. */
 #majournee .ev .when{
   display:block; color:var(--ink-2); font-variant-numeric:tabular-nums;
   white-space:nowrap; text-overflow:ellipsis;
-  font-size:calc(var(--tH,1) * 13.5px);
+  font-size:var(--fsH, 13.5px);
   line-height:1.25;
-  height:calc(var(--tH,1) * 17px);
+  height:calc(var(--tH,1) * var(--lhH, 17px));
   margin-top:calc(var(--tH,1) * 2px);
   opacity:var(--tH,1); overflow:hidden;
 }
@@ -9213,11 +9215,23 @@ function makeBlock(ev, opts){
   var hEff = Math.max(px, minH);
   var courbe = function(a, z){ return clamp((hEff - a) / (z - a), 0, 1); };
   var t  = courbe(26, 64);   /* la taille générale */
-  var tH = courbe(34, 58);   /* l'heure : elle cède la première */
   var tI = courbe(30, 50);   /* l'icône : elle cède ensuite */
+  /* L'heure ne rétrécit plus avec le bloc : elle est lisible ou absente.
+     Mesuré au zoom par défaut sur un téléphone : un rendez-vous d'une
+     heure fait 44 px (le minimum), ce qui la posait à 5,6 px de haut et
+     42 % d'opacité — une trace grise, ni lue ni cachée, sur presque tous
+     les rendez-vous de la journée. Elle suit maintenant la taille du nom
+     (10,5 px au plus petit, 13,5 px à pleine taille, comme avant), et
+     n'apparaît que si elle tient entière sous le nom ; le fondu ne
+     traverse plus que quatre pixels. */
+  var fsH = 10.5 + 3 * t, lhH = fsH * 1.25;
+  var placeH = hEff - 2 - 6 - (11.5 + 4.5 * t) * 1.3;
+  var tH = clamp((placeH - (lhH + 2) + 4) / 4, 0, 1);
   b.style.setProperty('--t',  t.toFixed(3));
   b.style.setProperty('--tH', tH.toFixed(3));
   b.style.setProperty('--tI', tI.toFixed(3));
+  b.style.setProperty('--fsH', fsH.toFixed(2) + 'px');
+  b.style.setProperty('--lhH', lhH.toFixed(2) + 'px');
 
   /* Le rembourrage vertical ne suit pas une courbe mais une condition :
      que le contenu soit centré. Quand le bloc est haut, la hauteur libre
@@ -9226,7 +9240,7 @@ function makeBlock(ev, opts){
      tombe au milieu. C'est ce qui remplace le « align-items:center »
      qu'on ne peut pas interpoler. */
   var hNom    = (11.5 + 4.5 * t) * 1.3;
-  var hHeure  = tH > 0 ? (17 + 2) * tH : 0;
+  var hHeure  = tH > 0 ? (lhH + 2) * tH : 0;
   var py      = clamp((hEff - hNom - hHeure) / 2, 3, 9);
   /* Le rembourrage est un plancher que « max-height » ne peut pas
      franchir : cinq pixels et demi en haut, autant en bas, plus deux de
