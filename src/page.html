@@ -1011,6 +1011,10 @@ button.tuile:active{transform:scale(.985)}
 @media (pointer:coarse){.joindre a,.joindre button{padding:13px 17px}
   .joindre-nu a{width:44px;height:44px}}
 .dues{display:flex;flex-direction:column;gap:8px;margin:4px 0 10px}
+/* l'acompte : le rappel de la facture collait au premier champ, et les
+   boutons au dernier — 0 px mesuré de chaque côté sur téléphone */
+#n-quoi{margin:-4px 0 14px}
+#n-saisie .actions{margin-top:18px}
 .dues .due{display:flex;align-items:center;gap:12px;width:100%;text-align:left;
   border:1px solid var(--line);background:var(--surface);border-radius:var(--rl);
   padding:13px 16px;cursor:pointer;font:inherit;color:inherit}
@@ -7588,7 +7592,15 @@ $("#vue").addEventListener("click", e => {
        ouvre ensuite — et la facture est déjà choisie, ce que l'ancien
        bouton ne pouvait pas savoir. */
     const id = b.dataset.acompte;
-    filtreC = "argent"; memoire.clear(); rendre();
+    /* Depuis la fiche client, on n'est même pas dans Comptabilité : sans
+       changer d'onglet, le formulaire s'ouvrait caché et le bouton
+       paraissait mort. On change donc d'onglet comme d'écran. */
+    vue = "budget"; filtreC = "argent";
+    document.querySelectorAll("#nav button[data-vue]").forEach(x => x.removeAttribute("aria-current"));
+    const ong = document.querySelector('#nav button[data-vue="budget"]');
+    if(ong) ong.setAttribute("aria-current", "page");
+    memoire.clear(); rendre();
+    window.scrollTo({top: 0});
     if(window.ouvrirRentree) window.ouvrirRentree({facture: id, client: f.client});
     return;
   }
@@ -12197,7 +12209,8 @@ function saisirPour(due, pre){
       + " — " + eur.format(due.du) + " à régler"
       + (due.deja>0 ? " (acompte de "+eur.format(due.deja)+" déjà reçu)" : "");
     $("n-lab-montant").textContent = "Combien a-t-il versé";
-    $("n-montant").value = due.du;
+    /* écrit à la française : « 380,5 », pas « 380.5 » — num() relit la virgule */
+    $("n-montant").value = String(Math.round(due.du * 100) / 100).replace(".", ",");
     $("n-client").value = due.client || "";
     $("n-ref").value = due.ref || "";
   }else{
