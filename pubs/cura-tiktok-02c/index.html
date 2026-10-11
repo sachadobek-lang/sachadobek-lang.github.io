@@ -1,0 +1,388 @@
+<!doctype html>
+<!-- Pub Cura 02 — plus dense, plus rapide, avec un vrai téléphone au centre.
+     Référence : @troiscoups.fr. Ce qui manquait à la 01 : la densité, le
+     téléphone qui montre l'application en marche, et le rythme.
+     Le disque de poussière est le VRAI calcul de Cura, rejoué image par
+     image avec un tirage déterministe (HyperFrames rejoue chaque image). -->
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920" />
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#E9EEF5}
+#root{position:relative;width:1080px;height:1920px;overflow:hidden;
+  font-family:-apple-system,"SF Pro Display","Helvetica Neue",Helvetica,Arial,sans-serif;
+  color:#14202E;background:linear-gradient(180deg,#FAFCFE 0%,#E9EEF5 54%,#D8E0EA 100%)}
+.abs{position:absolute}
+#lum{left:-260px;top:-620px;width:1600px;height:1600px;
+  background:radial-gradient(circle at center,rgba(255,255,255,.98),rgba(255,255,255,0) 60%)}
+#sol{left:0;bottom:0;width:1080px;height:620px;
+  background:linear-gradient(180deg,rgba(168,183,203,0),rgba(168,183,203,.34))}
+#plateau{left:0;top:0;width:1080px;height:1920px;transform-origin:540px 980px}
+
+/* ───────── le téléphone, au centre ───────── */
+#tel{left:290px;top:470px;width:500px;height:1050px;border-radius:82px;
+  background:linear-gradient(160deg,#2B3545,#141B25);padding:14px;
+  box-shadow:0 3px 6px rgba(20,32,46,.10),0 70px 120px -40px rgba(20,32,46,.55);
+  transform:perspective(2000px) rotateX(5deg) rotateY(-5deg)}
+#ecran{width:354px;height:768px;border-radius:52px;overflow:hidden;position:relative;zoom:1.3333;
+  background:linear-gradient(180deg,#F5F7FB,#EBEEF4)}
+.vue{position:absolute;inset:0;padding:26px 20px}
+.v-tete{font-size:27px;font-weight:700;letter-spacing:-.02em}
+.v-sous{font-size:14px;color:#6B7890;margin-top:2px}
+
+/* vue agenda */
+#vAgenda .pills{display:flex;gap:7px;margin-top:16px}
+#vAgenda .pil{flex:1;text-align:center;font-size:14px;color:#6B7890}
+#vAgenda .pil b{display:block;margin-top:5px;font-size:17px;color:#14202E;font-weight:600}
+#vAgenda .pil.j b{background:#B3392F;color:#fff;border-radius:999px;padding:5px 0}
+#vAgenda .carte-j{margin-top:14px;background:#fff;border-radius:22px;padding:14px 12px;
+  box-shadow:0 1px 2px rgba(20,32,46,.05),0 14px 30px -18px rgba(20,32,46,.3);height:652px;position:relative}
+#vAgenda .h{position:absolute;left:12px;font-size:11px;color:#8A96A8}
+#vAgenda .ev{position:absolute;left:58px;right:12px;border-radius:11px;padding:7px 9px;font-size:12px;
+  background:#E2E9F3;border-left:4px solid #2F3B4D;color:#14202E}
+#vAgenda .ev.b{background:#F5E7D0;border-left-color:#A3670F}
+
+/* vue argent */
+#vArgent{opacity:0}
+#vArgent .zone{position:relative;height:400px;margin-top:16px}
+#vArgent canvas{position:absolute;left:0;top:0;width:354px;height:354px}
+#vArgent .mid{position:absolute;left:0;top:142px;width:354px;text-align:center}
+#vArgent .mid .c{font-size:13px;color:#6B7890}
+#vArgent .mid .g{font-size:46px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+#vArgent .mid .p{font-size:13px;color:#6B7890}
+#vArgent .lg{display:flex;align-items:center;gap:10px;padding:18px 2px;border-bottom:1px solid #E8EEF6}
+#vArgent .pt{width:12px;height:12px;border-radius:5px}
+#vArgent .nm{flex:1;font-size:16px}
+#vArgent .nm small{display:block;font-size:11px;color:#6B7890}
+#vArgent .vl{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+
+/* ───────── les cartes autour ───────── */
+.carte{background:#fff;border-radius:40px;
+  box-shadow:0 2px 4px rgba(20,32,46,.06),0 40px 80px -30px rgba(20,32,46,.45);overflow:hidden}
+.carte.noir{background:linear-gradient(160deg,#28313F,#11161E);color:#E6ECF4}
+.tt{font-size:14px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8A96A8}
+.carte.noir .tt{color:#8295AD}
+
+#c-horloge{left:34px;top:470px;width:238px;height:200px;display:grid;place-content:center;text-align:center;
+  transform:perspective(1800px) rotateY(11deg)}
+#c-horloge .h{font-size:60px;font-weight:600;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+#c-horloge .j{font-size:18px;color:#6B7890;margin-top:2px}
+
+#c-devis{left:26px;top:700px;width:262px;height:266px;padding:20px 20px;
+  transform:perspective(1800px) rotateY(9deg)}
+#c-devis .ln{display:flex;gap:8px;align-items:baseline;margin-top:14px;font-size:17px}
+#c-devis .ln .d{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#c-devis .ln .p{font-weight:600;font-variant-numeric:tabular-nums}
+#c-devis .tot{display:flex;justify-content:space-between;align-items:baseline;margin-top:18px;
+  padding-top:14px;border-top:2px solid #E8EEF6}
+#c-devis .tot span{font-size:16px;color:#6B7890}
+#c-devis .tot b{font-size:30px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+
+#c-signe{left:26px;top:1058px;width:272px;height:188px;padding:20px 22px;
+  transform:perspective(1800px) rotateY(8deg)}
+#c-signe .t{font-size:21px;font-weight:700;margin-top:3px}
+
+#c-accepte{left:206px;top:1306px;width:430px;height:126px;display:flex;align-items:center;gap:18px;
+  padding:0 26px;z-index:6;transform:perspective(1800px) rotateX(4deg)}
+#c-accepte .rond{width:54px;height:54px;border-radius:999px;background:#DDF1E8;color:#0E7D57;
+  display:grid;place-content:center;font-size:26px;font-weight:700}
+#c-accepte .x{font-size:23px;font-weight:600;line-height:1.2}
+#c-accepte .x small{display:block;font-size:16px;color:#6B7890;font-weight:400}
+
+#c-facture{left:796px;top:470px;width:254px;height:224px;padding:20px 22px;
+  transform:perspective(1800px) rotateY(-12deg)}
+#c-facture .r{font-size:19px;font-weight:600;margin-top:6px;white-space:nowrap;font-variant-numeric:tabular-nums}
+#c-facture .pill{display:inline-block;margin-top:10px;font-size:15px;font-weight:700;color:#0E7D57;
+  background:#DDF1E8;border-radius:999px;padding:7px 14px}
+#c-facture .m{margin-top:10px;font-size:34px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+
+#c-urssaf{left:796px;top:742px;width:254px;height:200px;padding:20px 22px;
+  transform:perspective(1800px) rotateY(-10deg)}
+#c-urssaf .n{font-size:46px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+#c-urssaf .n small{font-size:16px;color:#6B7890;font-weight:400;letter-spacing:0}
+#c-urssaf .x{margin-top:8px;font-size:17px;line-height:1.25}
+
+#c-rappel{left:794px;top:996px;width:262px;height:170px;padding:20px 22px;
+  transform:perspective(1800px) rotateY(-9deg)}
+#c-rappel .x{margin-top:8px;font-size:18px;line-height:1.3}
+#c-rappel .x b{color:#A3670F}
+
+/* ───────── la phrase ───────── */
+#phrase{left:0;top:282px;width:1080px;text-align:center;
+  font-size:78px;font-weight:700;letter-spacing:-.035em;line-height:1.05}
+#phrase .mot{display:inline-block;margin:0 .13em}
+#phrase .or{color:#A3670F}
+.ligne{position:absolute;left:0;top:0;width:1080px}
+
+#fin{inset:0;display:grid;place-items:center;text-align:center;
+  background:linear-gradient(180deg,#FAFCFE 0%,#E6ECF3 100%)}
+#fin .marque{margin-top:30px;font-size:116px;font-weight:700;letter-spacing:-.045em}
+#fin .promesse{margin-top:12px;font-size:40px;color:#4F5B70}
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-width="1080" data-height="1920" data-duration="18">
+
+  <div id="lum" class="abs"></div>
+  <div id="sol" class="abs"></div>
+
+  <div id="plateau" class="abs">
+
+    <div id="c-horloge" class="abs carte">
+      <div><div class="h">21:00</div><div class="j">dimanche</div></div>
+    </div>
+
+    <div id="c-devis" class="abs carte">
+      <div class="tt">Devis · DV-2026-004</div>
+      <div class="ln l1"><span class="d">Pose chauffe-eau 200 L</span><span class="p">420 €</span></div>
+      <div class="ln l2"><span class="d">Main d’œuvre · 6,5 h</span><span class="p p2">315 €</span></div>
+      <div class="tot"><span>Total</span><b>735 €</b></div>
+    </div>
+
+    <div id="c-signe" class="abs carte">
+      <div class="tt">Accord</div>
+      <div class="t">Bon pour accord</div>
+      <svg width="252" height="72" viewBox="0 0 356 92" fill="none" style="margin-top:8px">
+        <path id="trait" d="M12 68C44 22 62 18 76 44s6 40 22 34 30-54 48-50 10 48 30 44 34-44 56-40 24 38 46 32 26-28 36-34"
+              stroke="#14202E" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <div id="c-accepte" class="abs carte">
+      <div class="rond">✓</div>
+      <div class="x">Devis accepté<small>Mme Costa · à l’instant</small></div>
+    </div>
+
+    <div id="c-facture" class="abs carte">
+      <div class="tt">Facture</div>
+      <div class="r">FA-2026-012</div>
+      <div class="pill">Payée</div>
+      <div class="m">735 €</div>
+    </div>
+
+    <div id="c-urssaf" class="abs carte noir">
+      <div class="tt">URSSAF</div>
+      <div class="n">33 <small>jours</small></div>
+      <div class="x">Le 31/10<br>environ 1 177 €</div>
+    </div>
+
+    <div id="c-rappel" class="abs carte">
+      <div class="tt">Rappel</div>
+      <div class="x">Chantier Costa<br><b>dans 15 minutes</b></div>
+    </div>
+
+    <div id="tel" class="abs">
+      <div id="ecran">
+        <div id="vAgenda" class="vue">
+          <div class="v-tete">Aujourd’hui</div>
+          <div class="v-sous">dimanche 11 octobre</div>
+          <div class="pills">
+            <div class="pil">L<b>6</b></div><div class="pil">M<b>7</b></div><div class="pil">M<b>8</b></div>
+            <div class="pil">J<b>9</b></div><div class="pil">V<b>10</b></div>
+            <div class="pil j">S<b>11</b></div><div class="pil">D<b>12</b></div>
+          </div>
+          <div class="carte-j">
+            <div class="h" style="top:26px">08:00</div><div class="h" style="top:116px">10:00</div>
+            <div class="h" style="top:206px">12:00</div><div class="h" style="top:296px">14:00</div>
+            <div class="h" style="top:386px">16:00</div><div class="h" style="top:476px">18:00</div>
+            <div class="h" style="top:566px">20:00</div>
+            <div class="ev" id="ev1" style="top:71px;height:67px">Chantier Costa<br>09:00–10:30</div>
+            <div class="ev b" id="ev2" style="top:251px;height:45px">Devis Dupont<br>13:00–14:00</div>
+            <div class="ev" id="ev3" style="top:363px;height:45px">Pose portail<br>15:30–16:30</div>
+          </div>
+        </div>
+        <div id="vArgent" class="vue">
+          <div class="v-tete">Mon argent</div>
+          <div class="v-sous">depuis janvier</div>
+          <div class="zone">
+            <canvas id="nuage" width="600" height="600"></canvas>
+            <div class="mid">
+              <div class="c">à vous cette année</div>
+              <div class="g">4 373 €</div>
+              <div class="p">79 %</div>
+            </div>
+          </div>
+          <div class="lg"><span class="pt" style="background:#2F3B4D"></span>
+            <span class="nm">À vous<small>vous pouvez le dépenser</small></span><span class="vl">4 373 €</span></div>
+          <div class="lg"><span class="pt" style="background:#A3670F"></span>
+            <span class="nm">Cotisations<small>retraite, maladie</small></span>
+            <span class="vl" style="color:#A3670F">1 177 €</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div id="phrase" class="abs">
+    <div class="ligne p1"><span class="mot">Un</span><span class="mot">devis</span><span class="mot or">sur un carnet.</span></div>
+    <div class="ligne p2"><span class="mot">Il</span><span class="mot">finit</span><span class="mot or">perdu.</span></div>
+    <div class="ligne p3"><span class="mot">Vous</span><span class="mot">tapez</span><span class="mot or">une ligne.</span></div>
+    <div class="ligne p4"><span class="mot">Il</span><span class="mot">connaît</span><span class="mot or">la suivante.</span></div>
+    <div class="ligne p5"><span class="mot">Le</span><span class="mot">client</span><span class="mot or">signe.</span></div>
+    <div class="ligne p6"><span class="mot">C’est</span><span class="mot">déjà</span><span class="mot or">la facture.</span></div>
+    <div class="ligne p7"><span class="mot">Et</span><span class="mot">l’argent</span><span class="mot or">est compté.</span></div>
+  </div>
+
+  <section id="fin" class="abs">
+    <div>
+      <svg width="290" height="184" viewBox="17 25 66 42">
+        <defs><linearGradient id="g" gradientUnits="userSpaceOnUse" x1="22" y1="62" x2="78" y2="30">
+          <stop offset="0" stop-color="#3A465A"/><stop offset="1" stop-color="#11161E"/></linearGradient></defs>
+        <path id="fleche" d="M22 62 L40 46 L52 55 L78 30" fill="none" stroke="url(#g)" stroke-width="6"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="marque">Cura</div>
+      <div class="promesse">L’agenda et l’argent, au même endroit.</div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* ═══ le disque de poussière, le vrai calcul de Cura ═══
+   Tirage déterministe : HyperFrames rejoue chaque image, Math.random
+   donnerait un nuage différent à chaque fois et la vidéo scintillerait. */
+let _g = 987654321;
+function alea(){ _g = (_g * 1664525 + 1013904223) >>> 0; return _g / 4294967296; }
+
+const CV = document.getElementById("nuage"), CX = CV.getContext("2d");
+const S = 600, N = 36000, TAU = Math.PI * 2, DEBUT = -Math.PI / 2, PART = .788, ECART = .05;
+const u01 = new Float32Array(N), amp = new Float32Array(N), hz = new Float32Array(N),
+      pha = new Float32Array(N), chute = new Float32Array(N), qui = new Uint8Array(N);
+for(let k = 0; k < N; k++){
+  const u = alea();
+  let th, p;
+  if(u < PART){ th = ECART / 2 + u / PART * (PART - ECART); p = 0; }
+  else { const w = (u - PART) / (1 - PART); th = PART + ECART / 2 + w * (1 - PART - ECART); p = 1; }
+  u01[k] = th; qui[k] = p;
+  const phi = alea() * TAU, loin = alea() < .04;
+  const rr = Math.pow(alea(), loin ? .38 : .72) * (loin ? 1.42 : 1);
+  amp[k] = rr * Math.cos(phi); hz[k] = rr * Math.sin(phi);
+  pha[k] = alea() * TAU;
+  chute[k] = alea() < .03 ? .12 + alea() * .34 : 0;
+}
+const img = CX.createImageData(S, S), dat = img.data;
+const A0 = new Float32Array(S * S), A1 = new Float32Array(S * S);
+const ALPHA = new Uint8Array(256);
+for(let a = 0; a < 256; a++) ALPHA[a] = Math.round(255 * (1 - Math.exp(-a / 255 * 4.4)));
+const C0 = [47, 59, 77], C1 = [163, 103, 15];
+
+function nuage(t){
+  A0.fill(0); A1.fill(0);
+  const wob = Math.sin(t * 1.1) * .055;
+  const cT = Math.cos(.34 + wob), sT = Math.sin(.34 + wob);
+  const souffle = 1 + Math.sin(t * 1.7) * .012;
+  const R0 = .355 * souffle, TW = .078 * souffle, CXn = S * .5, CYn = S * .5;
+  for(let k = 0; k < N; k++){
+    const th = DEBUT + u01[k] * TAU, dr = amp[k], rr = R0 + TW * dr;
+    let wx = Math.cos(th) * rr, wy = Math.sin(th) * rr, wz = TW * hz[k];
+    if(chute[k] > 0){ const ch = (t * chute[k] * .18) % 1; wy += ch * .21; wz += ch * .035; }
+    const y1 = wy * cT - wz * sT, z1 = wy * sT + wz * cT, kp = 3.4 / (3.4 + z1);
+    let sx = CXn + wx * kp * S, sy = CYn + y1 * kp * S;
+    const am = (.55 + (dr < 0 ? -dr : dr) * 1.25) * 2;
+    sx += Math.sin(pha[k] + t * 1.4) * am;
+    sy += Math.cos(pha[k] * 1.3 + t * 1.2) * am;
+    if(sx < 0 || sy < 0 || sx >= S - 1 || sy >= S - 1) continue;
+    let br = .34 + .66 * (kp - .80) / .42;
+    if(br < .08) br = .08; else if(br > 1.25) br = 1.25;
+    const ix = sx | 0, iy = sy | 0, fx = sx - ix, fy = sy - iy, i0 = iy * S + ix;
+    const acc = qui[k] ? A1 : A0;
+    acc[i0] += br * (1 - fx) * (1 - fy); acc[i0 + 1] += br * fx * (1 - fy);
+    acc[i0 + S] += br * (1 - fx) * fy; acc[i0 + S + 1] += br * fx * fy;
+  }
+  const n2 = S * S;
+  for(let q = 0, o = 0; q < n2; q++, o += 4){
+    const a0 = A0[q], a1 = A1[q], tot = a0 + a1;
+    if(tot < .004){ dat[o + 3] = 0; continue; }
+    let qi = (tot * 46) | 0; if(qi > 255) qi = 255;
+    const iv = 1 / tot;
+    dat[o] = (C0[0] * a0 + C1[0] * a1) * iv | 0;
+    dat[o + 1] = (C0[1] * a0 + C1[1] * a1) * iv | 0;
+    dat[o + 2] = (C0[2] * a0 + C1[2] * a1) * iv | 0;
+    dat[o + 3] = ALPHA[qi];
+  }
+  CX.putImageData(img, 0, 0);
+}
+
+/* ═══ la scène ═══ */
+const E = "expo.out";
+const tl = gsap.timeline({paused:true, onUpdate(){ nuage(tl.time()); }});
+
+gsap.set("#plateau",{scale:1.035,y:14});
+gsap.set("#tel",{opacity:0,y:90,scale:.95});
+gsap.set(["#c-horloge","#c-devis","#c-signe","#c-accepte","#c-facture","#c-urssaf","#c-rappel"],
+  {opacity:0,y:80,scale:.93});
+gsap.set("#c-devis .l1, #c-devis .l2, #c-devis .tot, #c-devis .p2",{opacity:0});
+gsap.set("#phrase .ligne",{opacity:0});
+gsap.set("#phrase .ligne .mot",{opacity:0,y:42});
+gsap.set("#fin",{opacity:0});
+gsap.set(["#ev1","#ev2","#ev3"],{opacity:0,x:-14});
+const LT = document.getElementById("trait").getTotalLength();
+gsap.set("#trait",{strokeDasharray:LT,strokeDashoffset:LT});
+const LF = document.getElementById("fleche").getTotalLength();
+gsap.set("#fleche",{strokeDasharray:LF,strokeDashoffset:LF});
+
+tl.to("#plateau",{scale:1,y:0,duration:15.4,ease:"none"},0);
+
+function dire(sel,t,duree){
+  tl.set(sel,{opacity:1},t)
+    .to(sel+" .mot",{opacity:1,y:0,duration:.46,ease:E,stagger:.055},t)
+    .to(sel+" .mot",{opacity:0,y:-22,duration:.3,ease:"power2.in",stagger:.03},t+duree)
+    .set(sel,{opacity:0},t+duree+.4);
+}
+
+/* le produit est là avant 2 s : le téléphone arrive en premier */
+tl.to("#tel",{opacity:1,y:0,scale:1,duration:1.0,ease:"power4.out"},.15)
+  .to("#ev1",{opacity:1,x:0,duration:.45,ease:E},.75)
+  .to("#ev2",{opacity:1,x:0,duration:.45,ease:E},.9)
+  .to("#ev3",{opacity:1,x:0,duration:.45,ease:E},1.05)
+  .to("#c-horloge",{opacity:1,y:0,scale:1,duration:.85,ease:"power4.out"},.45);
+dire(".p1",.55,1.55);
+
+tl.to("#c-devis",{opacity:1,y:0,scale:1,duration:.85,ease:"power4.out"},2.45)
+  .to("#c-rappel",{opacity:1,y:0,scale:1,duration:.85,ease:"power4.out"},2.75);
+dire(".p2",2.5,1.5);
+
+tl.to("#c-devis .l1",{opacity:1,duration:.4,ease:E},4.65)
+  .from("#c-devis .l1",{x:-20,duration:.45,ease:E},4.65);
+dire(".p3",4.6,1.5);
+
+tl.to("#c-devis .l2",{opacity:1,duration:.4,ease:E},6.7)
+  .from("#c-devis .l2",{x:-20,duration:.45,ease:E},6.7)
+  .to("#c-devis .p2",{opacity:1,duration:.4,ease:E},7.25)
+  .from("#c-devis .p2",{scale:.66,transformOrigin:"100% 50%",duration:.5,ease:"power4.out"},7.25)
+  .to("#c-devis .tot",{opacity:1,duration:.4,ease:E},7.7);
+dire(".p4",6.7,1.7);
+
+tl.to("#c-signe",{opacity:1,y:0,scale:1,duration:.85,ease:"power4.out"},8.9)
+  .to("#trait",{strokeDashoffset:0,duration:.95,ease:"power2.inOut"},9.3)
+  .to("#c-accepte",{opacity:1,y:0,scale:1,duration:.7,ease:"power4.out"},10.1);
+dire(".p5",8.95,1.55);
+
+tl.to("#c-facture",{opacity:1,y:0,scale:1,duration:.85,ease:"power4.out"},11.0)
+  .to("#c-urssaf",{opacity:1,y:0,scale:1,duration:.85,ease:"power4.out"},11.3);
+dire(".p6",11.05,1.55);
+
+/* le téléphone bascule sur l'argent : le disque prend l'écran */
+tl.to("#c-accepte",{opacity:0,y:34,duration:.42,ease:"power2.in"},12.6)
+  .to("#vAgenda",{opacity:0,duration:.5,ease:"power2.inOut"},12.95)
+  .to("#vArgent",{opacity:1,duration:.5,ease:"power2.inOut"},13.05)
+  .to("#tel",{scale:1.12,y:-10,duration:2.2,ease:"power3.out"},12.95);
+dire(".p7",13.15,1.6);
+
+tl.to("#plateau",{opacity:0,scale:1.05,duration:.5,ease:"power2.in"},15.5)
+  .to("#phrase",{opacity:0,duration:.35,ease:"power2.in"},15.5)
+  .to("#fin",{opacity:1,duration:.5,ease:E},15.7)
+  .to("#fleche",{strokeDashoffset:0,duration:.85,ease:"power3.out"},15.9)
+  .from("#fin .marque",{y:32,opacity:0,duration:.55,ease:E},16.2)
+  .from("#fin .promesse",{y:20,opacity:0,duration:.5,ease:E},16.4);
+
+nuage(0);
+window.__timelines = window.__timelines || {};
+window.__timelines["main"] = tl;
+</script>
+</body>
+</html>
