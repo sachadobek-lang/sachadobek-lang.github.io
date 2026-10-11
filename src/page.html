@@ -5157,6 +5157,13 @@ function rangeeFacture(f, chezLui){
     + '<button class="pdf" data-pdf="' + h(f.id) + '" title="Télécharger ' + (st === "devis" ? "le devis" : "la facture") + ' en PDF">'
     + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
     + '<path d="M12 3.5v11"/><path d="m7.8 10.5 4.2 4.2 4.2-4.2"/><path d="M4.5 18.5h15"/></svg>PDF</button>'
+    /* Le PDF se joint à un courriel ; le lien se colle dans un SMS, et
+       le client le lit sans rien ouvrir. Les deux ne font pas double
+       emploi — mais seul le devis a besoin d'être envoyé pour être
+       accepté, alors seul le devis porte ce bouton. */
+    + (st === "devis"
+        ? '<button class="mini" data-lien="' + h(f.id) + '" title="Envoyer le devis au client">Envoyer</button>'
+        : "")
     /* « Payée » solde tout. Mais l'acompte de 30 % à la commande est la
        règle du métier : il lui faut son propre geste, et il n'en avait
        plus depuis que « J'ai été payé » a disparu de Mon argent. Ici il
@@ -6425,6 +6432,76 @@ async function livreRecettes(){
   bulle("Livre édité");
 }
 
+/* ═══ le lien du devis ═══
+   Le client n'installe rien et ne crée pas de compte : il reçoit une
+   adresse qui CONTIENT le devis. Ce qui suit le dièse n'est jamais
+   envoyé au serveur — GitHub sert une page vide, et c'est le navigateur
+   du client qui la remplit. Rien ne transite, rien n'est stocké chez
+   personne, rien ne peut être perdu par un hébergeur.
+   Le prix en est assumé, et il est le même qu'une pièce jointe : qui a
+   le lien a le devis. */
+const BASE_LIEN = /(^|\.)github\.io$/i.test(location.hostname)
+  ? location.origin + "/lien.html"
+  : "https://sachadobek-lang.github.io/lien.html";
+
+function b64url(u8){
+  let s = "";
+  /* par tranches : passer 100 000 octets d'un coup à apply fait déborder
+     la pile d'appels sur iOS, et le lien ne se fabrique plus du tout */
+  for(let i = 0; i < u8.length; i += 0x8000)
+    s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+  return window.btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function paquetDevis(f){
+  const moi = state.moi || {};
+  const fiche = liste("clients").find(x => x.nom === f.client);
+  const st = statut(f);
+  return {
+    a: moi.nom || "", aa: moi.adresse || "", as: moi.siret || "", ae: moi.email || "",
+    c: f.client || "", ca: fiche ? String(fiche.adresse || "").trim() : "",
+    r: f.ref || "", o: f.objet || "", e: f.emise || "", v: f.echeance || "",
+    l: (f.lignes || []).map(l => [String(l.d || ""), Number(l.q) || 1, Number(l.pu) || 0]),
+    t: Number(f.montant) || 0,
+    tva: Number(moi.tva) ? 1 : 0,
+    s: st === "devis" ? "devis" : "facture"
+  };
+}
+async function lienDevis(f){
+  const u8 = new window.TextEncoder().encode(JSON.stringify(paquetDevis(f)));
+  /* Le lien voyage par SMS : plus il est court, moins il risque d'être
+     coupé en chemin. Quand le navigateur sait dégonfler, on gonfle. */
+  if(typeof window.CompressionStream === "function"){
+    try{
+      const fl = new window.Blob([u8]).stream()
+        .pipeThrough(new window.CompressionStream("deflate-raw"));
+      const z = new Uint8Array(await new window.Response(fl).arrayBuffer());
+      if(z.length < u8.length) return BASE_LIEN + "#2." + b64url(z);
+    }catch(e){}
+  }
+  return BASE_LIEN + "#1." + b64url(u8);
+}
+async function partagerDevis(id){
+  const f = state.factures && state.factures[id];
+  if(!f) return;
+  const url = await lienDevis(f);
+  const estDevis = statut(f) === "devis";
+  const texte = "Bonjour, voici " + (estDevis ? "le devis" : "la facture")
+    + (f.objet ? " pour " + f.objet : "") + " : " + eur(f.montant) + ".";
+  /* Le partage du téléphone met le lien dans n'importe quelle messagerie
+     sans que personne ne copie-colle. Quand il n'existe pas — un
+     ordinateur, un navigateur ancien — on retombe sur le presse-papiers
+     plutôt que d'annoncer un échec. */
+  if(navigator.share){
+    try{ await navigator.share({title: (estDevis ? "Devis " : "Facture ") + (f.ref || ""),
+      text: texte, url: url}); return; }
+    catch(e){ if(e && e.name === "AbortError") return; }
+  }
+  try{
+    await navigator.clipboard.writeText(url);
+    bulle("Lien copié — collez-le dans votre message");
+  }catch(e){ bulle("Partage impossible sur cet appareil"); }
+}
+
 async function telechargerFacture(id){
   const brut = state.factures[id];
   if(!brut) return;
@@ -7522,6 +7599,7 @@ $("#vue").addEventListener("click", e => {
     return;
   }
   if(b.dataset.pdf){ telechargerFacture(b.dataset.pdf); return; }
+  if(b.dataset.lien){ partagerDevis(b.dataset.lien); return; }
   if(b.dataset.recettes){ livreRecettes(); return; }
   if(b.dataset.formulaire){ formulaireRempli(); return; }
   if(b.dataset.feuille){ feuilleDeclaration(); return; }

@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<meta name="robots" content="noindex,nofollow">
+<title>Votre devis</title>
+<!-- La page du chantier, côté client.
+     Elle ne connaît aucun serveur : tout le devis tient dans l'adresse,
+     après le dièse. Un fragment n'est jamais envoyé au serveur — ni à
+     GitHub, ni à personne. Le client ouvre, lit, accepte. Rien n'est
+     stocké, rien n'est suivi, il n'y a pas de compte à créer.
+     Conséquence assumée : le lien est la donnée. Qui l'a, l'a. C'est le
+     même niveau de secret qu'un devis envoyé en pièce jointe. -->
+<style>
+:root{
+  --ground:#EFF3F8; --surface:#FFFFFF; --surface-2:#F5F8FC;
+  --line:#DFE7F0; --line-fort:#C6D2E0;
+  --ink:#14202E; --ink-2:#4F5B70; --ink-3:#6B7890;
+  --v-txt:#2C3749;
+  --ok:#0E7D57; --ok-doux:#DDF1E8; --tard:#A3670F;
+  --deg:linear-gradient(135deg,#3A465A 0%,#11161E 100%);
+  --fond:linear-gradient(180deg,#F5F7FB 0%,#EBEEF4 100%);
+  --rxl:32px; --rl:26px; --rm:20px; --rs:14px;
+  --o1:0 1px 2px rgba(20,32,46,.04), 0 12px 32px -20px rgba(20,32,46,.28);
+  --o3:0 18px 46px -14px rgba(20,32,46,.30);
+  --ui:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+  --num:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Roboto,sans-serif;
+  --doux:cubic-bezier(.22,.61,.36,1);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --ground:#080E16; --surface:#131C28; --surface-2:#1A2431;
+    --line:#233040; --line-fort:#334152;
+    --ink:#ECF2F9; --ink-2:#A2AFC2; --ink-3:#73819A; --v-txt:#B9C4D6;
+    --ok:#3FC391; --ok-doux:#0C2A20; --tard:#DFA850;
+    --deg:linear-gradient(135deg,#4C5A72 0%,#1A212C 100%);
+    --fond:linear-gradient(180deg,#0E1116 0%,#080A0D 100%);
+    --o1:0 1px 2px rgba(0,0,0,.4), 0 12px 32px -20px rgba(0,0,0,.8);
+    --o3:0 18px 46px -14px rgba(0,0,0,.8);
+  }
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--fond);background-attachment:fixed;color:var(--ink);
+  font-family:var(--ui);font-size:17px;line-height:1.45;min-height:100dvh;
+  font-variant-numeric:tabular-nums;
+  padding:max(22px,env(safe-area-inset-top)) 20px calc(34px + env(safe-area-inset-bottom));
+  -webkit-text-size-adjust:100%}
+main{max-width:620px;margin:0 auto}
+.carte{background:var(--surface);border-radius:var(--rxl);box-shadow:var(--o1);
+  padding:26px 24px;margin-bottom:18px}
+.chapeau{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3)}
+h1{font-family:var(--num);font-size:30px;font-weight:700;letter-spacing:-.02em;
+  margin-top:6px;line-height:1.15}
+.de{color:var(--ink-2);margin-top:8px;font-size:16px}
+.somme{font-family:var(--num);font-size:54px;font-weight:700;letter-spacing:-.035em;
+  margin-top:20px;line-height:1}
+.quand{color:var(--ink-2);margin-top:8px}
+.quand b{color:var(--tard);font-weight:600}
+.lg{display:flex;gap:14px;align-items:baseline;padding:15px 0;border-bottom:1px solid var(--line)}
+.lg:last-child{border-bottom:0}
+.lg .d{flex:1}
+.lg .d small{display:block;color:var(--ink-3);font-size:14px;margin-top:2px}
+.lg .p{font-family:var(--num);font-weight:600;white-space:nowrap}
+.total{display:flex;justify-content:space-between;align-items:baseline;
+  margin-top:8px;padding-top:18px;border-top:2px solid var(--line-fort)}
+.total span{color:var(--ink-2)}
+.total b{font-family:var(--num);font-size:30px;font-weight:700;letter-spacing:-.02em}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media (max-width:520px){.duo{grid-template-columns:1fr}}
+.duo h3{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--ink-3);margin-bottom:8px}
+.duo p{color:var(--ink-2);font-size:15px;white-space:pre-line}
+.duo p b{color:var(--ink);font-weight:600;font-size:17px}
+button{font:inherit;cursor:pointer;border:0}
+.geste{display:block;width:100%;background:var(--deg);color:#fff;border-radius:999px;
+  padding:21px 24px;font-size:19px;font-weight:700;box-shadow:var(--o3);
+  transition:transform .18s var(--doux)}
+.geste:active{transform:scale(.97)}
+.second{display:block;width:100%;margin-top:12px;background:transparent;color:var(--v-txt);
+  border-radius:999px;padding:16px;font-size:16px;font-weight:600}
+.fait{background:var(--ok-doux);color:var(--ok);border-radius:var(--rl);
+  padding:20px 22px;font-weight:600;text-align:center}
+.note{color:var(--ink-3);font-size:14px;text-align:center;margin-top:22px;line-height:1.5}
+.tva{color:var(--ink-3);font-size:14px;margin-top:14px}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{
+  animation-duration:.001ms!important;transition-duration:.001ms!important}}
+</style>
+</head>
+<body>
+<main id="ici"><section class="carte"><p class="chapeau">Un instant</p>
+<h1>Ouverture du devis…</h1></section></main>
+<script>
+"use strict";
+var $ = function(s){ return document.querySelector(s); };
+function h(x){ return String(x == null ? "" : x)
+  .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function eur(n){ return (Math.round(Number(n) || 0)).toLocaleString("fr-FR") + " €"; }
+function nb(n){ var v = Number(n) || 0;
+  return (Math.round(v * 100) / 100).toLocaleString("fr-FR"); }
+/* Le total est rond, le prix unitaire ne l'est pas : « 6,5 × 48 € » pour
+   315 € faisait mentir la ligne sous les yeux du client. On garde les
+   centimes partout où ils existent. */
+function eurp(n){
+  var v = Math.round((Number(n) || 0) * 100) / 100;
+  return (v % 1 ? v.toLocaleString("fr-FR", {minimumFractionDigits: 2})
+                : v.toLocaleString("fr-FR")) + " €";
+}
+function jour(d){
+  if(!d) return "";
+  var p = String(d).split("-");
+  if(p.length !== 3) return String(d);
+  var M = ["janvier","février","mars","avril","mai","juin","juillet","août",
+           "septembre","octobre","novembre","décembre"];
+  return Number(p[2]) + " " + M[Number(p[1]) - 1] + " " + p[0];
+}
+
+/* base64url → octets, puis dégonflage si le lien a été compressé. */
+function octets(b64){
+  var s = b64.replace(/-/g,"+").replace(/_/g,"/");
+  while(s.length % 4) s += "=";
+  var bin = atob(s), u = new Uint8Array(bin.length);
+  for(var i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+  return u;
+}
+function lire(frag){
+  var brut = frag.replace(/^#/, "");
+  if(!brut) return Promise.resolve(null);
+  var v = brut.slice(0, 2), corps = brut.slice(2);
+  if(v !== "1." && v !== "2."){ corps = brut; v = "1."; }
+  var u = octets(corps);
+  if(v === "1.") return Promise.resolve(JSON.parse(new TextDecoder().decode(u)));
+  if(typeof DecompressionStream !== "function")
+    return Promise.reject(new Error("navigateur trop ancien"));
+  var fl = new Blob([u]).stream().pipeThrough(new DecompressionStream("deflate-raw"));
+  return new Response(fl).text().then(function(t){ return JSON.parse(t); });
+}
+
+function dessiner(d){
+  var devis = d.s !== "facture";
+  var lignes = (d.l || []).map(function(l){
+    var q = Number(l[1]) || 1, pu = Number(l[2]) || 0;
+    return '<div class="lg"><span class="d">' + h(l[0])
+      + (q !== 1 || pu ? "<small>" + nb(q) + " × " + eurp(pu) + "</small>" : "")
+      /* le prix unitaire garde ses centimes, le montant de la ligne
+         s'arrondit : c'est ainsi que Cura a calculé le total, et deux
+         arrondis différents feraient une addition fausse à l'écran */
+      + '</span><span class="p">' + eur(q * pu) + "</span></div>";
+  }).join("");
+  var moi = [d.a, d.aa, d.as ? "SIRET " + d.as : "", d.ae].filter(Boolean).join("\n");
+  var lui = [d.c, d.ca].filter(Boolean).join("\n");
+
+  var objet = d.o || (devis ? "Devis" : "Facture");
+  var sujet = (devis ? "Bon pour accord — " : "Facture ") + (d.r || "");
+  var corps = "Bonjour,\n\nJe vous confirme mon accord pour le devis "
+    + (d.r || "") + (d.o ? " (" + d.o + ")" : "") + ", d'un montant de "
+    + eur(d.t) + ".\n\nBien à vous,\n" + (d.c || "");
+  var vers = d.ae ? "mailto:" + encodeURIComponent(d.ae) : "mailto:";
+  var mail = vers + "?subject=" + encodeURIComponent(sujet)
+    + "&body=" + encodeURIComponent(corps);
+
+  $("#ici").innerHTML =
+      '<section class="carte">'
+    + '<p class="chapeau">' + (devis ? "Devis" : "Facture") + (d.r ? " · " + h(d.r) : "") + "</p>"
+    + "<h1>" + h(objet) + "</h1>"
+    + (d.a ? '<p class="de">de ' + h(d.a) + "</p>" : "")
+    + '<p class="somme">' + eur(d.t) + "</p>"
+    + (devis && d.v ? '<p class="quand">Valable jusqu\'au <b>' + h(jour(d.v)) + "</b></p>"
+       : d.e ? '<p class="quand">Émise le ' + h(jour(d.e)) + "</p>" : "")
+    + (d.tva ? "" : '<p class="tva">TVA non applicable, article 293 B du CGI.</p>')
+    + "</section>"
+    + (lignes ? '<section class="carte">' + lignes
+        + '<div class="total"><span>Total</span><b>' + eur(d.t) + "</b></div></section>" : "")
+    + '<section class="carte duo">'
+    + "<div><h3>De</h3><p><b>" + h(d.a || "") + "</b>\n"
+    + h(moi.split("\n").slice(1).join("\n")) + "</p></div>"
+    + "<div><h3>Pour</h3><p><b>" + h(d.c || "") + "</b>\n"
+    + h(lui.split("\n").slice(1).join("\n")) + "</p></div>"
+    + "</section>"
+    + (devis
+       ? '<button class="geste" id="accord">Bon pour accord</button>'
+         + '<button class="second" id="copier">Copier ma réponse</button>'
+       : "")
+    + '<p class="note">Ce devis tient entier dans ce lien.<br>'
+    + "Rien n'est envoyé sur internet, il n'y a pas de compte à créer.</p>";
+
+  var a = $("#accord");
+  if(a) a.addEventListener("click", function(){
+    /* Sans serveur, l'accord ne peut pas « remonter » tout seul : on
+       ouvre la réponse déjà écrite, le client n'a qu'à l'envoyer. */
+    window.location.href = mail;
+    setTimeout(function(){
+      a.outerHTML = '<p class="fait">Votre réponse est prête à envoyer.</p>';
+      var c = $("#copier"); if(c) c.remove();
+    }, 900);
+  });
+  var c = $("#copier");
+  if(c) c.addEventListener("click", function(){
+    var t = sujet + "\n\n" + corps;
+    if(navigator.clipboard && navigator.clipboard.writeText)
+      navigator.clipboard.writeText(t).then(function(){ c.textContent = "Copié"; },
+        function(){ c.textContent = "Impossible de copier"; });
+    else c.textContent = "Impossible de copier";
+  });
+  document.title = (devis ? "Devis" : "Facture") + " · " + (d.a || "");
+}
+
+function perdu(quoi){
+  $("#ici").innerHTML = '<section class="carte"><p class="chapeau">Lien incomplet</p>'
+    + "<h1>Ce lien n'est pas entier.</h1>"
+    + '<p class="de">Il a sans doute été coupé en chemin — certaines messageries '
+    + "raccourcissent les adresses longues. Demandez à votre artisan de vous le "
+    + "renvoyer, ou de vous envoyer le PDF.</p>"
+    + (quoi ? '<p class="tva">' + h(quoi) + "</p>" : "") + "</section>";
+}
+
+try{
+  lire(location.hash).then(function(d){
+    if(d && d.t != null) dessiner(d); else perdu("");
+  }, function(e){ perdu(e && e.message); });
+}catch(e){ perdu(e && e.message); }
+</script>
+</body>
+</html>

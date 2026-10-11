@@ -98,8 +98,19 @@ class SansCache(http.server.SimpleHTTPRequestHandler):
                 del self.headers[entete]
         return super().send_head()
 
-class Reutilisable(socketserver.TCPServer):
+class Reutilisable(socketserver.ThreadingTCPServer):
+    """Un fil par connexion — sinon un seul onglet bloque tout le monde.
+
+    Mesuré le 11 octobre 2026 : le serveur était mono-fil, et comme il parle
+    HTTP/1.1 (connexions gardées ouvertes), un navigateur qui tenait sa
+    connexion suffisait à faire taire l'adresse commune. curl répondait 000,
+    les autres agents voyaient « le serveur est mort » — alors qu'il était
+    simplement occupé par un onglet ouvert ailleurs. Avec plusieurs
+    conversations sur la même adresse, ce n'était pas un incident mais une
+    certitude.
+    """
     allow_reuse_address = True
+    daemon_threads = True
 
 if __name__ == "__main__":
     # Refuser bruyamment plutôt que de laisser croire qu'on sert.

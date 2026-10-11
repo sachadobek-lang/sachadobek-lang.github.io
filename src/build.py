@@ -48,6 +48,14 @@ forme = os.path.join(ICI, "formulaire.pdf")
 if os.path.exists(forme):
     shutil.copyfile(forme, os.path.join(RACINE, "formulaire-2042.pdf"))
 
+# La page du chantier, côté client : une page à part, servie à la racine.
+# Elle ne dépend d'aucune donnée injectée — elle lit tout dans l'adresse —
+# mais sa source vit dans src/ comme le reste, et c'est la copie qui est
+# publiée. L'éditer à la racine serait l'éditer là où elle est écrasée.
+page_lien = os.path.join(ICI, "lien.html")
+if os.path.exists(page_lien):
+    shutil.copyfile(page_lien, os.path.join(RACINE, "lien.html"))
+
 sortie = os.path.join(RACINE, "index.html")
 brouillon = os.path.join(RACINE, ".index-brouillon.html")
 
