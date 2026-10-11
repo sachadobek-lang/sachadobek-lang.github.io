@@ -1391,11 +1391,16 @@ summary.carte-tete:hover h2{color:var(--v1)}
      Ces règles existaient, mais sous 360 px seulement : entre 361 et 520,
      c'est-à-dire sur la quasi-totalité des téléphones, elles ne
      s'appliquaient pas. */
-  .r{padding:14px 40px 14px 16px;gap:9px 12px;flex-wrap:wrap;position:relative}
-  .r + .r::before{left:16px;right:16px}
-  .r .pastille{width:42px;height:42px;border-radius:var(--rs);font-size:14px}
+  /* La rangée reprend la marge de 24 px de l'en-tête de sa carte : à 16,
+     la pastille et le bouton PDF dépassaient de 8 px à gauche du titre
+     « Ses factures », sur tous les téléphones sauf les plus étroits. */
+  .r{padding:14px 40px 14px 24px;gap:9px 12px;flex-wrap:wrap;position:relative}
+  .r + .r::before{left:24px;right:24px}
+  .r .pastille{width:42px;height:42px;border-radius:var(--rs);font-size:14px;align-self:flex-start}
   .r .r-corps{flex:1 1 52%;min-width:8.5rem}
-  .r .r-som{margin-left:auto}
+  /* le montant se lit sur la ligne du numéro, pas au milieu de trois
+     lignes de description */
+  .r .r-som{margin-left:auto;align-self:flex-start;line-height:1.35}
   .r .mini{margin-left:auto}
   .r .sup{position:absolute;top:10px;right:4px;opacity:.45}
   /* « Jean-Baptiste Marchand-Delacroix Plomberie » tenait sur quatre
@@ -1416,6 +1421,8 @@ summary.carte-tete:hover h2{color:var(--v1)}
   .vite{padding:14px 16px;gap:13px}
   .vite::before{left:52px;right:16px}
   .carte-tete,.groupe,.fiches,.rituel,.mois{padding-left:16px;padding-right:16px}
+  .r{padding-left:16px}
+  .r + .r::before{left:16px;right:16px}
   .segments{margin-left:16px;margin-right:16px}
 }
 @media (prefers-reduced-motion:reduce){
@@ -5221,6 +5228,7 @@ function ecranFactures(){
      dessous, en petit. */
   const an = bilanAn();
   const combien = c.attente.length;
+  const aEnvoyer = tout.filter(f => statut(f) === "brouillon").length;
   const tete = '<section class="carte anim"><div class="mois" style="padding-top:22px">'
     + '<p class="heros-lab">Facturé</p>'
     + '<p class="heros-val" data-compte="ca" data-val="' + an.facture + '">' + eur(an.facture) + "</p>"
@@ -5237,8 +5245,12 @@ function ecranFactures(){
     + '<span class="val" data-compte="dus" data-val="' + c.duAttente + '">' + eur(c.duAttente) + "</span>"
     /* « Tout le monde a payé » sur une application vierge affirme quelque
        chose d'une situation qui n'existe pas : il n'y a personne. */
+    /* Une facture pas encore envoyée n'est due par personne, mais elle
+       est bien dans « À encaisser » juste en dessous : « tout le monde a
+       payé » contredisait la liste. */
     + '<span class="sous">' + (combien === 0
-        ? (an.facture > 0 ? "tout le monde a payé" : "aucune facture pour l'instant")
+        ? (aEnvoyer ? aEnvoyer + " facture" + (aEnvoyer > 1 ? "s" : "") + " à envoyer"
+          : an.facture > 0 ? "tout le monde a payé" : "aucune facture pour l'instant")
         : (c.impayees.length
             ? combien + " facture" + (combien > 1 ? "s" : "") + ", dont "
               + c.impayees.length + " à relancer"
