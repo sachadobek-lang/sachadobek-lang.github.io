@@ -1,0 +1,260 @@
+<!doctype html>
+<!-- Pub Cura 01 — organique TikTok, 9:16, sans voix off.
+     Référence donnée par Sacha : @troiscoups.fr (studio clair, widgets iOS,
+     un mot coloré, le tableau se remplit). Ici : les vrais écrans de Cura.
+     Zone sûre respectée : tout le texte entre y 269 et y 1248. -->
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1080, height=1920" />
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1080px;height:1920px;overflow:hidden;background:#EDF1F7}
+#root{position:relative;width:1080px;height:1920px;overflow:hidden;
+  font-family:-apple-system,"SF Pro Display","Helvetica Neue",Helvetica,Arial,sans-serif;
+  color:#14202E;background:linear-gradient(180deg,#F7F9FC 0%,#E7ECF3 58%,#DCE3EC 100%)}
+.abs{position:absolute}
+
+/* la lumière du studio : une nappe haute, et le sol qui s'assombrit */
+#lumiere{left:-240px;top:-520px;width:1560px;height:1560px;
+  background:radial-gradient(circle at center,rgba(255,255,255,.95),rgba(255,255,255,0) 62%)}
+#sol{left:0;bottom:0;width:1080px;height:560px;
+  background:linear-gradient(180deg,rgba(176,190,208,0),rgba(176,190,208,.30))}
+
+/* le plateau : tout bouge ensemble, très lentement */
+#plateau{left:0;top:0;width:1080px;height:1920px;transform-origin:540px 660px}
+
+/* les cartes : squircle, ombre à deux plans, légère perspective */
+.carte{background:#fff;border-radius:58px;
+  box-shadow:0 2px 4px rgba(20,32,46,.05),0 46px 90px -34px rgba(20,32,46,.42);
+  overflow:hidden}
+.c-tete{font-size:21px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#8A96A8}
+
+/* 1 · l'horloge */
+#horloge{left:92px;top:232px;width:268px;height:268px;display:grid;place-content:center;text-align:center;
+  transform:perspective(1600px) rotateX(7deg) rotateY(8deg)}
+#horloge .h{font-size:92px;font-weight:600;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+#horloge .j{margin-top:6px;font-size:28px;color:#6B7890}
+
+/* 2 · l'agenda */
+#agenda{left:400px;top:232px;width:268px;height:268px;padding:24px 22px;
+  transform:perspective(1600px) rotateX(7deg) rotateY(2deg)}
+#agenda .lig{height:2px;background:#E8EEF6;margin:26px 0}
+#agenda .bl{height:48px;border-radius:14px;background:#E2E9F3;border-left:6px solid #2F3B4D;margin-bottom:12px}
+#agenda .bl.b2{background:#F3E7D2;border-left-color:#A3670F;width:78%}
+
+/* 3 · le devis — la carte principale */
+#devis{left:92px;top:532px;width:620px;height:296px;padding:26px 32px;
+  transform:perspective(1600px) rotateX(5deg) rotateY(6deg)}
+#devis .ln{display:flex;align-items:center;gap:16px;margin-top:22px}
+#devis .ln .d{flex:1;font-size:30px;color:#14202E;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#devis .ln .p{font-size:30px;font-weight:600;font-variant-numeric:tabular-nums;color:#14202E}
+#devis .tot{display:flex;justify-content:space-between;align-items:baseline;
+  margin-top:26px;padding-top:20px;border-top:2px solid #E8EEF6}
+#devis .tot span{font-size:26px;color:#6B7890}
+#devis .tot b{font-size:52px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+
+/* 4 · la signature */
+#signe{left:92px;top:860px;width:420px;height:224px;padding:24px 30px;
+  transform:perspective(1600px) rotateX(5deg) rotateY(9deg)}
+#signe .t{font-size:30px;font-weight:700;margin-top:4px}
+#signe svg{margin-top:14px;display:block}
+
+/* 5 · le disque */
+#disque{left:552px;top:860px;width:224px;height:224px;display:grid;place-content:center;text-align:center;
+  transform:perspective(1600px) rotateX(5deg) rotateY(-4deg)}
+#disque{position:absolute}
+#disque .txt{position:absolute;left:0;top:0;width:224px;height:224px;display:grid;place-content:center;text-align:center}
+#disque .v{font-size:29px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+#disque .l{font-size:16px;color:#6B7890;margin-top:2px}
+
+/* 6 · la facture */
+#facture{left:744px;top:532px;width:244px;height:296px;padding:24px 22px;
+  transform:perspective(1600px) rotateX(5deg) rotateY(-9deg)}
+#facture .r{font-size:23px;white-space:nowrap;font-weight:600;margin-top:8px;font-variant-numeric:tabular-nums}
+#facture .pill{display:inline-block;margin-top:14px;font-size:21px;font-weight:700;
+  color:#0E7D57;background:#DDF1E8;border-radius:999px;padding:9px 18px}
+#facture .m{margin-top:16px;font-size:40px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+
+/* la phrase : une seule, au centre, dans la zone sûre */
+/* y 1124 → ~1216 : la phrase reste au-dessus de 1248, sinon la légende
+   de TikTok la recouvre. Erreur déjà payée le 10 octobre. */
+#phrase{left:0;top:1124px;width:1080px;text-align:center;
+  font-size:80px;font-weight:700;letter-spacing:-.035em;line-height:1.06}
+#phrase .mot{display:inline-block;margin:0 .14em}
+#phrase .or{color:#A3670F}
+.ligne{position:absolute;left:0;top:0;width:1080px}
+
+/* la carte de fin */
+#fin{inset:0;display:grid;place-items:center;text-align:center;
+  background:linear-gradient(180deg,#F7F9FC 0%,#E7ECF3 100%)}
+#fin .marque{margin-top:34px;font-size:118px;font-weight:700;letter-spacing:-.045em}
+#fin .promesse{margin-top:14px;font-size:42px;color:#4F5B70}
+</style>
+</head>
+<body>
+<div id="root" data-composition-id="main" data-start="0" data-width="1080" data-height="1920" data-duration="22">
+
+  <div id="lumiere" class="abs"></div>
+  <div id="sol" class="abs"></div>
+
+  <div id="plateau" class="abs">
+
+    <div id="horloge" class="abs carte">
+      <div><div class="h">21:00</div><div class="j">dimanche</div></div>
+    </div>
+
+    <div id="agenda" class="abs carte">
+      <div class="c-tete">Lundi</div>
+      <div class="lig"></div>
+      <div class="bl"></div><div class="bl b2"></div><div class="bl" style="width:62%"></div>
+    </div>
+
+    <div id="devis" class="abs carte">
+      <div class="c-tete">Devis · DV-2026-004</div>
+      <div class="ln l1"><span class="d">Pose chauffe-eau 200 L</span><span class="p">420 €</span></div>
+      <div class="ln l2"><span class="d">Main d’œuvre · 6,5 h</span><span class="p p2">315 €</span></div>
+      <div class="tot"><span>Total</span><b id="total">735 €</b></div>
+    </div>
+
+    <div id="signe" class="abs carte">
+      <div class="c-tete">Accord</div>
+      <div class="t">Bon pour accord</div>
+      <svg width="356" height="92" viewBox="0 0 356 92" fill="none">
+        <path id="trait" d="M12 68C44 22 62 18 76 44s6 40 22 34 30-54 48-50 10 48 30 44 34-44 56-40 24 38 46 32 26-28 36-34"
+              stroke="#14202E" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+
+    <div id="disque" class="abs carte">
+      <svg width="224" height="224" viewBox="0 0 244 244" style="position:absolute;left:0;top:0">
+        <circle cx="122" cy="122" r="82" fill="none" stroke="#E8EEF6" stroke-width="19"/>
+        <circle id="arc1" cx="122" cy="122" r="82" fill="none" stroke="#2F3B4D" stroke-width="19"
+                stroke-linecap="butt" transform="rotate(-90 122 122)"
+                stroke-dasharray="406 516" stroke-dashoffset="0"/>
+        <circle id="arc2" cx="122" cy="122" r="82" fill="none" stroke="#A3670F" stroke-width="19"
+                stroke-linecap="butt" transform="rotate(-90 122 122)"
+                stroke-dasharray="109 516" stroke-dashoffset="-408"/>
+      </svg>
+      <div class="txt"><div><div class="v">4 373 €</div><div class="l">à vous</div></div></div>
+    </div>
+
+    <div id="facture" class="abs carte">
+      <div class="c-tete">Facture</div>
+      <div class="r">FA-2026-012</div>
+      <div class="pill">Payée</div>
+      <div class="m">735 €</div>
+    </div>
+
+  </div>
+
+  <div id="phrase" class="abs">
+    <div class="ligne p1"><span class="mot">Dimanche,</span><span class="mot or">21 h.</span></div>
+    <div class="ligne p2"><span class="mot">Le</span><span class="mot">devis</span><span class="mot or">n’est pas fait.</span></div>
+    <div class="ligne p3"><span class="mot">Vous</span><span class="mot">tapez</span><span class="mot or">une ligne.</span></div>
+    <div class="ligne p4"><span class="mot">Elle</span><span class="mot">connaît</span><span class="mot or">la suivante.</span></div>
+    <div class="ligne p5"><span class="mot">Le</span><span class="mot">client</span><span class="mot or">signe.</span></div>
+    <div class="ligne p6"><span class="mot">C’est</span><span class="mot">déjà</span><span class="mot or">la facture.</span></div>
+  </div>
+
+  <section id="fin" class="abs">
+    <div>
+      <svg width="300" height="190" viewBox="17 25 66 42">
+        <defs><linearGradient id="g" gradientUnits="userSpaceOnUse" x1="22" y1="62" x2="78" y2="30">
+          <stop offset="0" stop-color="#3A465A"/><stop offset="1" stop-color="#11161E"/></linearGradient></defs>
+        <path id="fleche" d="M22 62 L40 46 L52 55 L78 30" fill="none" stroke="url(#g)" stroke-width="6"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="marque">Cura</div>
+      <div class="promesse">L’agenda et l’argent, au même endroit.</div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+/* Courbes : entrées expo.out (0.22,1,0.36,1), aucun rebond.
+   Une seule scène continue : le tableau se remplit, la phrase change. */
+const E = "expo.out";
+const tl = gsap.timeline({paused:true});
+
+/* état de départ */
+gsap.set("#plateau",{scale:1.09,y:28});
+gsap.set(["#horloge","#agenda","#devis","#signe","#disque","#facture"],{opacity:0,y:120,scale:.94});
+gsap.set("#devis .l1, #devis .l2, #devis .tot",{opacity:0});
+gsap.set("#devis .p2",{opacity:0});
+gsap.set(["#arc1","#arc2"],{opacity:0});
+gsap.set("#disque .v, #disque .l",{opacity:0});
+gsap.set("#facture .pill, #facture .m, #facture .r",{opacity:0});
+gsap.set("#phrase .ligne",{opacity:0});
+gsap.set("#phrase .ligne .mot",{opacity:0,y:48});
+gsap.set("#fin",{opacity:0});
+const LT = document.getElementById("trait").getTotalLength();
+gsap.set("#trait",{strokeDasharray:LT,strokeDashoffset:LT});
+const LF = document.getElementById("fleche").getTotalLength();
+gsap.set("#fleche",{strokeDasharray:LF,strokeDashoffset:LF});
+
+/* la caméra ne s'arrête jamais : poussée lente sur toute la durée */
+tl.to("#plateau",{scale:1,y:0,duration:19,ease:"none"},0);
+
+/* une phrase : les mots arrivent décalés, elle sort à 70 % de son entrée */
+function dire(sel,t,duree){
+  tl.set(sel,{opacity:1},t)
+    .to(sel+" .mot",{opacity:1,y:0,duration:.55,ease:E,stagger:.07},t)
+    .to(sel+" .mot",{opacity:0,y:-26,duration:.38,ease:"power2.in",stagger:.04},t+duree)
+    .set(sel,{opacity:0},t+duree+.5);
+}
+
+/* 1 · 21 h, dimanche */
+tl.to("#horloge",{opacity:1,y:0,scale:1,duration:1.1,ease:"power4.out"},.25);
+dire(".p1",.6,2.0);
+
+/* 2 · le devis n'est pas fait — la carte arrive vide */
+tl.to("#agenda",{opacity:1,y:0,scale:1,duration:1.0,ease:"power4.out"},3.0)
+  .to("#devis",{opacity:1,y:0,scale:1,duration:1.1,ease:"power4.out"},3.35);
+dire(".p2",3.3,2.1);
+
+/* 3 · une ligne */
+tl.to("#devis .l1",{opacity:1,duration:.5,ease:E},6.5)
+  .from("#devis .l1",{x:-26,duration:.5,ease:E},6.5);
+dire(".p3",6.4,2.2);
+
+/* 4 · la suivante, elle la connaît : la désignation puis le prix qui se pose seul */
+tl.to("#devis .l2",{opacity:1,duration:.5,ease:E},10.0)
+  .from("#devis .l2",{x:-26,duration:.5,ease:E},10.0)
+  .to("#devis .p2",{opacity:1,duration:.45,ease:E},10.9)
+  .from("#devis .p2",{scale:.72,transformOrigin:"100% 50%",duration:.5,ease:"power4.out"},10.9)
+  .to("#devis .tot",{opacity:1,duration:.5,ease:E},11.5)
+  .from("#total",{scale:.9,transformOrigin:"100% 50%",duration:.6,ease:"power4.out"},11.5);
+dire(".p4",9.9,2.4);
+
+/* 5 · le client signe */
+tl.to("#signe",{opacity:1,y:0,scale:1,duration:1.0,ease:"power4.out"},13.5)
+  .to("#trait",{strokeDashoffset:0,duration:1.25,ease:"power2.inOut"},14.1);
+dire(".p5",13.6,2.0);
+
+/* 6 · c'est déjà la facture : la facture et le disque se posent, le tableau est plein */
+tl.to("#facture",{opacity:1,y:0,scale:1,duration:1.0,ease:"power4.out"},16.3)
+  .to("#facture .r",{opacity:1,duration:.4,ease:E},16.8)
+  .to("#facture .pill",{opacity:1,duration:.4,ease:E},17.05)
+  .from("#facture .pill",{scale:.8,duration:.45,ease:"power4.out"},17.05)
+  .to("#facture .m",{opacity:1,duration:.4,ease:E},17.3)
+  .to("#disque",{opacity:1,y:0,scale:1,duration:1.0,ease:"power4.out"},16.75)
+  .to(["#arc1","#arc2"],{opacity:1,duration:.45,ease:E},17.2)
+  .to("#disque .v, #disque .l",{opacity:1,duration:.45,ease:E},17.5);
+dire(".p6",16.4,2.3);
+
+/* 7 · la carte de fin */
+tl.to("#plateau",{opacity:0,scale:1.04,duration:.6,ease:"power2.in"},19.3)
+  .to("#phrase",{opacity:0,duration:.4,ease:"power2.in"},19.3)
+  .to("#fin",{opacity:1,duration:.55,ease:E},19.5)
+  .to("#fleche",{strokeDashoffset:0,duration:.95,ease:"power3.out"},19.75)
+  .from("#fin .marque",{y:36,opacity:0,duration:.6,ease:E},20.1)
+  .from("#fin .promesse",{y:22,opacity:0,duration:.55,ease:E},20.35);
+
+window.__timelines = window.__timelines || {};
+window.__timelines["main"] = tl;
+</script>
+</body>
+</html>
