@@ -308,6 +308,12 @@ h1,h2,h3,p{margin:0}
 
 .page{max-width:820px;width:100%;margin:0 auto;padding:26px 16px 156px;display:flex;flex-direction:column;gap:20px;position:relative}
 @media(min-width:560px){ .page{padding:34px 26px 160px} }
+/* #vue est un seul enfant de .page : l'écart de 20 px de .page s'arrête
+   à sa porte. L'onglet Clients s'en sortait parce que chacun de ses
+   éléments porte sa propre marge ; Factures et Calculs, non — leurs
+   cartes s'empilaient bord à bord, ombre contre ombre, et « Facturé »,
+   les deux tuiles et « Vos factures » se lisaient comme un seul bloc. */
+#vue > .segments-haut ~ *{margin-top:14px}
 
 
 .entete{display:flex;align-items:center;gap:14px;padding:2px 4px}
@@ -1401,7 +1407,14 @@ summary.carte-tete:hover h2{color:var(--v1)}
   /* le montant se lit sur la ligne du numéro, pas au milieu de trois
      lignes de description */
   .r .r-som{margin-left:auto;align-self:flex-start;line-height:1.35}
-  .r .mini{margin-left:auto}
+  /* Les boutons d'une facture se poussaient chacun vers la droite :
+     « PDF » collé à gauche, « Envoyer » à droite, « Acompte » flottant
+     au milieu de la ligne du dessous, « Payée » à droite encore — quatre
+     boutons de quatre largeurs, aucun aligné sur un autre. Ils forment
+     maintenant deux colonnes égales : le pouce trouve « Payée » au même
+     endroit sur chaque facture. Un nombre impair laisse le dernier geste
+     (« Il a signé ») prendre toute la largeur, ce qui lui va. */
+  .r > .pdf,.r > .mini{flex:1 1 calc(50% - 6px);justify-content:center;text-align:center;margin-left:0;min-height:44px}
   .r .sup{position:absolute;top:10px;right:4px;opacity:.45}
   /* « Jean-Baptiste Marchand-Delacroix Plomberie » tenait sur quatre
      lignes espacées d'un interligne de paragraphe, à côté de la
