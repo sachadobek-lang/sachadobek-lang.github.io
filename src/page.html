@@ -6746,6 +6746,12 @@ window.__CADENCE__ = {
   cotisEI: ca => Math.max(0, (Number(ca) || 0) - chargesAn()) * EI_COTIS / 100,
   tauxEI: () => EI_COTIS,
   monActivite: () => calcStatut(),
+  /* « Calculs » supposait 20 % pour tout le monde. Un artisan du
+     bâtiment en rénovation facture souvent à 10 % : son chiffre
+     d'affaires hors taxes était alors faux, et avec lui ses
+     cotisations. Le taux n'a qu'une source, celle de ses
+     coordonnées. */
+  monTauxTva: () => Number(state.moi && state.moi.tva) || 20,
   /* faire une facture depuis « Mon argent » : c'est le même formulaire
      que partout ailleurs, il n'y en a qu'un */
   nouvelleFacture: prerempli => ouvrir("facture", prerempli || null),
@@ -11574,7 +11580,13 @@ var ACTIVITES = (function(){
             cot:a.cotis, vfl:a.liber, seuil:a.plaf, seuilTva:a.tva};
   });
 })();
-var TAUX_TVA = 0.20;
+/* Le taux de TVA n'est pas une constante de cet écran : c'est celui
+   que l'artisan a choisi dans ses coordonnées. 20 % n'est qu'un
+   défaut, pour qui n'a encore rien renseigné. */
+function tauxTva(){
+  var C = window.__CADENCE__;
+  return ((C && C.monTauxTva ? C.monTauxTva() : 20) || 20) / 100;
+}
 var MOIS = ["J","F","M","A","M","J","J","A","S","O","N","D"];
 
 var etat = null;
@@ -11671,7 +11683,7 @@ function bilan(){
   var a=activite(), an=new Date().getFullYear();
   var cette=etat.rentrees.filter(function(r){ return String(r.date).slice(0,4)===String(an); });
   var encaisse=cette.reduce(function(s,r){ return s+num(r.montant); },0);
-  var tva = etat.tva ? encaisse-encaisse/(1+TAUX_TVA) : 0;
+  var tva = etat.tva ? encaisse-encaisse/(1+tauxTva()) : 0;
   var ca=encaisse-tva;
   var taux=(a.cot+(etat.vfl?a.vfl:0))/100;
   /* une PME ne paie pas de cotisations sur son chiffre d'affaires : ce
@@ -11684,7 +11696,7 @@ function bilan(){
   var mois=iso(new Date()).slice(0,7);
   var encMois=cette.filter(function(r){ return String(r.date).slice(0,7)===mois; })
                    .reduce(function(s,r){ return s+num(r.montant); },0);
-  var caMois = etat.tva ? encMois/(1+TAUX_TVA) : encMois;
+  var caMois = etat.tva ? encMois/(1+tauxTva()) : encMois;
 
   var parMois=new Array(12).fill(0), parClient={};
   cette.forEach(function(r){
@@ -11730,7 +11742,7 @@ function prochaineDeclaration(){
   var mois=iso(p).slice(0,7);
   var enc=(etat.rentrees||[]).filter(function(r){ return String(r.date).slice(0,7)===mois; })
                              .reduce(function(s,r){ return s+num(r.montant); },0);
-  var ca = etat.tva ? enc/(1+TAUX_TVA) : enc;
+  var ca = etat.tva ? enc/(1+tauxTva()) : enc;
   return {fin: new Date(d.getFullYear(), d.getMonth()+1, 0),
           mois: p.toLocaleDateString("fr-FR",{month:"long"}),
           enc: enc, urssaf: ca*bilan().taux};
