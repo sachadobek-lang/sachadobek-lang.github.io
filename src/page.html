@@ -5127,6 +5127,12 @@ function carnetClients(){
     + "</section>" + demo();
 }
 
+/* L'IBAN se lit par groupes de quatre : c'est ainsi qu'il est imprimé
+   partout, et c'est la seule façon d'y repérer une faute de frappe. On
+   le range sans espaces et on ne les remet qu'à l'affichage. */
+function ibanNu(x){ return String(x || "").replace(/[^A-Za-z0-9]/g, "").toUpperCase(); }
+function ibanLisible(x){ return (ibanNu(x).match(/.{1,4}/g) || []).join(" "); }
+
 /* ───────── vue : argent ───────── */
 function rangeeFacture(f, chezLui){
   const st = statut(f), j = jours(f.echeance);
@@ -5159,11 +5165,13 @@ function rangeeFacture(f, chezLui){
     + '<path d="M12 3.5v11"/><path d="m7.8 10.5 4.2 4.2 4.2-4.2"/><path d="M4.5 18.5h15"/></svg>PDF</button>'
     /* Le PDF se joint à un courriel ; le lien se colle dans un SMS, et
        le client le lit sans rien ouvrir. Les deux ne font pas double
-       emploi — mais seul le devis a besoin d'être envoyé pour être
-       accepté, alors seul le devis porte ce bouton. */
-    + (st === "devis"
-        ? '<button class="mini" data-lien="' + h(f.id) + '" title="Envoyer le devis au client">Envoyer</button>'
-        : "")
+       emploi : un devis s'envoie pour être accepté, une facture s'envoie
+       pour être payée — et c'est sur le lien que le client trouve
+       l'IBAN à copier sans le recopier à la main. Une facture déjà
+       réglée n'a plus rien à demander : elle seule n'a pas ce bouton. */
+    + (st === "payee" ? ""
+        : '<button class="mini" data-lien="' + h(f.id) + '" title="Envoyer '
+          + (st === "devis" ? "le devis" : "la facture") + ' au client">Envoyer</button>')
     /* « Payée » solde tout. Mais l'acompte de 30 % à la commande est la
        règle du métier : il lui faut son propre geste, et il n'en avait
        plus depuis que « J'ai été payé » a disparu de Mon argent. Ici il
@@ -6146,6 +6154,16 @@ function pdfFacture(f){
     doc.text("Pénalités de retard : 3 fois le taux d'intérêt légal. Indemnité forfaitaire pour frais de recouvrement : 40 EUR.", G, y, {maxWidth: D - G});
   }
   y += 10;
+  /* Le RIB ne s'imprime que sur une facture : sur un devis, il ferait
+     croire qu'une somme est déjà due. */
+  if(!estDevis && moi.iban){
+    doc.setFont("helvetica", "bold").setTextColor(20, 32, 46);
+    doc.text("Paiement par virement", G, y);
+    doc.setFont("helvetica", "normal").setTextColor(110, 122, 140);
+    y += 5.5;
+    doc.text("IBAN " + ibanLisible(moi.iban), G, y, {maxWidth: D - G});
+    y += 10;
+  }
   if(moi.decennale){
     doc.text("Assurance décennale : " + moi.decennale, G, y, {maxWidth: D - G});
     y += 10;
@@ -6463,6 +6481,7 @@ function paquetDevis(f){
     l: (f.lignes || []).map(l => [String(l.d || ""), Number(l.q) || 1, Number(l.pu) || 0]),
     t: Number(f.montant) || 0,
     tva: Number(moi.tva) ? 1 : 0,
+    ib: st === "devis" ? "" : ibanLisible(moi.iban || ""),
     s: st === "devis" ? "devis" : "facture"
   };
 }
@@ -7203,6 +7222,19 @@ const CHAMPS = {
     + '<details class="detail"><summary>Plus de détails</summary>'
     + '<div class="champ"><label for="f4">E-mail</label>'
     + '<input id="f4" name="email" type="email" maxlength="80" placeholder="facultatif" value="' + h(state.moi.email) + '"></div>'
+    /* Une facture sans RIB, c'est un virement qui n'arrive pas : le
+       client doit alors écrire pour le demander, et il n'écrit pas. Le
+       champ manquait depuis le début — c'était, de tous les défauts de
+       cette application, celui qui coûtait le plus cher.
+       Saisi comme il est lu, par groupes de quatre : un IBAN recopié
+       d'un seul tenant est illisible, et une erreur dedans ne se voit
+       pas. */
+    + '<div class="champ"><label for="f7">IBAN</label>'
+    + '<input id="f7" name="iban" maxlength="42" inputmode="text" autocapitalize="characters" '
+    + 'spellcheck="false" autocomplete="off" placeholder="FR76 1234 5678 ..." value="'
+    + h(ibanLisible(state.moi.iban || "")) + '">'
+    + '<p class="aide" style="margin:5px 0 0">Il s\'imprime sur vos factures. '
+    + 'Sans lui, votre client doit vous le demander — et il attend.</p></div>'
     /* Ces deux champs vivaient côte à côte. Sur un téléphone de 375 px,
        la liste déroulante n'avait plus que 150 px et affichait « Je ne
        facture p » : la seule ligne de ce formulaire qui demande une
@@ -8070,6 +8102,7 @@ $("#feuille").addEventListener("submit", e => {
     state.moi = Object.assign({}, state.moi, {nom: String(d.nom).trim(), adresse: String(d.adresse || "").trim(),
       siret: String(d.siret || "").trim(), email: String(d.email || "").trim(), tva: Number(d.tva) || 0,
       decennale: String(d.decennale || "").trim(),
+      iban: ibanNu(d.iban),
       /* activité, versement libératoire et foyer se règlent dans
          « Calculs » : on ne les écrase pas depuis ce formulaire. */
       forme: state.moi.forme, regime: state.moi.regime,

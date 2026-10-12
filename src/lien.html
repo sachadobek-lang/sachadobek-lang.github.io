@@ -83,6 +83,8 @@ button{font:inherit;cursor:pointer;border:0}
   border-radius:999px;padding:16px;font-size:16px;font-weight:600}
 .fait{background:var(--ok-doux);color:var(--ok);border-radius:var(--rl);
   padding:20px 22px;font-weight:600;text-align:center}
+.rib{font-family:var(--num);font-size:21px;font-weight:600;letter-spacing:.02em;
+  margin-top:10px;word-break:break-all}
 .note{color:var(--ink-3);font-size:14px;text-align:center;margin-top:22px;line-height:1.5}
 .tva{color:var(--ink-3);font-size:14px;margin-top:14px}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{
@@ -179,11 +181,15 @@ function dessiner(d){
     + "<div><h3>Pour</h3><p><b>" + h(d.c || "") + "</b>\n"
     + h(lui.split("\n").slice(1).join("\n")) + "</p></div>"
     + "</section>"
+    + (!devis && d.ib ? '<section class="carte"><p class="chapeau">Paiement par virement</p>'
+        + '<p class="rib">' + h(d.ib) + '</p>'
+        + '<button class="second" id="rib">Copier l\'IBAN</button></section>' : "")
     + (devis
        ? '<button class="geste" id="accord">Bon pour accord</button>'
          + '<button class="second" id="copier">Copier ma réponse</button>'
        : "")
-    + '<p class="note">Ce devis tient entier dans ce lien.<br>'
+    + '<p class="note">' + (devis ? "Ce devis tient entier" : "Cette facture tient entière")
+    + ' dans ce lien.<br>'
     + "Rien n'est envoyé sur internet, il n'y a pas de compte à créer.</p>";
 
   var a = $("#accord");
@@ -193,7 +199,16 @@ function dessiner(d){
     window.location.href = mail;
     setTimeout(function(){
       a.outerHTML = '<p class="fait">Votre réponse est prête à envoyer.</p>';
-      var c = $("#copier"); if(c) c.remove();
+      var rib = $("#rib");
+  if(rib) rib.addEventListener("click", function(){
+    /* sans les espaces : c'est ce que la banque attend dans son champ */
+    var nu = String(d.ib).replace(/\s+/g, "");
+    if(navigator.clipboard && navigator.clipboard.writeText)
+      navigator.clipboard.writeText(nu).then(function(){ rib.textContent = "IBAN copié"; },
+        function(){ rib.textContent = "Impossible de copier"; });
+    else rib.textContent = "Impossible de copier";
+  });
+  var c = $("#copier"); if(c) c.remove();
     }, 900);
   });
   var c = $("#copier");
