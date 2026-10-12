@@ -247,7 +247,19 @@ body.sur-agenda .page{max-width:none;padding:0}
   --cad-line:#403223; --cad-line-fort:#524333; --cad-surface-2:#31261A;
   --cad-deg-pale:#2B231A;
 }
-  :root:not([data-theme="light"])[data-onglet="budget"]{--fond:linear-gradient(180deg,#12110E 0%,#0A0906 100%)}
+  :root:not([data-theme="light"])[data-onglet="budget"]{
+  --fond:linear-gradient(180deg,#12110E 0%,#0A0906 100%);
+  /* Même trou que pour l'Agenda, et resté ouvert plus longtemps : le
+     bloc clair de Comptabilité pose --line, --surface-2 et --surface-3
+     sans condition de thème. En sombre, tout ce qui s'appuyait dessus
+     recevait donc un crème clair sur du noir. Mesuré le 12 octobre sur
+     les pastilles du devis : texte #ECF2F9 sur fond #FCFAF5, illisible.
+     Mêmes valeurs que l'Agenda sombre, réchauffées vers le jaune comme
+     l'est son pendant clair. */
+  --line:#403525; --line-fort:#524635; --surface-2:#312A1B; --surface-3:#241F11;
+  --cad-line:#403525; --cad-line-fort:#524635; --cad-surface-2:#312A1B;
+  --cad-deg-pale:#2B251A;
+}
 }
 :root[data-theme="dark"][data-onglet="afaire"]{
   /* Le bloc clair ci-dessus pose --line, --surface-2… sans condition de
@@ -260,7 +272,19 @@ body.sur-agenda .page{max-width:none;padding:0}
   --cad-line:#403223; --cad-line-fort:#524333; --cad-surface-2:#31261A;
   --cad-deg-pale:#2B231A;
 }
-:root[data-theme="dark"][data-onglet="budget"]{--fond:linear-gradient(180deg,#12110E 0%,#0A0906 100%)}
+:root[data-theme="dark"][data-onglet="budget"]{
+  --fond:linear-gradient(180deg,#12110E 0%,#0A0906 100%);
+  /* Même trou que pour l'Agenda, et resté ouvert plus longtemps : le
+     bloc clair de Comptabilité pose --line, --surface-2 et --surface-3
+     sans condition de thème. En sombre, tout ce qui s'appuyait dessus
+     recevait donc un crème clair sur du noir. Mesuré le 12 octobre sur
+     les pastilles du devis : texte #ECF2F9 sur fond #FCFAF5, illisible.
+     Mêmes valeurs que l'Agenda sombre, réchauffées vers le jaune comme
+     l'est son pendant clair. */
+  --line:#403525; --line-fort:#524635; --surface-2:#312A1B; --surface-3:#241F11;
+  --cad-line:#403525; --cad-line-fort:#524635; --cad-surface-2:#312A1B;
+  --cad-deg-pale:#2B251A;
+}
 
 /* ⚠️ `100vh` n'est pas la hauteur de l'écran sur un iPhone : c'est la
    hauteur que la page AURAIT si les barres de Safari étaient masquées.
@@ -904,6 +928,39 @@ button.tuile:active{transform:scale(.985)}
 .tuile .lab svg{width:17px;height:17px;stroke-width:2.2;fill:none}
 .tuile .val{font-family:var(--num);font-weight:600;font-size:30px;letter-spacing:-.025em;font-variant-numeric:tabular-nums;line-height:1.15}
 .tuile .sous{font-size:13.5px;color:var(--ink-3)}
+/* Calculs n'a plus d'onglet : son unique sortie prend la place que la
+   barre des segments occupait, pour que rien ne saute à l'écran. */
+/* ═══ les pastilles ═══
+   Ce que l'artisan fait le plus souvent, à portée de pouce. 44 px de haut :
+   la plus petite cible qu'un doigt atteint sans viser. */
+.pastilles{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+/* une carte qui se replie : le titre reste une tête de carte, avec un
+   chevron qui dit qu'il y a autre chose dessous */
+.pli-carte>summary{list-style:none;cursor:pointer;position:relative;padding-right:30px}
+.pli-carte>summary::-webkit-details-marker{display:none}
+.pli-carte>summary::after{content:"";position:absolute;right:4px;top:50%;
+  width:9px;height:9px;margin-top:-6px;border-right:2.4px solid var(--ink-3);
+  border-bottom:2.4px solid var(--ink-3);border-radius:1px;
+  transform:rotate(45deg);transition:transform .22s var(--doux)}
+.pli-carte[open]>summary::after{transform:rotate(-135deg);margin-top:-2px}
+.past-lab{margin:14px 0 0;font-size:13px;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--ink-3)}
+.past{display:inline-flex;align-items:baseline;gap:7px;min-height:44px;
+  padding:11px 16px;border:1px solid var(--line);border-radius:999px;
+  background:var(--surface-2);color:var(--ink);font:inherit;font-size:15px;
+  font-weight:600;cursor:pointer;max-width:100%;
+  transition:transform .16s var(--doux),background .16s var(--doux)}
+.past>*{flex:none}
+.past small{font-size:13px;font-weight:600;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.past:active{transform:scale(.96)}
+.past[aria-pressed="true"]{background:var(--deg);border-color:transparent;color:var(--sur-plein)}
+.past[aria-pressed="true"] small{color:rgba(255,255,255,.72)}
+.retour-calculs{display:inline-flex;align-items:center;gap:7px;margin:0 0 14px;
+  padding:11px 18px 11px 13px;border:0;border-radius:999px;background:var(--surface);
+  color:var(--v-txt);font:inherit;font-size:16px;font-weight:600;cursor:pointer;
+  box-shadow:var(--o1);transition:transform .18s var(--doux)}
+.retour-calculs:active{transform:scale(.97)}
+.retour-calculs svg{width:19px;height:19px;flex:none}
 .tuile.chaud{background:var(--tuile-chaud)}
 .tuile.chaud .val,.tuile.chaud .sous,.tuile.chaud .lab{color:var(--tard)}
 /* l'argent qui attend chez les clients : bleu, comme l'attente partout
@@ -5251,6 +5308,58 @@ function videFactures(combienEnTout){
     + 'Une facture vient ici le jour où vous la marquez réglée.</p>';
 }
 
+/* ═══ l'écran Devis ═══
+   Un seul chiffre : ce qui est en jeu. Pas ce qui est facturé, pas ce qui
+   est encaissé — ce qui attend une réponse, et qui n'existe nulle part
+   ailleurs dans l'application. C'est la seule somme que personne ne
+   surveille, et c'est celle qui décide des mois suivants. */
+function ecranDevis(){
+  const tout = liste("factures").filter(f => statut(f) === "devis")
+    .sort((x, y) => String(y.emise).localeCompare(String(x.emise)));
+  const vif = tout.filter(f => jours(f.echeance) >= 0);
+  const enJeu = vif.reduce((t, f) => t + montantDe(f), 0);
+  const dorment = vif.filter(f => -jours(f.emise) >= 7).length;
+  const perimes = tout.length - vif.length;
+
+  /* Le taux d'acceptation se mérite : tant qu'il n'y a pas de quoi le
+     calculer, il ne s'affiche pas. Un pourcentage sur deux devis ne
+     mesure rien, il décore. */
+  const signes = liste("factures").filter(f => f.venuDuDevis).length;
+  const juges = signes + perimes;
+  const taux = juges >= 5 ? Math.round(signes / juges * 100) : null;
+
+  return '<button class="faire-facture anim" data-neuf="devis">'
+    + '<svg viewBox="0 0 24 24" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">'
+    + '<path d="M12 5.5v13M5.5 12h13"/></svg>Faire un devis</button>'
+
+    + '<section class="carte anim"><div class="mois" style="padding-top:22px">'
+    + '<p class="heros-lab">En jeu</p>'
+    + '<p class="heros-val" data-compte="enjeu" data-val="' + enJeu + '">' + eur(enJeu) + "</p>"
+    + '<p class="heros-sous">' + (vif.length
+        ? vif.length + " devis en attente de réponse"
+        : tout.length ? "plus rien en attente" : "aucun devis pour l'instant") + "</p></div></section>"
+
+    + (dorment || perimes
+       ? '<div class="duo anim" style="animation-delay:.06s">'
+         + (dorment ? '<div class="tuile chaud"><span class="lab">Sans réponse</span>'
+             + '<span class="val">' + dorment + "</span>"
+             + '<span class="sous">depuis plus d\'une semaine</span></div>' : "")
+         + (perimes ? '<div class="tuile"><span class="lab">Périmés</span>'
+             + '<span class="val">' + perimes + "</span>"
+             + '<span class="sous">leur validité est passée</span></div>' : "")
+         + "</div>"
+       : "")
+
+    + '<section class="carte anim" style="animation-delay:.06s"><div class="carte-tete"><h2>Vos devis</h2>'
+    + '<span class="appoint">' + (taux === null
+        ? tout.length + " en cours"
+        : taux + " % acceptés") + "</span></div>"
+    + (tout.length ? tout.map(f => rangeeFacture(f)).join("")
+       : '<p class="vide"><b>Aucun devis</b>Le devis est le premier pas d\'un chantier : '
+         + "celui qu'on remet au lendemain, et qui se perd.</p>")
+    + "</section>" + demo();
+}
+
 function ecranFactures(){
   const c = calculs();
   const tout = c.fact.slice().sort((x, y) => String(y.emise).localeCompare(String(x.emise)));
@@ -5259,11 +5368,14 @@ function ecranFactures(){
      se déroule. Et le gros bouton suit le segment ouvert, pour qu'il n'y
      ait jamais deux boutons de création à l'écran. */
   const estUnDevis = f => statut(f) === "devis";
-  const vis = filtreF === "devis" ? tout.filter(estUnDevis)
-            : filtreF === "payee" ? tout.filter(f => !estUnDevis(f) && statut(f) === "payee")
+  /* Les devis ont leur propre onglet : ce troisième segment montrait la
+     même liste à deux endroits, et un écran qui se répète est un écran
+     qu'on ne lit plus. */
+  if(filtreF === "devis") filtreF = "encaisser";
+  const vis = filtreF === "payee" ? tout.filter(f => !estUnDevis(f) && statut(f) === "payee")
                                   : tout.filter(f => !estUnDevis(f) && statut(f) !== "payee");
-  const libs = [["devis", "Devis"], ["encaisser", "À encaisser"], ["payee", "Payées"]];
-  const surDevis = filtreF === "devis";
+  const libs = [["encaisser", "À encaisser"], ["payee", "Payées"]];
+  const surDevis = false;
 
   /* La question de cet écran est « qui me doit de l'argent ? ». C'est
      donc elle qui prend le grand chiffre. Ce qui a été facturé et ce qui
@@ -5559,13 +5671,30 @@ function partageImpot(){
 }
 
 function vueBudget(){
+  /* ═══ Devis prend la place de Calculs ═══
+     Les trois sous-onglets doivent être les trois moments d'un chantier :
+     ce qu'on propose, ce qu'on réclame, ce qui reste. Calculs était un
+     simulateur — utile une fois par trimestre — assis à la place du
+     geste le plus fréquent du métier. Il n'a pas disparu : il se règle
+     depuis le Profil, à côté du régime qui le pilote, « là où ses effets
+     se voient ». */
+  if(filtreC === "calculs") return retourCalculs() + vueCalculs();
   const onglets = '<div class="segments segments-haut">'
-    + [["argent", "Mon argent"], ["factures", "Factures"], ["calculs", "Calculs"]].map(kv =>
+    + [["argent", "Mon argent"], ["devis", "Devis"], ["factures", "Factures"]].map(kv =>
         '<button data-fc="' + kv[0] + '" aria-pressed="' + (filtreC === kv[0]) + '">' + kv[1] + "</button>").join("")
     + "</div>";
-  if(filtreC === "calculs")  return onglets + vueCalculs();
+  if(filtreC === "devis")    return onglets + ecranDevis();
   if(filtreC === "factures") return onglets + ecranFactures();
   return onglets;
+}
+
+/* Calculs n'a plus d'onglet : il lui faut donc une porte de sortie, sinon
+   on y entre depuis le Profil et on ne sait plus comment en revenir. */
+function retourCalculs(){
+  return '<button class="retour-calculs" data-fc="argent">'
+    + '<svg viewBox="0 0 24 24" stroke="currentColor" fill="none" stroke-width="2.2" '
+    + 'stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5 8 12l6.5 6.5"/></svg>'
+    + "Comptabilité</button>";
 }
 
 function vueCalculs(){
@@ -5629,9 +5758,15 @@ function vueCalculs(){
   /* le schéma : une barre découpée en trois, rien de plus */
   const pc = v => Math.max(0, v / ca * 100);
   const part = v => Math.round(v / ca * 1000) / 10;
-  out += '<section class="carte anim" style="animation-delay:.05s">'
-    + '<div class="carte-tete"><h2>Où va votre argent</h2>'
-    + '<span class="appoint">sur ' + eur(ca) + "</span></div>"
+  /* ═══ Calculs, plus court ═══
+     Quatre sections dépliées font deux écrans et demi de lecture pour
+     répondre à une question qui tient en un chiffre. Les deux sections
+     qui expliquent se replient : elles racontent, elles ne demandent
+     rien. Restent à l'ouverture la question, la réponse, le régime et
+     le geste de l'année. Rien n'est retiré — tout est à une touche. */
+  out += '<details class="carte pli-carte anim" style="animation-delay:.05s">'
+    + '<summary class="carte-tete"><h2>Où va votre argent</h2>'
+    + '<span class="appoint">sur ' + eur(ca) + "</span></summary>"
     + '<div class="schema" style="padding-top:2px"><div class="barre-part">'
     + '<i class="moi" style="width:' + pc(k.net).toFixed(1) + '%"></i>'
     + (k.charges ? '<i class="depense" style="width:' + pc(k.charges).toFixed(1) + '%"></i>' : "")
@@ -5668,7 +5803,7 @@ function vueCalculs(){
              : (calcLib() ? "versement libératoire, " + pct(k.act.liber) + "\u00a0%"
                 : "barème, calculé sur " + eur(k.base) + " après abattement de " + pct(k.act.abat) + "\u00a0%")),
             k.impot, part(k.impot)) : ""))
-    + "</div></div></section>";
+    + "</div></div></details>";
 
   /* ═══ les deux murs, avant de les prendre ═══
      Ils n'étaient annoncés qu'une fois franchis : l'application attendait
@@ -5704,9 +5839,9 @@ function vueCalculs(){
     /* le seuil de TVA qui compte aujourd'hui : le premier tant qu'on est
        dessous, le majoré dès qu'on l'a passé */
     const passe = ca > k.act.tva;
-    out += '<section class="carte anim" style="animation-delay:.1s">'
-      + '<div class="carte-tete"><h2>Les deux murs</h2>'
-      + '<span class="appoint">sur ' + eur(ca) + "</span></div>"
+    out += '<details class="carte pli-carte anim" style="animation-delay:.1s">'
+      + '<summary class="carte-tete"><h2>Les deux murs</h2>'
+      + '<span class="appoint">sur ' + eur(ca) + "</span></summary>"
       + '<div class="seuils">'
       + (passe
           ? jauge("Avant de facturer la TVA", "Avant que la TVA s'applique",
@@ -5722,7 +5857,7 @@ function vueCalculs(){
       + "</div>"
       + '<p class="seuils-note">Ces deux plafonds sont indépendants depuis 2025&nbsp;: '
       + "on peut devoir la TVA en restant micro-entrepreneur.</p>"
-      + "</section>";
+      + "</details>";
   }
 
   /* Ce qu'on reporte aux impôts, c'est le chiffre d'affaires encaissé,
@@ -7155,6 +7290,65 @@ function ligneDevis(l){
   + "</div>";
 }
 
+/* ═══ ce qu'on refait tout le temps ═══
+   Le catalogue déduit est rangé par ordre alphabétique : parfait pour
+   chercher, inutile pour proposer. Ici on veut les quelques prestations
+   qui reviennent vraiment, les plus fréquentes d'abord.
+   Et surtout : sur iPhone, un <datalist> est pratiquement invisible. Le
+   catalogue existait donc sans que personne ne le voie. Une pastille se
+   touche du pouce. */
+function prestationsFrequentes(n){
+  const vu = {};
+  /* du plus ancien au plus récent : « le dernier prix pratiqué » n'a de
+     sens que si on les lit dans l'ordre où ils ont été pratiqués. Sans
+     ce tri, c'était le dernier rencontré — c'est-à-dire n'importe
+     lequel. */
+  liste("factures").slice()
+    .sort((a, b) => String(a.emise || "").localeCompare(String(b.emise || "")))
+    .forEach(f => (f.lignes || []).forEach(l => {
+    const d = String(l.d || "").trim();
+    if(!d) return;
+    const k = d.toLowerCase();
+    if(!vu[k]) vu[k] = {d: d, pu: 0, fois: 0};
+    vu[k].fois++;
+    vu[k].pu = Number(l.pu) || vu[k].pu;   /* le dernier prix pratiqué */
+    }));
+  return Object.keys(vu).map(k => vu[k])
+    .sort((a, b) => b.fois - a.fois || a.d.localeCompare(b.d, "fr"))
+    .slice(0, n || 6);
+}
+/* Les derniers clients servis, sans doublon, le plus récent d'abord. */
+function clientsRecents(n){
+  const vu = [];
+  liste("factures").slice()
+    .sort((a, b) => String(b.emise || "").localeCompare(String(a.emise || "")))
+    .forEach(f => {
+      const c = String(f.client || "").trim();
+      if(c && vu.indexOf(c) === -1) vu.push(c);
+    });
+  liste("clients").forEach(c => {
+    const nom = String(c.nom || "").trim();
+    if(nom && vu.indexOf(nom) === -1) vu.push(nom);
+  });
+  return vu.slice(0, n || 4);
+}
+/* « Établissements Dupont-Moreau & Fils Chauffagistes » sur une pastille
+   de téléphone, c'est une pastille qui occupe l'écran. On coupe à
+   l'affichage, jamais la valeur : c'est le nom entier qui est posé dans
+   le champ. */
+function court(t, n){
+  const x = String(t || "").trim();
+  return x.length > n ? x.slice(0, n - 1).trimEnd() + "…" : x;
+}
+function pastilles(items, attribut){
+  if(!items.length) return "";
+  return '<div class="pastilles">' + items.map(x =>
+    '<button type="button" class="past" ' + attribut + '="' + h(x.cle) + '"'
+    + ' title="' + h(x.txt) + '"'
+    + (x.pu ? ' data-pu="' + x.pu + '"' : "") + ">" + h(court(x.txt, 20))
+    + (x.pu ? "<small>" + eur(x.pu) + "</small>" : "") + "</button>").join("") + "</div>";
+}
+
 function blocLignes(lignes){
   const L = (lignes && lignes.length) ? lignes : [{}];
   return '<datalist id="lcat">'
@@ -7163,6 +7357,12 @@ function blocLignes(lignes){
     + '<div class="champ"><label>Le détail</label>'
     + '<div class="lg-tete"><span>Désignation</span><span>Qté</span><span>Prix</span><span></span></div>'
     + '<div id="lignes">' + L.map(ligneDevis).join("") + "</div>"
+    /* Sans un mot, on prend ces pastilles pour des filtres. Un seul mot
+       suffit à dire que ce sont des raccourcis, pas des réglages. */
+    + (prestationsFrequentes(4).length
+        ? '<p class="past-lab">Ce que vous faites souvent</p>'
+          + pastilles(prestationsFrequentes(4).map(c => ({cle: c.d, txt: c.d, pu: c.pu})), "data-cette-presta")
+        : "")
     + '<button type="button" class="lg-plus" data-ligne-plus="1">+ Ajouter une ligne</button>'
     + '<div class="lg-total"><span>Total</span><b id="lgTotal">0 €</b></div>'
     + '<p class="aide" style="margin-top:6px">Un devis de dépannage, de réparation ou d\'entretien au-dessus de 150 € doit être détaillé : c\'est la loi, et c\'est ce que le client regarde.</p>'
@@ -7310,7 +7510,11 @@ const CHAMPS = {
      date change de sens — ce n'est plus une échéance de paiement mais
      une durée de validité, et la loi veut qu'elle soit écrite. */
   devis: () => ({titre: "Nouveau devis", html:
-    '<div class="champ"><label for="f1">Pour qui ?</label><input id="f1" name="client" required maxlength="80" list="lc" placeholder="Nom du client" autocomplete="off"></div>'
+    '<div class="champ"><label for="f1">Pour qui ?</label><input id="f1" name="client" required maxlength="80" list="lc" placeholder="Nom du client" autocomplete="off">'
+    /* Une touche au lieu d'un nom tapé en entier, au doigt, sur un
+       chantier. Le clavier reste là pour un client nouveau. */
+    + (enModif ? "" : pastilles(clientsRecents(3).map(c => ({cle: c, txt: c})), "data-ce-client"))
+    + "</div>"
     + '<div class="champ"><label for="f6">Pour quoi ?</label><input id="f6" name="objet" maxlength="120" placeholder="Réfection complète de la salle de bains" autocomplete="off"></div>'
     /* « Combien ? » a disparu : le total est la somme des lignes. Une
        question en moins, pas une de plus. */
@@ -7336,7 +7540,8 @@ const TYPES_VUE = {afaire: TOUS_TYPES, argent: TOUS_TYPES, budget: ["depense", "
 const TYPE_DEFAUT = {afaire: "tache", argent: "facture"};
 function typeDefaut(){
   if(vue === "argent") return "client";
-  if(vue === "budget") return filtreC === "factures" ? "facture" : "tache";
+  if(vue === "budget") return filtreC === "devis" ? "devis"
+                          : filtreC === "factures" ? "facture" : "tache";
   return TYPE_DEFAUT[vue];
 }
 const NOM_TYPE = {tache: "Tâche", facture: "Facture", client: "Client", depense: "Dépense", investissement: "Investissement", moi: "Vous"};
@@ -7965,6 +8170,8 @@ $("#vue").addEventListener("change", e => {
    propose, il ne décide pas. */
 $("#feuille").addEventListener("input", e => {
   const t = e.target;
+  /* un objet écrit à la main n'est plus un objet deviné */
+  if(t.name === "objet") delete t.dataset.auto;
   if(!t.closest || !t.closest("#lignes")) return;
   if(t.classList.contains("lg-d")){
     const opt = document.querySelector('#lcat option[value="' + String(t.value).replace(/"/g, '\\"') + '"]');
@@ -7982,6 +8189,60 @@ $("#feuille").addEventListener("input", e => {
 
 $("#feuille").addEventListener("click", e => {
   if(e.target.closest("#x")){ fermer(); return; }
+  /* ═══ le devis en trois touches ═══
+     Un client, une prestation, et c'est écrit. Sur un chantier, avec des
+     mains sales et une main déjà prise, taper « Remplacement du groupe
+     de sécurité » au clavier n'arrive jamais : le devis se fait le soir,
+     ou ne se fait pas. */
+  const qui = e.target.closest("[data-ce-client]");
+  if(qui){
+    const champ = $("#feuille").querySelector('[name="client"]');
+    if(champ){ champ.value = qui.dataset.ceClient; champ.dispatchEvent(new Event("input", {bubbles: true})); }
+    qui.parentElement.querySelectorAll(".past").forEach(x => x.removeAttribute("aria-pressed"));
+    qui.setAttribute("aria-pressed", "true");
+    return;
+  }
+  const quoi = e.target.closest("[data-cette-presta]");
+  if(quoi){
+    const box = $("#lignes");
+    if(!box) return;
+    const d = quoi.dataset.cettePresta, pu = String(quoi.dataset.pu || "").replace(".", ",");
+    /* On remplit la première ligne encore vide plutôt que d'en empiler
+       une de plus : sinon un devis d'une ligne en contient deux, dont
+       une vide, et le détail imprimé a un trou. */
+    let cible = null;
+    box.querySelectorAll(".lg").forEach(r => {
+      const dd = r.querySelector(".lg-d");
+      if(!cible && dd && !String(dd.value).trim()) cible = r;
+    });
+    if(!cible){
+      box.insertAdjacentHTML("beforeend", ligneDevis({}));
+      cible = box.lastElementChild;
+    }
+    cible.querySelector(".lg-d").value = d;
+    const q = cible.querySelector(".lg-q"); if(q && !String(q.value).trim()) q.value = "1";
+    const p = cible.querySelector(".lg-pu"); if(p && !String(p.value).trim()) p.value = pu;
+    majTotalLignes();
+    /* L'objet du devis se devine de sa ligne la plus chère : c'est elle
+       qui nomme le chantier. Se fier à la première donnait « Main
+       d'œuvre » comme intitulé d'une pose de chauffe-eau — exact, et
+       incompréhensible pour le client qui le reçoit.
+       Il reste modifiable : dès qu'on y touche, l'application n'y
+       revient plus. */
+    const obj = $("#feuille").querySelector('[name="objet"]');
+    if(obj && (!String(obj.value).trim() || obj.dataset.auto === "1")){
+      let haut = null, max = -1;
+      box.querySelectorAll(".lg").forEach(r => {
+        const dd = String(r.querySelector(".lg-d").value || "").trim();
+        if(!dd) return;
+        const m = (Number(String(r.querySelector(".lg-q").value || "1").replace(",", ".")) || 1)
+                * (Number(String(r.querySelector(".lg-pu").value || "0").replace(",", ".")) || 0);
+        if(m > max){ max = m; haut = dd; }
+      });
+      if(haut){ obj.value = haut; obj.dataset.auto = "1"; }
+    }
+    return;
+  }
   const plus = e.target.closest("[data-ligne-plus]");
   if(plus){
     const box = $("#lignes");
