@@ -5138,8 +5138,23 @@ function rangeeFacture(f, chezLui){
   const st = statut(f), j = jours(f.echeance);
   /* la ligne annonçait « Pas payé » juste au-dessus de « acompte de 32 €
      reçu ». Quand une part est versée, le mot juste est « En retard ». */
-  const e = (st === "retard" && verse(f) > 0) ? ["En retard", "feu"] : ETIQ_F[st];
-  const quand = st === "devis" ? "valable jusqu'au " + jour(f.echeance)
+  let e = (st === "retard" && verse(f) > 0) ? ["En retard", "feu"] : ETIQ_F[st];
+  /* ═══ le devis qui dort ═══
+     « Valable jusqu'au 10 novembre » est exact et muet : il ne dit pas
+     que ce devis attend une réponse depuis trois semaines, ni qu'il est
+     périmé depuis hier. Or un devis oublié, c'est un chantier perdu
+     sans que personne ne s'en aperçoive — c'est le seul endroit de
+     l'application où de l'argent s'évapore en silence.
+     Rien ne change dans les calculs : un devis ne compte toujours pas
+     dans ce qu'on vous doit. Seule la phrase se met à parler. */
+  const dort = st === "devis" ? (jours(f.emise) * -1) : 0;
+  const perime = st === "devis" && jours(f.echeance) < 0;
+  if(perime) e = ["Devis", "amb"];
+  const quand = perime
+      ? "périmé depuis " + (-jours(f.echeance)) + " jour" + (jours(f.echeance) < -1 ? "s" : "")
+    : st === "devis" && dort >= 7
+      ? "sans réponse depuis " + dort + " jours"
+    : st === "devis" ? "valable jusqu'au " + jour(f.echeance)
     : st === "payee" ? "réglée le " + jour(dateReglement(f))
     : verse(f) > 0 ? "acompte de " + eur(verse(f)) + " reçu — reste " + eur(duSur(f))
     : st === "retard" ? "à relancer depuis " + (-j) + " jour" + (j < -1 ? "s" : "")
