@@ -1457,7 +1457,12 @@ summary.carte-tete:hover h2{color:var(--v1)}
   /* La rangée reprend la marge de 24 px de l'en-tête de sa carte : à 16,
      la pastille et le bouton PDF dépassaient de 8 px à gauche du titre
      « Ses factures », sur tous les téléphones sauf les plus étroits. */
-  .r{padding:14px 40px 14px 24px;gap:9px 12px;flex-wrap:wrap;position:relative}
+  /* À droite aussi 24 px : les 40 px réservés à la croix arrêtaient
+     « Envoyer » et « Payée » 16 px avant « Payées » juste au-dessus —
+     des boutons décentrés dans leur carte. La croix n'occupe que le coin
+     haut : seul le montant, qui partage sa ligne, s'en écarte. */
+  .r{padding:14px 24px;gap:9px 12px;flex-wrap:wrap;position:relative}
+  .r:has(> .sup) > .r-som{margin-right:14px}
   .r + .r::before{left:24px;right:24px}
   .r .pastille{width:42px;height:42px;border-radius:var(--rs);font-size:14px;align-self:flex-start}
   .r .r-corps{flex:1 1 52%;min-width:8.5rem}
@@ -7318,19 +7323,22 @@ function prestationsFrequentes(n){
     .slice(0, n || 6);
 }
 /* Les derniers clients servis, sans doublon, le plus récent d'abord. */
+/* Le client qu'on vient d'ajouter compte autant qu'une facture : c'est
+   lui qu'on veut chiffrer dans la minute. Avant, un client sans facture
+   passait derrière tous les autres et il fallait retaper son nom. On
+   garde pour chacun sa date la plus récente — création ou facture — et
+   à égalité, le dernier créé passe devant. */
 function clientsRecents(n){
-  const vu = [];
-  liste("factures").slice()
-    .sort((a, b) => String(b.emise || "").localeCompare(String(a.emise || "")))
-    .forEach(f => {
-      const c = String(f.client || "").trim();
-      if(c && vu.indexOf(c) === -1) vu.push(c);
-    });
-  liste("clients").forEach(c => {
-    const nom = String(c.nom || "").trim();
-    if(nom && vu.indexOf(nom) === -1) vu.push(nom);
-  });
-  return vu.slice(0, n || 4);
+  const quand = {}, ordre = [];
+  const noter = (nom, d) => {
+    nom = String(nom || "").trim(); d = String(d || "");
+    if(!nom) return;
+    if(!(nom in quand)){ quand[nom] = d; ordre.push(nom); }
+    else if(d > quand[nom]) quand[nom] = d;
+  };
+  liste("clients").slice().reverse().forEach(c => noter(c.nom, c.cree));
+  liste("factures").forEach(f => noter(f.client, f.emise));
+  return ordre.sort((a, b) => quand[b].localeCompare(quand[a])).slice(0, n || 4);
 }
 /* « Établissements Dupont-Moreau & Fils Chauffagistes » sur une pastille
    de téléphone, c'est une pastille qui occupe l'écran. On coupe à
