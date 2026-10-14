@@ -1478,8 +1478,17 @@ summary.carte-tete:hover h2{color:var(--v1)}
      plus l'écart et la marge de la croix) : jamais plus.
      Cela suppose que le montant reste sur la ligne du titre : le corps
      cède donc sa largeur au lieu de le pousser à la ligne. Sur un
-     iPhone SE, « 1 251 € » tombait sous la description, à côté de PDF. */
+     iPhone SE, « 1 251 € » tombait sous la description, à côté de PDF.
+     Un corps qui cède laisserait les boutons remonter sur la première
+     ligne et réduire le nom à une lettre par ligne : un saut forcé les
+     garde dessous. */
   .r:has(> .r-som) > .r-corps{flex:1 1 0;min-width:0}
+  .r:has(> .r-som):has(> .pdf, > .mini)::after{content:"";flex-basis:100%;order:1;height:0}
+  .r:has(> .r-som) > .pdf,.r:has(> .r-som) > .mini{order:2}
+  /* la ligne invisible du saut doublerait l'écart de 9 px : on le porte
+     sur les boutons, pour garder 9 px avant eux et entre leurs rangées */
+  .r:has(> .r-som):has(> .pdf, > .mini){row-gap:0}
+  .r:has(> .r-som):has(> .pdf, > .mini) > .pdf,.r:has(> .r-som):has(> .pdf, > .mini) > .mini{margin-top:9px}
   .r:has(> .r-som) .r-meta{margin-right:-36px}
   .r:has(> .r-som):has(> .sup) .r-meta{margin-right:-50px}
   /* Les boutons d'une facture se poussaient chacun vers la droite :
