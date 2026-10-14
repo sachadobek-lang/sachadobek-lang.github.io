@@ -1290,6 +1290,25 @@ form{padding:12px 24px 28px;display:flex;flex-direction:column;gap:15px}
 .detail > *:not(summary){margin-top:15px}
 .date-libre{margin-top:11px}
 .aide{font-size:14px;color:var(--ink-3);margin-top:-7px}
+/* ═══ la signature sur place ═══
+   Le récapitulatif d'abord — ce que le client accepte, en gros — puis le
+   cadre. Un cadre pâle avec une ligne d'appui, comme sur un terminal de
+   paiement : on comprend sans lire qu'on y signe. */
+.sig-recap{padding:4px 0 2px}
+.sig-recap .sig-ref{font-size:13.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}
+.sig-recap .sig-somme{font-family:var(--num);font-size:40px;font-weight:700;letter-spacing:-.03em;line-height:1.1;margin-top:6px;color:var(--ink)}
+.sig-recap .sig-objet{font-size:15.5px;color:var(--ink-2);margin-top:4px}
+.sig-zone{position:relative;height:190px;border-radius:var(--rm);background:var(--surface-2);
+  border:1.5px solid var(--line);overflow:hidden;touch-action:none}
+.sig-zone canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair}
+.sig-zone::after{content:"";position:absolute;left:22px;right:22px;bottom:46px;height:1.5px;background:var(--line-fort);pointer-events:none}
+.sig-invite{position:absolute;left:0;right:0;bottom:16px;text-align:center;font-size:14px;color:var(--ink-3);pointer-events:none;transition:opacity .2s}
+.sig-zone.signe .sig-invite{opacity:0}
+.sig-effacer{position:absolute;bottom:6px;right:10px;border:0;border-radius:999px;padding:9px 15px;min-height:38px;
+  background:var(--surface);color:var(--ink-2);font:inherit;font-size:14px;font-weight:700;box-shadow:0 1px 3px rgba(20,32,46,.12)}
+.sig-zone:not(.signe) .sig-effacer{display:none}
+.sig-papier{display:block;width:100%;margin-top:4px;border:0;background:none;color:var(--ink-2);
+  font:inherit;font-size:15px;font-weight:700;padding:12px 0;min-height:44px;text-decoration:underline;text-underline-offset:3px;text-decoration-color:var(--line-fort)}
 summary.carte-tete{list-style:none}
 summary.carte-tete::-webkit-details-marker{display:none}
 summary.carte-tete::after{content:"";width:9px;height:9px;border-right:2.6px solid var(--ink-3);border-bottom:2.6px solid var(--ink-3);transform:rotate(45deg) translate(-2px,-2px);transition:transform .2s var(--doux);flex:none}
@@ -4918,7 +4937,19 @@ function ficheClient(id){
      sans l'ajouter aux totaux. */
   const brouillons = liste("factures").filter(f => f.client === c.nom && f.statut === "brouillon")
                                       .sort((x, y) => String(y.emise).localeCompare(String(x.emise)));
-  const toutes = brouillons.concat(siennes);
+  /* Ses devis en cours. La fiche ne montrait que ce qui compte dans
+     l'argent : un devis de 420 € envoyé la veille n'y apparaissait nulle
+     part, et l'on rappelait le client sans l'avoir sous les yeux. Ils
+     passent devant — c'est ce qui attend une réponse — sans rien ajouter
+     aux totaux. */
+  const sesDevis = liste("factures").filter(f => f.client === c.nom && statut(f) === "devis")
+                                    .sort((x, y) => String(y.emise).localeCompare(String(x.emise)));
+  const enJeu = sesDevis.reduce((t, f) => t + montantDe(f), 0);
+  const toutes = sesDevis.concat(brouillons, siennes);
+  /* Le premier geste envers quelqu'un qu'on n'a jamais facturé, c'est
+     le devis : il prend la place du gros bouton tant qu'aucune facture
+     n'existe. Les deux restent là, dans le même ordre de lecture. */
+  const devisDabord = !siennes.length && !brouillons.length;
   /* un acompte compte dans ce qui est payé, et le reste dans ce qui est dû :
      les deux sortent des mêmes fonctions que la comptabilité. */
   const paye = siennes.reduce((t, f) => t + encaisseDe(f), 0);
@@ -4949,13 +4980,19 @@ function ficheClient(id){
                   : '<p class="reste">Rien d\'encaissé pour l\'instant.</p>')
         : '<p class="lab">Ce client vous a payé</p>'
           + '<p class="gros" data-compte="paye-' + h(c.id) + '" data-val="' + paye + '">' + eur(paye) + "</p>"
-          + (paye ? '<p class="reste">Tout est réglé.</p>'
+          + (paye ? '<p class="reste">Tout est réglé' + (enJeu ? " — un devis de <b>" + eur(enJeu) + "</b> attend sa réponse" : "") + ".</p>"
              : brouillons.length ? '<p class="reste">' + (brouillons.length > 1 ? brouillons.length + " factures" : "Une facture")
                                  + ' à envoyer, rien d\'encaissé encore.</p>'
+             : enJeu ? '<p class="reste">Un devis de <b>' + eur(enJeu) + "</b> attend sa réponse.</p>"
              : '<p class="reste">Aucune facture pour l\'instant.</p>'))
     + "</div>"
-    + '<div class="action-client"><button data-facturer="' + h(c.nom) + '">Faire une facture</button>'
-    + (attente ? '<button class="doux" data-relance="' + h(c.nom) + '">Relancer</button>' : "")
+    + '<div class="action-client">'
+    + (devisDabord
+        ? '<button data-devis-pour="' + h(c.nom) + '">Faire un devis</button>'
+          + '<button class="doux" data-facturer="' + h(c.nom) + '">Facture</button>'
+        : '<button data-facturer="' + h(c.nom) + '">Faire une facture</button>'
+          + (attente ? '<button class="doux" data-relance="' + h(c.nom) + '">Relancer</button>'
+                     : '<button class="doux" data-devis-pour="' + h(c.nom) + '">Devis</button>'))
     + "</div></section>"
 
     + (rdv.length ? '<section class="carte anim" style="animation-delay:.04s">'
@@ -4975,7 +5012,7 @@ function ficheClient(id){
         + '<div style="height:10px"></div></section>' : "")
 
     + (toutes.length ? '<section class="carte anim" style="animation-delay:.05s">'
-        + '<div class="carte-tete"><h2>Ses factures</h2><span class="appoint">' + toutes.length + "</span></div>"
+        + '<div class="carte-tete"><h2>' + (sesDevis.length ? "Devis et factures" : "Ses factures") + '</h2><span class="appoint">' + toutes.length + "</span></div>"
         + toutes.map(f => rangeeFacture(f, true)).join("") + '<div style="height:10px"></div></section>' : "")
 
     + '<section class="carte anim" style="animation-delay:.09s"><div class="carte-tete"><h2>Vos notes</h2>'
@@ -5289,7 +5326,7 @@ function rangeeFacture(f, chezLui){
        plus depuis que « J'ai été payé » a disparu de Mon argent. Ici il
        sait de quelle facture on parle, ce que l'ancien bouton ignorait. */
     + (st === "devis"
-        ? '<button class="mini" data-signe="' + h(f.id) + '" title="Le client a accepté le devis">Il a signé</button>'
+        ? '<button class="mini" data-signe="' + h(f.id) + '" title="Le client signe du doigt, ou a déjà signé">Faire signer</button>'
         : st === "payee"
         ? '<button class="mini" data-regle="' + h(f.id) + '" title="Appuyez pour changer">' + h(f.regle || "Virement") + "</button>"
         : '<button class="mini" data-acompte="' + h(f.id) + '" title="Il a versé une partie">Acompte</button>'
@@ -5313,6 +5350,101 @@ function vueArgent(){
    bonne nouvelle, la troisième n'est qu'une attente. */
 /* Un devis accepté veut dire qu'un chantier est à poser. L'application
    le sait ; elle ne doit pas laisser l'artisan le retaper. */
+/* ═══ la deuxième vie du devis ═══
+   Il ne devient pas « une facture de plus » : c'est LE MÊME objet qui
+   change d'état. Il garde son client, son objet, son montant, et son
+   numéro de devis reste écrit dans le sien — ainsi, des mois plus
+   tard, on sait de quel devis vient cette facture. Il prend en
+   revanche un numéro de facture : la série FA doit se suivre sans
+   trou, et un devis refusé ne doit pas y laisser de vide.
+   Signé sur place, il garde aussi la signature et ce qu'était le devis
+   au moment où on l'a signé : son numéro, sa date, sa validité. */
+function accepterDevis(id, signature){
+  const f = state.factures[id];
+  if(!f) return;
+  const apres = Object.assign({}, f, {
+    statut: "envoyee",
+    venuDuDevis: f.ref || "",
+    ref: refSuivante(),
+    emise: auj(),
+    echeance: dans(30)});
+  if(signature) apres.signature = Object.assign({ref: f.ref || "", emise: f.emise || "", echeance: f.echeance || ""}, signature);
+  ecrire("factures", id, apres);
+  filtreF = "encaisser"; memoire.clear(); rendre();
+  bulle(signature ? "Signé · c'est devenu une facture" : "Accepté · c'est devenu une facture");
+  if(signature) telechargerDevisSigne(id);
+  /* La troisième vie : le chantier. On ne l'impose pas — on le
+     propose, parce que la date se décide avec le client. */
+  const A = window.__AGENDA__;
+  if(A && A.poser) proposerRetour2(f, A);
+}
+
+/* Le cadre de signature. Les traits sont gardés en coordonnées
+   rapportées à la largeur du cadre (0 à 1000) : la même signature se
+   redessine à n'importe quelle taille, sur le PDF comme à l'écran, et
+   elle pèse quelques centaines d'octets — pas une image. */
+let aSigner = null, traitsSig = [];
+function ouvrirSignature(id){
+  if(!state.factures[id]) return;
+  aSigner = id; traitsSig = [];
+  ouvrir("signer");
+  const c = $("#sig"), zone = $("#sig-zone");
+  if(!c || !zone) return;
+  const dpr = Math.max(1, window.devicePixelRatio || 1);
+  const ctx = c.getContext("2d");
+  const taille = () => {
+    c.width = Math.round(zone.clientWidth * dpr);
+    c.height = Math.round(zone.clientHeight * dpr);
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    ctx.lineWidth = 2.4 * dpr;
+    ctx.strokeStyle = window.getComputedStyle(document.documentElement).getPropertyValue("--ink").trim() || "#14202E";
+    redessiner();
+  };
+  const redessiner = () => {
+    ctx.clearRect(0, 0, c.width, c.height);
+    const k = c.width / 1000;
+    traitsSig.forEach(t => {
+      ctx.beginPath();
+      for(let i = 0; i < t.length; i += 2){
+        if(i === 0) ctx.moveTo(t[0] * k, t[1] * k); else ctx.lineTo(t[i] * k, t[i + 1] * k);
+      }
+      if(t.length === 2) ctx.lineTo(t[0] * k + 0.1, t[1] * k);
+      ctx.stroke();
+    });
+  };
+  const point = e => {
+    const r = c.getBoundingClientRect();
+    return [Math.round((e.clientX - r.left) / r.width * 1000),
+            Math.round((e.clientY - r.top) / r.width * 1000)];
+  };
+  let trait = null;
+  c.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    try{ c.setPointerCapture(e.pointerId); }catch(_){}
+    trait = point(e); traitsSig.push(trait);
+    zone.classList.add("signe");
+    redessiner();
+  });
+  c.addEventListener("pointermove", e => {
+    if(!trait) return;
+    e.preventDefault();
+    const p = point(e);
+    if(Math.abs(p[0] - trait[trait.length - 2]) + Math.abs(p[1] - trait[trait.length - 1]) < 3) return;
+    trait.push(p[0], p[1]);
+    redessiner();
+  });
+  const fin = () => { trait = null; };
+  c.addEventListener("pointerup", fin);
+  c.addEventListener("pointercancel", fin);
+  zone.querySelector("[data-sig-effacer]").addEventListener("click", () => {
+    traitsSig = []; zone.classList.remove("signe"); redessiner();
+  });
+  /* La feuille glisse encore : on mesure une fois tout de suite, et une
+     fois qu'elle est posée. */
+  taille();
+  setTimeout(taille, 360);
+}
+
 function proposerRetour2(f, A){
   setTimeout(function(){
     const quoi = String(f.objet || f.client || "Chantier").slice(0, 80);
@@ -6281,7 +6413,8 @@ function pdfFacture(f){
   if(detail){
     /* ═══ le détail, ligne par ligne ═══
        Un devis de dépannage, de réparation ou d'entretien du bâtiment
-       au-dessus de 150 € doit être détaillé — arrêté du 2 mars 1990. Un
+       doit être détaillé dès le premier euro — arrêté du 24 janvier 2017,
+       qui a remplacé celui du 2 mars 1990 et son seuil de 150 €. Un
        montant unique y est irrégulier. C'est aussi, tout simplement, ce
        que le client regarde pour comparer deux artisans.
        La désignation se replie sur la largeur qui lui reste ; les trois
@@ -6371,14 +6504,45 @@ function pdfFacture(f){
     doc.text("Bon pour accord", G, y);
     doc.setFont("helvetica", "normal").setFontSize(9.5).setTextColor(110, 122, 140);
     y += 6;
-    doc.text("À retourner daté et signé, précédé de la mention « Bon pour accord ».", G, y, {maxWidth: D - G});
+    const sg = f.signature;
+    if(sg && sg.le){
+      const le = new Date(sg.le);
+      const heure = String(le.getHours()).padStart(2, "0") + " h " + String(le.getMinutes()).padStart(2, "0");
+      doc.text("Signé sur place le " + dateTxt(iso(le)) + " à " + heure + " par " + String(sg.par || "") + ".",
+        G, y, {maxWidth: D - G});
+    }else{
+      doc.text("À retourner daté et signé, précédé de la mention « Bon pour accord ».", G, y, {maxWidth: D - G});
+    }
     y += 12;
     doc.setDrawColor(190, 203, 218);
     doc.line(G, y + 16, G + 62, y + 16);
     doc.line(D - 72, y + 16, D, y + 16);
+    if(sg && sg.le){
+      doc.setFontSize(10.5).setTextColor(20, 32, 46);
+      doc.text(dateTxt(iso(new Date(sg.le))), G, y + 13);
+      /* La signature se pose sur sa ligne, dans un cadre de 72 × 22 mm :
+         on la ramène à cette taille sans la déformer, calée en bas. */
+      const T = (sg.traits || []).filter(t => t && t.length >= 2);
+      if(T.length){
+        let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+        T.forEach(t => { for(let i = 0; i < t.length; i += 2){
+          x0 = Math.min(x0, t[i]); x1 = Math.max(x1, t[i]); y0 = Math.min(y0, t[i + 1]); y1 = Math.max(y1, t[i + 1]); } });
+        const k = Math.min(70 / Math.max(1, x1 - x0), 21 / Math.max(1, y1 - y0));
+        const ox = D - 71 + (70 - (x1 - x0) * k) / 2, oy = y + 15 - (y1 - y0) * k;
+        doc.setDrawColor(20, 32, 46).setLineWidth(0.45);
+        doc.setLineCap && doc.setLineCap("round");
+        T.forEach(t => {
+          if(t.length === 2){ doc.circle(ox + (t[0] - x0) * k, oy + (t[1] - y0) * k, 0.2, "F"); return; }
+          for(let i = 2; i < t.length; i += 2)
+            doc.line(ox + (t[i - 2] - x0) * k, oy + (t[i - 1] - y0) * k, ox + (t[i] - x0) * k, oy + (t[i + 1] - y0) * k);
+        });
+        doc.setLineWidth(0.4);
+      }
+      doc.setTextColor(110, 122, 140);
+    }
     doc.setFontSize(8.5);
     doc.text("Date", G, y + 21);
-    doc.text("Signature du client", D - 72, y + 21);
+    doc.text(sg && sg.par ? "Bon pour accord — " + String(sg.par) : "Signature du client", D - 72, y + 21, {maxWidth: 72});
   }
 
   return doc;
@@ -6733,7 +6897,26 @@ async function telechargerFacture(id){
   /* Un devis annonçait « Facture téléchargée » : le PDF disait DEVIS, la
      bulle disait l'inverse, juste après avoir écrit un devis. */
   const fait = f.statut === "devis" ? "Devis téléchargé" : "Facture téléchargée";
+  await livrerPdf(doc, nom, fait);
+}
 
+/* Le devis tel qu'il a été signé : son numéro, sa date et sa validité
+   d'alors, avec la signature — même si l'objet est depuis devenu la
+   facture. C'est la pièce que l'artisan garde, et qu'il envoie au client. */
+async function telechargerDevisSigne(id){
+  const brut = state.factures[id];
+  if(!brut || !brut.signature) return;
+  if(!window.jspdf || !window.jspdf.jsPDF) return;
+  const sg = brut.signature;
+  const f = Object.assign({id: id}, brut, {statut: "devis", ref: sg.ref || brut.venuDuDevis || "",
+    emise: sg.emise || brut.emise, echeance: sg.echeance || brut.echeance});
+  const doc = pdfFacture(f);
+  if(!doc) return;
+  const nom = String(f.ref || "devis").replace(/[^A-Za-z0-9._-]/g, "-") + "-signe.pdf";
+  await livrerPdf(doc, nom, "Devis signé téléchargé");
+}
+
+async function livrerPdf(doc, nom, fait){
   /* dans le visualiseur, seul le service de téléchargement peut livrer un fichier ;
      ouvert directement, le navigateur s'en charge lui-même */
   if(window.claude && window.claude.use){
@@ -7305,7 +7488,7 @@ function catalogue(){
 function ligneDevis(l){
   l = l || {};
   return '<div class="lg">'
-    + '<input class="lg-d" name="lg_d" list="lcat" maxlength="90" placeholder="Désignation" autocomplete="off" value="' + h(l.d || "") + '">'
+    + '<input class="lg-d" name="lg_d" list="lcat" maxlength="200" placeholder="pose 3 h à 55" autocomplete="off" value="' + h(l.d || "") + '">'
     /* Ces deux champs sont en « texte », pas en « nombre », et c'est
        voulu. Un champ de type nombre REJETTE la virgule : sur un iPhone
        le clavier décimal français en propose une, l'artisan tape « 6,5 »,
@@ -7395,7 +7578,7 @@ function blocLignes(lignes){
         : "")
     + '<button type="button" class="lg-plus" data-ligne-plus="1">+ Ajouter une ligne</button>'
     + '<div class="lg-total"><span>Total</span><b id="lgTotal">0 €</b></div>'
-    + '<p class="aide" style="margin-top:6px">Un devis de dépannage, de réparation ou d\'entretien au-dessus de 150 € doit être détaillé : c\'est la loi, et c\'est ce que le client regarde.</p>'
+    + '<p class="aide" style="margin-top:6px">Un devis de dépannage, de réparation ou d\'entretien doit être détaillé, quel que soit son montant : c\'est la loi depuis 2017, et c\'est ce que le client regarde.</p>'
   + "</div>";
 }
 
@@ -7421,6 +7604,73 @@ function totalLignes(lignes){
 }
 /* Le total se réécrit à chaque frappe : sans lui on tape un devis à
    l'aveugle et on découvre son prix en l'envoyant. */
+/* L'objet du devis se devine de sa ligne la plus chère : c'est elle
+   qui nomme le chantier. Se fier à la première donnait « Main
+   d'œuvre » comme intitulé d'une pose de chauffe-eau — exact, et
+   incompréhensible pour le client qui le reçoit.
+   Il reste modifiable : dès qu'on y touche, l'application n'y
+   revient plus. */
+function devinerObjet(){
+  const box = $("#lignes");
+  const obj = $("#feuille").querySelector('[name="objet"]');
+  if(!box || !obj || !(!String(obj.value).trim() || obj.dataset.auto === "1")) return;
+  let haut = null, max = -1;
+  box.querySelectorAll(".lg").forEach(r => {
+    const dd = String(r.querySelector(".lg-d").value || "").trim();
+    if(!dd) return;
+    const m = (Number(String(r.querySelector(".lg-q").value || "1").replace(",", ".")) || 1)
+            * (Number(String(r.querySelector(".lg-pu").value || "0").replace(",", ".")) || 0);
+    if(m > max){ max = m; haut = dd; }
+  });
+  if(haut){ obj.value = haut; obj.dataset.auto = "1"; }
+}
+
+/* ═══ le devis en une phrase ═══
+   Sur un chantier, on ne remplit pas trois colonnes au pouce : on dit
+   « chauffe-eau 200 L 980, déplacement 45, 3 h de pose à 55 » au micro
+   du clavier, et le devis s'écrit. La case « Désignation » comprend
+   donc une phrase : une ligne par morceau, la quantité et son unité, le
+   prix. Ce qui n'est pas un nombre de la ligne reste dans la
+   désignation — « 200 L » est une contenance, pas une quantité.
+   Rien n'est lu si la phrase ne contient aucun prix ni quantité : une
+   désignation ordinaire reste ce qu'elle est. */
+const UNITES_DEVIS = [
+  [/^(h|heures?)$/i, "heure"], [/^(j|jours?|journées?)$/i, "jour"],
+  [/^(m2|m²|mètres? carrés?)$/i, "m²"], [/^(m3|m³|mètres? cubes?)$/i, "m³"],
+  [/^(ml|mètres? linéaires?)$/i, "ml"], [/^(m|mètres?)$/i, "m"],
+  [/^(u|unités?|pièces?|pces?|x|fois)$/i, ""]];
+function uniteDevis(mot){
+  for(const [re, u] of UNITES_DEVIS) if(re.test(mot)) return u;
+  return null;
+}
+function lirePhraseDevis(texte, prixConnu){
+  const morceaux = String(texte || "")
+    /* « 55,50 » est un prix ; « 980, déplacement » sépare deux lignes */
+    .split(/\s*(?:;|\+|\bpuis\b|\bplus\b|,(?!\d))\s*/i)
+    .map(x => x.trim()).filter(Boolean);
+  let utile = morceaux.length > 1;
+  const lignes = morceaux.map(m => {
+    let t = " " + m.replace(/€|\beuros?\b|\beur\b|\bht\b|\bttc\b/gi, " ") + " ";
+    let q = null, unite = null, pu = null;
+    /* « à 55 », « a 55 », « pour 55 », « au prix de 55 » : c'est le prix */
+    t = t.replace(/\s(?:à|a|pour|au prix de|prix)\s+(\d+(?:[.,]\d+)?)\s*(?:(?:l'|le |la |par |du |de l')\s*\S+)?/i, (x, n) => { pu = Number(n.replace(",", ".")); return " "; });
+    /* « 3 h », « 20 m2 », « 2 x » : une quantité et son unité */
+    t = t.replace(/\s(\d+(?:[.,]\d+)?)\s*(h|heures?|j|jours?|journées?|m2|m²|m3|m³|ml|m|mètres?(?: carrés?| cubes?| linéaires?)?|u|unités?|pièces?|pces?|x|fois)(?=\s)/i,
+      (x, n, u) => { if(q !== null) return x; q = Number(n.replace(",", ".")); unite = uniteDevis(u); return " "; });
+    /* un nombre en tête, suivi d'un mot : « 2 robinets à 85 » */
+    if(q === null) t = t.replace(/^\s(\d+(?:[.,]\d+)?)\s+(?=[^\d\s])/, (x, n) => { q = Number(n.replace(",", ".")); return " "; });
+    /* le dernier nombre seul, en fin de morceau, est le prix */
+    if(pu === null) t = t.replace(/\s(\d+(?:[.,]\d+)?)\s*$/, (x, n) => { pu = Number(n.replace(",", ".")); return " "; });
+    let d = t.replace(/\s+/g, " ").trim().replace(/^(?:de|d'|du|des|la|le|les)\s+/i, "");
+    d = d.charAt(0).toUpperCase() + d.slice(1);
+    if(pu === null && prixConnu) pu = prixConnu(d);
+    if(q !== null || pu !== null) utile = true;
+    if(unite) d += " (" + unite + ")";
+    return {d: d || "Prestation", q: q, pu: pu};
+  });
+  return utile ? lignes : null;
+}
+
 function majTotalLignes(){
   const box = $("#lignes");
   if(!box) return;
@@ -7561,6 +7811,28 @@ const CHAMPS = {
     + '<div class="paire empile"><div class="champ"><label for="f3">Numéro</label><input id="f3" name="ref" maxlength="24" value="' + refDevisSuivante() + '"></div>'
     + '<div class="champ"><label for="f4">Valable jusqu\'au</label><input id="f4" name="echeance" type="date" value="' + dans(90) + '"></div></div>'
     + "</details>"}),
+  /* ═══ faire signer, sur place ═══
+     Le devis se signait sur papier, qu'on photographiait le soir, ou par
+     un courriel qui n'arrivait jamais. Ici le client signe du doigt sur
+     le téléphone de l'artisan, au moment où il dit oui : le chantier est
+     gagné avant de quitter les lieux. La signature, la date et l'heure,
+     le nom de celui qui signe sont gardés avec le devis et imprimés sur
+     son PDF. */
+  signer: () => {
+    const f = state.factures[aSigner] || {};
+    return {titre: "Bon pour accord", html:
+      '<div class="sig-recap"><p class="sig-ref">Devis ' + h(f.ref || "") + "</p>"
+      + '<p class="sig-somme">' + eur(f.montant) + "</p>"
+      + (f.objet ? '<p class="sig-objet">' + h(f.objet) + "</p>" : "") + "</div>"
+      + '<div class="champ"><label>Signature de ' + h(f.client || "votre client") + "</label>"
+      + '<div class="sig-zone" id="sig-zone"><canvas id="sig" aria-label="Cadre de signature"></canvas>'
+      + '<span class="sig-invite">Signez ici, avec le doigt</span>'
+      + '<button type="button" class="sig-effacer" data-sig-effacer="1">Effacer</button></div></div>'
+      + '<div class="champ"><label for="fsig">Nom de celui qui signe</label>'
+      + '<input id="fsig" name="par" required maxlength="80" autocomplete="off" placeholder="Prénom et nom" value="' + h(f.client || "") + '"></div>'
+      + '<p class="aide" style="margin-top:0">« Bon pour accord » daté d\'aujourd\'hui. Le devis devient la facture, et son PDF signé se télécharge.</p>'
+      + '<button type="button" class="sig-papier" data-signe-papier="' + h(aSigner || "") + '">Il a signé sur papier ou par mail</button>'};
+  },
   depense: () => ({titre: "Nouvelle dépense", html: formSortie("Loyer de l\'atelier")}),
   investissement: () => ({titre: "Nouvel investissement", html: formSortie("Camionnette")})
 };
@@ -7603,7 +7875,7 @@ function ouvrir(type, prerempli, ensuite, modifId){
        personne, et surtout il gardait le libellé du geste interrompu :
        on croyait ajouter la facture. */
     + '<button class="valider" type="submit">'
-      + (type === "moi" ? "C'est bien moi" : enModif ? "Enregistrer" : "Ajouter")
+      + (type === "moi" ? "C'est bien moi" : type === "signer" ? "Valider la signature" : enModif ? "Enregistrer" : "Ajouter")
       + "</button></form>";
   clearTimeout(minuteurFeuille);
   f.hidden = false; $("#voile").hidden = false;
@@ -7899,6 +8171,11 @@ $("#vue").addEventListener("click", e => {
     animer = true; memoire.clear(); rendre(); return;
   }
   if(b.dataset.relance){ ouvrirRelance(b.dataset.relance); return; }
+  if(b.dataset.devisPour){
+    const cl = liste("clients").find(x => x.nom === b.dataset.devisPour);
+    ouvrir("devis", {client: b.dataset.devisPour, objet: (cl && cl.projet) || ""});
+    return;
+  }
   if(b.dataset.facturer){
     const cl = liste("clients").find(x => x.nom === b.dataset.facturer);
     ouvrir("facture", {client: b.dataset.facturer, objet: (cl && cl.projet) || ""});
@@ -8000,30 +8277,9 @@ $("#vue").addEventListener("click", e => {
     if(window.ouvrirRentree) window.ouvrirRentree({facture: id, client: f.client});
     return;
   }
-  /* ═══ la deuxième vie du devis ═══
-     Il ne devient pas « une facture de plus » : c'est LE MÊME objet qui
-     change d'état. Il garde son client, son objet, son montant, et son
-     numéro de devis reste écrit dans le sien — ainsi, des mois plus
-     tard, on sait de quel devis vient cette facture. Il prend en
-     revanche un numéro de facture : la série FA doit se suivre sans
-     trou, et un devis refusé ne doit pas y laisser de vide. */
-  if(b.dataset.signe){
-    const f = state.factures[b.dataset.signe];
-    if(!f) return;
-    ecrire("factures", b.dataset.signe, Object.assign({}, f, {
-      statut: "envoyee",
-      venuDuDevis: f.ref || "",
-      ref: refSuivante(),
-      emise: auj(),
-      echeance: dans(30)}));
-    filtreF = "encaisser"; memoire.clear(); rendre();
-    bulle("Accepté · c'est devenu une facture");
-    /* La troisième vie : le chantier. On ne l'impose pas — on le
-       propose, parce que la date se décide avec le client. */
-    const A = window.__AGENDA__;
-    if(A && A.poser) proposerRetour2(f, A);
-    return;
-  }
+  /* « Il a signé » ouvre maintenant le cadre de signature : le client
+     signe du doigt, ou l'on dit qu'il l'a déjà fait sur papier. */
+  if(b.dataset.signe){ ouvrirSignature(b.dataset.signe); return; }
   if(b.dataset.paye){
     const f = state.factures[b.dataset.paye];
     if(!f) return;
@@ -8200,6 +8456,36 @@ $("#vue").addEventListener("change", e => {
   }
 });
 
+/* Une phrase dans « Désignation » devient des lignes quand on quitte la
+   case — jamais par-dessus un prix écrit à la main. */
+$("#feuille").addEventListener("change", e => {
+  const t = e.target;
+  if(!t.classList || !t.classList.contains("lg-d") || !t.closest("#lignes")) return;
+  const r = t.closest(".lg");
+  const pu = r.querySelector(".lg-pu"), q = r.querySelector(".lg-q");
+  if(String(pu.value).trim()) return;
+  const cat = catalogue();
+  const lu = lirePhraseDevis(t.value, d => {
+    const c = cat.find(x => x.d.toLowerCase() === String(d).toLowerCase());
+    return c && c.pu ? c.pu : null;
+  });
+  if(!lu) return;
+  const ecrireLigne = (row, l) => {
+    row.querySelector(".lg-d").value = l.d;
+    row.querySelector(".lg-q").value = l.q != null ? String(l.q).replace(".", ",") : "";
+    row.querySelector(".lg-pu").value = l.pu != null ? String(l.pu).replace(".", ",") : "";
+  };
+  ecrireLigne(r, lu[0]);
+  let apres = r;
+  lu.slice(1).forEach(l => {
+    apres.insertAdjacentHTML("afterend", ligneDevis(l));
+    apres = apres.nextElementSibling;
+  });
+  majTotalLignes();
+  devinerObjet();
+  if(lu.length > 1) bulle(lu.length + " lignes écrites");
+});
+
 /* Le prix se remplit tout seul quand on choisit une désignation déjà
    pratiquée — mais jamais par-dessus un prix écrit à la main : le tarif
    propose, il ne décide pas. */
@@ -8224,6 +8510,8 @@ $("#feuille").addEventListener("input", e => {
 
 $("#feuille").addEventListener("click", e => {
   if(e.target.closest("#x")){ fermer(); return; }
+  const papier = e.target.closest("[data-signe-papier]");
+  if(papier){ const id = papier.dataset.signePapier; aSigner = null; fermer(); accepterDevis(id); return; }
   /* ═══ le devis en trois touches ═══
      Un client, une prestation, et c'est écrit. Sur un chantier, avec des
      mains sales et une main déjà prise, taper « Remplacement du groupe
@@ -8258,24 +8546,7 @@ $("#feuille").addEventListener("click", e => {
     const q = cible.querySelector(".lg-q"); if(q && !String(q.value).trim()) q.value = "1";
     const p = cible.querySelector(".lg-pu"); if(p && !String(p.value).trim()) p.value = pu;
     majTotalLignes();
-    /* L'objet du devis se devine de sa ligne la plus chère : c'est elle
-       qui nomme le chantier. Se fier à la première donnait « Main
-       d'œuvre » comme intitulé d'une pose de chauffe-eau — exact, et
-       incompréhensible pour le client qui le reçoit.
-       Il reste modifiable : dès qu'on y touche, l'application n'y
-       revient plus. */
-    const obj = $("#feuille").querySelector('[name="objet"]');
-    if(obj && (!String(obj.value).trim() || obj.dataset.auto === "1")){
-      let haut = null, max = -1;
-      box.querySelectorAll(".lg").forEach(r => {
-        const dd = String(r.querySelector(".lg-d").value || "").trim();
-        if(!dd) return;
-        const m = (Number(String(r.querySelector(".lg-q").value || "1").replace(",", ".")) || 1)
-                * (Number(String(r.querySelector(".lg-pu").value || "0").replace(",", ".")) || 0);
-        if(m > max){ max = m; haut = dd; }
-      });
-      if(haut){ obj.value = haut; obj.dataset.auto = "1"; }
-    }
+    devinerObjet();
     return;
   }
   const plus = e.target.closest("[data-ligne-plus]");
@@ -8409,6 +8680,16 @@ $("#feuille").addEventListener("submit", e => {
     enModif = null;
     fermer();
     if(etaitModif) bulle("Modifié"); else telechargerFacture(id);
+    return;
+  }else if(typeActif === "signer"){
+    const id = aSigner;
+    if(!traitsSig.length){ bulle("Faites signer le client dans le cadre"); return; }
+    const par = String(d.par || "").trim();
+    if(!par){ bulle("Écrivez le nom de celui qui signe"); return; }
+    const signature = {le: new Date().toISOString(), par: par, traits: traitsSig.map(t => t.slice())};
+    aSigner = null; traitsSig = [];
+    fermer();
+    accepterDevis(id, signature);
     return;
   }else if(typeActif === "devis"){
     const lignes = lireLignes(fd);
