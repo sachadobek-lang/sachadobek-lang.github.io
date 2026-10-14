@@ -1469,6 +1469,19 @@ summary.carte-tete:hover h2{color:var(--v1)}
   /* le montant se lit sur la ligne du numéro, pas au milieu de trois
      lignes de description */
   .r .r-som{margin-left:auto;align-self:flex-start;line-height:1.35}
+  /* Le montant ne fait qu'une ligne, mais il gardait sa colonne sur toute
+     la hauteur : la description tenait dans 168 px sur 295, « Payée »
+     tombait seul sur sa ligne et « chauffe- / eau » se coupait en deux.
+     Sous le titre, le texte passe désormais sous le montant — il est
+     toujours plus bas que lui, il ne peut pas le chevaucher. L'avancée
+     est celle que libère le plus petit montant possible (« 0 € », 26 px,
+     plus l'écart et la marge de la croix) : jamais plus.
+     Cela suppose que le montant reste sur la ligne du titre : le corps
+     cède donc sa largeur au lieu de le pousser à la ligne. Sur un
+     iPhone SE, « 1 251 € » tombait sous la description, à côté de PDF. */
+  .r:has(> .r-som) > .r-corps{flex:1 1 0;min-width:0}
+  .r:has(> .r-som) .r-meta{margin-right:-36px}
+  .r:has(> .r-som):has(> .sup) .r-meta{margin-right:-50px}
   /* Les boutons d'une facture se poussaient chacun vers la droite :
      « PDF » collé à gauche, « Envoyer » à droite, « Acompte » flottant
      au milieu de la ligne du dessous, « Payée » à droite encore — quatre
@@ -7417,9 +7430,14 @@ function refSuivante(){
     .map(f => { const m = /(\d+)\s*$/.exec(String(f.ref || "")); return m ? Number(m[1]) : 0; });
   return "FA-" + new Date().getFullYear() + "-" + String(Math.max.apply(null, n.concat([0])) + 1).padStart(3, "0");
 }
+/* Un devis accepté prend un numéro FA et range le sien dans venuDuDevis :
+   compter seulement les ref DV- l'oubliait, et le devis suivant reprenait
+   DV-2026-001 — deux devis du même numéro chez deux clients. On compte
+   donc aussi les numéros de devis gardés par les factures. */
 function refDevisSuivante(){
-  const n = liste("factures").filter(f => /^DV-/.test(String(f.ref || "")))
-    .map(f => { const m = /(\d+)\s*$/.exec(String(f.ref || "")); return m ? Number(m[1]) : 0; });
+  const n = liste("factures").map(f => /^DV-/.test(String(f.ref || "")) ? f.ref : f.venuDuDevis)
+    .filter(r => /^DV-/.test(String(r || "")))
+    .map(r => { const m = /(\d+)\s*$/.exec(String(r)); return m ? Number(m[1]) : 0; });
   return "DV-" + new Date().getFullYear() + "-" + String(Math.max.apply(null, n.concat([0])) + 1).padStart(3, "0");
 }
 const CHAMPS = {
