@@ -338,6 +338,9 @@ h1,h2,h3,p{margin:0}
    cartes s'empilaient bord à bord, ombre contre ombre, et « Facturé »,
    les deux tuiles et « Vos factures » se lisaient comme un seul bloc. */
 #vue > .segments-haut ~ *{margin-top:14px}
+/* La fiche d'un client avait le même défaut : son en-tête, ses
+   rendez-vous, ses factures et ses notes, quatre cartes bord à bord. */
+#vue > .carte + .carte{margin-top:14px}
 
 
 .entete{display:flex;align-items:center;gap:14px;padding:2px 4px}
@@ -1098,6 +1101,9 @@ div.paye{padding:16px 22px 22px}
 .paye .lab{font-size:14px;font-weight:600;color:var(--ink-3)}
 .paye .reste{margin-top:8px;font-size:14.5px;color:var(--ink-2)}
 .paye .reste b{font-family:var(--num);font-weight:600;color:var(--tard)}
+/* l'ambre dit « en retard ». Posé sur ce qu'il a déjà payé, il disait
+   l'inverse de la ligne d'en dessous, où la même facture payée est verte. */
+.paye .reste b.ok{color:var(--ok)}
 
 /* ═══ notes ═══ */
 .note{display:flex;gap:13px;padding:14px 22px;position:relative}
@@ -4976,7 +4982,7 @@ function ficheClient(id){
     + (attente
         ? '<p class="lab">Ce client vous doit</p>'
           + '<p class="gros du" data-compte="du-' + h(c.id) + '" data-val="' + attente + '">' + eur(attente) + "</p>"
-          + (paye ? '<p class="reste">Il vous a déjà payé <b>' + eur(paye) + "</b>.</p>"
+          + (paye ? '<p class="reste">Il vous a déjà payé <b class="ok">' + eur(paye) + "</b>.</p>"
                   : '<p class="reste">Rien d\'encaissé pour l\'instant.</p>')
         : '<p class="lab">Ce client vous a payé</p>'
           + '<p class="gros" data-compte="paye-' + h(c.id) + '" data-val="' + paye + '">' + eur(paye) + "</p>"
