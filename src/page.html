@@ -7467,7 +7467,21 @@ function confettis(){
     "#feuille .lg-total{display:flex;align-items:baseline;justify-content:space-between;margin-top:12px;",
     "  padding-top:12px;border-top:1px solid var(--line)}",
     "#feuille .lg-total span{font-size:15px;color:var(--ink-2)}",
-    "#feuille .lg-total b{font-family:var(--num);font-size:26px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}"
+    "#feuille .lg-total b{font-family:var(--num);font-size:26px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}",
+    "#feuille .lg-c{display:contents}#feuille .lg-c > span{display:none}",
+    /* Au téléphone, 153 px de désignation coupaient « Chauffe-eau et
+       pose » en « Chauffe-eau et ». La désignation prend toute la
+       largeur ; quantité et prix passent dessous, chacun nommé. */
+    "@media (max-width:520px){",
+    "#feuille .lg-tete{display:none}",
+    "#feuille .lg{grid-template-columns:minmax(0,1fr) minmax(0,1.3fr) 40px;gap:8px;padding:10px;margin-bottom:8px;",
+    "  border:1px solid var(--line);border-radius:17px;background:var(--surface)}",
+    "#feuille .lg .lg-d{grid-column:1/-1}",
+    "#feuille .lg-c{display:flex;align-items:center;gap:8px;min-width:0}",
+    "#feuille .lg-c > span{display:block;flex:none;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-3)}",
+    "#feuille .lg .lg-q,#feuille .lg .lg-pu{text-align:right;padding-inline:12px}",
+    "#feuille .lg-x{min-height:46px;width:40px}",
+    "}"
   ].join("");
   document.head.appendChild(css);
 })();
@@ -7500,8 +7514,10 @@ function ligneDevis(l){
        le clavier décimal français en propose une, l'artisan tape « 6,5 »,
        le champ se vide sans un mot et le total devient faux en silence.
        Mesuré. On lit donc le nombre nous-mêmes, virgule comprise. */
-    + '<input class="lg-q" name="lg_q" type="text" inputmode="decimal" aria-label="Quantité" placeholder="1" value="' + (l.q != null ? h(String(l.q).replace(".", ",")) : "") + '">'
-    + '<input class="lg-pu" name="lg_pu" type="text" inputmode="decimal" aria-label="Prix unitaire en euros" placeholder="0" value="' + (l.pu != null ? h(String(l.pu).replace(".", ",")) : "") + '">'
+    /* Chaque nombre porte son mot, que seul le téléphone affiche : la
+       ligne y passe sur deux rangs et l'en-tête du tableau disparaît. */
+    + '<span class="lg-c"><span aria-hidden="true">Qté</span><input class="lg-q" name="lg_q" type="text" inputmode="decimal" aria-label="Quantité" placeholder="1" value="' + (l.q != null ? h(String(l.q).replace(".", ",")) : "") + '"></span>'
+    + '<span class="lg-c"><span aria-hidden="true">Prix €</span><input class="lg-pu" name="lg_pu" type="text" inputmode="decimal" aria-label="Prix unitaire en euros" placeholder="0" value="' + (l.pu != null ? h(String(l.pu).replace(".", ",")) : "") + '"></span>'
     + '<button type="button" class="lg-x" data-ligne-x="1" aria-label="Retirer cette ligne">\u00d7</button>'
   + "</div>";
 }
@@ -7898,6 +7914,13 @@ function ouvrir(type, prerempli, ensuite, modifId){
     });
     const libre = f.querySelector(".date-libre");
     if(libre && f.querySelector('[name="quand"][value="x"]:checked')) libre.hidden = false;
+    /* Ouvert depuis la fiche d'un client, le devis sait déjà pour qui :
+       les pastilles de clients ne proposaient que lui et deux autres, et
+       repoussaient le détail sous le pli. */
+    if(prerempli.client){
+      const p = f.querySelector("[data-ce-client]");
+      if(p) p.parentElement.remove();
+    }
   }
   setTimeout(() => {
     const vide = f.querySelector("input:not([type=radio]):placeholder-shown") || f.querySelector("#f1");
@@ -11217,6 +11240,13 @@ function quickDefaults(g){
   var start = g.start, dur = g.dur;
   if (start == null){
     var slot = nextFreeSlot(date);
+    /* Le soir, il ne reste plus de créneau aujourd'hui : on tombait sur
+       9 h ce matin — une heure déjà passée, souvent prise. Sans date
+       dite, la phrase tapée à 22 h vise demain. */
+    if (!slot && !g.date && date === today){
+      date = iso(addDays(fromIso(today), 1));
+      slot = nextFreeSlot(date);
+    }
     start = slot ? slot.start : 540;
     if (dur == null && slot) dur = Math.min(60, slot.dur);
   }
