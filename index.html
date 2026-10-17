@@ -1090,8 +1090,6 @@ button.tuile:active{transform:scale(.985)}
 .dues .due-qui small{color:var(--ink-3);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dues .due-som{font-family:var(--num);font-weight:600;color:var(--tard);flex:none}
 .btn.lien{border:0;background:none;color:var(--ink-3);text-decoration:underline;padding:6px 2px}
-.en-attente{margin:14px 0 0;text-align:center;font-size:14.5px;color:var(--ink-2)}
-.en-attente b{font-family:var(--num);font-weight:600;color:var(--tard)}
 /* div. : le montant d'une facture réglée porte aussi la classe « paye ».
    Il en héritait 44 px de marge, ne tenait plus sur la ligne, et la
    rangée se défaisait en trois étages dès qu'on la marquait payée. */
@@ -2732,15 +2730,31 @@ summary.carte-tete:hover h2{color:var(--v1)}
 @media (prefers-reduced-motion:reduce){#ilreste .rc{transition:none}}
 #ilreste .bloc-disque{display:flex;flex-direction:column;align-items:center;gap:14px}
 #ilreste .bloc-disque[hidden]{display:none}
-#ilreste .disc{position:relative;width:min(290px,78vw);aspect-ratio:1}
-#ilreste .disc svg{width:100%;height:100%;display:block}
+#ilreste .disc{position:relative;width:min(236px,64vw);aspect-ratio:1}
+#ilreste .disc svg{width:100%;height:100%;display:block;transform:rotate(-90deg)}
+/* Un seul trait, trois segments posés l'un par-dessus l'autre dans
+   l'ordre inverse de leur empilement : chacun part de zéro et couvre la
+   part cumulée de ceux d'après. Les bouts arrondis se chevauchent donc
+   proprement, sans le liseré que laissent trois arcs mis bout à bout. */
+#ilreste .disc .piste{fill:none;stroke:var(--rule);stroke-width:10}
+/* Bouts plats, et non arrondis : les segments sont empilés, et le bout
+   rond du segment du dessus mordait dans celui d'en dessous — une
+   encoche nette au sommet de l'anneau, vérifiée à la loupe. Des parts
+   qui font ensemble 100 % se touchent de toute façon : un bout rond y
+   suggérerait une fin ouverte, ce qui serait faux. */
+#ilreste .disc .seg{fill:none;stroke-width:10;stroke-linecap:butt;
+  transition:stroke-dasharray .7s cubic-bezier(.16,1,.3,1)}
+#ilreste .disc .s-moi{stroke:var(--moi)}
+#ilreste .disc .s-tva{stroke:var(--tva)}
+#ilreste .disc .s-urssaf{stroke:var(--urssaf)}
+@media (prefers-reduced-motion:reduce){#ilreste .disc .seg{transition:none}}
 /* pan-y : le doigt qui glisse verticalement fait toujours défiler la
    page ; seul un mouvement sur place ou horizontal chasse la poussière. */
 #ilreste .disc canvas{width:100%;height:100%;display:block;touch-action:pan-y}
 #ilreste .disc .seg{fill:none;transition:stroke-dasharray .5s cubic-bezier(.16,1,.3,1),stroke-dashoffset .5s cubic-bezier(.16,1,.3,1)}
 #ilreste .disc-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;padding:0 14%}
-#ilreste .disc-center .cap{font-size:13.5px;color:var(--ink-soft)}
-#ilreste .disc-center .big{font-family:var(--num);font-weight:600;font-size:clamp(27px,9vw,40px);line-height:1.05;color:var(--moi);letter-spacing:-.025em}
+#ilreste .disc-center .cap{font-size:13px;color:var(--ink-soft);letter-spacing:.01em}
+#ilreste .disc-center .big{font-family:var(--num);font-weight:700;font-size:clamp(30px,10.5vw,44px);line-height:1.02;color:var(--moi);letter-spacing:-.035em;margin-top:2px}
 #ilreste .disc-center .pc{font-family:var(--num);font-size:14.5px;color:var(--ink-faint)}
 #ilreste .legende{width:100%;display:flex;flex-direction:column;gap:2px}
 #ilreste .legende .l{display:flex;align-items:baseline;gap:10px;padding:7px 2px;border-bottom:1px solid var(--rule)}
@@ -2869,7 +2883,6 @@ summary.carte-tete:hover h2{color:var(--v1)}
    endormi : la légende dirait deux fois « 0 € », et l'attente n'a rien à
    annoncer. */
 #ilreste .bloc-disque.dort .legende,
-#ilreste .bloc-disque.dort .en-attente{display:none}
 #ilreste .bloc-disque.dort{gap:0}
 
 #ilreste .vierge-argent{border-radius:var(--rl);background:var(--surface);box-shadow:var(--o1);
@@ -3091,20 +3104,25 @@ summary.carte-tete:hover h2{color:var(--v1)}
 
     <div class="bloc-disque">
       <div class="disc">
-        <!-- Trois arcs de SVG jusqu'ici. C'est maintenant un nuage de
-             points : quatorze mille grains déposés un par un, dans un
-             studio brumeux posé sur un socle. Le partage se lit de la
-             même façon — c'est la matière qui change. -->
-        <canvas id="disc-nuage" role="img"
-                aria-label="Partage de tout ce que vous avez encaissé cette année"></canvas>
+        <!-- Un nuage de quatorze mille points a occupé cette place. Sur
+             un écran d'argent, le flou dit « à peu près » quand les
+             chiffres doivent dire « exactement » : l'effet était joli et
+             il mentait sur la nature de l'information. L'anneau est net,
+             ses bouts sont arrondis, et il ne bouge que lorsque les
+             chiffres bougent. La recette du nuage est conservée dans
+             l'historique du dépôt. -->
+        <svg id="disc-anneau" viewBox="0 0 200 200" role="img"
+             aria-label="Partage de tout ce que vous avez encaissé cette année">
+          <circle class="piste" cx="100" cy="100" r="84"></circle>
+          <circle class="seg s-urssaf" id="a-urssaf" cx="100" cy="100" r="84"></circle>
+          <circle class="seg s-tva"    id="a-tva"    cx="100" cy="100" r="84"></circle>
+          <circle class="seg s-moi"    id="a-moi"    cx="100" cy="100" r="84"></circle>
+        </svg>
         <div class="disc-center">
           <span class="cap">à vous cette année</span>
           <span class="big" id="c-moi">—</span>
-          <span class="pc" id="c-pc">—</span>
         </div>
       </div>
-
-      <p class="en-attente" id="en-attente" hidden></p>
 
       <div class="legende">
         <div class="l moi"><span class="d"></span>
@@ -3141,10 +3159,19 @@ summary.carte-tete:hover h2{color:var(--v1)}
       <span class="txt"><b id="e-quoi">—</b><span id="t-quand">—</span></span>
     </div>
 
-    <div class="cadre">
-      <span class="t">Gardez ça de côté. Ce n'est pas à vous.</span>
-      <span class="v" id="t-garde">—</span>
-      <span class="s" id="t-sur">—</span>
+    <!-- Cet encadré répétait « gardez ça de côté » et son montant, que
+         la légende de l'anneau donnait déjà deux cents pixels plus haut :
+         le même chiffre deux fois, à deux titres différents.
+         Il porte désormais la seule donnée de trésorerie qui manquait à
+         cet écran. L'anneau dit ce qui EST arrivé ; celui-ci dit ce qui
+         DOIT arriver. Les deux ensemble répondent à la seule question
+         qu'un artisan se pose devant son compte : est-ce que je peux
+         dépenser ? Quand personne ne doit rien, l'encadré disparaît —
+         « 0 € » encadré d'un trait noir n'est pas une information. -->
+    <div class="cadre" id="cadre-du" hidden>
+      <span class="t">On vous doit</span>
+      <span class="v" id="t-du">—</span>
+      <span class="s" id="t-du-sous">—</span>
     </div>
 
     <!-- Retirés : les douze barres de mois, la jauge de plafond et
@@ -12415,319 +12442,36 @@ function prochaineDeclaration(){
    nuage est peint dans sa propre toile de 300 px puis agrandi —
    l'agrandissement offre gratuitement le flou du studio et divise par
    quatre les pixels à relire ; une table de sinus remplace Math.sin ; et
-   tout est en Float32Array à plat, jamais en objets. */
-var NUAGE = (function(){
-  var TAU = Math.PI * 2, DEBUT = -Math.PI / 2, GAPU = 0.012;
-  var doux = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-  var cv = null, ctx = null, L = 0, dpr = 1;
-  var S = 300, toile = null, tctx = null, img = null, dat = null;
-  var A0 = null, A1 = null, A2 = null;
-  var NS = 2048, SIN = new Float32Array(NS), ALPHA = new Uint8Array(256);
-  for(var i = 0; i < NS; i++) SIN[i] = Math.sin(i / NS * TAU);
-  for(var a = 0; a < 256; a++) ALPHA[a] = Math.round(255 * (1 - Math.exp(-a / 255 * 4.4)));
-
-  var N = 0, u01, amp, hz, pha, chute, ox, oy, vx, vy;
-  /* `vivant` part à vrai, pas à faux. L'observateur de visibilité ne
-     prévient qu'au CHANGEMENT : au démarrage, le panneau « Mon argent »
-     est caché, la toile n'a aucune surface, et le premier verdict tombe
-     à « invisible ». Le disque restait alors à sa taille par défaut de
-     300 × 150 et ne peignait jamais rien — panne muette, sans erreur.
-     À vrai, la boucle tourne ; tant que la toile n'a pas de surface,
-     `mesurer()` échoue et l'image se termine en trois instructions. */
-  var fr = 0, t0 = 0, doigt = null, appui = 0, vivant = true, tourne = false, lent = 0;
-  var f0 = 1, f1 = 0, f2 = 0, dort = false;
-  var cols = null, colFr = -99;
-
-  function lire(c){
-    c = String(c).replace("#", "").trim();
-    if(c.length === 3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
-    var v = [parseInt(c.slice(0,2),16), parseInt(c.slice(2,4),16), parseInt(c.slice(4,6),16)];
-    return (isNaN(v[0]) || isNaN(v[1]) || isNaN(v[2])) ? [80,96,120] : v;
-  }
-  function couleurs(){
-    /* relues toutes les trente images : assez pour suivre un changement
-       de thème, assez rare pour ne rien coûter */
-    if(fr - colFr < 30 && cols) return cols;
-    colFr = fr;
-    var cs = window.getComputedStyle(cv);
-    cols = [lire(cs.getPropertyValue("--moi")),
-            lire(cs.getPropertyValue("--tva")),
-            lire(cs.getPropertyValue("--urssaf")),
-            lire(cs.getPropertyValue("--ink-faint"))];
-    return cols;
-  }
-
-  function semer(n){
-    N = n;
-    u01 = new Float32Array(N); amp = new Float32Array(N); hz = new Float32Array(N);
-    pha = new Uint16Array(N); chute = new Float32Array(N);
-    ox = new Float32Array(N); oy = new Float32Array(N);
-    vx = new Float32Array(N); vy = new Float32Array(N);
-    for(var k = 0; k < N; k++){
-      u01[k] = Math.random();                     /* sa place sur le tour */
-      var phi = Math.random() * TAU;
-      /* Un grain sur douze partait très loin, jusqu'à près du double du
-         tube : de près c'était du duvet, de loin c'était une bavure. Un
-         sur vingt-cinq, et moitié moins loin — le contour se tient, et
-         il reste ce qu'il faut d'irrégularité pour que ce ne soit pas un
-         trait. Le biais vers la surface se resserre aussi : plus la peau
-         est nette, plus l'anneau a l'air d'un objet. */
-      var loin = Math.random() < 0.04;
-      var rr = Math.pow(Math.random(), loin ? 0.38 : 0.72) * (loin ? 1.42 : 1);
-      amp[k] = rr * Math.cos(phi);                /* écart radial */
-      hz[k]  = rr * Math.sin(phi);                /* écart le long de l'axe */
-      pha[k] = (Math.random() * NS) | 0;
-      chute[k] = Math.random() < 0.03 ? 0.12 + Math.random() * 0.34 : 0;
-    }
-  }
-
-  function mesurer(){
-    var r = cv.getBoundingClientRect();
-    if(!r.width) return false;
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    L = r.width;
-    cv.width = Math.round(L * dpr);
-    cv.height = Math.round(L * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    return true;
-  }
-
-  /* Le studio, en blanc translucide : Cura est une application claire,
-     décidée telle. Le fond de la toile reste transparent pour que le
-     dégradé de la page passe au travers — un carré opaque aurait l'air
-     d'une image collée. */
-  function studio(){
-    var g = ctx.createRadialGradient(L * 0.5, L * 0.41, L * 0.04, L * 0.5, L * 0.45, L * 0.56);
-    /* Le voile était réglé pour le fond sombre d'une maquette. Posé sur
-       le fond déjà clair de l'application, il délavait la poussière au
-       lieu de l'asseoir : il ne fait plus que creuser un peu de lumière
-       derrière l'anneau. */
-    g.addColorStop(0, "rgba(255,255,255,.34)");
-    g.addColorStop(0.62, "rgba(255,255,255,.10)");
-    g.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, L, L);
-    ctx.save();
-    ctx.translate(L * 0.5, L * 0.875);
-    ctx.scale(1, 0.19);
-    for(var k = 3; k >= 1; k--){
-      ctx.beginPath();
-      ctx.arc(0, 0, L * (0.16 + k * 0.095), 0, TAU);
-      ctx.fillStyle = "rgba(255,255,255," + (0.17 + (3 - k) * 0.24).toFixed(2) + ")";
-      ctx.fill();
-    }
-    ctx.beginPath();
-    ctx.arc(0, 0, L * 0.245, 0, TAU);
-    ctx.strokeStyle = "rgba(255,255,255,.95)";
-    ctx.lineWidth = L * 0.020;
-    ctx.stroke();
-    ctx.restore();
-  }
-
-  /* les bandes du moment, le petit vide déjà retiré.
-     Rien d'encaissé ne veut pas dire rien à montrer : l'anneau se lève
-     quand même, entier et gris — c'est la première chose qu'on voit en
-     ouvrant Comptabilité, et un écran vide ne dit pas ce qu'il fera. */
-  function bandes(){
-    if(dort) return [{a: 0, z: 1, s: 0}];
-    var f = [f0, f1, f2], b = [], u = 0, vivants = 0, j;
-    for(j = 0; j < 3; j++) if(f[j] > 0.0015) vivants++;
-    var g = vivants > 1 ? GAPU : 0;
-    for(j = 0; j < 3; j++){
-      if(f[j] > 0.0015) b.push({a: u + g / 2, z: u + f[j] - g / 2, s: j});
-      u += f[j];
-    }
-    return b;
-  }
-
-  /* Pas de test sur `document.hidden` ici. Il est redondant —
-     requestAnimationFrame ne se déclenche déjà pas quand la page passe en
-     arrière-plan, ce qui est la seule économie recherchée — et il est
-     piégeux : certains contextes d'affichage peignent la page tout en la
-     déclarant cachée. Le disque restait alors éternellement vide, sans
-     la moindre erreur. Seule la visibilité à l'écran commande. */
-  function image(){
-    if(!tourne) return;
-    if(vivant) peindre();
-    requestAnimationFrame(image);
-  }
-
-  function peindre(){
-    if(!L && !mesurer()) return;
-    var deb = performance.now();
-    var t = (deb - t0) / 1000;
-    fr++;
-
-    ctx.clearRect(0, 0, L, L);
-    studio();
-
-    A0.fill(0); A1.fill(0); A2.fill(0);
-
-    var wob = doux ? 0 : SIN[(fr * 2) & (NS - 1)] * 0.055;
-    var cT = Math.cos(0.34 + wob), sT = Math.sin(0.34 + wob);
-    var souffle = doux ? 1 : 1 + SIN[(fr * 3) & (NS - 1)] * 0.012;
-    var R0 = 0.355 * souffle, TW0 = 0.078 * souffle;
-    var CXn = S * 0.5, CYn = S * 0.44;
-
-    var fx = 0, fy = 0, aDoigt = false;
-    if(doigt){ fx = doigt.x * S; fy = doigt.y * S; aDoigt = true; }
-    var Rinf = S * 0.115, pousse = appui ? 2.0 : 1.15;
-
-    var b = bandes(), nb = b.length;
-    var pas = (fr * 4) & (NS - 1);
-
-    for(var k = 0; k < N; k++){
-      var u = u01[k], seg = -1, m;
-      for(m = 0; m < nb; m++){ if(u >= b[m].a && u <= b[m].z){ seg = b[m].s; break; } }
-      if(seg < 0) continue;
-
-      var th = DEBUT + u * TAU;
-      var dr = amp[k];
-      var rr = R0 + TW0 * dr;
-      var wx = Math.cos(th) * rr, wy = Math.sin(th) * rr, wz = TW0 * hz[k];
-
-      if(chute[k] > 0){
-        var ch = (t * chute[k] * 0.18) % 1;
-        wy += ch * 0.21; wz += ch * 0.035;
-      }
-
-      var y1 = wy * cT - wz * sT, z1 = wy * sT + wz * cT;
-      var kp = 3.4 / (3.4 + z1);
-      var sx = CXn + wx * kp * S, sy = CYn + y1 * kp * S;
-
-      var ph = (pha[k] + pas) & (NS - 1);
-      /* Le frémissement était large : de loin, l'anneau grouillait. Il
-         respire au lieu de s'agiter. */
-      var am = 0.55 + (dr < 0 ? -dr : dr) * 1.25;
-      sx += SIN[ph] * am;
-      sy += SIN[(ph + 512) & (NS - 1)] * am;
-
-      if(aDoigt){
-        var ddx = sx + ox[k] - fx, ddy = sy + oy[k] - fy;
-        var dd = ddx * ddx + ddy * ddy;
-        if(dd < Rinf * Rinf){
-          var d1 = Math.sqrt(dd) || 0.001, f9 = 1 - d1 / Rinf;
-          vx[k] += ddx / d1 * f9 * f9 * pousse;
-          vy[k] += ddy / d1 * f9 * f9 * pousse;
-        }
-      }
-      vx[k] += -ox[k] * 0.045; vy[k] += -oy[k] * 0.045;
-      vx[k] *= 0.90; vy[k] *= 0.90;
-      ox[k] += vx[k]; oy[k] += vy[k];
-      sx += ox[k]; sy += oy[k];
-
-      if(sx < 0 || sy < 0 || sx >= S - 1 || sy >= S - 1) continue;
-
-      var br = 0.34 + 0.66 * (kp - 0.80) / 0.42;
-      if(br < 0.08) br = 0.08; else if(br > 1.25) br = 1.25;
-      var ix = sx | 0, iy = sy | 0;
-      var fxp = sx - ix, fyp = sy - iy;
-      var i0 = iy * S + ix;
-      var acc = seg === 0 ? A0 : (seg === 1 ? A1 : A2);
-      acc[i0]          += br * (1 - fxp) * (1 - fyp);
-      acc[i0 + 1]      += br * fxp * (1 - fyp);
-      acc[i0 + S]      += br * (1 - fxp) * fyp;
-      acc[i0 + S + 1]  += br * fxp * fyp;
-    }
-
-    var c = couleurs(), c0 = dort ? c[3] : c[0], c1 = c[1], c2 = c[2];
-    var n2 = S * S;
-    for(var q = 0, o = 0; q < n2; q++, o += 4){
-      var a0 = A0[q], a1 = A1[q], a2 = A2[q], tot = a0 + a1 + a2;
-      if(tot < 0.004){ dat[o + 3] = 0; continue; }
-      var qi = (tot * 76) | 0; if(qi > 255) qi = 255;
-      var iv = 1 / tot;
-      dat[o]     = (c0[0] * a0 + c1[0] * a1 + c2[0] * a2) * iv | 0;
-      dat[o + 1] = (c0[1] * a0 + c1[1] * a1 + c2[1] * a2) * iv | 0;
-      dat[o + 2] = (c0[2] * a0 + c1[2] * a1 + c2[2] * a2) * iv | 0;
-      dat[o + 3] = ALPHA[qi];
-    }
-    tctx.putImageData(img, 0, 0);
-
-    ctx.save();
-    ctx.globalAlpha = 0.11;
-    ctx.translate(0, L * 1.66);
-    ctx.scale(1, -0.28);
-    ctx.drawImage(toile, 0, 0, L, L);
-    ctx.restore();
-    ctx.drawImage(toile, 0, 0, L, L);
-
-    /* si l'appareil peine, on sème moins de grains plutôt que de saccader */
-    var cout = performance.now() - deb;
-    if(cout > 26) lent++; else if(lent > 0) lent--;
-    if(lent > 40 && N > 5000){ semer(Math.round(N * 0.72)); lent = 0; }
-  }
-
-  function demarrer(){
-    cv = $("disc-nuage");
-    if(!cv || !cv.getContext) return;
-    ctx = cv.getContext("2d");
-    toile = document.createElement("canvas");
-    toile.width = S; toile.height = S;
-    tctx = toile.getContext("2d");
-    img = tctx.createImageData(S, S);
-    dat = img.data;
-    A0 = new Float32Array(S * S); A1 = new Float32Array(S * S); A2 = new Float32Array(S * S);
-    t0 = performance.now();
-    semer(window.innerWidth < 420 ? 14000 : 18000);
-    mesurer();
-
-    function pos(e){
-      var r = cv.getBoundingClientRect();
-      return {x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.width};
-    }
-    cv.addEventListener("pointermove", function(e){ doigt = pos(e); });
-    cv.addEventListener("pointerdown", function(e){
-      doigt = pos(e); appui = 1;
-      if(cv.setPointerCapture){ try{ cv.setPointerCapture(e.pointerId); }catch(err){} }
-    });
-    cv.addEventListener("pointerup", function(){ appui = 0; });
-    cv.addEventListener("pointerleave", function(){ doigt = null; appui = 0; });
-    cv.addEventListener("pointercancel", function(){ doigt = null; appui = 0; });
-    window.addEventListener("resize", function(){ L = 0; });
-
-    /* Quatorze mille grains par image n'ont rien à faire tant que
-       personne ne les regarde : la boucle ne tourne que lorsque le
-       disque est réellement à l'écran, et s'arrête quand on change
-       d'onglet ou qu'on repose le téléphone. */
-    if(window.IntersectionObserver){
-      new IntersectionObserver(function(e){ vivant = e[0].isIntersecting; }).observe(cv);
-    }
-    document.addEventListener("visibilitychange", function(){
-      if(!document.hidden && !doux) peindre();
-    });
-
-    if(doux){ peindre(); return; }
-    tourne = true;
-    requestAnimationFrame(image);
-  }
-
-  return {
-    demarrer: demarrer,
-    /* le partage du moment ; en mouvement réduit on repeint à la main */
-    parts: function(a, b2, c3){
-      f0 = a || 0; f1 = b2 || 0; f2 = c3 || 0;
-      dort = (f0 + f1 + f2) < 0.001;
-      if(doux && cv) peindre();
-    }
-  };
-})();
+/* Le nuage de points vivait ici : quatorze mille grains repeints
+   soixante fois par seconde pour dire un partage que trois arcs
+   disent mieux. Retiré le 17 octobre 2026 — « sur un écran d'argent,
+   le flou dit à peu près quand les chiffres doivent dire exactement ».
+   Son code complet reste dans l'historique du dépôt. */
+/* La circonférence du cercle tracé plus haut : 2 × π × 84. Les arcs sont
+   exprimés en longueur, pas en degrés — c'est ce que comprend SVG. */
+var TOUR = 2 * Math.PI * 84;
+function arc(id, partCumulee){
+  var e = $(id);
+  if(!e) return;
+  var L = Math.max(0, Math.min(1, partCumulee)) * TOUR;
+  /* un segment nul ne doit pas laisser le point rond de son extrémité */
+  e.style.strokeDasharray = (L < 0.6 ? 0 : L) + " " + TOUR;
+}
 function rendreArgent(){
   var b=bilan(), t=b.encaisse||1;
   var fM=b.moi/t, fT=b.tva/t, fU=b.urssaf/t;
-  NUAGE.parts(fM, fT, fU);
+  /* du plus extérieur au plus intérieur : chacun couvre aussi les
+     suivants, et c'est le dernier posé qui reste visible en premier */
+  arc("a-urssaf", fM + fT + fU);
+  arc("a-tva",    fM + fT);
+  arc("a-moi",    fM);
 
   roule("c-moi",eur.format(b.moi));
-  $("c-pc").textContent = b.encaisse>0 ? Math.round(fM*100)+" %" : "";
 
-  /* le disque ne montre que l'argent arrivé. Sans cette ligne, celui qui a
-     facturé 1 450 € et n'a rien encaissé lit cinq fois « 0 € » et croit
-     l'application en panne. */
-  var du = (etat.creances||[]).reduce(function(t,c){ return t+num(c.montant); },0);
-  $("en-attente").hidden = !(du>0);
-  if(du>0) $("en-attente").innerHTML = "<b>"+eur.format(du)+"</b> facturés, pas encore encaissés.";
-
+  /* L'anneau ne montre que l'argent arrivé. Ce qui a été facturé et pas
+     encore encaissé est dit plus bas, dans son propre encadré : celui
+     qui a facturé 1 450 € sans rien encaissé doit voir pourquoi son
+     anneau est vide, sinon il croit l'application en panne. */
   /* ═══ tant que rien n'est rentré, le disque n'a rien à partager ═══
      Un anneau gris et cinq « 0 € » ne sont pas une information : c'est un
      écran qui a l'air en panne. On dit à la place ce que cet écran fera,
@@ -12767,17 +12511,21 @@ function rendreArgent(){
     : (etat.vfl ? "retraite, maladie, et votre impôt" : "retraite, maladie");
   $("nom-urssaf").textContent = estSociete() ? "Impôt sur les sociétés" : "Cotisations";
 
-  roule("t-garde",eur.format(b.garde));
+  /* ═══ ce qui doit rentrer ═══
+     Le détail compte autant que la somme : « 2 400 € » seul ne dit pas
+     s'il s'agit d'une facture qu'on attend tranquillement ou de trois
+     qu'il faut relancer. */
+  var cr = (etat.creances || []);
+  var du = cr.reduce(function(t, c){ return t + num(c.montant); }, 0);
+  var tard = creancesTriees().filter(function(c){ return c.retard > 0; }).length;
+  $("cadre-du").hidden = !(du > 0);
+  if(du > 0){
+    roule("t-du", eur.format(du));
+    $("t-du-sous").innerHTML = cr.length + " facture" + (cr.length > 1 ? "s" : "")
+      + (tard ? ", dont <b>" + tard + " à relancer</b>" : " en attente");
+  }
   var dec = estSociete() || estEI() ? null : prochaineDeclaration();
   var fin = dec ? dec.fin : finDuMoisProchain();
-  /* Une carte, une idée. L'encadré dit ce qu'il faut garder sur l'année ;
-     l'échéance dit ce qu'il faut déclarer, et dans combien de jours. Les
-     deux vivaient dans le même bloc, avec deux chiffres qui n'étaient pas
-     le même — personne ne peut lire ça. */
-  $("t-sur").textContent = estSociete() || estEI()
-    ? "sur votre bénéfice de l'année"
-    : "sur tout ce que vous avez encaissé cette année";
-
   var jrs = Math.max(0, Math.ceil((fin - new Date()) / 864e5));
   $("e-nb").textContent = estSociete() ? "—" : String(jrs);
   $("e-unite").textContent = jrs > 1 ? "jours" : "jour";
@@ -13099,7 +12847,6 @@ try{
 synchroniser();
 /* Le nuage démarre avant le premier rendu : rendreArgent lui donne le
    partage, il n'a plus qu'à le peindre. */
-NUAGE.demarrer();
 toutRendre();
 onglet("argent");
 
