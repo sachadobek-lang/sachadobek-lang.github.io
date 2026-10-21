@@ -2730,35 +2730,19 @@ summary.carte-tete:hover h2{color:var(--v1)}
 @media (prefers-reduced-motion:reduce){#ilreste .rc{transition:none}}
 #ilreste .bloc-disque{display:flex;flex-direction:column;align-items:center;gap:14px}
 #ilreste .bloc-disque[hidden]{display:none}
-#ilreste .disc{position:relative;width:min(236px,64vw);aspect-ratio:1}
+#ilreste .disc{position:relative;width:min(272px,74vw);aspect-ratio:1}
 #ilreste .disc svg{width:100%;height:100%;display:block}
-/* Trois matières, une seule lumière. Chaque part est une portion de la
-   même sphère : les teintes hautes et basses de chaque couleur sont
-   déclarées ici, parce qu'une couleur de donnée ne doit jamais emprunter
-   un jeton de texte — ni se calculer toute seule. */
-#ilreste #g-moi .h{stop-color:#6A7B94}
-#ilreste #g-moi .m{stop-color:#2E3A4C}
-#ilreste #g-moi .b{stop-color:#0C1118}
-#ilreste #g-tva .h{stop-color:#4E8AD8}
-#ilreste #g-tva .m{stop-color:#17539F}
-#ilreste #g-tva .b{stop-color:#0A2C58}
-#ilreste #g-urssaf .h{stop-color:#D79B3F}
-#ilreste #g-urssaf .m{stop-color:#A3670F}
-#ilreste #g-urssaf .b{stop-color:#5E3A06}
-#ilreste .disc .bord{stroke:rgba(255,255,255,.10);stroke-width:1.2}
-#ilreste #g-ombre feDropShadow{flood-color:#14202E}
-#ilreste .disc path{transition:d .7s cubic-bezier(.16,1,.3,1)}
-@media (prefers-reduced-motion:reduce){#ilreste .disc path{transition:none}}
 /* pan-y : le doigt qui glisse verticalement fait toujours défiler la
    page ; seul un mouvement sur place ou horizontal chasse la poussière. */
 #ilreste .disc canvas{width:100%;height:100%;display:block;touch-action:pan-y}
 #ilreste .disc .seg{fill:none;transition:stroke-dasharray .5s cubic-bezier(.16,1,.3,1),stroke-dashoffset .5s cubic-bezier(.16,1,.3,1)}
 #ilreste .disc-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;padding:0 14%}
-#ilreste .disc-center .cap{font-size:13px;color:rgba(255,255,255,.74);letter-spacing:.01em}
-/* Blanc sur la sphère, avec une ombre douce : le chiffre doit rester
-   lisible même quand une part claire passe dessous — ce qui arrive à une
-   société dont l'impôt dépasse la moitié. */
-#ilreste .disc-center .big{font-family:var(--num);font-weight:700;font-size:clamp(29px,10vw,40px);line-height:1.02;color:#fff;letter-spacing:-.035em;margin-top:2px;text-shadow:0 2px 14px rgba(5,8,13,.55)}
+#ilreste .disc-center .cap{font-size:13px;color:var(--ink-soft);letter-spacing:.01em}
+/* Le chiffre est posé AU CENTRE du nuage, donc sur le fond de la page :
+   il se lit dans l'encre, jamais en blanc. Resté blanc après la sphère,
+   il était devenu invisible — le défaut le plus visible de l'écran, et
+   le plus bête. */
+#ilreste .disc-center .big{font-family:var(--num);font-weight:700;font-size:clamp(30px,10.5vw,42px);line-height:1.02;color:var(--moi);letter-spacing:-.035em;margin-top:2px}
 #ilreste .disc-center .pc{font-family:var(--num);font-size:14.5px;color:var(--ink-faint)}
 #ilreste .legende{width:100%;display:flex;flex-direction:column;gap:2px}
 #ilreste .legende .l{display:flex;align-items:baseline;gap:10px;padding:7px 2px;border-bottom:1px solid var(--rule)}
@@ -3115,46 +3099,10 @@ summary.carte-tete:hover h2{color:var(--v1)}
              ses bouts sont arrondis, et il ne bouge que lorsque les
              chiffres bougent. La recette du nuage est conservée dans
              l'historique du dépôt. -->
-        <svg id="disc-rond" viewBox="0 0 200 200" role="img"
-             aria-label="Partage de tout ce que vous avez encaissé cette année">
-          <defs>
-            <!-- La lumière vient du haut-gauche, comme partout ailleurs
-                 dans l'application : c'est elle qui donne la matière. Un
-                 aplat de couleur reste un graphique ; une sphère est un
-                 objet, et on y croit. -->
-            <radialGradient id="g-moi" cx=".34" cy=".26" r=".92">
-              <stop class="h" offset="0"/><stop class="m" offset=".48"/><stop class="b" offset="1"/>
-            </radialGradient>
-            <radialGradient id="g-tva" cx=".34" cy=".26" r=".92">
-              <stop class="h" offset="0"/><stop class="m" offset=".5"/><stop class="b" offset="1"/>
-            </radialGradient>
-            <radialGradient id="g-urssaf" cx=".34" cy=".26" r=".92">
-              <stop class="h" offset="0"/><stop class="m" offset=".5"/><stop class="b" offset="1"/>
-            </radialGradient>
-            <filter id="g-ombre" x="-45%" y="-45%" width="190%" height="200%">
-              <feDropShadow dx="0" dy="12" stdDeviation="13" flood-opacity=".3"/>
-            </filter>
-            <!-- Le chiffre est posé au centre, là où les parts se
-                 rejoignent : il traversait la frontière entre deux
-                 couleurs, et le même caractère se lisait sur deux fonds.
-                 Ce voile, du centre vers le bord, lui rend un fond uni
-                 sans refaire un trou au milieu du disque. -->
-            <radialGradient id="g-voile" cx=".5" cy=".5" r=".40">
-              <stop offset="0"   stop-color="#070A0F" stop-opacity=".46"/>
-              <stop offset=".52" stop-color="#070A0F" stop-opacity=".30"/>
-              <stop offset="1"   stop-color="#070A0F" stop-opacity="0"/>
-            </radialGradient>
-          </defs>
-          <g filter="url(#g-ombre)">
-            <circle cx="100" cy="100" r="86" fill="url(#g-moi)"></circle>
-            <path id="p-tva" fill="url(#g-tva)"></path>
-            <path id="p-urssaf" fill="url(#g-urssaf)"></path>
-            <circle cx="100" cy="100" r="86" fill="url(#g-voile)"></circle>
-            <!-- le liseré de bord : ce qui empêche la sphère de se
-                 fondre dans le fond, en clair comme en sombre -->
-            <circle class="bord" cx="100" cy="100" r="86" fill="none"></circle>
-          </g>
-        </svg>
+        <!-- Le nuage de points, revenu après un anneau et une sphère que
+             Sacha a tous deux refusés. C'est lui, le disque. -->
+        <canvas id="disc-nuage" role="img"
+                aria-label="Partage de tout ce que vous avez encaissé cette année"></canvas>
         <div class="disc-center">
           <span class="cap">à vous cette année</span>
           <span class="big" id="c-moi">—</span>
@@ -12479,38 +12427,405 @@ function prochaineDeclaration(){
    nuage est peint dans sa propre toile de 300 px puis agrandi —
    l'agrandissement offre gratuitement le flou du studio et divise par
    quatre les pixels à relire ; une table de sinus remplace Math.sin ; et
-/* Le nuage de points vivait ici : quatorze mille grains repeints
-   soixante fois par seconde pour dire un partage que trois arcs
-   disent mieux. Retiré le 17 octobre 2026 — « sur un écran d'argent,
-   le flou dit à peu près quand les chiffres doivent dire exactement ».
-   Son code complet reste dans l'historique du dépôt. */
-/* Un secteur de la sphère, du sommet dans le sens des aiguilles. On le
-   trace à la main plutôt qu'avec un trait pointillé : un disque plein n'a
-   pas de circonférence à parcourir, il a une part à remplir. */
-function secteur(id, debut, part){
-  var e = $(id);
-  if(!e) return;
-  if(part <= 0.0005){ e.setAttribute("d", ""); return; }
-  /* au-delà de 99,95 %, deux points confondus ne tracent plus rien :
-     on rend le disque entier plutôt qu'un secteur vide */
-  if(part >= 0.9995){
-    e.setAttribute("d", "M100 14 A86 86 0 1 1 99.99 14 Z");
-    return;
+   Référence : igloo.inc, montré par Sacha. Le principe tient en quatre
+   points, et aucun n'est décoratif.
+
+   1 · La densité fait la matière. Quatorze mille grains, pas deux cents
+       points reliés par des traits — un réseau de traits ne fait pas une
+       poussière, et c'est la première version qu'il a refusée.
+   2 · La forme est échantillonnée EN VOLUME. La distance au cœur du tube
+       est tirée en pow(hasard, 0.62) : ce biais donne une peau et un
+       intérieur. Sans lui le nuage est une bouillie uniforme. Un grain
+       sur douze part beaucoup plus loin : c'est lui seul qui fait le
+       duvet et les éclats détachés du contour.
+   3 · Le dépôt est additif. Chaque grain verse sa lumière sur ses quatre
+       pixels voisins dans un tableau de flottants ; c'est l'accumulation
+       qui devient opacité, par une table de 256 entrées. Dessiner
+       quatorze mille arc() à la place coûterait dix fois plus.
+   4 · La profondeur porte le volume, pas un dégradé : perspective faible,
+       bascule de vingt degrés, et la clarté de chaque grain suit sa
+       distance. Les grains du fond se noient dans la brume.
+
+   Ce qui tient les soixante images par seconde sur un téléphone : le
+   nuage est peint dans sa propre toile de 300 px puis agrandi —
+   l'agrandissement offre gratuitement le flou du studio et divise par
+   quatre les pixels à relire ; une table de sinus remplace Math.sin ; et
+   tout est en Float32Array à plat, jamais en objets. */
+var NUAGE = (function(){
+  /* L'écart entre deux parts est devenu un CHEVAUCHEMENT. Séparées, même
+   avec des bouts qui s'éteignent, elles laissaient un vide clair au
+   sommet : un fondu au noir, là où il fallait un fondu enchaîné. Elles
+   empiètent maintenant l'une sur l'autre d'un centième de tour, et
+   chacune s'éteint sur cette zone pendant que l'autre s'allume. La
+   frontière reste lisible — les couleurs ne se mélangent pas, elles se
+   croisent. */
+var TAU = Math.PI * 2, DEBUT = -Math.PI / 2, GAPU = -0.010;
+  var doux = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  var cv = null, ctx = null, L = 0, dpr = 1;
+  var S = 300, toile = null, tctx = null, img = null, dat = null;
+  var A0 = null, A1 = null, A2 = null;
+  var NS = 2048, SIN = new Float32Array(NS), ALPHA = new Uint8Array(256);
+  for(var i = 0; i < NS; i++) SIN[i] = Math.sin(i / NS * TAU);
+  for(var a = 0; a < 256; a++) ALPHA[a] = Math.round(255 * (1 - Math.exp(-a / 255 * 4.4)));
+
+  var N = 0, u01, amp, hz, pha, chute, ox, oy, vx, vy;
+  /* `vivant` part à vrai, pas à faux. L'observateur de visibilité ne
+     prévient qu'au CHANGEMENT : au démarrage, le panneau « Mon argent »
+     est caché, la toile n'a aucune surface, et le premier verdict tombe
+     à « invisible ». Le disque restait alors à sa taille par défaut de
+     300 × 150 et ne peignait jamais rien — panne muette, sans erreur.
+     À vrai, la boucle tourne ; tant que la toile n'a pas de surface,
+     `mesurer()` échoue et l'image se termine en trois instructions. */
+  var fr = 0, t0 = 0, doigt = null, appui = 0, vivant = true, tourne = false, lent = 0;
+  var f0 = 1, f1 = 0, f2 = 0, dort = false;
+  var cols = null, colFr = -99;
+
+  function lire(c){
+    c = String(c).replace("#", "").trim();
+    if(c.length === 3) c = c[0]+c[0]+c[1]+c[1]+c[2]+c[2];
+    var v = [parseInt(c.slice(0,2),16), parseInt(c.slice(2,4),16), parseInt(c.slice(4,6),16)];
+    return (isNaN(v[0]) || isNaN(v[1]) || isNaN(v[2])) ? [80,96,120] : v;
   }
-  var R = 86, a0 = -Math.PI / 2 + debut * 2 * Math.PI, a1 = a0 + part * 2 * Math.PI;
-  var x0 = 100 + R * Math.cos(a0), y0 = 100 + R * Math.sin(a0);
-  var x1 = 100 + R * Math.cos(a1), y1 = 100 + R * Math.sin(a1);
-  e.setAttribute("d", "M100 100 L" + x0.toFixed(2) + " " + y0.toFixed(2)
-    + " A" + R + " " + R + " 0 " + (part > 0.5 ? 1 : 0) + " 1 "
-    + x1.toFixed(2) + " " + y1.toFixed(2) + " Z");
-}
+  function couleurs(){
+    /* relues toutes les trente images : assez pour suivre un changement
+       de thème, assez rare pour ne rien coûter */
+    if(fr - colFr < 30 && cols) return cols;
+    colFr = fr;
+    var cs = window.getComputedStyle(cv);
+    cols = [lire(cs.getPropertyValue("--moi")),
+            lire(cs.getPropertyValue("--tva")),
+            lire(cs.getPropertyValue("--urssaf")),
+            lire(cs.getPropertyValue("--ink-faint"))];
+    return cols;
+  }
+
+  function semer(n){
+    N = n;
+    u01 = new Float32Array(N); amp = new Float32Array(N); hz = new Float32Array(N);
+    pha = new Uint16Array(N); chute = new Float32Array(N);
+    ox = new Float32Array(N); oy = new Float32Array(N);
+    vx = new Float32Array(N); vy = new Float32Array(N);
+    for(var k = 0; k < N; k++){
+      /* ═══ ce qui rendait le nuage sale ═══
+         Quatorze mille places tirées au hasard sur un même tour ne se
+         répartissent pas : le hasard fait des amas et des trous, et à
+         l'œil ce n'est plus une matière, c'est du bruit. L'anneau
+         paraissait rongé en haut et épais en bas, et c'est ce que Sacha
+         a appelé « moche ».
+         Chaque grain reçoit donc sa case — un quatorze-millième du tour
+         — et ne bouge qu'à l'intérieur. La densité devient régulière,
+         le désordre reste. C'est la différence entre du grain de film
+         et de la poussière mal balayée. */
+      u01[k] = (k + Math.random()) / n;           /* sa place sur le tour */
+      var phi = Math.random() * TAU;
+      /* Un grain sur douze partait très loin, jusqu'à près du double du
+         tube : de près c'était du duvet, de loin c'était une bavure. Un
+         sur vingt-cinq, et moitié moins loin — le contour se tient, et
+         il reste ce qu'il faut d'irrégularité pour que ce ne soit pas un
+         trait. Le biais vers la surface se resserre aussi : plus la peau
+         est nette, plus l'anneau a l'air d'un objet. */
+      var loin = Math.random() < 0.04;
+      var rr = Math.pow(Math.random(), loin ? 0.42 : 0.80) * (loin ? 1.34 : 1);
+      amp[k] = rr * Math.cos(phi);                /* écart radial */
+      hz[k]  = rr * Math.sin(phi);                /* écart le long de l'axe */
+      pha[k] = (Math.random() * NS) | 0;
+      chute[k] = Math.random() < 0.03 ? 0.12 + Math.random() * 0.34 : 0;
+    }
+  }
+
+  function mesurer(){
+    var r = cv.getBoundingClientRect();
+    if(!r.width) return false;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    L = r.width;
+    cv.width = Math.round(L * dpr);
+    cv.height = Math.round(L * dpr);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return true;
+  }
+
+  /* Le studio, en blanc translucide : Cura est une application claire,
+     décidée telle. Le fond de la toile reste transparent pour que le
+     dégradé de la page passe au travers — un carré opaque aurait l'air
+     d'une image collée. */
+  /* ═══ le studio suit le thème ═══
+     Le socle et le voile étaient peints en blanc, quel que soit le fond.
+     Sur le thème clair ils asseyaient l'anneau ; sur le sombre ils
+     devenaient une soucoupe blanche éclatante sous une tache grise —
+     constaté le 21 octobre, et resté invisible tout ce temps parce que
+     personne n'avait regardé cet écran de nuit.
+     Un objet posé sur du noir ne projette pas de la lumière : il projette
+     une ombre. Le socle s'inverse donc avec le thème.
+     La lecture du thème est mise en cache : relire une variable CSS
+     soixante fois par seconde coûterait plus cher que tout le reste. */
+  var sombre = false, vuThemeA = 0;
+  function lireTheme(){
+    try{
+      var c = window.getComputedStyle(cv).getPropertyValue("--paper").trim();
+      var m = /^#([0-9a-f]{6})$/i.exec(c);
+      if(!m){
+        m = /rgba?\((\d+)[ ,]+(\d+)[ ,]+(\d+)/i.exec(c);
+        if(!m) return;
+        sombre = (Number(m[1]) * 0.299 + Number(m[2]) * 0.587 + Number(m[3]) * 0.114) < 110;
+        return;
+      }
+      var v = parseInt(m[1], 16);
+      sombre = (((v >> 16) & 255) * 0.299 + ((v >> 8) & 255) * 0.587 + (v & 255) * 0.114) < 110;
+    }catch(e){}
+  }
+  function studio(){
+    if(fr - vuThemeA > 45 || vuThemeA === 0){ vuThemeA = fr || 1; lireTheme(); }
+    var T = sombre ? "255,255,255" : "255,255,255";
+    var g = ctx.createRadialGradient(L * 0.5, L * 0.41, L * 0.04, L * 0.5, L * 0.45, L * 0.56);
+    /* Le voile était réglé pour le fond sombre d'une maquette. Posé sur
+       le fond déjà clair de l'application, il délavait la poussière au
+       lieu de l'asseoir : il ne fait plus que creuser un peu de lumière
+       derrière l'anneau. En sombre il se réduit encore : le même voile y
+       faisait une tache grise carrée autour du nuage. */
+    g.addColorStop(0, "rgba(" + T + "," + (sombre ? ".07" : ".34") + ")");
+    g.addColorStop(0.62, "rgba(" + T + "," + (sombre ? ".025" : ".10") + ")");
+    g.addColorStop(1, "rgba(" + T + ",0)");
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, L, L);
+    ctx.save();
+    ctx.translate(L * 0.5, L * 0.875);
+    ctx.scale(1, 0.19);
+    /* Sur fond clair : une tache de lumière, du plus large au plus vif.
+       Sur fond sombre : la même forme, mais en ombre. */
+    var S0 = sombre ? "0,0,0" : "255,255,255";
+    for(var k = 3; k >= 1; k--){
+      ctx.beginPath();
+      ctx.arc(0, 0, L * (0.16 + k * 0.095), 0, TAU);
+      var a = sombre ? (0.10 + (3 - k) * 0.12) : (0.17 + (3 - k) * 0.24);
+      ctx.fillStyle = "rgba(" + S0 + "," + a.toFixed(2) + ")";
+      ctx.fill();
+    }
+    ctx.beginPath();
+    ctx.arc(0, 0, L * 0.245, 0, TAU);
+    ctx.strokeStyle = sombre ? "rgba(255,255,255,.16)" : "rgba(255,255,255,.95)";
+    ctx.lineWidth = L * 0.020;
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  /* les bandes du moment, le petit vide déjà retiré.
+     Rien d'encaissé ne veut pas dire rien à montrer : l'anneau se lève
+     quand même, entier et gris — c'est la première chose qu'on voit en
+     ouvrant Comptabilité, et un écran vide ne dit pas ce qu'il fera. */
+  function bandes(){
+    if(dort) return [{a: 0, z: 1, s: 0}];
+    var f = [f0, f1, f2], b = [], u = 0, vivants = 0, j;
+    for(j = 0; j < 3; j++) if(f[j] > 0.0015) vivants++;
+    var g = vivants > 1 ? GAPU : 0;
+    for(j = 0; j < 3; j++){
+      if(f[j] > 0.0015) b.push({a: u + g / 2, z: u + f[j] - g / 2, s: j});
+      u += f[j];
+    }
+    return b;
+  }
+
+  /* Pas de test sur `document.hidden` ici. Il est redondant —
+     requestAnimationFrame ne se déclenche déjà pas quand la page passe en
+     arrière-plan, ce qui est la seule économie recherchée — et il est
+     piégeux : certains contextes d'affichage peignent la page tout en la
+     déclarant cachée. Le disque restait alors éternellement vide, sans
+     la moindre erreur. Seule la visibilité à l'écran commande. */
+  function image(){
+    if(!tourne) return;
+    if(vivant) peindre();
+    requestAnimationFrame(image);
+  }
+
+  function peindre(){
+    if(!L && !mesurer()) return;
+    var deb = performance.now();
+    var t = (deb - t0) / 1000;
+    fr++;
+
+    ctx.clearRect(0, 0, L, L);
+    studio();
+
+    A0.fill(0); A1.fill(0); A2.fill(0);
+
+    var wob = doux ? 0 : SIN[(fr * 2) & (NS - 1)] * 0.055;
+    var cT = Math.cos(0.34 + wob), sT = Math.sin(0.34 + wob);
+    var souffle = doux ? 1 : 1 + SIN[(fr * 3) & (NS - 1)] * 0.012;
+    var R0 = 0.355 * souffle, TW0 = 0.078 * souffle;
+    var CXn = S * 0.5, CYn = S * 0.44;
+
+    var fx = 0, fy = 0, aDoigt = false;
+    if(doigt){ fx = doigt.x * S; fy = doigt.y * S; aDoigt = true; }
+    var Rinf = S * 0.115, pousse = appui ? 2.0 : 1.15;
+
+    var b = bandes(), nb = b.length;
+    var pas = (fr * 4) & (NS - 1);
+
+    for(var k = 0; k < N; k++){
+      var u = u01[k], seg = -1, m, bande = null;
+      for(m = 0; m < nb; m++){ if(u >= b[m].a && u <= b[m].z){ seg = b[m].s; bande = b[m]; break; } }
+      if(seg < 0) continue;
+
+      /* ═══ les bouts s'éteignent au lieu de se couper ═══
+         Chaque bande s'arrêtait net : deux parts voisines se touchaient
+         par un bord rectiligne, vérifié à la loupe. Une poussière n'a
+         pas de bord droit — c'est ce qui donnait l'impression d'un
+         anneau déchiré en haut.
+         Les grains des six derniers centièmes de chaque bande perdent
+         leur lumière progressivement. Les deux matières se croisent
+         alors au lieu de se heurter, et la frontière reste lisible
+         parce que les couleurs, elles, ne se mélangent pas. */
+      var fondu = 1;
+      if(nb > 1){
+        var large = bande.z - bande.a;
+        if(large > 0.0001){
+          var bord = large * 0.10, dBord = u - bande.a;
+          var dFin = bande.z - u;
+          if(dFin < dBord) dBord = dFin;
+          if(dBord < bord) fondu = dBord / bord;
+        }
+      }
+
+      var th = DEBUT + u * TAU;
+      var dr = amp[k];
+      var rr = R0 + TW0 * dr;
+      var wx = Math.cos(th) * rr, wy = Math.sin(th) * rr, wz = TW0 * hz[k];
+
+      if(chute[k] > 0){
+        var ch = (t * chute[k] * 0.18) % 1;
+        wy += ch * 0.21; wz += ch * 0.035;
+      }
+
+      var y1 = wy * cT - wz * sT, z1 = wy * sT + wz * cT;
+      var kp = 3.4 / (3.4 + z1);
+      var sx = CXn + wx * kp * S, sy = CYn + y1 * kp * S;
+
+      var ph = (pha[k] + pas) & (NS - 1);
+      /* Le frémissement était large : de loin, l'anneau grouillait. Il
+         respire au lieu de s'agiter. */
+      var am = 0.55 + (dr < 0 ? -dr : dr) * 1.25;
+      sx += SIN[ph] * am;
+      sy += SIN[(ph + 512) & (NS - 1)] * am;
+
+      if(aDoigt){
+        var ddx = sx + ox[k] - fx, ddy = sy + oy[k] - fy;
+        var dd = ddx * ddx + ddy * ddy;
+        if(dd < Rinf * Rinf){
+          var d1 = Math.sqrt(dd) || 0.001, f9 = 1 - d1 / Rinf;
+          vx[k] += ddx / d1 * f9 * f9 * pousse;
+          vy[k] += ddy / d1 * f9 * f9 * pousse;
+        }
+      }
+      vx[k] += -ox[k] * 0.045; vy[k] += -oy[k] * 0.045;
+      vx[k] *= 0.90; vy[k] *= 0.90;
+      ox[k] += vx[k]; oy[k] += vy[k];
+      sx += ox[k]; sy += oy[k];
+
+      if(sx < 0 || sy < 0 || sx >= S - 1 || sy >= S - 1) continue;
+
+      var br = 0.34 + 0.66 * (kp - 0.80) / 0.42;
+      if(br < 0.08) br = 0.08; else if(br > 1.25) br = 1.25;
+      br *= fondu;
+      var ix = sx | 0, iy = sy | 0;
+      var fxp = sx - ix, fyp = sy - iy;
+      var i0 = iy * S + ix;
+      var acc = seg === 0 ? A0 : (seg === 1 ? A1 : A2);
+      acc[i0]          += br * (1 - fxp) * (1 - fyp);
+      acc[i0 + 1]      += br * fxp * (1 - fyp);
+      acc[i0 + S]      += br * (1 - fxp) * fyp;
+      acc[i0 + S + 1]  += br * fxp * fyp;
+    }
+
+    var c = couleurs(), c0 = dort ? c[3] : c[0], c1 = c[1], c2 = c[2];
+    var n2 = S * S;
+    for(var q = 0, o = 0; q < n2; q++, o += 4){
+      var a0 = A0[q], a1 = A1[q], a2 = A2[q], tot = a0 + a1 + a2;
+      if(tot < 0.004){ dat[o + 3] = 0; continue; }
+      var qi = (tot * 76) | 0; if(qi > 255) qi = 255;
+      var iv = 1 / tot;
+      dat[o]     = (c0[0] * a0 + c1[0] * a1 + c2[0] * a2) * iv | 0;
+      dat[o + 1] = (c0[1] * a0 + c1[1] * a1 + c2[1] * a2) * iv | 0;
+      dat[o + 2] = (c0[2] * a0 + c1[2] * a1 + c2[2] * a2) * iv | 0;
+      dat[o + 3] = ALPHA[qi];
+    }
+    tctx.putImageData(img, 0, 0);
+
+    ctx.save();
+    ctx.globalAlpha = 0.11;
+    ctx.translate(0, L * 1.66);
+    ctx.scale(1, -0.28);
+    ctx.drawImage(toile, 0, 0, L, L);
+    ctx.restore();
+    ctx.drawImage(toile, 0, 0, L, L);
+
+    /* si l'appareil peine, on sème moins de grains plutôt que de saccader */
+    var cout = performance.now() - deb;
+    if(cout > 26) lent++; else if(lent > 0) lent--;
+    if(lent > 40 && N > 5000){ semer(Math.round(N * 0.72)); lent = 0; }
+  }
+
+  function demarrer(){
+    cv = $("disc-nuage");
+    if(!cv || !cv.getContext) return;
+    ctx = cv.getContext("2d");
+    toile = document.createElement("canvas");
+    toile.width = S; toile.height = S;
+    tctx = toile.getContext("2d");
+    img = tctx.createImageData(S, S);
+    dat = img.data;
+    A0 = new Float32Array(S * S); A1 = new Float32Array(S * S); A2 = new Float32Array(S * S);
+    t0 = performance.now();
+    /* Mesuré après la stratification : à 22 000 grains la boucle tient
+       encore ses 16,7 ms sur ce Mac, et la matière y gagne ce que la
+       densité seule pouvait donner. Le garde-fou qui redescend sous les
+       5 000 en cas de rame reste en place. */
+    semer(window.innerWidth < 420 ? 22000 : 26000);
+    mesurer();
+
+    function pos(e){
+      var r = cv.getBoundingClientRect();
+      return {x: (e.clientX - r.left) / r.width, y: (e.clientY - r.top) / r.width};
+    }
+    cv.addEventListener("pointermove", function(e){ doigt = pos(e); });
+    cv.addEventListener("pointerdown", function(e){
+      doigt = pos(e); appui = 1;
+      if(cv.setPointerCapture){ try{ cv.setPointerCapture(e.pointerId); }catch(err){} }
+    });
+    cv.addEventListener("pointerup", function(){ appui = 0; });
+    cv.addEventListener("pointerleave", function(){ doigt = null; appui = 0; });
+    cv.addEventListener("pointercancel", function(){ doigt = null; appui = 0; });
+    window.addEventListener("resize", function(){ L = 0; });
+
+    /* Quatorze mille grains par image n'ont rien à faire tant que
+       personne ne les regarde : la boucle ne tourne que lorsque le
+       disque est réellement à l'écran, et s'arrête quand on change
+       d'onglet ou qu'on repose le téléphone. */
+    if(window.IntersectionObserver){
+      new IntersectionObserver(function(e){ vivant = e[0].isIntersecting; }).observe(cv);
+    }
+    document.addEventListener("visibilitychange", function(){
+      if(!document.hidden && !doux) peindre();
+    });
+
+    if(doux){ peindre(); return; }
+    tourne = true;
+    requestAnimationFrame(image);
+  }
+
+  return {
+    demarrer: demarrer,
+    /* le partage du moment ; en mouvement réduit on repeint à la main */
+    parts: function(a, b2, c3){
+      f0 = a || 0; f1 = b2 || 0; f2 = c3 || 0;
+      dort = (f0 + f1 + f2) < 0.001;
+      if(doux && cv) peindre();
+    }
+  };
+})();
 function rendreArgent(){
   var b=bilan(), t=b.encaisse||1;
   var fM=b.moi/t, fT=b.tva/t, fU=b.urssaf/t;
-  /* la sphère entière est « à vous » ; les deux autres parts se posent
-     dessus, l'une après l'autre, dans le sens de la lecture */
-  secteur("p-tva",    fM,      fT);
-  secteur("p-urssaf", fM + fT, fU);
+  NUAGE.parts(fM, fT, fU);
 
   roule("c-moi",eur.format(b.moi));
 
@@ -12893,6 +13208,7 @@ try{
 synchroniser();
 /* Le nuage démarre avant le premier rendu : rendreArgent lui donne le
    partage, il n'a plus qu'à le peindre. */
+NUAGE.demarrer();
 toutRendre();
 onglet("argent");
 
