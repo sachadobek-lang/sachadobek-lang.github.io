@@ -223,17 +223,20 @@ body.sur-agenda .page{max-width:none;padding:0}
   --cad-deg-pale:#F6F1EE;
 }
 :root[data-onglet="budget"]{
-  --fond:linear-gradient(180deg,#F9F7F3 0%,#F0ECE5 100%);
-  /* L'idée des trois températures ne portait que sur le fond. Sur les
-     deux autres onglets cela ne se voyait pas — leur fond était déjà
-     froid comme les traits. Ici le fond part à 40° et les traits
-     restaient à 212° : des filets bleus sur un papier crème, soit
-     172 degrés d'écart, presque la complémentaire exacte. Les traits et
-     les creux suivent leur fond. Saturation et clarté sont inchangées,
-     seule la teinte bouge : le contraste reste identique au pixel près. */
-  --line:#F0EADF; --line-fort:#E0D7C6; --surface-2:#FCFAF5; --surface-3:#F6F2E9;
-  --cad-line:#F0EADF; --cad-line-fort:#E0D7C6; --cad-surface-2:#FCFAF5;
-  --cad-deg-pale:#F6F3EE;
+  /* ═══ Comptabilité revient au papier de la charte ═══
+     Un chantier « chaque onglet a sa lumière » avait réchauffé cet
+     écran jusqu'au crème, traits et creux compris. Sacha, 21 octobre :
+     « le fond c'est horrible ».
+     Il avait raison pour une raison qui dépasse le goût : le gris bleuté
+     de la charte est la seule famille de gris qui tienne avec les deux
+     couleurs qui portent les chiffres ici — le graphite de ce qui est à
+     vous et l'ambre de ce qui ne l'est pas. Sur un papier à 40°, l'ambre
+     se fond dans le fond et ne signale plus rien, et le graphite vire au
+     bleu franc. La température ne décorait pas un écran : elle affaiblissait
+     les deux seules couleurs qui y disent quelque chose.
+     Les deux autres onglets gardent la leur — ils ne portent pas d'argent.
+     Signalé à l'agent qui en a le mandat. */
+  --fond:linear-gradient(180deg,#F5F7FB 0%,#EBEEF4 100%);
 }
 @media (prefers-color-scheme:dark){
   :root:not([data-theme="light"])[data-onglet="afaire"]{
@@ -248,17 +251,11 @@ body.sur-agenda .page{max-width:none;padding:0}
   --cad-deg-pale:#2B231A;
 }
   :root:not([data-theme="light"])[data-onglet="budget"]{
-  --fond:linear-gradient(180deg,#12110E 0%,#0A0906 100%);
-  /* Même trou que pour l'Agenda, et resté ouvert plus longtemps : le
-     bloc clair de Comptabilité pose --line, --surface-2 et --surface-3
-     sans condition de thème. En sombre, tout ce qui s'appuyait dessus
-     recevait donc un crème clair sur du noir. Mesuré le 12 octobre sur
-     les pastilles du devis : texte #ECF2F9 sur fond #FCFAF5, illisible.
-     Mêmes valeurs que l'Agenda sombre, réchauffées vers le jaune comme
-     l'est son pendant clair. */
-  --line:#403525; --line-fort:#524635; --surface-2:#312A1B; --surface-3:#241F11;
-  --cad-line:#403525; --cad-line-fort:#524635; --cad-surface-2:#312A1B;
-  --cad-deg-pale:#2B251A;
+  --fond:linear-gradient(180deg,#0E1116 0%,#080A0D 100%);
+  /* Ces quatre lignes rattrapaient en sombre le réchauffement que le
+     bloc clair posait sans condition de thème. Ce réchauffement a été
+     retiré le 21 octobre : l'onglet hérite maintenant des gris de la
+     charte, dans les deux thèmes, et il n'y a plus rien à rattraper. */
 }
 }
 :root[data-theme="dark"][data-onglet="afaire"]{
@@ -273,17 +270,11 @@ body.sur-agenda .page{max-width:none;padding:0}
   --cad-deg-pale:#2B231A;
 }
 :root[data-theme="dark"][data-onglet="budget"]{
-  --fond:linear-gradient(180deg,#12110E 0%,#0A0906 100%);
-  /* Même trou que pour l'Agenda, et resté ouvert plus longtemps : le
-     bloc clair de Comptabilité pose --line, --surface-2 et --surface-3
-     sans condition de thème. En sombre, tout ce qui s'appuyait dessus
-     recevait donc un crème clair sur du noir. Mesuré le 12 octobre sur
-     les pastilles du devis : texte #ECF2F9 sur fond #FCFAF5, illisible.
-     Mêmes valeurs que l'Agenda sombre, réchauffées vers le jaune comme
-     l'est son pendant clair. */
-  --line:#403525; --line-fort:#524635; --surface-2:#312A1B; --surface-3:#241F11;
-  --cad-line:#403525; --cad-line-fort:#524635; --cad-surface-2:#312A1B;
-  --cad-deg-pale:#2B251A;
+  --fond:linear-gradient(180deg,#0E1116 0%,#080A0D 100%);
+  /* Ces quatre lignes rattrapaient en sombre le réchauffement que le
+     bloc clair posait sans condition de thème. Ce réchauffement a été
+     retiré le 21 octobre : l'onglet hérite maintenant des gris de la
+     charte, dans les deux thèmes, et il n'y a plus rien à rattraper. */
 }
 
 /* ⚠️ `100vh` n'est pas la hauteur de l'écran sur un iPhone : c'est la
