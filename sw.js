@@ -1,4 +1,4 @@
-/* Cura hors-ligne — version 39f788f61fda
+/* Cura hors-ligne — version 6e8af799c68b
  *
  * Ce fichier existe pour une seule raison : que l'application s'ouvre dans
  * le métro, chez un client, partout où il n'y a pas de réseau.
@@ -29,7 +29,7 @@
  * Donc : ne pas rediagnostiquer ceci depuis un port local. Le seul endroit
  * où l'observer est la page publique.
  */
-const VERSION = "39f788f61fda";
+const VERSION = "6e8af799c68b";
 const BOITE = "cura-" + VERSION;
 const FIGE = "cura-fige";
 

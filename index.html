@@ -58,7 +58,7 @@
    on ne supprime rien sans le lui dire. */
 :root{
   color-scheme:light;
-  --ground:#EFF3F8; --surface:#FFFFFF; --surface-2:#F5F8FC; --surface-3:#E9EFF6;
+  --ground:#F4F6FA; --surface:#FFFFFF; --surface-2:#F4F7FB; --surface-3:#E7EDF5;
   --line:#DFE7F0; --line-fort:#C6D2E0;
   --ink:#14202E; --ink-2:#4F5B70; --ink-3:#646E85;
 
@@ -83,7 +83,14 @@
      comme le reste de l'identité, mais translucide pour laisser deviner
      ce qui passe dessous */
   --deg-barre:linear-gradient(135deg,rgba(255,255,255,.92) 0%,rgba(226,231,240,.88) 100%);
-  --fond:linear-gradient(180deg,#F5F7FB 0%,#EBEEF4 100%);
+  /* ═══ blanc, comme Trade Republic ═══
+     Sacha, 22 octobre. Le dégradé gris-bleu asseyait les cartes toutes
+     seules : sur un blanc franc elles disparaissent, puisqu'elles sont
+     blanches aussi. Deux choses les redessinent — un creux très léger
+     pour les surfaces de second plan, et le filet qui existait déjà. Le
+     blanc n'est donc pas qu'un fond changé, c'est un cran de contraste
+     redistribué. */
+  --fond:#FFFFFF;
   --tuile-neutre:linear-gradient(150deg,#FFFFFF 0%,#F1F7FF 100%);
   --tuile-vert:linear-gradient(150deg,#E9F9F1 0%,#D5EFE4 100%);
   --tuile-chaud:linear-gradient(150deg,#FEF5E8 0%,#FAE8CC 100%);
@@ -129,7 +136,7 @@
     --deg-pale:linear-gradient(135deg,#1A212B 0%,#161C25 100%);
     --deg-barre:linear-gradient(135deg,rgba(30,38,50,.90) 0%,rgba(17,22,30,.88) 100%);
     --v1:#AEB9CA; --v2:#8593A8; --v-txt:#B9C4D6;
-    --fond:linear-gradient(180deg,#0E1116 0%,#080A0D 100%);
+    --fond:#07080B;
     --tuile-neutre:linear-gradient(150deg,#16202E 0%,#131C2B 100%);
     --tuile-vert:linear-gradient(150deg,#0E2C22 0%,#0B2419 100%);
     --tuile-chaud:linear-gradient(150deg,#2B2214 0%,#241B0F 100%);
@@ -157,7 +164,7 @@
   --deg-pale:linear-gradient(135deg,#1A212B 0%,#161C25 100%);
   --deg-barre:linear-gradient(135deg,rgba(30,38,50,.90) 0%,rgba(17,22,30,.88) 100%);
     --v1:#AEB9CA; --v2:#8593A8; --v-txt:#B9C4D6;
-  --fond:linear-gradient(180deg,#0E1116 0%,#080A0D 100%);
+  --fond:#07080B;
   --tuile-neutre:linear-gradient(150deg,#16202E 0%,#131C2B 100%);
   --tuile-vert:linear-gradient(150deg,#0E2C22 0%,#0B2419 100%);
   --tuile-chaud:linear-gradient(150deg,#2B2214 0%,#241B0F 100%);
@@ -355,7 +362,12 @@ h1,h2,h3,p{margin:0}
 .serie.active span{color:rgba(255,255,255,.85)}
 
 /* ═══ cartes ═══ */
-.carte{background:var(--surface);border-radius:var(--rl);box-shadow:var(--o1);overflow:hidden}
+/* Sur le dégradé gris-bleu, l'ombre suffisait à poser une carte. Sur un
+   blanc franc, blanc sur blanc ne se voit plus : il reste une ombre qui
+   flotte sans contour. Le filet le rend — c'est ce que font Trade
+   Republic et Apple, qui dessinent au trait plutôt qu'à l'ombre dès que
+   le fond est clair. L'ombre reste, en soutien. */
+.carte{background:var(--surface);border:1px solid var(--line);border-radius:var(--rl);box-shadow:var(--o1);overflow:hidden}
 /* La carte qui dit « non » se distingue sans crier : un liseré ambré, la
    couleur des cotisations, pas un rouge d'erreur. Il ne s'est rien passé
    de grave — il y a quelque chose à faire. Elle est écrite après .carte
@@ -835,7 +847,7 @@ button.r:active{background:var(--surface-2)}
   .duo .tuile .val{font-size:22px;letter-spacing:-.03em}
   .duo .tuile .lab,.duo .tuile .sous{font-size:12px}
 }
-.tuile{background:var(--tuile-neutre);border:0;border-radius:var(--rm);padding:19px 20px;box-shadow:var(--o1);display:flex;flex-direction:column;gap:4px;text-align:left;transition:transform .18s var(--doux),box-shadow .2s}
+.tuile{background:var(--tuile-neutre);border:1px solid var(--line);border-radius:var(--rm);padding:19px 20px;box-shadow:var(--o1);display:flex;flex-direction:column;gap:4px;text-align:left;transition:transform .18s var(--doux),box-shadow .2s}
 button.tuile:hover{transform:translateY(-2px);box-shadow:var(--o3)}
 button.tuile:active{transform:scale(.985)}
 .tuile .lab{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-3);font-weight:700}
@@ -2772,7 +2784,7 @@ summary.carte-tete:hover h2{color:var(--v1)}
 
 /* ═══ mêmes cartes que Calculs et Factures ═══ */
 #ilreste .cadre,#ilreste .card,#ilreste .echeance,#ilreste .impot{
-  border:0;border-radius:var(--rl);background:var(--surface);box-shadow:var(--o1);padding:21px 22px}
+  border:1px solid var(--rule);border-radius:var(--rl);background:var(--surface);box-shadow:var(--o1);padding:21px 22px}
 #ilreste .cadre .v{font-size:38px;letter-spacing:-.03em;line-height:1.1}
 /* Le disque reste à l'écran tant que rien n'est encaissé, mais gris et
    endormi : la légende dirait deux fois « 0 € », et l'attente n'a rien à
