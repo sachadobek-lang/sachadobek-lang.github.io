@@ -2812,6 +2812,19 @@ summary.carte-tete:hover h2{color:var(--v1)}
    portait deux chiffres différents — ce qu'il faut garder sur l'année, et
    ce qu'il faut déclarer ce mois-ci. Personne ne peut lire ça. */
 #ilreste .echeance{display:flex;gap:14px;align-items:center}
+#ilreste .impot{display:flex;gap:14px;align-items:center;width:100%;text-align:left;
+  font:inherit;color:inherit;cursor:pointer;border:0;
+  transition:transform .18s var(--doux)}
+#ilreste .impot[hidden]{display:none}
+#ilreste .impot:active{transform:scale(.985)}
+#ilreste .impot .ico{flex:none;width:56px;height:56px;border-radius:18px;
+  background:var(--moi-bg);display:grid;place-content:center;color:var(--moi)}
+#ilreste .impot .ico svg{width:25px;height:25px}
+#ilreste .impot .txt{flex:1;min-width:0}
+#ilreste .impot .txt b{display:block;font-size:16.5px;font-weight:600}
+#ilreste .impot .txt small{display:block;font-size:13.5px;color:var(--ink-soft);margin-top:2px}
+#ilreste .impot .fleche{flex:none;color:var(--ink-faint)}
+#ilreste .impot .fleche svg{width:19px;height:19px;display:block}
 #ilreste .echeance .compte{flex:none;width:56px;height:56px;border-radius:18px;
   background:var(--moi-bg);display:flex;flex-direction:column;align-items:center;
   justify-content:center;line-height:1}
@@ -3050,6 +3063,33 @@ summary.carte-tete:hover h2{color:var(--v1)}
       <span class="compte"><b id="e-nb">—</b><span id="e-unite">jours</span></span>
       <span class="txt"><b id="e-quoi">—</b><span id="t-quand">—</span></span>
     </div>
+
+    <!-- ═══ la déclaration d'impôt, remplie toute seule ═══
+         Ce geste n'a jamais disparu : il a été enterré le 17 octobre,
+         quand Calculs a quitté la barre des sous-onglets. Il fallait
+         alors passer par le Profil, puis « Le régler dans Calculs »,
+         puis défiler — trois écrans pour le geste le plus important de
+         l'année. Un geste qu'on ne retrouve pas est un geste qui
+         n'existe pas.
+         Il revient donc à côté de l'échéance URSSAF, qui est son
+         voisin naturel : les deux disent ce que l'État attend et quand.
+         Il ne s'affiche que pour un micro-entrepreneur — une société
+         ne déclare pas sur la 2042-C-PRO. -->
+    <button type="button" class="impot" id="impot" hidden>
+      <span class="ico">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7.5 3.5h6l4 4V19a1.5 1.5 0 0 1-1.5 1.5h-8.5A1.5 1.5 0 0 1 6 19V5A1.5 1.5 0 0 1 7.5 3.5Z"/>
+          <path d="M13.2 3.6v4.2h4.2"/><path d="M9.3 13.3h5.4"/><path d="M9.3 16.6h3.4"/>
+        </svg>
+      </span>
+      <span class="txt"><b>Ma déclaration d'impôt</b>
+        <small id="impot-sous">remplie pour vous</small></span>
+      <span class="fleche">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+             stroke-linecap="round" stroke-linejoin="round"><path d="M9.5 5.5 16 12l-6.5 6.5"/></svg>
+      </span>
+    </button>
 
     <!-- Cet encadré répétait « gardez ça de côté » et son montant, que
          la légende de l'anneau donnait déjà deux cents pixels plus haut :
@@ -5690,7 +5730,27 @@ function impotIS(benefice){
     : IS_SEUIL * IS_REDUIT / 100 + (b - IS_SEUIL) * IS_PLEIN / 100;
 }
 
+/* Ce que vous avez réellement encaissé cette année. Une seule
+   définition : le pont la donne à « Mon argent », partageImpot s'en
+   sert pour l'impôt, et les deux écrans ne peuvent plus se contredire. */
+function encaisseAn(){
+  return liste("factures")
+    .filter(f => compteDansLArgent(f) && String(dateReglement(f)).slice(0, 4) === anIci())
+    .reduce((t, f) => t + encaisseDe(f), 0);
+}
 function partageImpot(){
+  /* ═══ le chiffre ne dépend plus d'un écran visité ═══
+     calcCA n'était rempli que par vueCalculs(), à l'affichage de
+     l'écran Calculs. Tant qu'on n'y était pas passé, il valait zéro —
+     et tout ce qui s'appuie dessus répondait « rien à déclarer » à
+     quelqu'un qui a encaissé douze mille euros. Le défaut est resté
+     invisible tant que le bouton de déclaration vivait DANS cet écran :
+     on ne pouvait l'atteindre qu'après l'avoir rempli.
+     Mesuré le 22 octobre : encaissé 12 320 €, six factures réglées,
+     partageImpot().ca = 0.
+     Un calcul ne doit jamais dépendre d'un écran ouvert. Tant que
+     personne n'a tapé de chiffre à la main, la source est l'encaissé. */
+  if(!calcTouche) calcCA = encaisseAn();
   const ca = Number(calcCA) || 0;
   const f = FORMES[calcForme()];
   const a = ACTIVITES[calcStatut()] || ACTIVITES.services;
@@ -7050,6 +7110,9 @@ window.__CADENCE__ = {
      cotisations. Le taux n'a qu'une source, celle de ses
      coordonnées. */
   monTauxTva: () => Number(state.moi && state.moi.tva) || 20,
+  /* La 2042-C-PRO est remplie par le bloc 1, qui porte jsPDF, pdf-lib
+     et les coordonnées des cases. « Mon argent » n'a qu'à demander. */
+  remplirImpots: () => formulaireRempli(),
   /* faire une facture depuis « Mon argent » : c'est le même formulaire
      que partout ailleurs, il n'y en a qu'un */
   nouvelleFacture: prerempli => ouvrir("facture", prerempli || null),
@@ -7117,9 +7180,7 @@ window.__CADENCE__ = {
     id: f.id, client: f.client || "", ref: f.ref || "", montant: duSur(f),
     total: montantDe(f), deja: verse(f),
     desc: f.objet || "", emission: f.emise || auj(), echeance: f.echeance || auj(), exemple: !!f.demo})),
-  encaisse: () => liste("factures")
-    .filter(f => compteDansLArgent(f) && String(dateReglement(f)).slice(0, 4) === anIci())
-    .reduce((t, f) => t + encaisseDe(f), 0),
+  encaisse: () => encaisseAn(),
   /* Un encaissement se pose sur la facture qu'il règle. Il n'en crée une
      que s'il n'y en avait aucune — une vente au comptant, réglée sur
      place. C'est la même règle qu'ailleurs : l'argent n'a qu'une source. */
@@ -12794,6 +12855,19 @@ function rendreArgent(){
   }
   var dec = estSociete() || estEI() ? null : prochaineDeclaration();
   var fin = dec ? dec.fin : finDuMoisProchain();
+  /* ═══ la déclaration d'impôt ═══
+     Elle ne concerne que le micro-entrepreneur : une société déclare
+     ailleurs, et l'EI au réel aussi. Le bouton dit le montant qu'il va
+     écrire — un geste automatique qui n'annonce pas son résultat est un
+     geste qu'on n'ose pas déclencher. */
+  var bi = $("impot"), micro = !estSociete() && !estEI();
+  if(bi){
+    bi.hidden = !(micro && b.encaisse > 0);
+    if(!bi.hidden){
+      $("impot-sous").textContent = eur.format(b.encaisse) + " à reporter · remplie pour vous";
+    }
+  }
+
   var jrs = Math.max(0, Math.ceil((fin - new Date()) / 864e5));
   $("e-nb").textContent = estSociete() ? "—" : String(jrs);
   $("e-unite").textContent = jrs > 1 ? "jours" : "jour";
@@ -13026,6 +13100,10 @@ $("n-sans").addEventListener("click",function(){ saisirPour(null, null); });
 $("vierge-faire").addEventListener("click",function(){
   var C = window.__CADENCE__;
   if(C && C.allerAuxFactures) C.allerAuxFactures(this.dataset.neuve === "1");
+});
+$("impot").addEventListener("click",function(){
+  var C = window.__CADENCE__;
+  if(C && C.remplirImpots) C.remplirImpots();
 });
 /* Les deux boutons « J'ai été payé » ont disparu. On garde ouvrirRentree :
    c'est elle qui enregistre un acompte, et la ligne de facture l'appelle
