@@ -779,7 +779,13 @@ summary.groupe:hover{background:var(--line)}
   box-shadow:none;transition:transform .16s var(--ressort),opacity .2s}
 .faire-facture svg{width:20px;height:20px;stroke-width:2.6;fill:none}
 .faire-facture:hover{opacity:.9}
-.faire-facture:active{transform:scale(.982)}
+/* Un bouton qui ne bouge pas sous le doigt donne l'impression d'un écran
+   mort. Il s'enfonce, et il remonte avec un léger ressort — c'est tout ce
+   qu'il faut, et c'est ce que font les applications qu'on a envie de
+   rouvrir. */
+.faire-facture:active{transform:scale(.966)}
+.mini:active,.sup:active,.past:active,.pdf:active{transform:scale(.94)}
+.mini,.pdf{transition:transform .14s var(--ressort),background .2s,color .2s}
 
 /* ═══ la relance proposée ═══
    Aucune couleur chaude : un client qui n'a pas encore payé n'est pas une
@@ -2960,112 +2966,63 @@ summary.carte-tete:hover h2{color:var(--v1)}
    du gaspillage : c'était une autre direction, celle d'avant. */
 /* Noir, comme Revolut. Une valeur écrite en clair et non une variable :
    le voile se peint AVANT que le script ne pose le thème. */
-#demarrage{position:fixed;inset:0;z-index:200;
-  background:#000;
+#demarrage{position:fixed;inset:0;z-index:200;background:#000;
   display:flex;align-items:center;justify-content:center;
-  opacity:1;transition:opacity .28s var(--doux)}
+  opacity:1;transition:opacity .3s var(--doux)}
 #demarrage.parti{opacity:0;pointer-events:none}
 
-/* Petite. Les marques d'ouverture d'Apple et de Revolut occupent un
-   sixième de l'écran, pas la moitié : c'est la retenue qui fait le
-   sérieux. */
-#demarrage .marque{display:grid;place-content:center;
-  animation:demPose .52s var(--doux) forwards}
-@keyframes demPose{from{transform:scale(.965)} to{transform:scale(1)}}
-#demarrage .marque svg{width:min(44vw,164px);height:auto;display:block;overflow:visible}
+/* ═══ le nom, et rien d'autre ═══
+   Les lettres arrivent écartées de douze centièmes de cadratin et se
+   resserrent à deux : c'est le seul mouvement, il dure une demi-seconde,
+   et il suffit. Une marque d'ouverture occupe un sixième de l'écran chez
+   Apple comme chez Revolut — c'est la retenue qui fait le sérieux. */
+#demarrage .marque{position:relative;
+  font-family:var(--num);font-weight:600;
+  font-size:clamp(40px,11vw,54px);line-height:1;
+  color:#F2F5F9;letter-spacing:.12em;
+  animation:demNom .62s var(--doux) forwards}
+@keyframes demNom{
+  from{opacity:0;letter-spacing:.3em}
+  to{opacity:1;letter-spacing:.02em}
+}
 
-/* ═══ la lumière comme signe de chargement ═══
-   Sacha, le 29 septembre 2026 : « le fond du chargement c'est noir et
-   il y a de la lumière en signe de chargement sur le logo, mais garde
-   l'esprit Revolut ».
-   Donc pas un néon : un rail éteint, et UNE lueur qui le parcourt en
-   boucle. C'est elle qui dit « ça travaille », et elle le dit sans
-   crépiter — pas de tremblement, pas d'étincelles, pas de halo large.
-   Le rail paraît d'abord, la lueur part ensuite : la chose existe avant
-   qu'on l'éclaire. */
-#demarrage .rail{opacity:0;animation:demRail .22s var(--doux) forwards}
-@keyframes demRail{to{opacity:1}}
-#demarrage .lueur{opacity:0;animation:demLueur .3s .18s var(--doux) forwards}
-@keyframes demLueur{to{opacity:1}}
+/* ═══ la lumière, en signe de chargement ═══
+   Elle ne crépite pas et n'entoure rien : elle PASSE sur le mot, de
+   gauche à droite, comme un reflet sur du métal poli. Une seule fois,
+   lentement, et elle ne revient que si l'attente dure. */
+#demarrage .marque::after{content:"Cura";position:absolute;inset:0;
+  color:transparent;background:linear-gradient(100deg,
+    rgba(255,255,255,0) 38%, rgba(255,255,255,.92) 50%, rgba(255,255,255,0) 62%);
+  -webkit-background-clip:text;background-clip:text;
+  background-size:260% 100%;background-position:150% 0;
+  animation:demReflet 1.9s .34s var(--doux) infinite}
+@keyframes demReflet{to{background-position:-90% 0}}
 
-/* La sortie ne fait pas de numéro : la marque avance de trois centièmes
-   pendant qu'elle s'efface, et l'application est déjà là — même fond,
-   donc rien ne clignote. */
-#demarrage.parti .marque{animation:demPartir .28s var(--doux) forwards}
-@keyframes demPartir{to{transform:scale(1.03)}}
+/* La sortie ne fait pas de numéro : le mot avance de trois centièmes
+   pendant qu'il s'efface. */
+#demarrage.parti .marque{animation:demPartir .3s var(--doux) forwards}
+@keyframes demPartir{to{transform:scale(1.03);opacity:0}}
 
 @media (prefers-reduced-motion:reduce){
-  /* Le rail reste allumé ; c'est la lueur qui court qu'on retire. */
-  #demarrage .marque{animation:none}
-  #demarrage .rail{animation:none;opacity:1}
-  #demarrage .lueur{display:none}
+  #demarrage .marque{animation:none;opacity:1;letter-spacing:.02em}
+  #demarrage .marque::after{display:none}
   #demarrage.parti .marque{animation:none}
 }
 
 </style>
 
 <div id="demarrage" aria-hidden="true">
-  <span class="marque">
-    <svg viewBox="17 25 66 42" aria-hidden="true">
-      <defs>
-        <!-- ═══ le rail ═══
-             Un gris plat ne ressemble à rien. Un rail réel prend un peu
-             de lumière ambiante par le haut et s'assombrit par le bas :
-             c'est ce dégradé-là, et rien d'autre, qui lui donne de la
-             matière avant même qu'on l'éclaire. -->
-        <linearGradient id="dem-rail" gradientUnits="userSpaceOnUse" x1="50" y1="28" x2="50" y2="64">
-          <stop offset="0" stop-color="#4E5F74"/>
-          <stop offset="1" stop-color="#2A3442"/>
-        </linearGradient>
-
-        <!-- ═══ l'éclat qui parcourt le rail ═══
-             Étroit, et dissymétrique : un reflet réel a un cœur chaud et
-             une traîne derrière lui, pas une tache symétrique. L'axe est
-             donné en coordonnées du dessin, et ce sont ses deux
-             extrémités qu'on anime. La flèche vit entre 30 et 62 ; on
-             part de 96 pour sortir à -28, afin que l'éclat la traverse
-             entièrement au lieu d'apparaître et de disparaître dedans. -->
-        <linearGradient id="dem-course" gradientUnits="userSpaceOnUse" x1="50" y1="96" x2="50" y2="74">
-          <stop offset="0"    stop-color="#9FC4F2" stop-opacity="0"/>
-          <stop offset=".34"  stop-color="#D8E8FF" stop-opacity=".45"/>
-          <stop offset=".52"  stop-color="#FFFFFF" stop-opacity="1"/>
-          <stop offset=".68"  stop-color="#E6F0FF" stop-opacity=".40"/>
-          <stop offset="1"    stop-color="#9FC4F2" stop-opacity="0"/>
-          <!-- La course n'est pas régulière : elle s'élance, puis se pose,
-               puis laisse un temps avant de revenir. Une boucle qui tourne
-               sans respirer donne un sentiment de machine. -->
-          <animate attributeName="y1" dur="1.7s" repeatCount="indefinite"
-                   values="96;-6;-6" keyTimes="0;0.72;1"
-                   calcMode="spline" keySplines="0.42 0 0.18 1;0 0 1 1"/>
-          <animate attributeName="y2" dur="1.7s" repeatCount="indefinite"
-                   values="74;-28;-28" keyTimes="0;0.72;1"
-                   calcMode="spline" keySplines="0.42 0 0.18 1;0 0 1 1"/>
-        </linearGradient>
-
-        <filter id="dem-bloom" x="-120%" y="-120%" width="340%" height="340%">
-          <feGaussianBlur stdDeviation="3.1"/>
-        </filter>
-      </defs>
-
-      <!-- La lueur appartient à la partie ÉCLAIRÉE, pas à la marque
-           entière : un halo posé sur tout le dessin faisait rayonner le
-           rail éteint, ce qui ne se produit jamais. Elle voyage donc avec
-           l'éclat, large et floue, sous le rail. -->
-      <path class="lueur" d="M22 62 L40 46 L52 55 L78 30" fill="none"
-            stroke="url(#dem-course)" stroke-width="13" opacity=".55"
-            stroke-linecap="round" stroke-linejoin="round" filter="url(#dem-bloom)"/>
-
-      <!-- le rail, éteint -->
-      <path class="rail" d="M22 62 L40 46 L52 55 L78 30" fill="none"
-            stroke="url(#dem-rail)" stroke-width="6"
-            stroke-linecap="round" stroke-linejoin="round"/>
-
-      <!-- l'éclat, net, par-dessus -->
-      <path class="lueur" d="M22 62 L40 46 L52 55 L78 30" fill="none"
-            stroke="url(#dem-course)" stroke-width="6"
-            stroke-linecap="round" stroke-linejoin="round"/>
-    </svg>
-  </span>
+  <!-- Le signe était une flèche en zigzag posée sur un rail, avec une
+       lueur qui le parcourait. Sacha, 28 octobre : « change de signe,
+       que ce soit beaucoup plus classe. »
+       Un pictogramme demande qu'on le déchiffre ; un mot se lit. Trade
+       Republic, Revolut et Apple ouvrent tous sur leur nom, pas sur un
+       dessin — et depuis hier cette application se tient à la
+       typographie plutôt qu'aux formes. Le nom, donc, et rien d'autre.
+       Il arrive les lettres écartées et les resserre : le geste du
+       luxe, celui qui ne montre pas qu'il travaille. La lumière reste,
+       mais elle passe SUR le mot, une seule fois. -->
+  <span class="marque">Cura</span>
 </div>
 
 <button class="profil-btn" id="profil-btn" aria-label="Mon profil" title="Mon profil"></button>
@@ -5421,6 +5378,9 @@ function accepterDevis(id, signature){
   if(signature) apres.signature = Object.assign({ref: f.ref || "", emise: f.emise || "", echeance: f.echeance || ""}, signature);
   ecrire("factures", id, apres);
   filtreF = "encaisser"; memoire.clear(); rendre();
+  /* Un devis signé n'est pas encore de l'argent, c'est un chantier
+     gagné : on le marque, sans la fête des confettis. */
+  celebrer("bien");
   bulle(signature ? "Signé · c'est devenu une facture" : "Accepté · c'est devenu une facture");
   if(signature) telechargerDevisSigne(id);
   /* La troisième vie : le chantier. On ne l'impose pas — on le
@@ -7478,12 +7438,51 @@ function bulle(txt, genre){
   clearTimeout(minuteurBulle);
   minuteurBulle = setTimeout(() => b.classList.remove("on"), 2600);
 }
+/* ═══════════════════════════════════════════════════════════════
+   LA DOPAMINE, ET OÙ ELLE SE MET
+   ═══════════════════════════════════════════════════════════════
+   Sacha, 28 octobre : « que ça donne le plus envie », dans l'esprit de
+   Trade Republic et Revolut.
+
+   Ce qui donne envie de rouvrir une application d'argent n'est pas un
+   effet : c'est que les bons moments soient marqués. Avant aujourd'hui,
+   Cura ne célébrait qu'une chose — une journée d'agenda bouclée — et ne
+   vibrait qu'en déplaçant un bloc. Les trois moments qui comptent
+   vraiment pour un artisan ne produisaient rien du tout : un devis
+   accepté, une facture encaissée, l'argent qui bouge.
+
+   Trois intensités, pas une de plus :
+   · « touche »  — un battement de 10 ms, sur un geste qui engage ;
+   · « bien »    — deux battements, pour un devis signé ;
+   · « argent »  — confettis et trois battements, uniquement quand de
+                   l'argent est réellement encaissé.
+   Au-delà, la récompense perd son sens : si tout est fêté, rien ne l'est.
+   Et tout se tait si le téléphone demande moins d'animations. */
+function celebrer(niveau){
+  try{
+    if(navigator.vibrate && !reduit()){
+      if(niveau === "argent") navigator.vibrate([14, 60, 14, 60, 22]);
+      else if(niveau === "bien") navigator.vibrate([12, 70, 18]);
+      else navigator.vibrate(10);
+    }
+  }catch(e){}
+  if(niveau === "argent") confettis();
+}
+
 function confettis(){
   if(reduit()) return;
   const cv = $("#confettis"), ctx = cv.getContext("2d");
   const L = cv.width = window.innerWidth, H = cv.height = window.innerHeight;
   cv.hidden = false;
-  const teintes = ["#FF5E2B", "#FF9060", "#00B87C", "#FFC06B", "#FFFFFF"];
+  /* Cinq teintes de carnaval — orange vif, vert pomme — sur une
+     application qui n'en porte aucune : la fête ne ressemblait pas au
+     reste. Les confettis prennent les couleurs de Cura, avec le vert de
+     l'encaissement en tête, puisque c'est lui qu'on fête. */
+  const css = window.getComputedStyle(document.documentElement);
+  const jeton = n => (css.getPropertyValue(n) || "").trim();
+  const teintes = [jeton("--ok") || "#0E7D57", jeton("--tard") || "#A3670F",
+                   jeton("--v1") || "#2F3B4D", jeton("--ok-doux") || "#DDF1E8",
+                   jeton("--ink-3") || "#6B7890"];
   const p = [];
   for(let i = 0; i < 46; i++){
     p.push({x: L / 2 + (Math.random() - .5) * 120, y: H * .42,
@@ -8310,8 +8309,12 @@ $("#vue").addEventListener("click", e => {
     ouvrir("facture", {client: b.dataset.facturer, objet: (cl && cl.projet) || ""});
     return;
   }
-  if(b.dataset.pdf){ telechargerFacture(b.dataset.pdf); return; }
-  if(b.dataset.lien){ partagerDevis(b.dataset.lien); return; }
+  /* Un battement de dix millisecondes sur les gestes qui engagent
+     quelque chose : envoyer, sortir un document, enregistrer un
+     encaissement. C'est ce qui fait la différence entre appuyer sur un
+     écran et actionner quelque chose. */
+  if(b.dataset.pdf){ celebrer("touche"); telechargerFacture(b.dataset.pdf); return; }
+  if(b.dataset.lien){ celebrer("touche"); partagerDevis(b.dataset.lien); return; }
   if(b.dataset.recettes){ livreRecettes(); return; }
   if(b.dataset.formulaire){ formulaireRempli(); return; }
   if(b.dataset.feuille){ feuilleDeclaration(); return; }
@@ -8414,6 +8417,9 @@ $("#vue").addEventListener("click", e => {
     if(!f) return;
     ecrire("factures", b.dataset.paye, Object.assign({}, f, {statut: "payee",
       regle: f.regle || "Virement", regleLe: f.regleLe || auj()}));
+    /* L'argent est arrivé. C'est le seul geste de l'application qui le
+       dit, et le seul qui mérite les confettis. */
+    celebrer("argent");
     /* Le filtre par défaut est « À encaisser ». Marquer réglée la dernière
        facture due vidait donc la liste sous les doigts : l'écran répondait
        « aucune facture ici » à quelqu'un qui venait d'en encaisser une. On
