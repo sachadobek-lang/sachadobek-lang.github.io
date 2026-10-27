@@ -859,6 +859,18 @@ button.tuile:active{transform:scale(.985)}
 /* ═══ les pastilles ═══
    Ce que l'artisan fait le plus souvent, à portée de pouce. 44 px de haut :
    la plus petite cible qu'un doigt atteint sans viser. */
+/* ═══ les cibles tactiles sous la norme ═══
+   Mesuré le 27 octobre sur quatre écrans : 19 cibles sur 103 sous les
+   44 points d'Apple, dont deux sous les 24 pixels de WCAG 2.5.8 AA. Les
+   croix de suppression font 27 × 27 et il y en a douze sur l'écran
+   Clients. Un doigt ne vise pas : il appuie à côté, et sur une croix,
+   appuyer à côté veut dire appuyer sur autre chose.
+   La zone tactile s'étend donc sous l'élément sans rien changer à ce
+   qu'on voit — c'est ce que recommande Apple quand l'icône doit rester
+   petite. */
+.sup,.vide-x{position:relative}
+.sup::after,.vide-x::after{content:"";position:absolute;left:50%;top:50%;
+  width:44px;height:44px;transform:translate(-50%,-50%)}
 .pastilles{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 /* une carte qui se replie : le titre reste une tête de carte, avec un
    chevron qui dit qu'il y a autre chose dessous */
@@ -7541,6 +7553,30 @@ function prestationsFrequentes(n){
     .sort((a, b) => b.fois - a.fois || a.d.localeCompare(b.d, "fr"))
     .slice(0, n || 6);
 }
+/* ═══ ce qu'on refacture le plus souvent ═══
+   Mesuré le 27 octobre : sur sept factures réelles, zéro ne porte de
+   lignes détaillées — les lignes viennent des devis, et une facture de
+   dépannage s'écrit d'un trait. Proposer des lignes sur une facture ne
+   proposait donc jamais rien.
+   Ce qu'un artisan refacture, c'est un OBJET : « Dépannage fuite »,
+   « Entretien chaudière ». C'est là qu'il faut le chercher, avec le
+   dernier montant pratiqué. */
+function objetsFrequents(n){
+  const vu = {};
+  liste("factures").slice()
+    .sort((a, b) => String(a.emise || "").localeCompare(String(b.emise || "")))
+    .forEach(f => {
+      const o = String(f.objet || "").trim();
+      if(!o) return;
+      const k = o.toLowerCase();
+      if(!vu[k]) vu[k] = {d: o, pu: 0, fois: 0};
+      vu[k].fois++;
+      vu[k].pu = Number(f.montant) || vu[k].pu;
+    });
+  return Object.keys(vu).map(k => vu[k])
+    .sort((a, b) => b.fois - a.fois || a.d.localeCompare(b.d, "fr"))
+    .slice(0, n || 4);
+}
 /* Les derniers clients servis, sans doublon, le plus récent d'abord. */
 /* Le client qu'on vient d'ajouter compte autant qu'une facture : c'est
    lui qu'on veut chiffrer dans la minute. Avant, un client sans facture
@@ -7791,9 +7827,20 @@ const CHAMPS = {
     + "</details>"}),
 
   facture: () => ({titre: "Nouvelle facture", html:
-    '<div class="champ"><label for="f1">Pour qui ?</label><input id="f1" name="client" required maxlength="80" list="lc" placeholder="Nom du client" autocomplete="off"></div>'
+    /* ═══ la facture a les mêmes raccourcis que le devis ═══
+       Mesuré le 27 octobre : le devis se faisait en trois touches, la
+       facture demandait cinq champs tapés à la main. Deux formulaires
+       jumeaux, l'un moderne et l'autre à l'ancienne — c'est l'heuristique
+       de cohérence de Nielsen prise en défaut, et elle coûte cher : un
+       dépannage facturé sans devis est le cas le plus fréquent du métier,
+       et c'était celui qui tombait sur le mauvais formulaire. */
+    '<div class="champ"><label for="f1">Pour qui ?</label><input id="f1" name="client" required maxlength="80" list="lc" placeholder="Nom du client" autocomplete="off">'
+    + (enModif ? "" : pastilles(clientsRecents(3).map(c => ({cle: c, txt: c})), "data-ce-client"))
+    + "</div>"
     + '<div class="champ"><label for="f2">Combien ? (€)</label><input id="f2" name="montant" type="number" min="0.01" step="any" required placeholder="0" inputmode="decimal"></div>'
-    + '<div class="champ"><label for="f6">Pour quoi ?</label><input id="f6" name="objet" maxlength="120" placeholder="Comptoir et banquettes en chêne" autocomplete="off"></div>'
+    + '<div class="champ"><label for="f6">Pour quoi ?</label><input id="f6" name="objet" maxlength="120" placeholder="Comptoir et banquettes en chêne" autocomplete="off">'
+    + (enModif ? "" : pastilles(objetsFrequents(4).map(c => ({cle: c.d, txt: c.d, pu: c.pu})), "data-cet-objet"))
+    + "</div>"
     + '<p class="aide">' + (enModif
         ? "Sa date d'émission et son numéro ne changent pas."
         : "Elle sera notée comme envoyée aujourd'hui, à payer sous 30 jours.") + "</p>"
@@ -8544,6 +8591,19 @@ $("#feuille").addEventListener("click", e => {
     if(champ){ champ.value = qui.dataset.ceClient; champ.dispatchEvent(new Event("input", {bubbles: true})); }
     qui.parentElement.querySelectorAll(".past").forEach(x => x.removeAttribute("aria-pressed"));
     qui.setAttribute("aria-pressed", "true");
+    return;
+  }
+  /* Sur une facture il n'y a pas de lignes : la pastille pose l'objet et
+     le montant d'un coup. Le montant ne s'écrase que s'il est vide — le
+     tarif propose, il ne décide pas, comme partout ailleurs. */
+  const objet = e.target.closest("[data-cet-objet]");
+  if(objet){
+    const o = $("#feuille").querySelector('[name="objet"]');
+    const m = $("#feuille").querySelector('[name="montant"]');
+    if(o) o.value = objet.dataset.cetObjet;
+    if(m && !String(m.value).trim() && objet.dataset.pu) m.value = objet.dataset.pu;
+    objet.parentElement.querySelectorAll(".past").forEach(x => x.removeAttribute("aria-pressed"));
+    objet.setAttribute("aria-pressed", "true");
     return;
   }
   const quoi = e.target.closest("[data-cette-presta]");
