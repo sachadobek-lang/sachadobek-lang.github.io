@@ -281,6 +281,21 @@ h1,h2,h3,p{margin:0}
 .profil-btn svg{width:22px;height:22px;fill:none;stroke:currentColor;
   stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .profil-btn:active{transform:scale(.94)}
+/* ═══ une cible de coin n'est pas une cible de centre ═══
+   Steven Hoober, qui a observé 1 333 personnes se servir de leur
+   téléphone, puis repris ses mesures en 2017 : pour couvrir 95 % des
+   appuis il faut 7 mm au centre de l'écran, mais 12 mm dans les coins.
+   Sur un iPhone, 1 pt = 25,4/163 = 0,156 mm : cela fait 45 pt au centre
+   — c'est la règle Apple, que tout le monde applique partout — et 77 pt
+   dans un coin, que personne n'applique.
+   Ce bouton est le seul élément de Cura posé dans un vrai coin, et il
+   faisait 44. Sa zone tactile passe à 77 sans que son dessin change.
+   Hoober précise au passage que la fameuse carte de « zone du pouce »
+   tirée de son travail de 2013 est fausse, et qu'il faut cesser de s'en
+   servir : le contenu principal va au centre, les actions secondaires
+   le long des bords haut et bas, les tertiaires dans les coins. */
+.profil-btn::before{content:"";position:absolute;left:50%;top:50%;
+  width:77px;height:77px;transform:translate(-50%,-50%);border-radius:999px}
 .profil-btn[aria-current="page"]{box-shadow:var(--o2), 0 0 0 3px var(--surface), 0 0 0 5px var(--line-fort)}
 /* l'en-tête lui laisse la place plutôt que de passer dessous */
 .entete{padding-right:56px}
