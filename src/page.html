@@ -377,12 +377,41 @@ h1,h2,h3,p{margin:0}
 .serie.active span{color:rgba(255,255,255,.85)}
 
 /* ═══ cartes ═══ */
-/* Sur le dégradé gris-bleu, l'ombre suffisait à poser une carte. Sur un
-   blanc franc, blanc sur blanc ne se voit plus : il reste une ombre qui
-   flotte sans contour. Le filet le rend — c'est ce que font Trade
-   Republic et Apple, qui dessinent au trait plutôt qu'à l'ombre dès que
-   le fond est clair. L'ombre reste, en soutien. */
-.carte{background:var(--surface);border:1px solid var(--line);border-radius:var(--rl);box-shadow:var(--o1);overflow:hidden}
+/* ═══════════════════════════════════════════════════════════════
+   LE PARTI PRIS : À PLAT
+   ═══════════════════════════════════════════════════════════════
+   Sacha, 27 octobre : « le design est trop IA, je veux que ça
+   ressemble plus à Apple, Trade Republic. Trouve un design atypique,
+   et simple surtout. »
+
+   « Trop IA » n'est pas un ressenti vague, c'est une liste de signes, et
+   Cura les avait presque tous : des cartes arrondies empilées, des ombres
+   douces, des dégradés, des gélules partout. Ce sont les réglages par
+   défaut de tous les outils, donc la moyenne de tout ce qui existe — et
+   le diagnostic qui revient le plus chez ceux qui l'analysent est qu'il
+   n'y a pas de design derrière, il y a une absence de décision.
+
+   La décision est donc la suivante, et elle s'applique partout :
+
+   1 · Aucune carte. Les groupes sont séparés par du blanc et par un
+       filet fin, pas par une boîte qui flotte.
+   2 · Aucune ombre, aucun dégradé sur une surface.
+   3 · La hiérarchie se fait par la taille et la graisse du texte, pas
+       par des boîtes emboîtées.
+   4 · Les onglets se soulignent, ils ne s'enferment pas dans une gélule.
+   5 · Un seul geste plein par écran. Les arrondis ne restent que là :
+       sur ce qu'on touche, jamais sur ce qu'on lit.
+
+   Ce qui est gagné au passage : une carte coûte un fond, une bordure,
+   une ombre et un rayon pour dire « ceci va ensemble ». Un blanc et un
+   filet le disent aussi bien, et laissent la place aux chiffres. */
+.carte{background:none;border:0;border-radius:0;box-shadow:none;overflow:visible;
+  padding-top:26px;margin-top:26px;position:relative}
+/* Le filet qui sépare deux groupes part du texte, pas du bord de l'écran :
+   c'est ce décalage qui fait lire « ceci est une suite » plutôt que
+   « ceci est une boîte ». */
+.carte + .carte::before{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:var(--line)}
+.carte:first-of-type{padding-top:8px;margin-top:8px}
 /* La carte qui dit « non » se distingue sans crier : un liseré ambré, la
    couleur des cotisations, pas un rouge d'erreur. Il ne s'est rien passé
    de grave — il y a quelque chose à faire. Elle est écrite après .carte
@@ -734,13 +763,22 @@ summary.groupe:hover{background:var(--line)}
    elles-mêmes — comme « Nouveau client » avant qu'on ne le calme. C'est
    un raccourci, pas la réponse de l'écran : il prend le blanc des cartes,
    comme tout le reste. Même place, même taille, même geste. */
+/* Le seul geste plein de l'écran, et le seul endroit où il reste un
+   arrondi : sur ce qu'on touche, jamais sur ce qu'on lit. Il était blanc
+   dans une boîte blanche, c'est-à-dire invisible ; il est maintenant
+   plein, comme chez Trade Republic — un écran, un geste. */
 .faire-facture{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
-  border:1px solid var(--line);border-radius:var(--rl);padding:18px 22px;
-  background:var(--surface);color:var(--ink);
+  border:0;border-radius:14px;padding:17px 22px;
+  /* Le texte prend la couleur du FOND de la page, jamais un blanc fixe :
+     en thème sombre, --ink devient clair, et un blanc fixe posé dessus
+     donnait du blanc sur blanc — contraste mesuré 1,1, bouton illisible.
+     --ground est l'inverse de --ink dans les deux thèmes, par
+     construction. */
+  background:var(--ink);color:var(--ground);
   font-family:var(--num);font-weight:600;font-size:17.5px;letter-spacing:-.01em;
-  box-shadow:var(--o1);transition:transform .16s var(--ressort),background .2s}
+  box-shadow:none;transition:transform .16s var(--ressort),opacity .2s}
 .faire-facture svg{width:20px;height:20px;stroke-width:2.6;fill:none}
-.faire-facture:hover{background:var(--surface-2)}
+.faire-facture:hover{opacity:.9}
 .faire-facture:active{transform:scale(.982)}
 
 /* ═══ la relance proposée ═══
@@ -792,20 +830,22 @@ summary.groupe:hover{background:var(--line)}
   padding-top:14px;border-top:1px solid var(--line)}
 
 /* ═══ segments ═══ */
-.segments{display:flex;gap:5px;padding:7px;background:var(--surface-3);border-radius:999px;margin:16px 24px 12px}
+.segments{display:flex;gap:26px;padding:0;background:none;border-radius:0;
+  margin:18px 0 0;border-bottom:1px solid var(--line)}
 /* piste creusée, comme la barre de filtres : sur une piste blanche, la
    pastille active est blanche elle aussi, et quand elle se trouve à
    une extrémité les deux arrondis se superposent — on croit voir la
    pastille sortir de son cadre */
-.segments-haut{margin:0 0 4px;background:var(--surface-3);
-  box-shadow:inset 0 1px 2px rgba(20,32,46,.05)}
+.segments-haut{margin:14px 0 0;background:none;box-shadow:none}
 .segments::-webkit-scrollbar{display:none}
-.segments button{flex:1;border:0;background:none;color:var(--ink-2);padding:14px 10px;border-radius:999px;font-size:16.5px;font-weight:700;white-space:nowrap;text-align:center;transition:color .2s,background .2s}
+.segments button{flex:0 0 auto;border:0;background:none;color:var(--ink-3);
+  padding:0 0 13px;border-radius:0;font-size:16.5px;font-weight:600;white-space:nowrap;
+  text-align:left;transition:color .2s,box-shadow .2s}
 /* l'ombre doit tenir dans les 7 px de marge du conteneur : celle de
    --o1 porte à huit pixels et bavait sous la barre, ce qui donnait
    à la pastille active l'air de sortir de son cadre */
-.segments button[aria-pressed="true"]{background:var(--surface);color:var(--v1);
-  box-shadow:0 1px 2px rgba(20,32,46,.06), 0 4px 9px -6px rgba(20,32,46,.30)}
+.segments button[aria-pressed="true"]{background:none;color:var(--ink);
+  box-shadow:inset 0 -2px 0 var(--ink)}
 /* Sur un écran de 320 px — iPhone SE première génération — les trois
    libellés demandaient 286 px pour 256 disponibles, et « Calculs » sortait
    de la bande, coupé net par son bord arrondi. Les boutons ne pouvaient pas
@@ -862,7 +902,7 @@ button.r:active{background:var(--surface-2)}
   .duo .tuile .val{font-size:22px;letter-spacing:-.03em}
   .duo .tuile .lab,.duo .tuile .sous{font-size:12px}
 }
-.tuile{background:var(--tuile-neutre);border:1px solid var(--line);border-radius:var(--rm);padding:19px 20px;box-shadow:var(--o1);display:flex;flex-direction:column;gap:4px;text-align:left;transition:transform .18s var(--doux),box-shadow .2s}
+.tuile{background:none;border:0;border-radius:0;padding:2px 0 0;box-shadow:none;display:flex;flex-direction:column;gap:4px;text-align:left;transition:transform .18s var(--doux),box-shadow .2s}
 button.tuile:hover{transform:translateY(-2px);box-shadow:var(--o3)}
 button.tuile:active{transform:scale(.985)}
 .tuile .lab{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-3);font-weight:700}
@@ -914,14 +954,17 @@ button.tuile:active{transform:scale(.985)}
   box-shadow:var(--o1);transition:transform .18s var(--doux)}
 .retour-calculs:active{transform:scale(.97)}
 .retour-calculs svg{width:19px;height:19px;flex:none}
-.tuile.chaud{background:var(--tuile-chaud)}
+.tuile.chaud{background:none}
 .tuile.chaud .val,.tuile.chaud .sous,.tuile.chaud .lab{color:var(--tard)}
 /* l'argent qui attend chez les clients : bleu, comme l'attente partout
    ailleurs dans l'application. Ni vert — il n'est pas rentré — ni ambre,
    réservé au retard, et tout n'est pas en retard. */
-.tuile.bleu{background:var(--tuile-bleu)}
+/* Le fond coloré d'une tuile ne porte aucune information : c'est le
+   chiffre qui est vert ou bleu, pas la boîte autour. On garde la couleur
+   là où elle dit quelque chose et on retire le rectangle. */
+.tuile.bleu{background:none}
 .tuile.bleu .val,.tuile.bleu .sous,.tuile.bleu .lab{color:var(--attente)}
-.tuile.vert{background:var(--tuile-vert)}
+.tuile.vert{background:none}
 .tuile.vert .val{color:var(--ok)}
 
 /* ═══ qui rappeler aujourd'hui ═══
@@ -959,10 +1002,10 @@ button.tuile:active{transform:scale(.985)}
    liste. Même poids que le geste du jour, sur demande de Sacha —
    « plus petit, pas dans une case, en blanc ». */
 .neuf-client{display:flex;align-items:center;gap:9px;width:max-content;margin:0 auto 16px;
-  border:1px solid var(--line);border-radius:999px;padding:12px 22px;background:var(--surface);
-  color:var(--v-txt);font:inherit;font-size:15.5px;font-weight:700;box-shadow:var(--o1);
-  cursor:pointer;animation-delay:.04s;transition:background .18s,transform .12s}
-.neuf-client:hover{background:var(--surface-2)}
+  border:0;border-radius:0;padding:12px 4px;background:none;
+  color:var(--v-txt);font:inherit;font-size:16px;font-weight:600;box-shadow:none;
+  cursor:pointer;animation-delay:.04s;transition:opacity .18s,transform .12s}
+.neuf-client:hover{opacity:.7}
 .neuf-client:active{transform:scale(.97)}
 .neuf-client svg{width:17px;height:17px;stroke-width:2.3;fill:none;flex:none}
 @media (pointer:coarse){.neuf-client{padding:14px 24px}}
@@ -2810,8 +2853,11 @@ summary.carte-tete:hover h2{color:var(--v1)}
 #ilreste .enveloppe,#ilreste .wrap,#ilreste main{min-height:0;max-width:none}
 
 /* ═══ mêmes cartes que Calculs et Factures ═══ */
+/* Les quatre blocs de « Mon argent » suivent le même parti pris : plus de
+   boîte, un filet entre eux, et le texte reprend sa place. */
 #ilreste .cadre,#ilreste .card,#ilreste .echeance,#ilreste .impot{
-  border:1px solid var(--rule);border-radius:var(--rl);background:var(--surface);box-shadow:var(--o1);padding:21px 22px}
+  border:0;border-top:1px solid var(--rule);border-radius:0;background:none;
+  box-shadow:none;padding:20px 2px}
 #ilreste .cadre .v{font-size:38px;letter-spacing:-.03em;line-height:1.1}
 /* Le disque reste à l'écran tant que rien n'est encaissé, mais gris et
    endormi : la légende dirait deux fois « 0 € », et l'attente n'a rien à
